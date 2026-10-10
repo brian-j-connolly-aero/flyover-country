@@ -59,13 +59,20 @@ input, select { font: inherit; color: var(--text); background: #0a1630; border: 
 .setup, .loadscreen { position: absolute; inset: 0; overflow: auto; padding: 16px 20px 24px; }
 .setup-head { display: flex; align-items: center; gap: 16px; }
 .setup-head h1 { font-family: var(--display); letter-spacing: 0.08em; margin: 0; flex: 1; font-size: 34px; text-transform: uppercase; }
-.setup-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; margin: 14px 0; }
-.setup-bottom { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+/* Faction cards scroll on the left; seats, options and Start stay in view on the right. */
+.setup { display: flex; flex-direction: column; overflow: hidden; padding-bottom: 16px; }
+.setup-body { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 430px; gap: 18px; margin-top: 12px; }
+.setup-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 12px; align-content: start; overflow: auto; padding: 4px 8px 12px 4px; }
+.setup-side { display: flex; flex-direction: column; gap: 12px; min-height: 0; background: #0a1631; border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; }
+.setup-side-body { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 14px; }
+.setup-side > .big-btn { flex-shrink: 0; }
+.setup-side .side-h { margin-top: 0; }
 .seat-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; margin: 6px 0; background: var(--panel); border-left: 4px solid var(--fc); border-radius: 8px; }
 .seat-n { font-family: var(--display); font-size: 22px; color: var(--fc); width: 18px; }
-.seat-name { flex: 1; font-weight: 600; }
+.seat-name { flex: 1; min-width: 0; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.setup-side .seg { padding: 6px 8px; }
 .setup-opts { display: flex; flex-direction: column; gap: 10px; }
-.opt-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.opt-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
 
 .fcard { background: var(--panel); border: 1px solid var(--line); border-top: 3px solid var(--fc); border-radius: 12px; padding: 12px; }
 .fcard.pickable { cursor: pointer; transition: transform 0.12s, box-shadow 0.12s; }
@@ -217,7 +224,7 @@ input, select { font: inherit; color: var(--text); background: #0a1630; border: 
 .th-mini { background: #0d1d3d; border-left: 4px solid var(--fc, #4cc9f0); border-radius: 10px; padding: 1vh 1vw; font-size: 2vh; max-width: 30vw; }
 .th-mini.warn { --fc: #ff4d4d; }
 .th-mini-head { font-family: var(--display); letter-spacing: 0.08em; color: var(--fc, #4cc9f0); font-size: 1.8vh; }
-.th-quips { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.2vh 1.2vw; margin-top: 1.4vh; }
+.th-quips { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.2vh 1.2vw; margin-top: 1vh; }
 .th-quip { display: flex; gap: 0.8vw; align-items: center; background: #0b1730; border-radius: 12px; padding: 0.8vh 0.8vw; border-left: 4px solid var(--fc); }
 .th-quip-dog svg { width: 9vh; height: 9vh; }
 .th-quip-text { font-size: 2vh; line-height: 1.35; }
@@ -271,7 +278,7 @@ input, select { font: inherit; color: var(--text); background: #0a1630; border: 
 .th-report-actions .th-continue { margin: 0; }
 .th-report-actions .th-btn { font-size: 2vh; padding: 1vh 1.2vw; }
 .th-winner { display: flex; gap: 2vw; align-items: center; justify-content: center; margin: 1vh 0; }
-.th-winner-dog svg { width: 20vh; height: 20vh; }
+.th-winner-dog svg { width: 16vh; height: 16vh; }
 .th-winner-title { font-family: var(--display); letter-spacing: 0.3em; color: #ffd23f; font-size: 2.6vh; }
 .th-winner-name { font-family: var(--display); font-size: 6vh; color: var(--fc); line-height: 1.05; }
 .th-winner-quip { font-size: 2.2vh; margin-top: 1vh; max-width: 40vw; }
@@ -283,10 +290,15 @@ input, select { font: inherit; color: var(--text); background: #0a1630; border: 
 .th-final-row span:first-child { color: var(--fc, var(--dim)); font-family: var(--display); }
 .th-final-row .big { font-family: var(--mono); font-size: 3vh; font-weight: 700; }
 .th-race { display: flex; justify-content: center; }
-.th-race svg { width: 100%; height: auto; max-height: 30vh; }
+.th-race svg { width: 100%; height: auto; max-height: 27vh; }
 .th-losers { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1vw; margin-top: 1vh; }
-.final-actions { display: flex; gap: 12px; justify-content: center; margin-top: 16px; }
+.final-actions { display: flex; gap: 12px; justify-content: center; margin-top: 1.4vh; }
 .theater-window .th-center { inset: 10vh 2vw 9vh; }
+[data-phase="final"] .th-board { display: none; }
+[data-phase="final"] .th-center { inset: 2vh 2vw; }
+/* If a card is ever taller than the screen, its buttons stay in view. */
+.th-card > .th-continue, .th-report-actions, .final-actions { position: sticky; bottom: 0; z-index: 1; }
+.th-report-actions, .final-actions { background: linear-gradient(180deg, transparent, rgba(7, 14, 32, 0.96) 35%); padding-top: 0.6vh; }
 
 /* --- Controller (laptop while the TV plays) ------------------------------------------- */
 .controller, .wait { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
@@ -324,7 +336,10 @@ input, select { font: inherit; color: var(--text); background: #0a1630; border: 
 @media (max-width: 900px) {
   .plan-main { grid-template-columns: 1fr; grid-template-rows: 1fr 38vh; }
   .plan-side { border-left: 0; border-top: 1px solid var(--line); }
-  .setup-bottom { grid-template-columns: 1fr; }
+  .setup { overflow: auto; }
+  .setup-body { display: block; }
+  .setup-grid { overflow: visible; }
+  .setup-side { margin-top: 12px; }
   .coach { right: 12px; left: 12px; bottom: 150px; }
   .plan-btns { margin-left: 0; }
 }

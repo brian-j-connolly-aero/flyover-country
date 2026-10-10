@@ -70,7 +70,7 @@ tablet). Pick four factions, and make any seat a human or a bot. Then:
    dogfights, strikes and parachutes. Space pauses; 1, 2 and 4 set the speed.
 4. **Morning report**: the scorecards, a headline and the Play of the Night.
 
-**Laptop + TV:** choose "Laptop + TV window" at setup. A Theater window opens.
+**Laptop + TV:** choose "Laptop + TV" under Screens at setup. A Theater window opens.
 Drag it onto the TV and double-click it for full screen. It only ever gets
 public information. **One screen** works too, on the honor system.
 

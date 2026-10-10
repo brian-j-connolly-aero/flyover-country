@@ -178,7 +178,7 @@ export class App {
         const k = kinds.get(f) ?? 'human';
         const seg = (v: SeatKind, label: string) => h(`button.seg${k === v ? '.on' : ''}`, { onclick: () => { kinds.set(f, v); render(); } }, label);
         seats.appendChild(
-          h('div.seat-row', { style: { '--fc': faction(f).color } as unknown as CSSStyleDeclaration }, h('span.seat-n', `${i + 1}`), svg(emblemSvg(f, { size: 28 })), h('span.seat-name', faction(f).short), h('span.segs', seg('human', 'Human'), seg('easy', 'Bot: Easy'), seg('normal', 'Bot: Normal'))),
+          h('div.seat-row', { style: { '--fc': faction(f).color } as unknown as CSSStyleDeclaration }, h('span.seat-n', `${i + 1}`), h('span.seat-name', faction(f).short), h('span.segs', seg('human', 'Human'), seg('easy', 'Bot: Easy'), seg('normal', 'Bot: Normal'))),
         );
       });
       const humans = picked.filter((f) => kinds.get(f) === 'human').length;
@@ -212,18 +212,24 @@ export class App {
       h(
         'div.setup',
         h('div.setup-head', h('button.pbtn', { onclick: () => this.menu() }, '◂ Menu'), h('h1', 'Pick four factions'), h('button.pbtn', { onclick: random }, 'Random lineup')),
-        grid,
         h(
-          'div.setup-bottom',
-          seats,
+          'div.setup-body',
+          grid,
           h(
-            'div.setup-opts',
-            opt('Planning timer', [['0', 'Off'], ['90', '90 s'], ['180', '3 min']], () => String(options.timer), (v) => (options.timer = Number(v))),
-            opt('Screens', [['single', 'One screen'], ['two', 'Laptop + TV window']], () => options.theater, (v) => {
-              options.theater = v as 'single' | 'two';
-              if (v === 'two' && !this.remoteAlive) this.openTheaterWindow();
-            }),
-            h('div.side-note', 'Laptop + TV: a Theater window opens; drag it onto the TV. It only ever shows public information.'),
+            'div.setup-side',
+            h(
+              'div.setup-side-body',
+              seats,
+              h(
+                'div.setup-opts',
+                opt('Planning timer', [['0', 'Off'], ['90', '90 s'], ['180', '3 min']], () => String(options.timer), (v) => (options.timer = Number(v))),
+                opt('Screens', [['single', 'One screen'], ['two', 'Laptop + TV']], () => options.theater, (v) => {
+                  options.theater = v as 'single' | 'two';
+                  if (v === 'two' && !this.remoteAlive) this.openTheaterWindow();
+                }),
+                h('div.side-note', 'Laptop + TV: a Theater window opens; drag it onto the TV. It only ever shows public information.'),
+              ),
+            ),
             start,
           ),
         ),
