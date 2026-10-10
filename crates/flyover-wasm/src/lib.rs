@@ -34,6 +34,13 @@ pub struct LeaderDef {
     pub our_jewel_hit: Vec<String>,
     pub victory: Vec<String>,
     pub defeat: Vec<String>,
+    /// Project Bark Park: heading out, coming back, and firing the Big Fetch.
+    #[serde(default)]
+    pub retreat: Vec<String>,
+    #[serde(default)]
+    pub park_return: Vec<String>,
+    #[serde(default)]
+    pub fetch: Vec<String>,
 }
 
 /// Radio chatter, ace lines, leader lines, advisor text and headlines.
@@ -45,6 +52,9 @@ pub struct FlavorDef {
     pub advisor: BTreeMap<String, BTreeMap<String, Vec<String>>>,
     pub headlines: BTreeMap<String, Vec<String>>,
     pub curtain: BTreeMap<String, Vec<String>>,
+    /// "Also in the Sentinel": one small story on each dawn's front page.
+    #[serde(default)]
+    pub sidebar: Vec<String>,
 }
 
 #[derive(Serialize)]
@@ -251,5 +261,110 @@ impl Engine {
 
     pub fn state_hash(&self, state: &str) -> Result<String, JsValue> {
         Ok(state_hash(&self.state(state)?))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const FACTIONS: [&str; 7] = [
+        "Pacific",
+        "Cascadia",
+        "FrontRange",
+        "Texas",
+        "Dreamland",
+        "GrainBelt",
+        "Beehive",
+    ];
+
+    fn flavor() -> FlavorDef {
+        ron::from_str(include_str!("../../../content/flavor.ron")).expect("flavor.ron parses")
+    }
+
+    /// Every `{placeholder}` in `line` must be one of `allowed`.
+    fn check_placeholders(section: &str, line: &str, allowed: &[&str]) {
+        let mut rest = line;
+        while let Some(open) = rest.find('{') {
+            let close = rest[open..]
+                .find('}')
+                .unwrap_or_else(|| panic!("{section}: unclosed {{ in {line:?}"));
+            let name = &rest[open + 1..open + close];
+            assert!(
+                allowed.contains(&name),
+                "{section}: unknown placeholder {{{name}}} in {line:?}"
+            );
+            rest = &rest[open + close + 1..];
+        }
+    }
+
+    #[test]
+    fn flavor_is_complete_and_well_formed() {
+        let f = flavor();
+        let keys: Vec<&String> = f.chatter["Pacific"].keys().collect();
+        for fac in FACTIONS {
+            let ch = f
+                .chatter
+                .get(fac)
+                .unwrap_or_else(|| panic!("chatter.{fac}"));
+            let mine: Vec<&String> = ch.keys().collect();
+            assert_eq!(mine, keys, "chatter.{fac} has the same keys as Pacific");
+            for (k, lines) in ch {
+                assert!(!lines.is_empty(), "chatter.{fac}.{k} is empty");
+                for l in lines {
+                    assert!(l.chars().count() <= 90, "chatter.{fac}.{k} too long: {l:?}");
+                    check_placeholders("chatter", l, &["node", "enemy", "zone"]);
+                }
+            }
+            let ld = f
+                .leaders
+                .get(fac)
+                .unwrap_or_else(|| panic!("leaders.{fac}"));
+            for (k, lines) in [
+                ("pick", &ld.pick),
+                ("dawn", &ld.dawn),
+                ("winning", &ld.winning),
+                ("losing", &ld.losing),
+                ("our_jewel_hit", &ld.our_jewel_hit),
+                ("victory", &ld.victory),
+                ("defeat", &ld.defeat),
+            ] {
+                assert!(!lines.is_empty(), "leaders.{fac}.{k} is empty");
+            }
+            let adv = f
+                .advisor
+                .get(fac)
+                .unwrap_or_else(|| panic!("advisor.{fac}"));
+            for lines in adv.values() {
+                for l in lines {
+                    check_placeholders(
+                        "advisor",
+                        l,
+                        &[
+                            "unit", "count", "node", "nodes", "pct", "resource", "jewel", "reason",
+                        ],
+                    );
+                }
+            }
+            assert!(
+                f.curtain.get(fac).is_some_and(|c| !c.is_empty()),
+                "curtain.{fac}"
+            );
+        }
+        for (k, lines) in &f.headlines {
+            for l in lines {
+                check_placeholders(
+                    &format!("headlines.{k}"),
+                    l,
+                    &["attacker", "victim", "node", "ace", "count", "zone"],
+                );
+            }
+        }
+        for l in &f.sidebar {
+            assert!(
+                !l.contains('{'),
+                "sidebar lines have no placeholders: {l:?}"
+            );
+        }
     }
 }
