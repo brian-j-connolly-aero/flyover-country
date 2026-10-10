@@ -266,6 +266,12 @@ pub fn mission_check(
     if !can_order(world, sq.kind, m.kind()) {
         return Err(format!("{} can't do that.", world.unit(sq.kind).name));
     }
+    if sq.kind == UnitKind::Drone
+        && *m != Mission::Rest
+        && effect_active(state, sq.seat, EffectKind::NoDrones, state.night)
+    {
+        return Err("Scheduled maintenance: the Server Farm is down.".into());
+    }
     let nn = world.nodes.len() as u16;
     let nz = world.zones.len() as u16;
     let find = |id: u32| state.squadrons.iter().find(|s| s.id == id);

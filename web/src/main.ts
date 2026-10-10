@@ -15,7 +15,8 @@ async function boot() {
     setContent(engine.content);
     root.innerHTML = '';
     const app = new App(root, engine);
-    (window as unknown as { flyover: App }).flyover = app;
+    (window as unknown as { flyover: App; flyoverAudio: typeof audio }).flyover = app;
+    (window as unknown as { flyoverAudio: typeof audio }).flyoverAudio = audio;
     await app.menu();
   } catch (e) {
     console.error(e);

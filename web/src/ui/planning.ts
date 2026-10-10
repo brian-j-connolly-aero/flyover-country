@@ -259,8 +259,7 @@ export class PlanningScreen {
       list.appendChild(
         h(
           'div.park-note',
-          h('b', 'Everyone is at Project Bark Park tonight. '),
-          'Squadrons rest at home, and nothing can touch your land. Back at dawn with everything repaired, fresh squadrons and the Big Fetch. ',
+          h('span', h('b', '🎾 Everyone is at Project Bark Park tonight. '), 'Squadrons rest at home and nothing can touch your land.'),
           h('button.pbtn', { onclick: () => this.setRetreat(false) }, 'Call off the trip'),
         ),
       );
@@ -296,7 +295,7 @@ export class PlanningScreen {
       !down && !atPark && m.t !== 'Rest' ? h('button.sq-x', { title: 'Stay home and rest', onclick: (e: Event) => { e.stopPropagation(); this.setMission(s.id, { t: 'Rest' }); } }, '⌂') : null,
       !down && !atPark ? h('button.sq-more', { title: 'More orders', onclick: (e: Event) => { e.stopPropagation(); this.cardMenu(s, e as MouseEvent); } }, '⋯') : null,
     );
-    if (!down && !atPark) {
+    if (!down) {
       el.addEventListener('pointerdown', (e) => this.cardPointerDown(s.id, e));
     }
     return el;
@@ -322,7 +321,10 @@ export class PlanningScreen {
 
   private cardPointerDown(sq: number, e: PointerEvent) {
     if ((e.target as HTMLElement).closest('button')) return;
-    if (this.orders.retreat) return;
+    if (this.orders.retreat) {
+      toast("Not tonight: everyone's at Project Bark Park. Call off the trip to fly.");
+      return;
+    }
     e.preventDefault();
     const ghost = h('div.drag-ghost', svg(glyphSvg(this.view.faction, this.squad(sq)!.kind, 34)));
     this.cardDrag = { sq, ghost, x: e.clientX, y: e.clientY, moved: false };

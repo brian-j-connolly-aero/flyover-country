@@ -539,8 +539,8 @@ export class ShowPlayer {
         const gx = a[0] + (b[0] - a[0]) * k;
         const gy = a[1] + (b[1] - a[1]) * k;
         const lift = Math.sin(Math.PI * k);
-        g.ellipse(gx, gy, 9 - 4 * lift, 4 - 2 * lift).fill({ color: 0x000000, alpha: 0.35 });
-        this.ball(g, x, y, 7 + 9 * lift, k * 9);
+        g.ellipse(gx, gy, 12 - 5 * lift, 5 - 2 * lift).fill({ color: 0x000000, alpha: 0.35 });
+        this.ball(g, x, y, 10 + 16 * lift, k * 9);
       } else if (t >= f.tick && t < f.tick + 8) {
         // It bounces away, as balls do.
         const s = t - f.tick;
@@ -548,7 +548,7 @@ export class ShowPlayer {
         const x = b[0] + s * 5;
         const y = b[1] - Math.abs(Math.sin(s * 1.7)) * 10 * fade;
         g.ellipse(x, b[1] + 2, 6, 2.5).fill({ color: 0x000000, alpha: 0.25 * fade });
-        this.ball(g, x, y, 7, s * 3, fade);
+        this.ball(g, x, y, 9, s * 3, fade);
       }
     }
   }

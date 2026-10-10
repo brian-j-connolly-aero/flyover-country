@@ -76,6 +76,21 @@ tablet). Pick four factions, and make any seat a human or a bot. Then:
    dogfights, strikes and parachutes. Space pauses; 1, 2 and 4 set the speed.
 4. **Morning report**: the scorecards, a headline and the Play of the Night.
 
+**Nobody gets knocked out: Project Bark Park.** Fall far behind (last place
+and 10 or more Bragging Rights off the lead) or down to your last squadron,
+and you're *in the doghouse*. Once a game, between Nights 3 and 7, you can
+spend a night at Project Bark Park, a secret dog park at Four Corners. Your
+squadrons rest, and nothing can touch your land: bombs bounce off the fence.
+At dawn you're back with everything repaired, at least five squadrons, extra
+Supply and one shot of **the Big Fetch**: a stadium-sized tennis ball you can
+land on any target you could attack. It can't be intercepted, and a crown
+jewel counts as a full hit. Find it in the Faction tab.
+
+**Music:** four chiptune songs with an Ace Combat accent play by screen: the
+main theme on the menu and final results, "Briefing Room" while you read and
+plan, "Night Sortie" during the show, and "Gloves Off" for Nights 6–8. The
+menu has separate Sound and Music switches.
+
 **Laptop + TV:** choose "Laptop + TV" under Screens at setup. A Theater window opens.
 Drag it onto the TV and double-click it for full screen. It only ever gets
 public information. **One screen** works too, on the honor system.
@@ -119,6 +134,7 @@ to **GitHub Actions**. After that, every push to `main` deploys the game.
 | `crates/flyover-cli` | `flyover play`, `flyover balance`, `flyover hashes`, `flyover replay <save>`. |
 | `content/*.ron` | The map, units, factions, rules, Patch Notes and every line of flavor text. Loaded at startup, so balance changes need no recompile. |
 | `web/` | TypeScript + PixiJS frontend: planning window, Theater window, show playback, synthesized audio, saves, offline service worker. |
+| `web/src/music/` | The soundtrack: four songs written in MML (Music Macro Language, the classic chiptune notation) in `songs.ts`, a parser, and a WebAudio synth with NES-style voices. `node web/scripts/check-music.ts` checks every song. |
 | `tools/mapgen.py` | Builds `content/map.ron` from real coordinates, nudged apart so nothing overlaps on a TV. |
 
 The whole night resolves in one call, `resolve_night(state, orders) ->
@@ -143,13 +159,16 @@ the 20–30% win band:
 
 | Faction | Win rate | Avg. Bragging Rights |
 | --- | --- | --- |
-| Pacific Venture Republic | 21.5% | 46.5 |
-| Cascadian Commonwealth | 29.0% | 52.0 |
-| Front Range Free State | 23.6% | 47.9 |
-| Republic of Texas (Again) | 28.3% | 50.4 |
-| Dreamland Syndicate | 26.0% | 48.6 |
-| Grain Belt Union | 25.3% | 51.6 |
-| Beehive Cooperative | 21.3% | 46.4 |
+| Pacific Venture Republic | 25.8% | 49.6 |
+| Cascadian Commonwealth | 24.0% | 51.1 |
+| Front Range Free State | 21.5% | 48.3 |
+| Republic of Texas (Again) | 28.8% | 51.3 |
+| Dreamland Syndicate | 22.1% | 48.0 |
+| Grain Belt Union | 26.3% | 52.0 |
+| Beehive Cooperative | 26.5% | 49.7 |
+
+Project Bark Park gets about 1.7 visits a game. Visitors win 18% of the time
+and finish above last place 63% of the time.
 
 The average winning margin is 12 Bragging Rights, so most games stay close
 to the end.
@@ -186,6 +205,14 @@ rule-breaker. The main moves were:
   (3–5) and Gloves Off (6–8).
 - **Colorado's radar sale** needs both sides. Colorado lists a price, buyers
   name a region and a top price, and the deal delivers at dawn.
+- **Project Bark Park** answers "no player elimination". It's a comeback, not
+  a reset: in bot games, factions that visit win about 18% of the time (a
+  quarter would be average), and they climb out of last place in about two
+  games out of three. Bots always take the park when they can and save the
+  Big Fetch for Gloves Off.
+- **Utah's guards always get the first shot** (it used to be only when
+  defending a home). With someone at the park most games there is less in
+  the air, and Utah, which scores by defending, had slipped below 20%.
 - **Tone:** every line stays affectionate and about places and food. The
   Beehive's humor is fry sauce, green Jell-O, "oh my heck", casseroles and the
   Greatest Snow on Earth. There is nothing about religion.

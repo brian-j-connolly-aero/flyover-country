@@ -244,7 +244,8 @@ export class MapView {
       }
       this.label(`lm-${lm.id}`, lm.name.toUpperCase(), [x, y + 13], 'label-landmark');
     }
-    this.layers.base.addChild(g);
+    // Above the territory fills (Four Corners sits right on a border), under the nodes.
+    this.layers.nodes.addChildAt(g, 0);
   }
 
   /** Redraw territory for the seated factions (unseated home regions are Fallen). */

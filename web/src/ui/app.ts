@@ -268,10 +268,23 @@ export class App {
   load(save: SaveFile) {
     this.save = save;
     this.state = save.snapshots[save.snapshots.length - 1];
-    this.lastSummary = null;
+    this.lastSummary = this.recap(save);
     if (save.options.theater === 'two' && !this.remoteAlive) this.openTheaterWindow();
     if (save.nights.length >= this.engine.content.rules.nights) this.final();
     else this.dawn();
+  }
+
+  /** Last night's newspaper, rebuilt by resolving it again (the engine is deterministic). */
+  private recap(save: SaveFile): { headline: string; highlights: string[]; returned: number[] } | null {
+    const n = save.nights.length;
+    if (n === 0 || save.snapshots.length < n) return null;
+    try {
+      const r = this.engine.resolve(save.snapshots[n - 1], save.nights[n - 1].orders);
+      const sum = summarize(this.engine.content, r.events.filter((e) => e.public), save.factions, n, n * 977);
+      return { headline: sum.headline, highlights: sum.highlights, returned: sum.returned };
+    } catch {
+      return null;
+    }
   }
 
   private factions(): FactionId[] {

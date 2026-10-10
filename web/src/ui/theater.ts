@@ -238,7 +238,11 @@ export class Theater {
 
   private subtitle(who: string, color: string, text: string) {
     clear(this.subs);
-    const line = h('div.th-sub', h('span.th-sub-who', { style: { color } }, who + ':'), ' ', text);
+    // Mini-dialogues ("Griffin: ... | Pan: ...") name each speaker in turn.
+    const parts = turns(text);
+    const line = parts.some((t) => t.who)
+      ? h('div.th-sub', ...parts.flatMap((t, i) => [i ? ' ' : '', h('span.th-sub-who', { style: { color } }, (t.who ?? who) + ':'), ' ', t.text]))
+      : h('div.th-sub', h('span.th-sub-who', { style: { color } }, who + ':'), ' ', text);
     this.subs.appendChild(line);
     audio.play('squelch');
     setTimeout(() => line.classList.add('out'), 3600);

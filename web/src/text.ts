@@ -161,7 +161,8 @@ export function headline(key: string, params: Record<string, string>, salt: numb
   if (!line) return null;
   const up: Record<string, string> = {};
   for (const [k, v] of Object.entries(params)) up[k] = v.toUpperCase();
-  return fill(line, up);
+  // "TEXAS'S THE GULF REFINERY" reads better as "TEXAS'S GULF REFINERY".
+  return fill(line, up).replace(/'S THE /g, "'S ");
 }
 
 export function eventSalt(e: GameEvent, tick: number): number {
