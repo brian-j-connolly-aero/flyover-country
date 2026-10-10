@@ -102,11 +102,30 @@ impl Engine {
 #[wasm_bindgen]
 impl Engine {
     #[wasm_bindgen(constructor)]
-    pub fn new(map: &str, units: &str, factions: &str, rules: &str, patch_notes: &str, flavor: &str) -> Result<Engine, JsValue> {
-        let content = Content::parse(&ContentFiles { map, units, factions, rules, patch_notes }).map_err(err)?;
+    pub fn new(
+        map: &str,
+        units: &str,
+        factions: &str,
+        rules: &str,
+        patch_notes: &str,
+        flavor: &str,
+    ) -> Result<Engine, JsValue> {
+        let content = Content::parse(&ContentFiles {
+            map,
+            units,
+            factions,
+            rules,
+            patch_notes,
+        })
+        .map_err(err)?;
         let world = World::new(content).map_err(err)?;
-        let flavor: FlavorDef = ron::de::from_str(flavor).map_err(|e| err(format!("flavor.ron: {e}")))?;
-        Ok(Engine { world, flavor, cache: RefCell::new(None) })
+        let flavor: FlavorDef =
+            ron::de::from_str(flavor).map_err(|e| err(format!("flavor.ron: {e}")))?;
+        Ok(Engine {
+            world,
+            flavor,
+            cache: RefCell::new(None),
+        })
     }
 
     /// Everything the renderer needs to draw the map and write the words.
@@ -158,8 +177,12 @@ impl Engine {
         let planner = Planner::for_seat(&self.world, &st, o.seat);
         let mut out = Vec::new();
         for so in &o.missions {
-            let Some(sq) = st.squadrons.iter().find(|s| s.id == so.sq) else { continue };
-            if let Some(p) = risk::preview_with(&self.world, &st, &o, sq, &so.mission, so.waypoint, &planner) {
+            let Some(sq) = st.squadrons.iter().find(|s| s.id == so.sq) else {
+                continue;
+            };
+            if let Some(p) =
+                risk::preview_with(&self.world, &st, &o, sq, &so.mission, so.waypoint, &planner)
+            {
                 out.push(p);
             }
         }
@@ -171,7 +194,9 @@ impl Engine {
         let st = self.state(state)?;
         let o: Orders = serde_json::from_str(orders).map_err(err)?;
         let r: PreviewReq = serde_json::from_str(req).map_err(err)?;
-        let Some(sq) = st.squadrons.iter().find(|s| s.id == r.sq) else { return Ok("null".into()) };
+        let Some(sq) = st.squadrons.iter().find(|s| s.id == r.sq) else {
+            return Ok("null".into());
+        };
         let check = rules::mission_check(&self.world, &st, sq, &r.mission).err();
         let p = risk::preview(&self.world, &st, &o, sq, &r.mission, r.waypoint);
         to_json(&serde_json::json!({ "preview": p, "error": check }))
@@ -180,7 +205,9 @@ impl Engine {
     pub fn check_mission(&self, state: &str, sq: u32, mission: &str) -> Result<String, JsValue> {
         let st = self.state(state)?;
         let m: Mission = serde_json::from_str(mission).map_err(err)?;
-        let Some(s) = st.squadrons.iter().find(|s| s.id == sq) else { return to_json(&Some("No such squadron.")) };
+        let Some(s) = st.squadrons.iter().find(|s| s.id == sq) else {
+            return to_json(&Some("No such squadron."));
+        };
         to_json(&rules::mission_check(&self.world, &st, s, &m).err())
     }
 
@@ -192,7 +219,11 @@ impl Engine {
 
     pub fn suggest(&self, state: &str, seat: u8, level: &str) -> Result<String, JsValue> {
         let st = self.state(state)?;
-        let level = if level.eq_ignore_ascii_case("easy") { Level::Easy } else { Level::Normal };
+        let level = if level.eq_ignore_ascii_case("easy") {
+            Level::Easy
+        } else {
+            Level::Normal
+        };
         to_json(&plan::suggest(&self.world, &st, seat, level))
     }
 
@@ -201,11 +232,21 @@ impl Engine {
     }
 
     pub fn weak_spot(&self, state: &str, viewer: u8, target: u8) -> Result<String, JsValue> {
-        to_json(&analysis::weak_spot(&self.world, &self.state(state)?, viewer, target))
+        to_json(&analysis::weak_spot(
+            &self.world,
+            &self.state(state)?,
+            viewer,
+            target,
+        ))
     }
 
     pub fn best_targets(&self, state: &str, seat: u8) -> Result<String, JsValue> {
-        to_json(&analysis::best_targets(&self.world, &self.state(state)?, seat, 6))
+        to_json(&analysis::best_targets(
+            &self.world,
+            &self.state(state)?,
+            seat,
+            6,
+        ))
     }
 
     pub fn state_hash(&self, state: &str) -> Result<String, JsValue> {

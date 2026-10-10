@@ -82,10 +82,17 @@ export class MapView {
     L.nodes.addChild(this.nodeG, this.hiG);
     this.drawBase();
     this.app.ticker.add((t) => this.tick(t.deltaMS));
+    // Follow the container, not just the window (panels resize, overlays show and hide).
+    this.resizer = new ResizeObserver(() => {
+      if (!this.destroyed) this.app.resize();
+    });
+    this.resizer.observe(this.root);
   }
+  private resizer: ResizeObserver | null = null;
 
   destroy() {
     this.destroyed = true;
+    this.resizer?.disconnect();
     this.app.destroy(true, { children: true });
     this.labels.remove();
   }

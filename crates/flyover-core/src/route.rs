@@ -32,7 +32,9 @@ pub fn threats_for(world: &World, state: &GameState, seat: u8) -> Vec<Threat> {
         if owner == seat {
             continue;
         }
-        let h = known.and_then(|k| k.get(n.idx as usize).copied()).unwrap_or(ns.health);
+        let h = known
+            .and_then(|k| k.get(n.idx as usize).copied())
+            .unwrap_or(ns.health);
         if h == 0 {
             continue;
         }
@@ -41,7 +43,11 @@ pub fn threats_for(world: &World, state: &GameState, seat: u8) -> Vec<Threat> {
         } else {
             ad.range
         };
-        out.push(Threat { pos: n.pos, radius, weight: h as i32 });
+        out.push(Threat {
+            pos: n.pos,
+            radius,
+            weight: h as i32,
+        });
     }
     out
 }
@@ -72,7 +78,8 @@ fn segment_penalty(threats: &[Threat], a: P, b: P) -> i32 {
 fn crosses_static(world: &World, a: P, b: P) -> bool {
     let len = dist(a, b).max(1);
     let steps = (len / 12).max(1);
-    (0..=steps).any(|i| world.in_static((a.0 + (b.0 - a.0) * i / steps, a.1 + (b.1 - a.1) * i / steps)))
+    (0..=steps)
+        .any(|i| world.in_static((a.0 + (b.0 - a.0) * i / steps, a.1 + (b.1 - a.1) * i / steps)))
 }
 
 /// A cached threat grid for one seat's picture of the sky. Building the grid
@@ -93,10 +100,20 @@ impl<'a> Planner<'a> {
         for y in 0..gh {
             for x in 0..gw {
                 let p = (x * CELL + CELL / 2, y * CELL + CELL / 2);
-                cost[(y * gw + x) as usize] = if world.in_static(p) { -1 } else { penalty(&threats, p) };
+                cost[(y * gw + x) as usize] = if world.in_static(p) {
+                    -1
+                } else {
+                    penalty(&threats, p)
+                };
             }
         }
-        Planner { world, threats, cost, gw, gh }
+        Planner {
+            world,
+            threats,
+            cost,
+            gw,
+            gh,
+        }
     }
 
     pub fn for_seat(world: &'a World, state: &GameState, seat: u8) -> Planner<'a> {
@@ -111,11 +128,14 @@ impl<'a> Planner<'a> {
             return vec![from, w, to];
         }
         let end_pen = penalty(threats, to);
-        if segment_penalty(threats, from, to) <= end_pen.max(penalty(threats, from)) && !crosses_static(world, from, to) {
+        if segment_penalty(threats, from, to) <= end_pen.max(penalty(threats, from))
+            && !crosses_static(world, from, to)
+        {
             return vec![from, to];
         }
         let (gw, gh) = (self.gw, self.gh);
-        let cell_of = |p: P| -> (i32, i32) { ((p.0 / CELL).clamp(0, gw - 1), (p.1 / CELL).clamp(0, gh - 1)) };
+        let cell_of =
+            |p: P| -> (i32, i32) { ((p.0 / CELL).clamp(0, gw - 1), (p.1 / CELL).clamp(0, gh - 1)) };
         let center = |c: (i32, i32)| -> P { (c.0 * CELL + CELL / 2, c.1 * CELL + CELL / 2) };
         let idx = |c: (i32, i32)| -> usize { (c.1 * gw + c.0) as usize };
         let n = (gw * gh) as usize;
@@ -139,8 +159,16 @@ impl<'a> Planner<'a> {
         let mut heap = BinaryHeap::new();
         g[idx(s)] = 0;
         heap.push(Reverse((h(s), idx(s))));
-        const DIRS: [(i32, i32, i32); 8] =
-            [(1, 0, 10), (-1, 0, 10), (0, 1, 10), (0, -1, 10), (1, 1, 14), (1, -1, 14), (-1, 1, 14), (-1, -1, 14)];
+        const DIRS: [(i32, i32, i32); 8] = [
+            (1, 0, 10),
+            (-1, 0, 10),
+            (0, 1, 10),
+            (0, -1, 10),
+            (1, 1, 14),
+            (1, -1, 14),
+            (-1, 1, 14),
+            (-1, -1, 14),
+        ];
         while let Some(Reverse((f, u))) = heap.pop() {
             if u == idx(t) {
                 break;
@@ -211,7 +239,9 @@ fn smooth(world: &World, threats: &[Threat], pts: &[P]) -> Vec<P> {
             for w in pts[i..=j].windows(2) {
                 worst_path = worst_path.max(segment_penalty(threats, w[0], w[1]));
             }
-            if segment_penalty(threats, pts[i], pts[j]) <= worst_path && !crosses_static(world, pts[i], pts[j]) {
+            if segment_penalty(threats, pts[i], pts[j]) <= worst_path
+                && !crosses_static(world, pts[i], pts[j])
+            {
                 best = j;
                 break;
             }
@@ -241,7 +271,10 @@ pub fn threats_crossed(threats: &[Threat], path: &[P]) -> Vec<usize> {
             let len = dist(w[0], w[1]).max(1);
             let steps = (len / 8).max(1);
             (0..=steps).any(|i| {
-                let p = (w[0].0 + (w[1].0 - w[0].0) * i / steps, w[0].1 + (w[1].1 - w[0].1) * i / steps);
+                let p = (
+                    w[0].0 + (w[1].0 - w[0].0) * i / steps,
+                    w[0].1 + (w[1].1 - w[0].1) * i / steps,
+                );
                 dist2(p, t.pos) <= r2
             })
         });

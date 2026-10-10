@@ -28,7 +28,11 @@ pub fn believed_health(state: &GameState, viewer: u8) -> Vec<u8> {
             if n.owner == Some(viewer) {
                 n.health
             } else {
-                state.intel.get(viewer as usize).and_then(|k| k.known.get(i).copied()).unwrap_or(n.health)
+                state
+                    .intel
+                    .get(viewer as usize)
+                    .and_then(|k| k.known.get(i).copied())
+                    .unwrap_or(n.health)
             }
         })
         .collect()
@@ -42,7 +46,12 @@ pub fn weak_spot(world: &World, state: &GameState, viewer: u8, target: u8) -> We
     let candidates: Vec<u16> = world
         .nodes
         .iter()
-        .filter(|n| state.nodes[n.idx as usize].owner == Some(target) && n.kind.on_network() && n.kind != NodeKind::Capital && base[n.idx as usize] > 0)
+        .filter(|n| {
+            state.nodes[n.idx as usize].owner == Some(target)
+                && n.kind.on_network()
+                && n.kind != NodeKind::Capital
+                && base[n.idx as usize] > 0
+        })
         .map(|n| n.idx)
         .collect();
     let loss = |nodes: &[u16]| -> (i32, i32) {
@@ -72,10 +81,29 @@ pub fn weak_spot(world: &World, state: &GameState, viewer: u8, target: u8) -> We
         }
     }
     let (s_loss, f_loss) = best.2;
-    let s_pct = if full.supply > 0 { s_loss * 100 / full.supply } else { 0 };
-    let f_pct = if full.fuel > 0 { f_loss * 100 / full.fuel } else { 0 };
-    let (pct, resource) = if f_pct > s_pct { (f_pct, "Fuel") } else { (s_pct, "Supply") };
-    WeakSpot { seat: target, nodes: best.1, supply_loss: s_loss, fuel_loss: f_loss, pct, resource: resource.into() }
+    let s_pct = if full.supply > 0 {
+        s_loss * 100 / full.supply
+    } else {
+        0
+    };
+    let f_pct = if full.fuel > 0 {
+        f_loss * 100 / full.fuel
+    } else {
+        0
+    };
+    let (pct, resource) = if f_pct > s_pct {
+        (f_pct, "Fuel")
+    } else {
+        (s_pct, "Supply")
+    };
+    WeakSpot {
+        seat: target,
+        nodes: best.1,
+        supply_loss: s_loss,
+        fuel_loss: f_loss,
+        pct,
+        resource: resource.into(),
+    }
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -87,7 +115,13 @@ pub struct TargetInfo {
 
 /// How much knocking `node` down a step is worth to `seat` tonight (by value,
 /// never by who's winning).
-pub fn node_value(world: &World, state: &GameState, seat: u8, node: u16, health: &[u8]) -> (i32, String) {
+pub fn node_value(
+    world: &World,
+    state: &GameState,
+    seat: u8,
+    node: u16,
+    health: &[u8],
+) -> (i32, String) {
     let n = &world.nodes[node as usize];
     let ns = &state.nodes[node as usize];
     let sc = &world.rules().scoring;
@@ -101,12 +135,21 @@ pub fn node_value(world: &World, state: &GameState, seat: u8, node: u16, health:
     let mut why;
     match n.kind {
         NodeKind::CrownJewel => {
-            v = if n.home == Some(FactionId::GrainBelt) { sc.twine } else { sc.jewel } * 10 + 30;
+            v = if n.home == Some(FactionId::GrainBelt) {
+                sc.twine
+            } else {
+                sc.jewel
+            } * 10
+                + 30;
             why = "Crown jewel: big Bragging Rights and a nasty side effect.".to_string();
         }
         NodeKind::City | NodeKind::Factory => {
             v = sc.city_step * 10;
-            why = if n.kind == NodeKind::City { "A city: Supply and Bragging Rights.".into() } else { "A factory: slows their builds.".into() };
+            why = if n.kind == NodeKind::City {
+                "A city: Supply and Bragging Rights.".into()
+            } else {
+                "A factory: slows their builds.".into()
+            };
         }
         _ => {
             v = sc.other_step * 10;
@@ -133,7 +176,11 @@ pub fn node_value(world: &World, state: &GameState, seat: u8, node: u16, health:
         v += econ;
     }
     if matches!(n.kind, NodeKind::Airbase | NodeKind::Boneyard) {
-        let parked = state.squadrons.iter().filter(|s| s.base == node && s.active()).count() as i32;
+        let parked = state
+            .squadrons
+            .iter()
+            .filter(|s| s.base == node && s.active())
+            .count() as i32;
         v += parked * 4;
     }
     if n.kind == NodeKind::AirDefense {
@@ -153,7 +200,11 @@ pub fn best_targets(world: &World, state: &GameState, seat: u8, limit: usize) ->
         .filter(|n| rules::attack_check(world, state, seat, n.idx).is_ok())
         .map(|n| {
             let (value, why) = node_value(world, state, seat, n.idx, &health);
-            TargetInfo { node: n.idx, value, why }
+            TargetInfo {
+                node: n.idx,
+                value,
+                why,
+            }
         })
         .filter(|t| t.value > 0)
         .collect();

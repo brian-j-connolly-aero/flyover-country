@@ -128,7 +128,7 @@ node("bee_capital", "Salt Lake City", "Capital", "Beehive", 40.76, -111.89, tag=
 node("bee_provo", "Provo", "City", "Beehive", 40.23, -111.66, tag="Sensible sweaters and remarkable efficiency.")
 node("bee_stgeorge", "St. George", "City", "Beehive", 37.1, -113.58, tag="Red rock, golf and a lot of minivans.")
 node("bee_oil", "Uinta Basin Oil", "Fuel", "Beehive", 40.3, -109.8, tag="Fuel, dinosaurs and very few people.")
-node("bee_factory", "Ogden Works", "Factory", "Beehive", 41.22, -111.97, tag="Industry is the state motto. They mean it.")
+node("bee_factory", "Logan Works", "Factory", "Beehive", 41.73, -111.83, tag="Industry is the state motto. They mean it.")
 node("bee_ab_wendover", "Wendover Field", "Airbase", "Beehive", 40.73, -114.03, tag="Half in Utah, half in a casino.")
 node("bee_ab_moab", "Moab Field", "Airbase", "Beehive", 38.57, -109.55, tag="Arches on the left, runway on the right.")
 node("bee_radar", "Brian Head Radar", "Radar", "Beehive", 37.69, -112.85, tag="A ski resort that also watches the skies.")
@@ -136,7 +136,7 @@ node("bee_ad_wasatch", "Wasatch Battery", "AirDefense", "Beehive", 40.45, -111.3
 node("bee_ad_richfield", "Richfield Battery", "AirDefense", "Beehive", 38.77, -112.08, tag="Watches I-70 and the pie shop.")
 node("bee_jct_spike", "Golden Spike Junction", "Junction", "Beehive", 41.62, -112.55, tag="Where the railroads met. They still meet here.")
 node("bee_jct_green", "Green River Junction", "Junction", "Beehive", 38.99, -110.16, tag="Melons, rail and a long way to anywhere.")
-node("bee_jewel", "Strategic Fry Sauce Reserve", "CrownJewel", "Beehive", 40.5, -112.4, tag="Pink, beloved at every dinner, and stored in bulk.")
+node("bee_jewel", "Strategic Fry Sauce Reserve", "CrownJewel", "Beehive", 39.35, -111.6, tag="Pink, beloved at every dinner, and stored in bulk.")
 node("lake_salt", "Great Salt Lake", "Lake", None, 41.15, -112.6, tag="Floats anything. Including floatplanes.")
 
 # Front Range Free State
@@ -205,7 +205,7 @@ node("be_ts_kingman", "Kingman Truck Stop", "TruckStop", None, 35.19, -114.05, 1
 node("be_ts_flagstaff", "Flagstaff Truck Stop", "TruckStop", None, 35.2, -111.65, 1, "Ponderosa pines and diesel.")
 node("be_ts_gallup", "Gallup Truck Stop", "TruckStop", None, 35.53, -108.74, 1, "Neon motel, full tanks.")
 node("be_ts_tucumcari", "Tucumcari Truck Stop", "TruckStop", None, 35.17, -103.72, 1, "Tucumcari tonight! Two thousand motel rooms, one fuel cache.")
-node("be_ab_twinfalls", "Twin Falls Field", "Airbase", None, 42.56, -114.46, 1, "Abandoned airbase on the Snake River.")
+node("be_ab_twinfalls", "Twin Falls Field", "Airbase", None, 42.56, -114.46, 1, "Abandoned airbase on the Snake River. A forward base for whoever holds it.")
 node("be_ab_greatfalls", "Great Falls Field", "Airbase", None, 47.5, -111.3, 1, "Abandoned airbase under the big sky.")
 node("be_ab_casper", "Casper Field", "Airbase", None, 42.87, -106.31, 1, "Abandoned airbase. The wind kept it clean.")
 node("be_ab_albuquerque", "Albuquerque Field", "Airbase", None, 35.04, -106.61, 1, "Abandoned airbase. Balloon fiesta every October anyway.")

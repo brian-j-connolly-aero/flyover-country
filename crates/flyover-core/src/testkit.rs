@@ -9,7 +9,13 @@ pub const RULES: &str = include_str!("../../../content/rules.ron");
 pub const PATCH_NOTES: &str = include_str!("../../../content/patch_notes.ron");
 
 pub fn files() -> ContentFiles<'static> {
-    ContentFiles { map: MAP, units: UNITS, factions: FACTIONS, rules: RULES, patch_notes: PATCH_NOTES }
+    ContentFiles {
+        map: MAP,
+        units: UNITS,
+        factions: FACTIONS,
+        rules: RULES,
+        patch_notes: PATCH_NOTES,
+    }
 }
 
 pub fn world() -> World {

@@ -37,6 +37,9 @@ pub struct GameState {
     /// Node health as everyone knows it (strikes are public; repairs are not).
     #[serde(default)]
     pub public_health: Vec<u8>,
+    /// The White Sands Mass Driver has one shot per game.
+    #[serde(default)]
+    pub mass_driver_fired: bool,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -173,15 +176,33 @@ pub struct NightRecord {
 pub enum Mission {
     #[default]
     Rest,
-    Attack { node: u16 },
-    Guard { node: u16 },
-    GuardZone { zone: u16 },
-    Escort { sq: u32 },
-    Sweep { zone: u16 },
-    Scout { zone: u16 },
-    JamZone { zone: u16 },
-    JamEscort { sq: u32 },
-    Rebase { node: u16 },
+    Attack {
+        node: u16,
+    },
+    Guard {
+        node: u16,
+    },
+    GuardZone {
+        zone: u16,
+    },
+    Escort {
+        sq: u32,
+    },
+    Sweep {
+        zone: u16,
+    },
+    Scout {
+        zone: u16,
+    },
+    JamZone {
+        zone: u16,
+    },
+    JamEscort {
+        sq: u32,
+    },
+    Rebase {
+        node: u16,
+    },
 }
 
 impl Mission {

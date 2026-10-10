@@ -23,7 +23,13 @@ pub struct Warning {
 }
 
 fn warn(key: &str, severity: u8) -> Warning {
-    Warning { key: key.into(), severity, params: BTreeMap::new(), sq: None, node: None }
+    Warning {
+        key: key.into(),
+        severity,
+        params: BTreeMap::new(),
+        sq: None,
+        node: None,
+    }
 }
 
 impl Warning {
@@ -39,14 +45,23 @@ pub fn advise(world: &World, state: &GameState, seat: u8, orders: &Orders) -> Ve
     let f = rules::faction(st, seat);
     let stage = rules::stage(w, st.night);
     let planner = Planner::for_seat(w, st, seat);
-    let mine: Vec<&Squadron> = st.squadrons.iter().filter(|s| s.seat == seat && s.active()).collect();
+    let mine: Vec<&Squadron> = st
+        .squadrons
+        .iter()
+        .filter(|s| s.seat == seat && s.active())
+        .collect();
     let mission_of = |id: u32| -> (Mission, Option<flyover_core::content::P>) {
         orders
             .missions
             .iter()
             .find(|o| o.sq == id)
             .map(|o| (o.mission.clone(), o.waypoint))
-            .unwrap_or_else(|| mine.iter().find(|s| s.id == id).map(|s| (s.order.clone(), s.waypoint)).unwrap_or((Mission::Rest, None)))
+            .unwrap_or_else(|| {
+                mine.iter()
+                    .find(|s| s.id == id)
+                    .map(|s| (s.order.clone(), s.waypoint))
+                    .unwrap_or((Mission::Rest, None))
+            })
     };
     let mut out: Vec<Warning> = Vec::new();
     let mut fuel_needed = 0;
@@ -68,7 +83,11 @@ pub fn advise(world: &World, state: &GameState, seat: u8, orders: &Orders) -> Ve
             continue;
         }
         if let Err(r) = rules::mission_check(w, st, s, &m) {
-            out.push(warn("invalid", 3).p("unit", &w.unit(s.kind).name).p("reason", r));
+            out.push(
+                warn("invalid", 3)
+                    .p("unit", &w.unit(s.kind).name)
+                    .p("reason", r),
+            );
             continue;
         }
         match m {
@@ -82,14 +101,14 @@ pub fn advise(world: &World, state: &GameState, seat: u8, orders: &Orders) -> Ve
                     jewel_covered = true;
                 }
             }
-            Mission::GuardZone { zone } => {
-                if w.zones[zone as usize].region.faction() == Some(f) {
-                    guards_home = true;
-                }
+            Mission::GuardZone { zone } if w.zones[zone as usize].region.faction() == Some(f) => {
+                guards_home = true;
             }
             _ => {}
         }
-        let Some(p) = risk::preview_with(w, st, orders, s, &m, wp, &planner) else { continue };
+        let Some(p) = risk::preview_with(w, st, orders, s, &m, wp, &planner) else {
+            continue;
+        };
         flying += 1;
         fuel_needed += p.fuel;
         if fuel_needed > fuel {
@@ -98,15 +117,27 @@ pub fn advise(world: &World, state: &GameState, seat: u8, orders: &Orders) -> Ve
         let unit = unit_label(w, st, s);
         if p.color == RiskColor::Red && reds < 2 {
             reds += 1;
-            let sev = if matches!(w.unit(s.kind).class, CombatClass::Bomber | CombatClass::Drone) { 3 } else { 2 };
-            let mut wn = warn("red_route", sev).p("unit", &unit).p("reason", &p.reason);
+            let sev = if matches!(
+                w.unit(s.kind).class,
+                CombatClass::Bomber | CombatClass::Drone
+            ) {
+                3
+            } else {
+                2
+            };
+            let mut wn = warn("red_route", sev)
+                .p("unit", &unit)
+                .p("reason", &p.reason);
             wn.sq = Some(s.id);
             out.push(wn);
         } else if matches!(m, Mission::Attack { .. })
             && !p.escorted
             && p.risk >= 150
             && p.reason.contains("escort")
-            && matches!(w.unit(s.kind).class, CombatClass::Bomber | CombatClass::Drone)
+            && matches!(
+                w.unit(s.kind).class,
+                CombatClass::Bomber | CombatClass::Drone
+            )
         {
             let mut wn = warn("no_escort", 2).p("unit", &unit);
             wn.sq = Some(s.id);
@@ -121,7 +152,10 @@ pub fn advise(world: &World, state: &GameState, seat: u8, orders: &Orders) -> Ve
         out.push(warn("empty_sky", 2));
     }
     if stage == 2 && !jewel_covered && st.nodes[jewel as usize].active {
-        let smoked = st.smoke.iter().any(|s| s.node == jewel && s.seat == seat && s.until >= st.night);
+        let smoked = st
+            .smoke
+            .iter()
+            .any(|s| s.node == jewel && s.seat == seat && s.until >= st.night);
         if !smoked {
             let mut wn = warn("jewel_open", 2).p("jewel", &w.nodes[jewel as usize].name);
             wn.node = Some(jewel);
@@ -131,7 +165,12 @@ pub fn advise(world: &World, state: &GameState, seat: u8, orders: &Orders) -> Ve
     if idle > 0 {
         out.push(warn("idle", 1).p("count", idle));
     }
-    if !scouts_out && st.night >= 2 && mine.iter().any(|s| rules::can_order(w, s.kind, flyover_core::content::OrderKind::Scout)) {
+    if !scouts_out
+        && st.night >= 2
+        && mine
+            .iter()
+            .any(|s| rules::can_order(w, s.kind, flyover_core::content::OrderKind::Scout))
+    {
         out.push(warn("no_scout", 1));
     }
     // Spending check.
@@ -146,7 +185,11 @@ pub fn advise(world: &World, state: &GameState, seat: u8, orders: &Orders) -> Ve
     }
     for n in &w.nodes {
         let ns = &st.nodes[n.idx as usize];
-        if ns.owner == Some(seat) && ns.health == 0 && n.kind != NodeKind::Lake && !orders.repairs.contains(&n.idx) {
+        if ns.owner == Some(seat)
+            && ns.health == 0
+            && n.kind != NodeKind::Lake
+            && !orders.repairs.contains(&n.idx)
+        {
             let mut wn = warn("repair", 1).p("node", &n.name);
             wn.node = Some(n.idx);
             out.push(wn);
@@ -168,10 +211,19 @@ pub fn advise(world: &World, state: &GameState, seat: u8, orders: &Orders) -> Ve
     }
     let ws = analysis::weak_spot(w, st, seat, seat);
     if ws.pct >= 30 && !ws.nodes.is_empty() {
-        let names: Vec<String> = ws.nodes.iter().map(|&n| w.nodes[n as usize].name.clone()).collect();
-        out.push(warn("weak_spot", 0).p("nodes", names.join(" and ")).p("pct", ws.pct).p("resource", &ws.resource));
+        let names: Vec<String> = ws
+            .nodes
+            .iter()
+            .map(|&n| w.nodes[n as usize].name.clone())
+            .collect();
+        out.push(
+            warn("weak_spot", 0)
+                .p("nodes", names.join(" and "))
+                .p("pct", ws.pct)
+                .p("resource", &ws.resource),
+        );
     }
-    out.sort_by(|a, b| b.severity.cmp(&a.severity));
+    out.sort_by_key(|w| std::cmp::Reverse(w.severity));
     if out.iter().all(|w| w.severity == 0) {
         out.insert(0, warn("all_good", 0));
     }

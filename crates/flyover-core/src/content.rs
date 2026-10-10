@@ -81,15 +81,28 @@ pub enum NodeKind {
 impl NodeKind {
     /// Squadrons can be based here (lakes only for floatplanes).
     pub fn is_base(self) -> bool {
-        matches!(self, NodeKind::Airbase | NodeKind::Boneyard | NodeKind::Capital)
+        matches!(
+            self,
+            NodeKind::Airbase | NodeKind::Boneyard | NodeKind::Capital
+        )
     }
     /// Military targets are open from Night 1.
     pub fn is_military(self) -> bool {
-        matches!(self, NodeKind::Airbase | NodeKind::Radar | NodeKind::AirDefense | NodeKind::Boneyard)
+        matches!(
+            self,
+            NodeKind::Airbase | NodeKind::Radar | NodeKind::AirDefense | NodeKind::Boneyard
+        )
     }
     /// Part of the supply network (lakes, radar and air defense sites are not).
     pub fn on_network(self) -> bool {
-        !matches!(self, NodeKind::Lake | NodeKind::Radar | NodeKind::AirDefense | NodeKind::TruckStop | NodeKind::MassDriver)
+        !matches!(
+            self,
+            NodeKind::Lake
+                | NodeKind::Radar
+                | NodeKind::AirDefense
+                | NodeKind::TruckStop
+                | NodeKind::MassDriver
+        )
     }
 }
 
@@ -321,6 +334,8 @@ pub struct RadarRules {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct StrikeRules {
     pub hits_per_step: i32,
+    /// Crown jewels are hardened: they need more hits per step.
+    pub jewel_hits_per_step: i32,
     pub overcast_penalty: i32,
     pub smoke_penalty: i32,
     pub swarm_bonus: i32,
@@ -556,9 +571,18 @@ impl World {
         let mut links = Vec::new();
         let mut adj = vec![Vec::new(); nodes.len()];
         for (i, l) in content.map.links.iter().enumerate() {
-            let a = *node_ids.get(&l.a).ok_or_else(|| format!("link to unknown node {}", l.a))?;
-            let b = *node_ids.get(&l.b).ok_or_else(|| format!("link to unknown node {}", l.b))?;
-            links.push(Link { idx: i as u16, a, b, kind: l.kind });
+            let a = *node_ids
+                .get(&l.a)
+                .ok_or_else(|| format!("link to unknown node {}", l.a))?;
+            let b = *node_ids
+                .get(&l.b)
+                .ok_or_else(|| format!("link to unknown node {}", l.b))?;
+            links.push(Link {
+                idx: i as u16,
+                a,
+                b,
+                kind: l.kind,
+            });
             adj[a as usize].push((b, i as u16));
             adj[b as usize].push((a, i as u16));
         }
@@ -598,7 +622,17 @@ impl World {
         if content.patch_notes.is_empty() {
             return Err("patch_notes.ron is empty".into());
         }
-        Ok(World { content, nodes, zones, links, adj, node_ids, zone_ids, jewels, capitals })
+        Ok(World {
+            content,
+            nodes,
+            zones,
+            links,
+            adj,
+            node_ids,
+            zone_ids,
+            jewels,
+            capitals,
+        })
     }
 
     pub fn unit(&self, k: UnitKind) -> &UnitDef {

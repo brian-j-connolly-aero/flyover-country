@@ -4,7 +4,9 @@
 
 use crate::analysis;
 use crate::risk;
-use flyover_core::content::{dist, CombatClass, FactionId, NodeKind, OrderKind, UnitKind, World, P};
+use flyover_core::content::{
+    dist, CombatClass, FactionId, NodeKind, OrderKind, UnitKind, World, P,
+};
 use flyover_core::rng::mix;
 use flyover_core::route::Planner;
 use flyover_core::rules;
@@ -42,11 +44,20 @@ impl<'a> Ctx<'a> {
 
     fn set(&mut self, sq: u32, m: Mission) {
         self.orders.missions.retain(|o| o.sq != sq);
-        self.orders.missions.push(SqOrder { sq, mission: m, waypoint: None });
+        self.orders.missions.push(SqOrder {
+            sq,
+            mission: m,
+            waypoint: None,
+        });
     }
 
     fn mission(&self, sq: u32) -> Mission {
-        self.orders.missions.iter().find(|o| o.sq == sq).map(|o| o.mission.clone()).unwrap_or(Mission::Rest)
+        self.orders
+            .missions
+            .iter()
+            .find(|o| o.sq == sq)
+            .map(|o| o.mission.clone())
+            .unwrap_or(Mission::Rest)
     }
 
     fn free(&self, sq: u32) -> bool {
@@ -72,9 +83,17 @@ pub fn suggest(world: &World, state: &GameState, seat: u8, level: Level) -> Orde
         salt: mix(state.seed ^ 0xB07, (state.night as u64) << 8 | seat as u64),
         health: analysis::believed_health(state, seat),
         planner: Planner::for_seat(world, state, seat),
-        orders: Orders { seat, ..Default::default() },
+        orders: Orders {
+            seat,
+            ..Default::default()
+        },
     };
-    let mine: Vec<Squadron> = state.squadrons.iter().filter(|s| s.seat == seat && s.active()).cloned().collect();
+    let mine: Vec<Squadron> = state
+        .squadrons
+        .iter()
+        .filter(|s| s.seat == seat && s.active())
+        .cloned()
+        .collect();
     for s in &mine {
         c.set(s.id, Mission::Rest);
     }
@@ -115,28 +134,49 @@ pub fn suggest(world: &World, state: &GameState, seat: u8, level: Level) -> Orde
         if guards >= want_guards {
             break;
         }
-        if let Some(s) = by_pref.iter().find(|s| c.free(s.id) && c.ok(s, &Mission::Guard { node: spot })).cloned() {
+        if let Some(s) = by_pref
+            .iter()
+            .find(|s| c.free(s.id) && c.ok(s, &Mission::Guard { node: spot }))
+            .cloned()
+        {
             c.set(s.id, Mission::Guard { node: spot });
             guards += 1;
         }
     }
-    // Crop dusters smoke the jewel (Gloves Off) or the weakest spot.
-    for s in mine.iter().filter(|s| s.kind == UnitKind::CropDuster) {
-        let spot = if stage == 2 { jewel } else { *ws.nodes.first().unwrap_or(&capital) };
+    // Crop dusters smoke the jewel (Gloves Off) and the weakest spots, one each.
+    let mut smoke_spots: Vec<u16> = Vec::new();
+    if stage == 2 {
+        smoke_spots.push(jewel);
+    }
+    smoke_spots.extend(ws.nodes.iter().copied());
+    smoke_spots.push(capital);
+    for (k, s) in mine
+        .iter()
+        .filter(|s| s.kind == UnitKind::CropDuster)
+        .enumerate()
+    {
+        let spot = smoke_spots[k % smoke_spots.len()];
         if c.ok(s, &Mission::Guard { node: spot }) {
             c.set(s.id, Mission::Guard { node: spot });
         }
     }
 
     // 2. The race for the Big Empty: guard a neutral objective to capture it.
-    if state.night <= world.rules().nights - 1 {
+    if state.night < world.rules().nights {
         let mut best: Option<(i32, u16)> = None;
         for n in &world.nodes {
             let obj = rules::objective(world, state, n.idx);
-            if obj <= 0 || state.nodes[n.idx as usize].owner == Some(seat) || !rules::capturable(world, state, n.idx) {
+            if obj <= 0
+                || state.nodes[n.idx as usize].owner == Some(seat)
+                || !rules::capturable(world, state, n.idx)
+            {
                 continue;
             }
-            let d = mine.iter().map(|s| dist(c.base_pos(s), n.pos)).min().unwrap_or(9999);
+            let d = mine
+                .iter()
+                .map(|s| dist(c.base_pos(s), n.pos))
+                .min()
+                .unwrap_or(9999);
             if d > 420 {
                 continue;
             }
@@ -147,7 +187,11 @@ pub fn suggest(world: &World, state: &GameState, seat: u8, level: Level) -> Orde
         }
         if let Some((_, node)) = best {
             let pos = world.nodes[node as usize].pos;
-            let mut cands: Vec<Squadron> = interceptors.iter().filter(|s| c.free(s.id)).cloned().collect();
+            let mut cands: Vec<Squadron> = interceptors
+                .iter()
+                .filter(|s| c.free(s.id))
+                .cloned()
+                .collect();
             cands.sort_by_key(|s| (dist(c.base_pos(s), pos), s.id));
             if let Some(s) = cands.first().cloned() {
                 if c.ok(&s, &Mission::Guard { node }) {
@@ -158,20 +202,38 @@ pub fn suggest(world: &World, state: &GameState, seat: u8, level: Level) -> Orde
     }
 
     // 3. Strikes: bombers and strike uniques at the best value for the risk.
-    let targets = analysis::best_targets(world, state, seat, if c.level == Level::Easy { 6 } else { 14 });
+    let targets = analysis::best_targets(
+        world,
+        state,
+        seat,
+        if c.level == Level::Easy { 6 } else { 14 },
+    );
     let mut strikers: Vec<Squadron> = mine
         .iter()
-        .filter(|s| c.free(s.id) && world.unit(s.kind).strike > 0 && world.unit(s.kind).class != CombatClass::Fighter)
+        .filter(|s| {
+            c.free(s.id)
+                && world.unit(s.kind).strike > 0
+                && world.unit(s.kind).class != CombatClass::Fighter
+        })
         .cloned()
         .collect();
-    strikers.sort_by_key(|s| (-(world.unit(s.kind).strike * world.unit(s.kind).strike_mult), s.id));
+    strikers.sort_by_key(|s| {
+        (
+            -(world.unit(s.kind).strike * world.unit(s.kind).strike_mult),
+            s.id,
+        )
+    });
     let mut strike_count: Vec<(u16, i32)> = Vec::new();
     let mut leads: Vec<(u32, u16, i32)> = Vec::new(); // (lead sq, target, risk)
     let drone_target = if targets.is_empty() {
         None
     } else {
         // Swarms go together: pick one target for every drone tonight.
-        let pick = if c.level == Level::Easy { c.roll(targets.len() as u64) as usize } else { c.roll(2.min(targets.len() as u64)) as usize };
+        let pick = if c.level == Level::Easy {
+            c.roll(targets.len() as u64) as usize
+        } else {
+            c.roll(2.min(targets.len() as u64)) as usize
+        };
         Some(targets[pick].node)
     };
     for s in &strikers {
@@ -194,17 +256,30 @@ pub fn suggest(world: &World, state: &GameState, seat: u8, level: Level) -> Orde
             if !c.ok(s, &m) {
                 continue;
             }
-            let Some(p) = risk::preview_with(world, state, &c.orders, s, &m, None, &c.planner) else { continue };
+            let Some(p) = risk::preview_with(world, state, &c.orders, s, &m, None, &c.planner)
+            else {
+                continue;
+            };
             if p.in_static {
                 continue;
             }
             if p.risk >= 950 {
                 continue;
             }
-            let already = strike_count.iter().find(|x| x.0 == t.node).map(|x| x.1).unwrap_or(0);
+            let already = strike_count
+                .iter()
+                .find(|x| x.0 == t.node)
+                .map(|x| x.1)
+                .unwrap_or(0);
             let h = c.health[t.node as usize] as i32;
             // Stack two squadrons on a healthy target; more is overkill.
-            let stack = if already >= h.max(1) { -40 } else if already == 1 { 12 } else { 0 };
+            let stack = if already >= h.max(1) {
+                -40
+            } else if already == 1 {
+                12
+            } else {
+                0
+            };
             let distance = dist(c.base_pos(s), world.nodes[t.node as usize].pos);
             let jitter = c.roll(if c.level == Level::Easy { 40 } else { 12 }) as i32;
             let score = t.value * 3 - p.risk / 15 - distance / 20 + stack + jitter - p.fuel * 2;
@@ -219,7 +294,11 @@ pub fn suggest(world: &World, state: &GameState, seat: u8, level: Level) -> Orde
                     Some(x) => x.1 += 1,
                     None => strike_count.push((node, 1)),
                 }
-                if !leads.iter().any(|l| l.1 == node && l.0 != s.id && mine.iter().any(|m| m.id == l.0 && m.base == s.base)) {
+                if !leads.iter().any(|l| {
+                    l.1 == node
+                        && l.0 != s.id
+                        && mine.iter().any(|m| m.id == l.0 && m.base == s.base)
+                }) {
                     leads.push((s.id, node, rsk));
                 }
             }
@@ -229,7 +308,11 @@ pub fn suggest(world: &World, state: &GameState, seat: u8, level: Level) -> Orde
 
     // 4. Escorts, jammers, the Watchtower.
     if c.level == Level::Normal {
-        let mut escorts: Vec<Squadron> = interceptors.iter().filter(|s| c.free(s.id) && s.kind == UnitKind::Fighter).cloned().collect();
+        let mut escorts: Vec<Squadron> = interceptors
+            .iter()
+            .filter(|s| c.free(s.id) && s.kind == UnitKind::Fighter)
+            .cloned()
+            .collect();
         escorts.sort_by_key(|s| (!s.ace, s.id));
         for (lead, _, rsk) in leads.clone() {
             if rsk < 150 {
@@ -242,14 +325,23 @@ pub fn suggest(world: &World, state: &GameState, seat: u8, level: Level) -> Orde
                 }
             }
         }
-        for j in mine.iter().filter(|s| s.kind == UnitKind::Jammer && c.free(s.id)).cloned().collect::<Vec<_>>() {
+        for j in mine
+            .iter()
+            .filter(|s| s.kind == UnitKind::Jammer && c.free(s.id))
+            .cloned()
+            .collect::<Vec<_>>()
+        {
             // Jam the strike that crosses the most air defense; otherwise blind
             // the radar over the main target so its guards see us late.
             let mut best: Option<(i32, u32)> = None;
             for &(lead, _, _) in &leads {
-                let Some(ls) = mine.iter().find(|m| m.id == lead) else { continue };
+                let Some(ls) = mine.iter().find(|m| m.id == lead) else {
+                    continue;
+                };
                 let lm = c.mission(lead);
-                if let Some(p) = risk::preview_with(world, state, &c.orders, ls, &lm, None, &c.planner) {
+                if let Some(p) =
+                    risk::preview_with(world, state, &c.orders, ls, &lm, None, &c.planner)
+                {
                     if p.ad_sites > 0 && best.map(|b| p.ad_sites > b.0).unwrap_or(true) {
                         best = Some((p.ad_sites, lead));
                     }
@@ -258,13 +350,20 @@ pub fn suggest(world: &World, state: &GameState, seat: u8, level: Level) -> Orde
             if let Some((_, lead)) = best {
                 c.set(j.id, Mission::JamEscort { sq: lead });
             } else if let Some(&(_, node, _)) = leads.first() {
-                let m = Mission::JamZone { zone: world.nodes[node as usize].zone };
+                let m = Mission::JamZone {
+                    zone: world.nodes[node as usize].zone,
+                };
                 if c.ok(&j, &m) {
                     c.set(j.id, m);
                 }
             }
         }
-        for wt in mine.iter().filter(|s| s.kind == UnitKind::Watchtower && c.free(s.id)).cloned().collect::<Vec<_>>() {
+        for wt in mine
+            .iter()
+            .filter(|s| s.kind == UnitKind::Watchtower && c.free(s.id))
+            .cloned()
+            .collect::<Vec<_>>()
+        {
             let m = match leads.first() {
                 Some(&(lead, _, rsk)) if rsk >= 150 => Mission::Escort { sq: lead },
                 _ => Mission::Guard { node: capital },
@@ -277,23 +376,47 @@ pub fn suggest(world: &World, state: &GameState, seat: u8, level: Level) -> Orde
     // Leftover fighters: escort an unescorted strike, sweep ahead of the main
     // strike, or stand guard over a spot nobody's covering yet.
     let mut spare_spot = 0usize;
-    for s in interceptors.iter().filter(|s| c.free(s.id)).cloned().collect::<Vec<_>>() {
+    for s in interceptors
+        .iter()
+        .filter(|s| c.free(s.id))
+        .cloned()
+        .collect::<Vec<_>>()
+    {
         let unescorted = leads.iter().find(|l| {
-            !c.orders.missions.iter().any(|o| matches!(o.mission, Mission::Escort { sq } if sq == l.0))
+            !c.orders
+                .missions
+                .iter()
+                .any(|o| matches!(o.mission, Mission::Escort { sq } if sq == l.0))
         });
         let m = match (c.level, unescorted, leads.first()) {
-            (Level::Normal, Some(&(lead, _, _)), _) if s.kind == UnitKind::Fighter => Mission::Escort { sq: lead },
-            (Level::Normal, None, Some(&(_, node, _))) if s.kind == UnitKind::Fighter && c.roll(2) == 0 => {
-                Mission::Sweep { zone: world.nodes[node as usize].zone }
+            (Level::Normal, Some(&(lead, _, _)), _) if s.kind == UnitKind::Fighter => {
+                Mission::Escort { sq: lead }
+            }
+            (Level::Normal, None, Some(&(_, node, _)))
+                if s.kind == UnitKind::Fighter && c.roll(2) == 0 =>
+            {
+                Mission::Sweep {
+                    zone: world.nodes[node as usize].zone,
+                }
             }
             _ => {
                 let guarded: Vec<u16> = c
                     .orders
                     .missions
                     .iter()
-                    .filter_map(|o| if let Mission::Guard { node } = o.mission { Some(node) } else { None })
+                    .filter_map(|o| {
+                        if let Mission::Guard { node } = o.mission {
+                            Some(node)
+                        } else {
+                            None
+                        }
+                    })
                     .collect();
-                let open: Vec<u16> = guard_spots.iter().copied().filter(|n| !guarded.contains(n)).collect();
+                let open: Vec<u16> = guard_spots
+                    .iter()
+                    .copied()
+                    .filter(|n| !guarded.contains(n))
+                    .collect();
                 let spot = if open.is_empty() {
                     spare_spot += 1;
                     guard_spots[spare_spot % guard_spots.len()]
@@ -310,11 +433,21 @@ pub fn suggest(world: &World, state: &GameState, seat: u8, level: Level) -> Orde
     // Floatplanes with nothing to hit guard a lake-side node; fine to rest otherwise.
 
     // 5. Scouts: look where we plan to hit next.
-    for s in mine.iter().filter(|s| c.free(s.id) && rules::can_order(world, s.kind, OrderKind::Scout)).cloned().collect::<Vec<_>>() {
+    for s in mine
+        .iter()
+        .filter(|s| c.free(s.id) && rules::can_order(world, s.kind, OrderKind::Scout))
+        .cloned()
+        .collect::<Vec<_>>()
+    {
         let zone = match targets.get(c.roll(3.min(targets.len().max(1) as u64)) as usize) {
             Some(t) => world.nodes[t.node as usize].zone,
             None => {
-                let zs: Vec<u16> = world.zones.iter().filter(|z| z.region.faction() != Some(c.f)).map(|z| z.idx).collect();
+                let zs: Vec<u16> = world
+                    .zones
+                    .iter()
+                    .filter(|z| z.region.faction() != Some(c.f))
+                    .map(|z| z.idx)
+                    .collect();
                 zs[c.roll(zs.len() as u64) as usize]
             }
         };
@@ -334,14 +467,21 @@ pub fn suggest(world: &World, state: &GameState, seat: u8, level: Level) -> Orde
         let mut damaged: Vec<(i32, u16)> = world
             .nodes
             .iter()
-            .filter(|n| state.nodes[n.idx as usize].owner == Some(seat) && state.nodes[n.idx as usize].health < 2 && n.kind != NodeKind::Lake)
+            .filter(|n| {
+                state.nodes[n.idx as usize].owner == Some(seat)
+                    && state.nodes[n.idx as usize].health < 2
+                    && n.kind != NodeKind::Lake
+            })
             .map(|n| {
                 let pri = match n.kind {
                     NodeKind::AirDefense | NodeKind::Radar => 3,
                     NodeKind::City | NodeKind::Factory | NodeKind::Fuel | NodeKind::Junction => 2,
                     _ => 1,
                 };
-                (pri * 10 - state.nodes[n.idx as usize].health as i32 * 5, n.idx)
+                (
+                    pri * 10 - state.nodes[n.idx as usize].health as i32 * 5,
+                    n.idx,
+                )
             })
             .collect();
         damaged.sort_by(|a, b| b.cmp(a));
@@ -359,14 +499,27 @@ pub fn suggest(world: &World, state: &GameState, seat: u8, level: Level) -> Orde
         .nodes
         .iter()
         .filter(|n| n.kind.is_base() && state.nodes[n.idx as usize].owner == Some(seat))
-        .map(|n| rules::base_capacity(world, state, n.idx, UnitKind::Fighter) - rules::base_occupancy(state, n.idx, None))
+        .map(|n| {
+            rules::base_capacity(world, state, n.idx, UnitKind::Fighter)
+                - rules::base_occupancy(state, n.idx, None)
+        })
         .sum();
     room -= state.pending.iter().filter(|p| p.seat == seat).count() as i32;
     let unique = world.faction(c.f).unique;
     let count = |k: UnitKind| mine.iter().filter(|s| s.kind == k).count() as i32;
     while cap > 0 && room > 0 {
-        let fighters = count(UnitKind::Fighter) + c.orders.builds.iter().filter(|&&k| k == UnitKind::Fighter).count() as i32;
-        let bombers = count(UnitKind::Bomber) + c.orders.builds.iter().filter(|&&k| k == UnitKind::Bomber).count() as i32;
+        let fighters = count(UnitKind::Fighter)
+            + c.orders
+                .builds
+                .iter()
+                .filter(|&&k| k == UnitKind::Fighter)
+                .count() as i32;
+        let bombers = count(UnitKind::Bomber)
+            + c.orders
+                .builds
+                .iter()
+                .filter(|&&k| k == UnitKind::Bomber)
+                .count() as i32;
         let mut want = if fighters < 3 {
             UnitKind::Fighter
         } else if bombers < 2 || bombers < fighters - 1 {
@@ -374,10 +527,18 @@ pub fn suggest(world: &World, state: &GameState, seat: u8, level: Level) -> Orde
         } else {
             UnitKind::Fighter
         };
-        if c.level == Level::Normal && rules::buildable(world, state, seat, unique).is_ok() && world.unit(unique).buildable {
-            let uniques = count(unique) + c.orders.builds.iter().filter(|&&k| k == unique).count() as i32;
-            let cheap = world.unit(unique).cost <= 3;
-            if uniques < if cheap { 3 } else { 1 } {
+        if c.level == Level::Normal
+            && rules::buildable(world, state, seat, unique).is_ok()
+            && world.unit(unique).buildable
+        {
+            let uniques =
+                count(unique) + c.orders.builds.iter().filter(|&&k| k == unique).count() as i32;
+            let keep = match unique {
+                UnitKind::Drone => 4,
+                UnitKind::Gull | UnitKind::Floatplane | UnitKind::Prototype => 2,
+                _ => 1,
+            };
+            if uniques < keep {
                 want = unique;
             }
         }
@@ -415,14 +576,17 @@ fn budget_fuel(c: &mut Ctx, mine: &[Squadron]) {
         let mut total = 0;
         let mut costs: Vec<(u32, i32, i32)> = Vec::new(); // (sq, cost, priority; higher = drop first)
         for o in &c.orders.missions {
-            let Some(s) = mine.iter().find(|s| s.id == o.sq) else { continue };
+            let Some(s) = mine.iter().find(|s| s.id == o.sq) else {
+                continue;
+            };
             if o.mission == Mission::Rest {
                 continue;
             }
-            let cost = match risk::preview_with(w, st, &c.orders, s, &o.mission, o.waypoint, &c.planner) {
-                Some(p) => p.fuel,
-                None => 0,
-            };
+            let cost =
+                match risk::preview_with(w, st, &c.orders, s, &o.mission, o.waypoint, &c.planner) {
+                    Some(p) => p.fuel,
+                    None => 0,
+                };
             total += cost;
             let pri = match o.mission {
                 Mission::Guard { .. } | Mission::GuardZone { .. } => 1,
@@ -437,7 +601,9 @@ fn budget_fuel(c: &mut Ctx, mine: &[Squadron]) {
             return;
         }
         costs.sort_by_key(|x| (-x.2, -x.1, x.0));
-        let Some(&(drop, _, _)) = costs.iter().find(|x| x.1 > 0) else { return };
+        let Some(&(drop, _, _)) = costs.iter().find(|x| x.1 > 0) else {
+            return;
+        };
         c.set(drop, Mission::Rest);
         // Escorts of a dropped lead have nothing to fly with.
         let orphans: Vec<u32> = c
@@ -461,7 +627,11 @@ fn faction_actions(c: &mut Ctx, supply: &mut i32) {
     // Bid on the Harvest Shipment.
     if st.harvest > 0 && c.f != FactionId::GrainBelt && *supply >= 6 {
         let bid = (st.harvest / 2 + c.roll(3) as i32 - 1).clamp(1, *supply / 3);
-        let bid = if c.level == Level::Easy { (bid / 2).max(1) } else { bid };
+        let bid = if c.level == Level::Easy {
+            (bid / 2).max(1)
+        } else {
+            bid
+        };
         c.orders.harvest_bid = bid;
         *supply -= bid;
     }
@@ -474,29 +644,53 @@ fn faction_actions(c: &mut Ctx, supply: &mut i32) {
                 let on_cap = w.nodes[w.capitals[rules::faction(st, on).index()] as usize].pos;
                 let victim = (0..st.seats.len() as u8)
                     .filter(|&v| v != on)
-                    .min_by_key(|&v| dist(on_cap, w.nodes[w.capitals[rules::faction(st, v).index()] as usize].pos))
+                    .min_by_key(|&v| {
+                        dist(
+                            on_cap,
+                            w.nodes[w.capitals[rules::faction(st, v).index()] as usize].pos,
+                        )
+                    })
                     .unwrap_or(seat);
                 let stake = 2 + c.roll(2) as i32;
-                c.orders.bet = Some(Bet { on, node: None, victim: Some(victim), stake });
+                c.orders.bet = Some(Bet {
+                    on,
+                    node: None,
+                    victim: Some(victim),
+                    stake,
+                });
                 *supply -= stake;
             }
         }
         FactionId::FrontRange => {
-            c.orders.intel_sale = Some(IntelSale { price: 3, only: None });
+            c.orders.intel_sale = Some(IntelSale {
+                price: 3,
+                only: None,
+            });
         }
         _ => {}
     }
     // Buy a radar picture from Colorado when flush.
-    if c.f != FactionId::FrontRange && rules::is_seated(st, FactionId::FrontRange) && *supply >= 10 && c.level == Level::Normal {
+    if c.f != FactionId::FrontRange
+        && rules::is_seated(st, FactionId::FrontRange)
+        && *supply >= 10
+        && c.level == Level::Normal
+    {
         let t = analysis::best_targets(w, st, seat, 1);
         if let Some(t) = t.first() {
-            c.orders.intel_request = Some(IntelRequest { zone: w.nodes[t.node as usize].zone, max_price: 3 });
+            c.orders.intel_request = Some(IntelRequest {
+                zone: w.nodes[t.node as usize].zone,
+                max_price: 3,
+            });
         }
     }
     // The Mass Driver and the Twine revenge strike.
-    let md = w.nodes.iter().find(|n| n.kind == NodeKind::MassDriver).map(|n| n.idx);
+    let md = w
+        .nodes
+        .iter()
+        .find(|n| n.kind == NodeKind::MassDriver)
+        .map(|n| n.idx);
     if let Some(md) = md {
-        if st.nodes[md as usize].owner == Some(seat) && stage == 2 {
+        if st.nodes[md as usize].owner == Some(seat) && stage == 2 && !st.mass_driver_fired {
             if let Some(t) = analysis::best_targets(w, st, seat, 1).first() {
                 c.orders.mass_driver = Some(t.node);
             }
@@ -508,7 +702,10 @@ fn faction_actions(c: &mut Ctx, supply: &mut i32) {
             let best = w
                 .nodes
                 .iter()
-                .filter(|n| st.nodes[n.idx as usize].owner == Some(v) && rules::attack_check(w, st, seat, n.idx).is_ok())
+                .filter(|n| {
+                    st.nodes[n.idx as usize].owner == Some(v)
+                        && rules::attack_check(w, st, seat, n.idx).is_ok()
+                })
                 .max_by_key(|n| (analysis::node_value(w, st, seat, n.idx, &health).0, n.idx));
             if let Some(n) = best {
                 c.orders.revenge = Some(n.idx);

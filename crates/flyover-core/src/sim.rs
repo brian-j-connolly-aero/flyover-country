@@ -78,6 +78,8 @@ struct Group {
     launch_ev: usize,
     arrived_now: bool,
     pivoted: bool,
+    /// Where the mission is headed (map units).
+    dest: P,
 }
 
 #[derive(Clone, Debug, Default)]
@@ -122,7 +124,11 @@ struct Sim<'w> {
     hit_texas: Vec<u8>,
 }
 
-pub fn resolve_night(world: &World, state: &GameState, orders: &[Orders]) -> (GameState, Vec<EventRec>) {
+pub fn resolve_night(
+    world: &World,
+    state: &GameState,
+    orders: &[Orders],
+) -> (GameState, Vec<EventRec>) {
     let mut sim = Sim::new(world, state.clone(), orders);
     sim.run();
     (sim.st, sim.ev)
@@ -135,7 +141,12 @@ impl<'w> Sim<'w> {
         let n = st.squadrons.len();
         let nodes = w.nodes.len();
         let seats = st.seats.len();
-        let mut ord: Vec<Orders> = (0..seats as u8).map(|s| Orders { seat: s, ..Default::default() }).collect();
+        let mut ord: Vec<Orders> = (0..seats as u8)
+            .map(|s| Orders {
+                seat: s,
+                ..Default::default()
+            })
+            .collect();
         for o in orders {
             if (o.seat as usize) < seats {
                 ord[o.seat as usize] = o.clone();
@@ -168,7 +179,12 @@ impl<'w> Sim<'w> {
     }
 
     fn push(&mut self, public: bool, seats: Vec<u8>, e: Event) -> usize {
-        self.ev.push(EventRec { tick: self.tick, public, seats, e });
+        self.ev.push(EventRec {
+            tick: self.tick,
+            public,
+            seats,
+            e,
+        });
         self.ev.len() - 1
     }
     fn public(&mut self, e: Event) {
@@ -188,7 +204,14 @@ impl<'w> Sim<'w> {
 
     fn sq_snap(&self, i: usize) -> SqSnap {
         let s = &self.st.squadrons[i];
-        SqSnap { sq: s.id, seat: s.seat, kind: s.kind, strength: s.strength, ace: s.ace, stars: s.stars }
+        SqSnap {
+            sq: s.id,
+            seat: s.seat,
+            kind: s.kind,
+            strength: s.strength,
+            ace: s.ace,
+            stars: s.stars,
+        }
     }
 
     fn sq_index(&self, id: u32) -> Option<usize> {
@@ -222,7 +245,9 @@ impl<'w> Sim<'w> {
         let w = self.w;
         let night = self.night;
         // Threat pictures for routing come from what each seat knows at dusk.
-        self.threats = (0..self.st.seats.len() as u8).map(|s| route::threats_for(w, &self.st, s)).collect();
+        self.threats = (0..self.st.seats.len() as u8)
+            .map(|s| route::threats_for(w, &self.st, s))
+            .collect();
         self.massdriver_holder = w
             .nodes
             .iter()
@@ -239,44 +264,98 @@ impl<'w> Sim<'w> {
                 }
                 let cost = w.rules().economy.repair_cost;
                 let ns = &self.st.nodes[node as usize];
-                if ns.owner == Some(seat) && ns.health < 2 && self.st.seats[seat as usize].supply >= cost {
+                if ns.owner == Some(seat)
+                    && ns.health < 2
+                    && self.st.seats[seat as usize].supply >= cost
+                {
                     self.st.seats[seat as usize].supply -= cost;
                     self.st.nodes[node as usize].health += 1;
                     repaired.push(node);
                     let h = self.st.nodes[node as usize].health;
-                    self.private(seat, Event::Repaired { seat, node, health: h, paid: true });
+                    self.private(
+                        seat,
+                        Event::Repaired {
+                            seat,
+                            node,
+                            health: h,
+                            paid: true,
+                        },
+                    );
                 }
             }
             // Builds: pay now, arrive at dawn (Cascadia: a night later, as veterans).
             let mut cap = rules::build_capacity(w, &self.st, seat);
             for &kind in &o.builds {
                 if let Err(r) = rules::buildable(w, &self.st, seat, kind) {
-                    self.private(seat, Event::BuildFailed { seat, kind, reason: r.into() });
+                    self.private(
+                        seat,
+                        Event::BuildFailed {
+                            seat,
+                            kind,
+                            reason: r.into(),
+                        },
+                    );
                     continue;
                 }
                 let cost = w.unit(kind).cost;
                 if cap <= 0 {
-                    self.private(seat, Event::BuildFailed { seat, kind, reason: "The factories are booked solid tonight.".into() });
+                    self.private(
+                        seat,
+                        Event::BuildFailed {
+                            seat,
+                            kind,
+                            reason: "The factories are booked solid tonight.".into(),
+                        },
+                    );
                     continue;
                 }
                 if self.st.seats[seat as usize].supply < cost {
-                    self.private(seat, Event::BuildFailed { seat, kind, reason: "Not enough Supply.".into() });
+                    self.private(
+                        seat,
+                        Event::BuildFailed {
+                            seat,
+                            kind,
+                            reason: "Not enough Supply.".into(),
+                        },
+                    );
                     continue;
                 }
                 cap -= 1;
                 self.st.seats[seat as usize].supply -= cost;
                 let cascadia = self.faction(seat) == FactionId::Cascadia;
-                let delay = if cascadia { 1 + w.rules().factions.process_delay as u8 } else { 1 };
-                self.st.pending.push(PendingBuild { seat, kind, night: night + delay, stars: if cascadia { 1 } else { 0 } });
+                let delay = if cascadia {
+                    1 + w.rules().factions.process_delay as u8
+                } else {
+                    1
+                };
+                self.st.pending.push(PendingBuild {
+                    seat,
+                    kind,
+                    night: night + delay,
+                    stars: if cascadia { 1 } else { 0 },
+                });
             }
             // Dreamland's secret bet.
             if self.faction(seat) == FactionId::Dreamland {
                 if let Some(b) = o.bet.clone() {
-                    let max = w.rules().factions.bet_max.min(self.st.seats[seat as usize].supply);
+                    let max = w
+                        .rules()
+                        .factions
+                        .bet_max
+                        .min(self.st.seats[seat as usize].supply);
                     let stake = b.stake.clamp(0, max);
-                    let valid_target = b.node.map(|n| (n as usize) < w.nodes.len()).unwrap_or(false)
-                        || b.victim.map(|v| (v as usize) < self.st.seats.len()).unwrap_or(false);
-                    if stake > 0 && b.on != seat && (b.on as usize) < self.st.seats.len() && valid_target {
+                    let valid_target = b
+                        .node
+                        .map(|n| (n as usize) < w.nodes.len())
+                        .unwrap_or(false)
+                        || b.victim
+                            .map(|v| (v as usize) < self.st.seats.len())
+                            .unwrap_or(false);
+                    if stake > 0
+                        && b.on != seat
+                        && (b.on as usize) < self.st.seats.len()
+                        && valid_target
+                    {
                         self.st.seats[seat as usize].supply -= stake;
                         self.bets[seat as usize] = Some((Bet { stake, ..b }, false));
                     }
@@ -293,7 +372,9 @@ impl<'w> Sim<'w> {
                     if seat == gb {
                         continue;
                     }
-                    let bid = self.orders[seat as usize].harvest_bid.min(self.st.seats[seat as usize].supply);
+                    let bid = self.orders[seat as usize]
+                        .harvest_bid
+                        .min(self.st.seats[seat as usize].supply);
                     if bid <= 0 {
                         continue;
                     }
@@ -315,13 +396,23 @@ impl<'w> Sim<'w> {
         let stage = rules::stage(w, night);
         let patch = self.st.patch;
         let harvest_value = self.st.harvest;
-        self.public(Event::NightStart { night, stage, patch, harvest_winner, harvest_bid, harvest_value });
+        self.public(Event::NightStart {
+            night,
+            stage,
+            patch,
+            harvest_winner,
+            harvest_bid,
+            harvest_value,
+        });
 
         self.plan_missions();
     }
 
     fn patch_effect(&self) -> Option<PatchEffect> {
-        self.st.patch.and_then(|i| self.w.content.patch_notes.get(i as usize)).map(|p| p.effect)
+        self.st
+            .patch
+            .and_then(|i| self.w.content.patch_notes.get(i as usize))
+            .map(|p| p.effect)
     }
 
     fn is_patched_drone(&self, i: usize) -> bool {
@@ -360,7 +451,11 @@ impl<'w> Sim<'w> {
         }
         order_rank.sort();
         // 2. Validate and route.
-        let planners: Vec<route::Planner> = self.threats.iter().map(|t| route::Planner::new(w, t.clone())).collect();
+        let planners: Vec<route::Planner> = self
+            .threats
+            .iter()
+            .map(|t| route::Planner::new(w, t.clone()))
+            .collect();
         let mut plans: Vec<Plan> = Vec::new();
         let mut escorts: Vec<(usize, u32, bool)> = Vec::new(); // (sq, target id, jammer)
         for &(_, _, i) in &order_rank {
@@ -377,19 +472,46 @@ impl<'w> Sim<'w> {
                 self.st.squadrons[i].order = Mission::Rest;
                 self.rt[i].rested = true;
                 self.rt[i].grounded = true;
-                self.private(sq.seat, Event::Grounded { seat: sq.seat, sq: sq.id, reason: r });
+                self.private(
+                    sq.seat,
+                    Event::Grounded {
+                        seat: sq.seat,
+                        sq: sq.id,
+                        reason: r,
+                    },
+                );
                 continue;
             }
-            if sq.kind == UnitKind::Drone && rules::effect_active(&self.st, sq.seat, EffectKind::NoDrones, night) {
+            if sq.kind == UnitKind::Drone
+                && rules::effect_active(&self.st, sq.seat, EffectKind::NoDrones, night)
+            {
                 self.rt[i].rested = true;
                 self.rt[i].grounded = true;
-                self.private(sq.seat, Event::Grounded { seat: sq.seat, sq: sq.id, reason: "Scheduled maintenance: the Server Farm is down.".into() });
+                self.private(
+                    sq.seat,
+                    Event::Grounded {
+                        seat: sq.seat,
+                        sq: sq.id,
+                        reason: "Scheduled maintenance: the Server Farm is down.".into(),
+                    },
+                );
                 continue;
             }
-            if self.st.nodes[sq.base as usize].health == 0 && !matches!(m, Mission::Rebase { .. }) && w.nodes[sq.base as usize].kind != NodeKind::Lake && w.nodes[sq.base as usize].kind != NodeKind::Capital {
+            if self.st.nodes[sq.base as usize].health == 0
+                && !matches!(m, Mission::Rebase { .. })
+                && w.nodes[sq.base as usize].kind != NodeKind::Lake
+                && w.nodes[sq.base as usize].kind != NodeKind::Capital
+            {
                 self.rt[i].rested = true;
                 self.rt[i].grounded = true;
-                self.private(sq.seat, Event::Grounded { seat: sq.seat, sq: sq.id, reason: "Runway's cratered. Rebase or wait for repairs.".into() });
+                self.private(
+                    sq.seat,
+                    Event::Grounded {
+                        seat: sq.seat,
+                        sq: sq.id,
+                        reason: "Runway's cratered. Rebase or wait for repairs.".into(),
+                    },
+                );
                 continue;
             }
             match m {
@@ -399,7 +521,11 @@ impl<'w> Sim<'w> {
                     let from = w.nodes[sq.base as usize].pos;
                     let to = self.mission_point(&m);
                     let path = planners[sq.seat as usize].plan(from, to, sq.waypoint);
-                    plans.push(Plan { sq: i, mission: m, path });
+                    plans.push(Plan {
+                        sq: i,
+                        mission: m,
+                        path,
+                    });
                 }
             }
         }
@@ -417,10 +543,19 @@ impl<'w> Sim<'w> {
                     self.rt[i].rested = true;
                     self.rt[i].grounded = true;
                     let id = self.st.squadrons[i].id;
-                    self.private(seat, Event::Grounded { seat, sq: id, reason: "Not enough Fuel.".into() });
+                    self.private(
+                        seat,
+                        Event::Grounded {
+                            seat,
+                            sq: id,
+                            reason: "Not enough Fuel.".into(),
+                        },
+                    );
                 }
             } else if let Some(&(_, t, jam)) = escorts.iter().find(|e| e.0 == i) {
-                let target = self.sq_index(t).and_then(|ti| plans.iter().position(|p| p.sq == ti));
+                let target = self
+                    .sq_index(t)
+                    .and_then(|ti| plans.iter().position(|p| p.sq == ti));
                 match target {
                     Some(pi) if flying.contains(&pi) => {
                         let plan = &plans[pi];
@@ -434,14 +569,28 @@ impl<'w> Sim<'w> {
                             self.rt[i].rested = true;
                             self.rt[i].grounded = true;
                             let id = self.st.squadrons[i].id;
-                            self.private(seat, Event::Grounded { seat, sq: id, reason: "Not enough Fuel.".into() });
+                            self.private(
+                                seat,
+                                Event::Grounded {
+                                    seat,
+                                    sq: id,
+                                    reason: "Not enough Fuel.".into(),
+                                },
+                            );
                         }
                     }
                     _ => {
                         self.rt[i].rested = true;
                         self.rt[i].grounded = true;
                         let id = self.st.squadrons[i].id;
-                        self.private(seat, Event::Grounded { seat, sq: id, reason: "Nothing to fly with tonight.".into() });
+                        self.private(
+                            seat,
+                            Event::Grounded {
+                                seat,
+                                sq: id,
+                                reason: "Nothing to fly with tonight.".into(),
+                            },
+                        );
                     }
                 }
             }
@@ -456,7 +605,10 @@ impl<'w> Sim<'w> {
             let sq = self.st.squadrons[p.sq].clone();
             if let Mission::Attack { node } = p.mission {
                 if let Some(gi) = self.groups.iter().position(|g| {
-                    g.seat == sq.seat && g.base == sq.base && g.kind == GKind::Strike(node) && g.phase == Phase::Waiting
+                    g.seat == sq.seat
+                        && g.base == sq.base
+                        && g.kind == GKind::Strike(node)
+                        && g.phase == Phase::Waiting
                 }) {
                     self.groups[gi].members.push(p.sq);
                     self.groups[gi].payload.push(p.sq);
@@ -475,7 +627,11 @@ impl<'w> Sim<'w> {
         // Drones: count swarms per target for the swarm bonus.
         for g in &self.groups {
             if let GKind::Strike(node) = g.kind {
-                let n = g.members.iter().filter(|&&i| self.st.squadrons[i].kind == UnitKind::Drone).count() as i32;
+                let n = g
+                    .members
+                    .iter()
+                    .filter(|&&i| self.st.squadrons[i].kind == UnitKind::Drone)
+                    .count() as i32;
                 if n > 0 {
                     match self.drone_targets.iter_mut().find(|d| d.0 == node) {
                         Some(d) => d.1 += n,
@@ -493,16 +649,25 @@ impl<'w> Sim<'w> {
     fn mission_point(&self, m: &Mission) -> P {
         let w = self.w;
         match *m {
-            Mission::Attack { node } | Mission::Guard { node } | Mission::Rebase { node } => w.nodes[node as usize].pos,
-            Mission::GuardZone { zone } | Mission::Sweep { zone } | Mission::Scout { zone } | Mission::JamZone { zone } => {
-                w.zones[zone as usize].center
+            Mission::Attack { node } | Mission::Guard { node } | Mission::Rebase { node } => {
+                w.nodes[node as usize].pos
             }
+            Mission::GuardZone { zone }
+            | Mission::Sweep { zone }
+            | Mission::Scout { zone }
+            | Mission::JamZone { zone } => w.zones[zone as usize].center,
             _ => (0, 0),
         }
     }
 
     fn fuel_cost(&self, i: usize, plan: &Plan) -> i32 {
-        fuel_cost(self.w, &self.st, &self.st.squadrons[i], &plan.mission, &plan.path)
+        fuel_cost(
+            self.w,
+            &self.st,
+            &self.st.squadrons[i],
+            &plan.mission,
+            &plan.path,
+        )
     }
 
     fn new_group(&mut self, p: &Plan) -> usize {
@@ -512,28 +677,42 @@ impl<'w> Sim<'w> {
             Mission::Attack { node } => (GKind::Strike(node), MissionTag::Attack),
             Mission::Guard { node } => match sq.kind {
                 UnitKind::CropDuster => (GKind::Smoke(node), MissionTag::Smoke),
-                UnitKind::Watchtower => (GKind::Watch(w.nodes[node as usize].pos), MissionTag::Watch),
+                UnitKind::Watchtower => {
+                    (GKind::Watch(w.nodes[node as usize].pos), MissionTag::Watch)
+                }
                 _ => (GKind::Guard(w.nodes[node as usize].pos), MissionTag::Guard),
             },
             Mission::GuardZone { zone } => match sq.kind {
-                UnitKind::Watchtower => (GKind::Watch(w.zones[zone as usize].center), MissionTag::Watch),
+                UnitKind::Watchtower => (
+                    GKind::Watch(w.zones[zone as usize].center),
+                    MissionTag::Watch,
+                ),
                 UnitKind::CropDuster => (GKind::Smoke(u16::MAX), MissionTag::Smoke),
-                _ => (GKind::Guard(w.zones[zone as usize].center), MissionTag::Guard),
+                _ => (
+                    GKind::Guard(w.zones[zone as usize].center),
+                    MissionTag::Guard,
+                ),
             },
             Mission::Sweep { zone } => (GKind::Sweep(zone), MissionTag::Sweep),
             Mission::Scout { zone } => (GKind::Scout(zone), MissionTag::Scout),
             Mission::JamZone { zone } => (GKind::JamZone(zone), MissionTag::Jam),
             Mission::Rebase { node } => (GKind::Rebase(node), MissionTag::Rebase),
-            _ => (GKind::Guard(w.nodes[sq.base as usize].pos), MissionTag::Guard),
+            _ => (
+                GKind::Guard(w.nodes[sq.base as usize].pos),
+                MissionTag::Guard,
+            ),
         };
         let guard_node = match p.mission {
             Mission::Guard { node } => Some(node),
             _ => None,
         };
-        let guest_of = guard_node.and_then(|n| self.st.nodes[n as usize].owner).filter(|&o| o != sq.seat);
+        let guest_of = guard_node
+            .and_then(|n| self.st.nodes[n as usize].owner)
+            .filter(|&o| o != sq.seat);
         let id = (self.groups.len() + 1) as u32;
         let path: Vec<Fp> = p.path.iter().map(|&q| to_fp(q)).collect();
         let pos = path[0];
+        let dest = *p.path.last().unwrap_or(&p.path[0]);
         self.groups.push(Group {
             id,
             seat: sq.seat,
@@ -568,6 +747,7 @@ impl<'w> Sim<'w> {
             launch_ev: usize::MAX,
             arrived_now: false,
             pivoted: false,
+            dest,
         });
         if let (Some(n), Some(_)) = (guard_node, guest_of) {
             if self.faction(sq.seat) == FactionId::Beehive {
@@ -581,7 +761,11 @@ impl<'w> Sim<'w> {
         let w = self.w;
         let r = w.rules();
         let members = self.groups[gi].members.clone();
-        let speed_tenths = members.iter().map(|&i| self.unit_speed(i)).min().unwrap_or(40);
+        let speed_tenths = members
+            .iter()
+            .map(|&i| self.unit_speed(i))
+            .min()
+            .unwrap_or(40);
         let speed = speed_tenths * FX / 10;
         for &i in &members {
             self.rt[i].group = Some(gi);
@@ -599,11 +783,20 @@ impl<'w> Sim<'w> {
             GKind::Rebase(_) => 20 + (salt % 20) as i32,
             _ => 1 + (salt % 6) as i32,
         };
-        let payload: i32 = g.payload.iter().map(|&i| self.st.squadrons[i].strength as i32).sum();
-        let total: i32 = members.iter().map(|&i| self.st.squadrons[i].strength as i32).sum();
+        let payload: i32 = g
+            .payload
+            .iter()
+            .map(|&i| self.st.squadrons[i].strength as i32)
+            .sum();
+        let total: i32 = members
+            .iter()
+            .map(|&i| self.st.squadrons[i].strength as i32)
+            .sum();
         let seat = g.seat;
         let kind = g.kind;
-        let has_harvest_moon = members.iter().any(|&i| self.is_ace_of(i, FactionId::GrainBelt));
+        let has_harvest_moon = members
+            .iter()
+            .any(|&i| self.is_ace_of(i, FactionId::GrainBelt));
         let station = match kind {
             GKind::Guard(p) => Some(p),
             _ => None,
@@ -620,12 +813,18 @@ impl<'w> Sim<'w> {
         let orbit = match kind {
             GKind::Sweep(z) | GKind::JamZone(z) => {
                 let zr = &w.zones[z as usize];
-                let rad = if matches!(kind, GKind::JamZone(_)) { zr.radius / 3 } else { zr.radius * 2 / 3 };
+                let rad = if matches!(kind, GKind::JamZone(_)) {
+                    zr.radius / 3
+                } else {
+                    zr.radius * 2 / 3
+                };
                 orbit_points(zr.center, rad, (salt % 16) as usize)
             }
             _ => Vec::new(),
         };
-        let vanish = members.iter().any(|&i| self.st.squadrons[i].kind == UnitKind::Prototype)
+        let vanish = members
+            .iter()
+            .any(|&i| self.st.squadrons[i].kind == UnitKind::Prototype)
             && self.rng.chance(r.factions.prototype_vanish);
         let g = &mut self.groups[gi];
         g.speed = speed.max(FX);
@@ -688,12 +887,20 @@ impl<'w> Sim<'w> {
     }
 
     fn alive_members(&self, gi: usize) -> Vec<usize> {
-        self.groups[gi].members.iter().copied().filter(|&i| self.sq_alive(i)).collect()
+        self.groups[gi]
+            .members
+            .iter()
+            .copied()
+            .filter(|&i| self.sq_alive(i))
+            .collect()
     }
 
     fn move_group(&mut self, gi: usize) {
         let t = self.tick;
-        if self.groups[gi].phase != Phase::Done && self.alive_members(gi).is_empty() && self.groups[gi].phase != Phase::Waiting {
+        if self.groups[gi].phase != Phase::Done
+            && self.alive_members(gi).is_empty()
+            && self.groups[gi].phase != Phase::Waiting
+        {
             self.groups[gi].phase = Phase::Done;
             return;
         }
@@ -708,11 +915,21 @@ impl<'w> Sim<'w> {
                     let g = &self.groups[gi];
                     let squadrons = g.members.iter().map(|&i| self.sq_snap(i)).collect();
                     let (target_node, target_zone) = match g.kind {
-                        GKind::Strike(n) | GKind::Rebase(n) | GKind::Smoke(n) => (Some(n).filter(|&n| n != u16::MAX), None),
+                        GKind::Strike(n) | GKind::Rebase(n) | GKind::Smoke(n) => {
+                            (Some(n).filter(|&n| n != u16::MAX), None)
+                        }
                         GKind::Sweep(z) | GKind::Scout(z) | GKind::JamZone(z) => (None, Some(z)),
                         GKind::Guard(_) | GKind::Watch(_) => (g.guard_node, None),
                     };
-                    let e = Event::Launch { group: g.id, seat: g.seat, mission: g.tag, squadrons, base: g.base, target_node, target_zone };
+                    let e = Event::Launch {
+                        group: g.id,
+                        seat: g.seat,
+                        mission: g.tag,
+                        squadrons,
+                        base: g.base,
+                        target_node,
+                        target_zone,
+                    };
                     let seat = g.seat;
                     let p = to_map(g.pos);
                     let ix = self.push(false, vec![seat], e);
@@ -731,7 +948,10 @@ impl<'w> Sim<'w> {
                         budget -= d;
                         g.leg += 1;
                     } else {
-                        g.pos = (g.pos.0 + (target.0 - g.pos.0) * budget / d, g.pos.1 + (target.1 - g.pos.1) * budget / d);
+                        g.pos = (
+                            g.pos.0 + (target.0 - g.pos.0) * budget / d,
+                            g.pos.1 + (target.1 - g.pos.1) * budget / d,
+                        );
                         budget = 0;
                     }
                 }
@@ -764,7 +984,10 @@ impl<'w> Sim<'w> {
                             budget -= d.max(1);
                             g.orbit_i += 1;
                         } else {
-                            g.pos = (g.pos.0 + (target.0 - g.pos.0) * budget / d, g.pos.1 + (target.1 - g.pos.1) * budget / d);
+                            g.pos = (
+                                g.pos.0 + (target.0 - g.pos.0) * budget / d,
+                                g.pos.1 + (target.1 - g.pos.1) * budget / d,
+                            );
                             budget = 0;
                         }
                     }
@@ -799,7 +1022,16 @@ impl<'w> Sim<'w> {
                 if self.st.squadrons[i].kind == UnitKind::Prototype && self.sq_alive(i) {
                     self.rt[i].lost = true;
                     let id = self.st.squadrons[i].id;
-                    self.push(public, vec![seat], Event::Vanished { sq: id, seat, x: p.0, y: p.1 });
+                    self.push(
+                        public,
+                        vec![seat],
+                        Event::Vanished {
+                            sq: id,
+                            seat,
+                            x: p.0,
+                            y: p.1,
+                        },
+                    );
                 }
             }
         }
@@ -812,7 +1044,12 @@ impl<'w> Sim<'w> {
         for i in self.alive_members(gi) {
             self.rt[i].lost = true;
             let id = self.st.squadrons[i].id;
-            self.public(Event::LostInStatic { sq: id, seat, x: p.0, y: p.1 });
+            self.public(Event::LostInStatic {
+                sq: id,
+                seat,
+                x: p.0,
+                y: p.1,
+            });
         }
         self.groups[gi].phase = Phase::Done;
     }
@@ -827,7 +1064,10 @@ impl<'w> Sim<'w> {
         match self.groups[gi].kind {
             GKind::Strike(node) => {
                 self.strike(gi, node);
-                let all_one_way = self.alive_members(gi).iter().all(|&i| w.unit(self.st.squadrons[i].kind).one_way);
+                let all_one_way = self
+                    .alive_members(gi)
+                    .iter()
+                    .all(|&i| w.unit(self.st.squadrons[i].kind).one_way);
                 for i in self.alive_members(gi) {
                     if w.unit(self.st.squadrons[i].kind).one_way {
                         self.rt[i].consumed = true;
@@ -844,7 +1084,14 @@ impl<'w> Sim<'w> {
                 if let GKind::JamZone(z) = self.groups[gi].kind {
                     let seat = self.groups[gi].seat;
                     let id = self.groups[gi].id;
-                    self.private(seat, Event::JamOn { group: id, seat, zone: z });
+                    self.private(
+                        seat,
+                        Event::JamOn {
+                            group: id,
+                            seat,
+                            zone: z,
+                        },
+                    );
                 }
             }
             GKind::Scout(z) => {
@@ -868,9 +1115,21 @@ impl<'w> Sim<'w> {
                 let id = self.groups[gi].id;
                 if node != u16::MAX {
                     self.st.smoke.retain(|s| s.node != node || s.seat != seat);
-                    self.st.smoke.push(Smoke { node, seat, until: self.night + 1 });
+                    self.st.smoke.push(Smoke {
+                        node,
+                        seat,
+                        until: self.night + 1,
+                    });
                     let public = self.groups[gi].public;
-                    self.push(public, vec![seat], Event::Smoke { group: id, seat, node });
+                    self.push(
+                        public,
+                        vec![seat],
+                        Event::Smoke {
+                            group: id,
+                            seat,
+                            node,
+                        },
+                    );
                 }
                 self.go_home(gi);
             }
@@ -889,12 +1148,19 @@ impl<'w> Sim<'w> {
                 continue;
             }
             if let GKind::JamZone(z) = g.kind {
-                let jammer_alive = g.members.iter().any(|&i| self.sq_alive(i) && w.unit(self.st.squadrons[i].kind).class == crate::content::CombatClass::Jammer);
+                let jammer_alive = g.members.iter().any(|&i| {
+                    self.sq_alive(i)
+                        && w.unit(self.st.squadrons[i].kind).class
+                            == crate::content::CombatClass::Jammer
+                });
                 if !jammer_alive {
                     continue;
                 }
                 for n in &w.nodes {
-                    if n.zone == z && matches!(n.kind, NodeKind::AirDefense | NodeKind::Radar) && self.st.nodes[n.idx as usize].owner != Some(g.seat) {
+                    if n.zone == z
+                        && matches!(n.kind, NodeKind::AirDefense | NodeKind::Radar)
+                        && self.st.nodes[n.idx as usize].owner != Some(g.seat)
+                    {
                         self.blinded[n.idx as usize] = true;
                     }
                 }
@@ -904,7 +1170,9 @@ impl<'w> Sim<'w> {
 
     fn group_jammed(&self, gi: usize) -> bool {
         self.groups[gi].members.iter().any(|&i| {
-            self.sq_alive(i) && self.w.unit(self.st.squadrons[i].kind).class == crate::content::CombatClass::Jammer
+            self.sq_alive(i)
+                && self.w.unit(self.st.squadrons[i].kind).class
+                    == crate::content::CombatClass::Jammer
         })
     }
 
@@ -944,7 +1212,11 @@ impl<'w> Sim<'w> {
                 continue;
             }
             let gb = self.faction(owner) == FactionId::GrainBelt;
-            let range = if gb { r.air_defense.grainbelt_range } else { r.air_defense.range };
+            let range = if gb {
+                r.air_defense.grainbelt_range
+            } else {
+                r.air_defense.range
+            };
             for gi in 0..self.groups.len() {
                 let g = &self.groups[gi];
                 if !airborne(g) || g.seat == owner || g.guest_of == Some(owner) {
@@ -965,21 +1237,37 @@ impl<'w> Sim<'w> {
                 if self.group_jammed(gi) {
                     continue;
                 }
-                let targets: Vec<usize> =
-                    self.alive_members(gi).into_iter().filter(|&i| !self.sq_stealth(i, &self.groups[gi])).collect();
+                let targets: Vec<usize> = self
+                    .alive_members(gi)
+                    .into_iter()
+                    .filter(|&i| !self.sq_stealth(i, &self.groups[gi]))
+                    .collect();
                 if targets.is_empty() {
                     continue;
                 }
-                let mut shots_n = if ns.health == 2 { r.air_defense.shots_full } else { r.air_defense.shots_half };
+                let mut shots_n = if ns.health == 2 {
+                    r.air_defense.shots_full
+                } else {
+                    r.air_defense.shots_half
+                };
                 if gb {
                     shots_n += r.air_defense.grainbelt_shots_bonus;
                 }
                 let mut shots = Vec::new();
                 let mut hits: Vec<usize> = Vec::new();
                 for _ in 0..shots_n {
-                    let live: Vec<usize> = targets.iter().copied().filter(|&i| self.st.squadrons[i].strength > 0).collect();
-                    let weights: Vec<i32> = live.iter().map(|&i| self.st.squadrons[i].strength as i32).collect();
-                    let Some(k) = self.rng.weighted(&weights) else { break };
+                    let live: Vec<usize> = targets
+                        .iter()
+                        .copied()
+                        .filter(|&i| self.st.squadrons[i].strength > 0)
+                        .collect();
+                    let weights: Vec<i32> = live
+                        .iter()
+                        .map(|&i| self.st.squadrons[i].strength as i32)
+                        .collect();
+                    let Some(k) = self.rng.weighted(&weights) else {
+                        break;
+                    };
                     let t = live[k];
                     let ts = &self.st.squadrons[t];
                     let tu = w.unit(ts.kind);
@@ -990,7 +1278,11 @@ impl<'w> Sim<'w> {
                         }
                     }
                     let hit = self.rng.chance(p.clamp(r.combat.min_hit, r.combat.max_hit));
-                    shots.push(Shot { from: 0, to: ts.id, hit });
+                    shots.push(Shot {
+                        from: 0,
+                        to: ts.id,
+                        hit,
+                    });
                     if hit {
                         hits.push(t);
                     }
@@ -999,7 +1291,15 @@ impl<'w> Sim<'w> {
                 let gid = self.groups[gi].id;
                 let p = to_map(self.groups[gi].pos);
                 self.groups[gi].public = true;
-                self.public(Event::Flak { site: n.idx, site_seat: owner, group: gid, seat, shots, x: p.0, y: p.1 });
+                self.public(Event::Flak {
+                    site: n.idx,
+                    site_seat: owner,
+                    group: gid,
+                    seat,
+                    shots,
+                    x: p.0,
+                    y: p.1,
+                });
                 for t in hits {
                     self.apply_hit(t, Some(owner), None, Some(n.idx), None);
                 }
@@ -1018,7 +1318,13 @@ impl<'w> Sim<'w> {
         if !matches!(g.kind, GKind::Guard(_) | GKind::Sweep(_)) {
             return false;
         }
-        self.alive_members(gi).iter().any(|&i| self.w.unit(self.st.squadrons[i].kind).air.iter().any(|&a| a > 0))
+        self.alive_members(gi).iter().any(|&i| {
+            self.w
+                .unit(self.st.squadrons[i].kind)
+                .air
+                .iter()
+                .any(|&a| a > 0)
+        })
     }
 
     fn engagements(&mut self) {
@@ -1073,7 +1379,20 @@ impl<'w> Sim<'w> {
                         _ => r.radar.visual,
                     }
                 };
-                let d = if stealthy { dist2(gp, hp) } else { dist2(gp, anchor) };
+                let d = if stealthy {
+                    dist2(gp, hp)
+                } else {
+                    dist2(gp, anchor)
+                };
+                // Guards defend their post: they meet raiders headed for it, or anyone
+                // flying right over it. Hunting traffic in transit is what Sweep is for.
+                if let GKind::Guard(_) = h.kind {
+                    let close = (r.radar.guard_visual as i64) * (r.radar.guard_visual as i64);
+                    let aimed = dist(g.dest, anchor) <= reach + 40;
+                    if !aimed && d > close {
+                        continue;
+                    }
+                }
                 if d <= (reach as i64) * (reach as i64) && best.map(|b| d < b.0).unwrap_or(true) {
                     best = Some((d, gi));
                 }
@@ -1084,7 +1403,14 @@ impl<'w> Sim<'w> {
         }
     }
 
-    fn first_shot_side(&self, a: &[usize], b: &[usize], a_gi: usize, b_gi: usize, at: P) -> Option<u8> {
+    fn first_shot_side(
+        &self,
+        a: &[usize],
+        b: &[usize],
+        a_gi: usize,
+        b_gi: usize,
+        at: P,
+    ) -> Option<u8> {
         let w = self.w;
         let has_edge = |side: &[usize], gi: usize| -> bool {
             if side.is_empty() {
@@ -1092,13 +1418,24 @@ impl<'w> Sim<'w> {
             }
             let seat = self.st.squadrons[side[0]].seat;
             // SWITCHBACK: altitude advantage.
-            if side.iter().any(|&i| self.is_ace_of(i, FactionId::FrontRange)) {
+            if side
+                .iter()
+                .any(|&i| self.is_ace_of(i, FactionId::FrontRange))
+            {
                 return true;
             }
-            // Oh My Heck: Utah's guards always get the first shot.
+            // Oh My Heck: Utah's guards always get the first shot when defending
+            // a home (their own, or a neighbor's on a Service Project).
             let g = &self.groups[gi];
+            let defending_home = g
+                .guard_node
+                .map(|n| {
+                    self.st.nodes[n as usize].owner.is_some() && !rules::capturable(w, &self.st, n)
+                })
+                .unwrap_or(true);
             if self.faction(seat) == FactionId::Beehive
                 && matches!(g.kind, GKind::Guard(_))
+                && defending_home
                 && !rules::effect_active(&self.st, seat, EffectKind::NoFirstShot, self.night)
             {
                 return true;
@@ -1154,8 +1491,15 @@ impl<'w> Sim<'w> {
     }
 
     /// One side fires at the other. Returns the shot log and the hits.
-    /// A first-shot volley is a quick snap shot: only half the planes fire.
-    fn volley(&mut self, shooters: &[usize], targets: &[usize], escorts: &[usize], at: P, snap: bool) -> (Vec<Shot>, Vec<(usize, usize)>) {
+    /// A first-shot volley is a quick snap shot: only a third of the planes fire.
+    fn volley(
+        &mut self,
+        shooters: &[usize],
+        targets: &[usize],
+        escorts: &[usize],
+        at: P,
+        snap: bool,
+    ) -> (Vec<Shot>, Vec<(usize, usize)>) {
         let w = self.w;
         let r = w.rules();
         let mut planes: Vec<usize> = Vec::new();
@@ -1163,7 +1507,11 @@ impl<'w> Sim<'w> {
             if !self.sq_alive(s) {
                 continue;
             }
-            if w.unit(self.st.squadrons[s].kind).air.iter().all(|&a| a <= 0) {
+            if w.unit(self.st.squadrons[s].kind)
+                .air
+                .iter()
+                .all(|&a| a <= 0)
+            {
                 continue;
             }
             for _ in 0..self.st.squadrons[s].strength {
@@ -1172,20 +1520,41 @@ impl<'w> Sim<'w> {
         }
         // Bigger groups win, with diminishing returns (Lanchester, gently).
         let cap = r.combat.shooter_cap as usize;
-        let planes: Vec<usize> =
-            planes.iter().enumerate().filter(|(k, _)| *k < cap || (k - cap) % 2 == 0).map(|(_, &s)| s).collect();
-        let planes: Vec<usize> = if snap { planes.iter().step_by(2).copied().collect() } else { planes };
-        let escort_live: Vec<usize> = escorts.iter().copied().filter(|&i| self.sq_alive(i)).collect();
-        let screen = (r.combat.escort_screen * escort_live.len() as i32).min(r.combat.escort_screen_max);
+        let planes: Vec<usize> = planes
+            .iter()
+            .enumerate()
+            .filter(|(k, _)| *k < cap || (k - cap).is_multiple_of(2))
+            .map(|(_, &s)| s)
+            .collect();
+        let planes: Vec<usize> = if snap {
+            planes.iter().step_by(3).copied().collect()
+        } else {
+            planes
+        };
+        let escort_live: Vec<usize> = escorts
+            .iter()
+            .copied()
+            .filter(|&i| self.sq_alive(i))
+            .collect();
+        let screen =
+            (r.combat.escort_screen * escort_live.len() as i32).min(r.combat.escort_screen_max);
         let mut shots = Vec::new();
         let mut hits = Vec::new();
         for s in planes {
-            let live: Vec<usize> = targets.iter().copied().filter(|&i| self.sq_alive(i)).collect();
+            let live: Vec<usize> = targets
+                .iter()
+                .copied()
+                .filter(|&i| self.sq_alive(i))
+                .collect();
             if live.is_empty() {
                 break;
             }
             let pool: Vec<usize> = if !escort_live.is_empty() && self.rng.chance(screen) {
-                escort_live.iter().copied().filter(|&i| self.sq_alive(i)).collect()
+                escort_live
+                    .iter()
+                    .copied()
+                    .filter(|&i| self.sq_alive(i))
+                    .collect()
             } else {
                 live.clone()
             };
@@ -1202,11 +1571,17 @@ impl<'w> Sim<'w> {
                     }
                 })
                 .collect();
-            let Some(k) = self.rng.weighted(&weights) else { continue };
+            let Some(k) = self.rng.weighted(&weights) else {
+                continue;
+            };
             let t = pool[k];
             let p = self.hit_chance(s, t, at);
             let hit = self.rng.chance(p);
-            shots.push(Shot { from: self.st.squadrons[s].id, to: self.st.squadrons[t].id, hit });
+            shots.push(Shot {
+                from: self.st.squadrons[s].id,
+                to: self.st.squadrons[t].id,
+                hit,
+            });
             if hit {
                 hits.push((s, t));
             }
@@ -1224,11 +1599,21 @@ impl<'w> Sim<'w> {
         let b_seat = self.groups[gi].seat;
         let a_snap: Vec<SqSnap> = a.iter().map(|&i| self.sq_snap(i)).collect();
         let b_snap: Vec<SqSnap> = b.iter().map(|&i| self.sq_snap(i)).collect();
-        let ace_duel = a.iter().any(|&i| self.st.squadrons[i].ace) && b.iter().any(|&i| self.st.squadrons[i].ace);
+        let ace_duel = a.iter().any(|&i| self.st.squadrons[i].ace)
+            && b.iter().any(|&i| self.st.squadrons[i].ace);
         let first = self.first_shot_side(&a, &b, hi, gi, at);
         // Escorts screen the strike; fighters in a strike group are its escorts.
-        let b_escorts: Vec<usize> = if matches!(self.groups[gi].kind, GKind::Strike(_) | GKind::Scout(_) | GKind::Rebase(_) | GKind::Smoke(_)) {
-            b.iter().copied().filter(|i| !self.groups[gi].payload.contains(i)).filter(|&i| w.unit(self.st.squadrons[i].kind).class == crate::content::CombatClass::Fighter).collect()
+        let b_escorts: Vec<usize> = if matches!(
+            self.groups[gi].kind,
+            GKind::Strike(_) | GKind::Scout(_) | GKind::Rebase(_) | GKind::Smoke(_)
+        ) {
+            b.iter()
+                .copied()
+                .filter(|i| !self.groups[gi].payload.contains(i))
+                .filter(|&i| {
+                    w.unit(self.st.squadrons[i].kind).class == crate::content::CombatClass::Fighter
+                })
+                .collect()
         } else {
             Vec::new()
         };
@@ -1242,7 +1627,11 @@ impl<'w> Sim<'w> {
             for side in [&mut a_side, &mut b_side] {
                 let mut keep = Vec::new();
                 for &i in side.iter() {
-                    if self.sq_alive(i) && w.unit(self.st.squadrons[i].kind).class == crate::content::CombatClass::Scout && self.rng.chance(r.combat.scout_escape) {
+                    if self.sq_alive(i)
+                        && w.unit(self.st.squadrons[i].kind).class
+                            == crate::content::CombatClass::Scout
+                        && self.rng.chance(r.combat.scout_escape)
+                    {
                         escaped.push(self.st.squadrons[i].id);
                     } else {
                         keep.push(i);
@@ -1333,11 +1722,19 @@ impl<'w> Sim<'w> {
         }
         let abort = match g.kind {
             GKind::Strike(_) => {
-                let payload: i32 = g.payload.iter().filter(|&&i| self.sq_alive(i)).map(|&i| self.st.squadrons[i].strength as i32).sum();
+                let payload: i32 = g
+                    .payload
+                    .iter()
+                    .filter(|&&i| self.sq_alive(i))
+                    .map(|&i| self.st.squadrons[i].strength as i32)
+                    .sum();
                 payload * 2 <= g.launch_payload
             }
             _ => {
-                let total: i32 = alive.iter().map(|&i| self.st.squadrons[i].strength as i32).sum();
+                let total: i32 = alive
+                    .iter()
+                    .map(|&i| self.st.squadrons[i].strength as i32)
+                    .sum();
                 total * 2 <= g.launch_strength && g.launch_strength > 1
             }
         };
@@ -1345,13 +1742,24 @@ impl<'w> Sim<'w> {
         let jello = alive.iter().any(|&i| self.is_ace_of(i, FactionId::Beehive));
         if abort && !jello {
             self.groups[gi].aborted = true;
-            let (id, seat, public) = (self.groups[gi].id, self.groups[gi].seat, self.groups[gi].public);
+            let (id, seat, public) = (
+                self.groups[gi].id,
+                self.groups[gi].seat,
+                self.groups[gi].public,
+            );
             self.push(public, vec![seat], Event::Abort { group: id, seat });
             self.go_home(gi);
         }
     }
 
-    fn apply_hit(&mut self, t: usize, by_seat: Option<u8>, by_sq: Option<u32>, by_site: Option<u16>, shooter_group: Option<usize>) {
+    fn apply_hit(
+        &mut self,
+        t: usize,
+        by_seat: Option<u8>,
+        by_sq: Option<u32>,
+        by_site: Option<u16>,
+        shooter_group: Option<usize>,
+    ) {
         if !self.sq_alive(t) {
             return;
         }
@@ -1381,7 +1789,15 @@ impl<'w> Sim<'w> {
         self.splash(t, by_seat, by_sq, by_site, false, shooter_group);
     }
 
-    fn splash(&mut self, t: usize, by_seat: Option<u8>, by_sq: Option<u32>, by_site: Option<u16>, ground: bool, shooter_group: Option<usize>) {
+    fn splash(
+        &mut self,
+        t: usize,
+        by_seat: Option<u8>,
+        by_sq: Option<u32>,
+        by_site: Option<u16>,
+        ground: bool,
+        shooter_group: Option<usize>,
+    ) {
         let w = self.w;
         let sc = &w.rules().scoring;
         self.rt[t].lost = true;
@@ -1414,7 +1830,19 @@ impl<'w> Sim<'w> {
             }
         }
         self.st.seats[by as usize].kills += 1;
-        self.add_score(by, pts, if s.ace { ScoreReason::Ace } else if ground { ScoreReason::Ground } else { ScoreReason::Splash }, None, Some(s.seat));
+        self.add_score(
+            by,
+            pts,
+            if s.ace {
+                ScoreReason::Ace
+            } else if ground {
+                ScoreReason::Ground
+            } else {
+                ScoreReason::Splash
+            },
+            None,
+            Some(s.seat),
+        );
         self.note_hit(by, s.seat, None);
         // Service Project: a thank-you casserole for defending the neighbors.
         if let Some(gi) = shooter_group {
@@ -1426,7 +1854,14 @@ impl<'w> Sim<'w> {
         }
     }
 
-    fn add_score(&mut self, seat: u8, pts: i32, reason: ScoreReason, node: Option<u16>, victim: Option<u8>) {
+    fn add_score(
+        &mut self,
+        seat: u8,
+        pts: i32,
+        reason: ScoreReason,
+        node: Option<u16>,
+        victim: Option<u8>,
+    ) {
         if pts == 0 {
             return;
         }
@@ -1436,7 +1871,13 @@ impl<'w> Sim<'w> {
                 self.st.seats[v as usize].pride_lost += pts;
             }
         }
-        self.public(Event::Score { seat, delta: pts, reason, node, victim });
+        self.public(Event::Score {
+            seat,
+            delta: pts,
+            reason,
+            node,
+            victim,
+        });
     }
 
     /// Track grudges: Texas remembers, Utah keeps a list.
@@ -1466,17 +1907,29 @@ impl<'w> Sim<'w> {
             if let Some(PatchEffect::Accuracy(d)) = self.patch_effect() {
                 acc += d;
             }
-            let swarms = self.drone_targets.iter().find(|d| d.0 == node).map(|d| d.1).unwrap_or(1);
+            let swarms = self
+                .drone_targets
+                .iter()
+                .find(|d| d.0 == node)
+                .map(|d| d.1)
+                .unwrap_or(1);
             acc += (swarms - 1).max(0) * r.strike.swarm_bonus;
         }
         let n = &w.nodes[node as usize];
         // Eternal Overcast over Cascadia.
         if let Some(cas) = rules::seat_of(&self.st, FactionId::Cascadia) {
-            if striker != cas && w.zones[n.zone as usize].region.faction() == Some(FactionId::Cascadia) {
+            if striker != cas
+                && w.zones[n.zone as usize].region.faction() == Some(FactionId::Cascadia)
+            {
                 acc -= r.strike.overcast_penalty;
             }
         }
-        if self.st.smoke.iter().any(|sm| sm.node == node && sm.seat != striker && sm.until >= self.night) {
+        if self
+            .st
+            .smoke
+            .iter()
+            .any(|sm| sm.node == node && sm.seat != striker && sm.until >= self.night)
+        {
             acc -= r.strike.smoke_penalty;
         }
         acc.clamp(50, 950)
@@ -1486,7 +1939,11 @@ impl<'w> Sim<'w> {
         let w = self.w;
         let r = w.rules();
         let seat = self.groups[gi].seat;
-        let attackers: Vec<usize> = self.alive_members(gi).into_iter().filter(|i| self.groups[gi].payload.contains(i)).collect();
+        let attackers: Vec<usize> = self
+            .alive_members(gi)
+            .into_iter()
+            .filter(|i| self.groups[gi].payload.contains(i))
+            .collect();
         if rules::attack_check(w, &self.st, seat, node).is_err() {
             return; // captured by us mid-night, or otherwise no longer a target
         }
@@ -1507,14 +1964,37 @@ impl<'w> Sim<'w> {
         // Prototype reveals itself when it attacks.
         self.groups[gi].revealed = true;
         self.groups[gi].public = true;
-        let kinds = attackers.iter().map(|&i| self.st.squadrons[i].kind).collect();
-        let steps = hits / r.strike.hits_per_step;
+        let kinds = attackers
+            .iter()
+            .map(|&i| self.st.squadrons[i].kind)
+            .collect();
+        let per_step = if n.kind == NodeKind::CrownJewel {
+            r.strike.jewel_hits_per_step
+        } else {
+            r.strike.hits_per_step
+        };
+        let steps = hits / per_step.max(1);
         let gid = self.groups[gi].id;
-        self.apply_steps(seat, node, steps, hits, ScoreReason::Strike, Some((gid, kinds)));
+        self.apply_steps(
+            seat,
+            node,
+            steps,
+            hits,
+            ScoreReason::Strike,
+            Some((gid, kinds)),
+        );
     }
 
     /// Knock a node down `steps` and handle everything that follows.
-    fn apply_steps(&mut self, seat: u8, node: u16, steps: i32, hits: i32, reason: ScoreReason, strike: Option<(u32, Vec<UnitKind>)>) {
+    fn apply_steps(
+        &mut self,
+        seat: u8,
+        node: u16,
+        steps: i32,
+        hits: i32,
+        reason: ScoreReason,
+        strike: Option<(u32, Vec<UnitKind>)>,
+    ) {
         let w = self.w;
         let n = &w.nodes[node as usize];
         let victim = self.st.nodes[node as usize].owner;
@@ -1532,10 +2012,32 @@ impl<'w> Sim<'w> {
         let health = self.st.nodes[node as usize].health;
         match (reason, strike) {
             (ScoreReason::Strike, Some((group, kinds))) => {
-                self.public(Event::Strike { group, seat, node, victim, kinds, hits, steps, health, jewel });
+                self.public(Event::Strike {
+                    group,
+                    seat,
+                    node,
+                    victim,
+                    kinds,
+                    hits,
+                    steps,
+                    health,
+                    jewel,
+                });
             }
-            (ScoreReason::MassDriver, _) => self.public(Event::MassDriver { seat, node, victim, steps, health }),
-            _ => self.public(Event::Revenge { seat, node, victim, steps, health }),
+            (ScoreReason::MassDriver, _) => self.public(Event::MassDriver {
+                seat,
+                node,
+                victim,
+                steps,
+                health,
+            }),
+            _ => self.public(Event::Revenge {
+                seat,
+                node,
+                victim,
+                steps,
+                health,
+            }),
         }
         if steps <= 0 {
             return;
@@ -1547,7 +2049,10 @@ impl<'w> Sim<'w> {
                 if s.base != node || !self.sq_alive(i) || s.down_until != 0 {
                     continue;
                 }
-                let airborne_now = self.rt[i].group.map(|g| airborne(&self.groups[g])).unwrap_or(false);
+                let airborne_now = self.rt[i]
+                    .group
+                    .map(|g| airborne(&self.groups[g]))
+                    .unwrap_or(false);
                 if airborne_now {
                     continue;
                 }
@@ -1586,7 +2091,11 @@ impl<'w> Sim<'w> {
         if self.st.scrappy.contains(&seat) {
             pts = (pts * (100 + sc.scrappy_pct) + 99) / 100;
         }
-        let reason = if jewel && reason == ScoreReason::Strike { ScoreReason::Jewel } else { reason };
+        let reason = if jewel && reason == ScoreReason::Strike {
+            ScoreReason::Jewel
+        } else {
+            reason
+        };
         self.add_score(seat, pts, reason, Some(node), Some(victim));
         self.note_hit(seat, victim, Some(node));
         if self.faction(victim) == FactionId::Texas && !self.hit_texas.contains(&seat) {
@@ -1610,9 +2119,21 @@ impl<'w> Sim<'w> {
                 let victim_match = bet.victim == Some(victim) && bet.node.is_none();
                 if node_match || victim_match {
                     let fr = &w.rules().factions;
-                    let payout = bet.stake * if node_match { fr.bet_node_mult } else { fr.bet_faction_mult };
+                    let payout = bet.stake
+                        * if node_match {
+                            fr.bet_node_mult
+                        } else {
+                            fr.bet_faction_mult
+                        };
                     self.bets[b] = Some((bet.clone(), true));
-                    self.public(Event::BetWin { seat: b as u8, on: bet.on, node: bet.node, victim: bet.victim, stake: bet.stake, payout });
+                    self.public(Event::BetWin {
+                        seat: b as u8,
+                        on: bet.on,
+                        node: bet.node,
+                        victim: bet.victim,
+                        stake: bet.stake,
+                        payout,
+                    });
                 }
             }
         }
@@ -1634,34 +2155,70 @@ impl<'w> Sim<'w> {
             }
         };
         if let Some(k) = kind {
-            if self.st.effects.iter().any(|e| e.seat == victim && e.kind == k && e.from == night + 1) {
+            if self
+                .st
+                .effects
+                .iter()
+                .any(|e| e.seat == victim && e.kind == k && e.from == night + 1)
+            {
                 return;
             }
-            self.st.effects.push(Effect { seat: victim, kind: k, from: night + 1, until: night + nights });
-            self.public(Event::JewelEffect { seat: victim, kind: k, nights });
+            self.st.effects.push(Effect {
+                seat: victim,
+                kind: k,
+                from: night + 1,
+                until: night + nights,
+            });
+            self.public(Event::JewelEffect {
+                seat: victim,
+                kind: k,
+                nights,
+            });
         }
     }
 
     fn mass_driver(&mut self) {
         let w = self.w;
-        let Some(holder) = self.massdriver_holder else { return };
-        if rules::stage(w, self.night) < 2 {
+        let Some(holder) = self.massdriver_holder else {
+            return;
+        };
+        if rules::stage(w, self.night) < 2 || self.st.mass_driver_fired {
             return;
         }
-        let Some(node) = self.orders[holder as usize].mass_driver else { return };
-        if (node as usize) >= w.nodes.len() || rules::attack_check(w, &self.st, holder, node).is_err() {
+        let Some(node) = self.orders[holder as usize].mass_driver else {
+            return;
+        };
+        if (node as usize) >= w.nodes.len()
+            || rules::attack_check(w, &self.st, holder, node).is_err()
+        {
             return;
         }
         let steps = w.rules().factions.mass_driver_steps;
-        self.apply_steps(holder, node, steps, steps * 2, ScoreReason::MassDriver, None);
+        self.st.mass_driver_fired = true;
+        self.apply_steps(
+            holder,
+            node,
+            steps,
+            steps * 2,
+            ScoreReason::MassDriver,
+            None,
+        );
     }
 
     fn revenge(&mut self) {
         let w = self.w;
-        let Some(gb) = rules::seat_of(&self.st, FactionId::GrainBelt) else { return };
-        let Some(target_seat) = self.st.revenge_against else { return };
-        let Some(node) = self.orders[gb as usize].revenge else { return };
-        if (node as usize) >= w.nodes.len() || self.st.nodes[node as usize].owner != Some(target_seat) {
+        let Some(gb) = rules::seat_of(&self.st, FactionId::GrainBelt) else {
+            return;
+        };
+        let Some(target_seat) = self.st.revenge_against else {
+            return;
+        };
+        let Some(node) = self.orders[gb as usize].revenge else {
+            return;
+        };
+        if (node as usize) >= w.nodes.len()
+            || self.st.nodes[node as usize].owner != Some(target_seat)
+        {
             return;
         }
         if rules::attack_check(w, &self.st, gb, node).is_err() {
@@ -1677,10 +2234,18 @@ impl<'w> Sim<'w> {
         let range = w.rules().factions.pivot_range;
         for gi in 0..self.groups.len() {
             let g = &self.groups[gi];
-            if g.phase != Phase::OnStation || g.engaged || g.pivoted || !matches!(g.kind, GKind::Guard(_) | GKind::Sweep(_)) {
+            if g.phase != Phase::OnStation
+                || g.engaged
+                || g.pivoted
+                || !matches!(g.kind, GKind::Guard(_) | GKind::Sweep(_))
+            {
                 continue;
             }
-            if !self.alive_members(gi).iter().any(|&i| self.is_ace_of(i, FactionId::Pacific)) {
+            if !self
+                .alive_members(gi)
+                .iter()
+                .any(|&i| self.is_ace_of(i, FactionId::Pacific))
+            {
                 continue;
             }
             let here = to_map(g.pos);
@@ -1690,7 +2255,9 @@ impl<'w> Sim<'w> {
                 if !n.kind.is_military() || rules::attack_check(w, &self.st, seat, n.idx).is_err() {
                     continue;
                 }
-                if self.st.nodes[n.idx as usize].owner.is_none() || self.st.nodes[n.idx as usize].health == 0 {
+                if self.st.nodes[n.idx as usize].owner.is_none()
+                    || self.st.nodes[n.idx as usize].health == 0
+                {
                     continue;
                 }
                 let d = dist(here, n.pos);
@@ -1704,13 +2271,22 @@ impl<'w> Sim<'w> {
                 g.kind = GKind::Strike(node);
                 g.tag = MissionTag::Attack;
                 g.payload = g.members.clone();
-                g.launch_payload = g.members.iter().map(|&i| self.st.squadrons[i].strength as i32).sum();
+                g.launch_payload = g
+                    .members
+                    .iter()
+                    .map(|&i| self.st.squadrons[i].strength as i32)
+                    .sum();
                 g.path = vec![g.pos, to_fp(w.nodes[node as usize].pos)];
                 g.leg = 1;
                 g.phase = Phase::Outbound;
                 g.orbit.clear();
+                g.dest = w.nodes[node as usize].pos;
                 let id = g.id;
-                self.public(Event::Pivot { group: id, seat, node });
+                self.public(Event::Pivot {
+                    group: id,
+                    seat,
+                    node,
+                });
             }
         }
     }
@@ -1739,7 +2315,11 @@ impl<'w> Sim<'w> {
             if public {
                 self.ev[g.launch_ev].public = true;
             }
-            let e = Event::Track { group: g.id, seat: g.seat, pts: g.track.clone() };
+            let e = Event::Track {
+                group: g.id,
+                seat: g.seat,
+                pts: g.track.clone(),
+            };
             let seat = g.seat;
             self.push(public, vec![seat], e);
         }
@@ -1752,7 +2332,10 @@ impl<'w> Sim<'w> {
         let r = w.rules().clone();
         // Casualties: aces and the Longhorn come back later; everything else is gone.
         let mut keep = Vec::new();
-        for (i, mut s) in std::mem::take(&mut self.st.squadrons).into_iter().enumerate() {
+        for (i, mut s) in std::mem::take(&mut self.st.squadrons)
+            .into_iter()
+            .enumerate()
+        {
             let rt = &self.rt[i];
             if rt.consumed {
                 continue;
@@ -1772,7 +2355,8 @@ impl<'w> Sim<'w> {
                 continue;
             }
             // Squadron repairs at base: +1 a night, +2 resting.
-            let base_ok = self.st.nodes[s.base as usize].health > 0 || w.nodes[s.base as usize].kind == NodeKind::Lake;
+            let base_ok = self.st.nodes[s.base as usize].health > 0
+                || w.nodes[s.base as usize].kind == NodeKind::Lake;
             if base_ok && s.down_until == 0 {
                 let add = if rt.rested && !rt.grounded { 2 } else { 1 };
                 s.strength = (s.strength + add).min(MAX_STRENGTH);
@@ -1788,7 +2372,10 @@ impl<'w> Sim<'w> {
             if !g.arrived || g.aborted || !matches!(g.kind, GKind::Guard(_)) {
                 continue;
             }
-            let alive = g.members.iter().any(|&i| !self.rt[i].lost && !self.rt[i].consumed);
+            let alive = g
+                .members
+                .iter()
+                .any(|&i| !self.rt[i].lost && !self.rt[i].consumed);
             if !alive {
                 continue;
             }
@@ -1835,17 +2422,34 @@ impl<'w> Sim<'w> {
             s.supply = (s.supply + inc.supply).min(economy::cap(w, inc.supply).max(s.supply));
             s.fuel = (s.fuel + inc.fuel).min(economy::cap(w, inc.fuel).max(s.fuel));
             let (sup, fu) = (inc.supply, inc.fuel);
-            self.private(seat, Event::Income { seat, supply: sup, fuel: fu });
+            self.private(
+                seat,
+                Event::Income {
+                    seat,
+                    supply: sup,
+                    fuel: fu,
+                },
+            );
         }
         // Windfalls land after the cap: bets, the Harvest, casseroles.
         for b in 0..self.bets.len() {
             if let Some((bet, won)) = self.bets[b].clone() {
                 let fr = &r.factions;
                 if won {
-                    let mult = if bet.node.is_some() { fr.bet_node_mult } else { fr.bet_faction_mult };
+                    let mult = if bet.node.is_some() {
+                        fr.bet_node_mult
+                    } else {
+                        fr.bet_faction_mult
+                    };
                     self.st.seats[b].supply += bet.stake * mult;
                 } else {
-                    self.private(b as u8, Event::BetLost { seat: b as u8, stake: bet.stake });
+                    self.private(
+                        b as u8,
+                        Event::BetLost {
+                            seat: b as u8,
+                            stake: bet.stake,
+                        },
+                    );
                 }
             }
         }
@@ -1857,17 +2461,29 @@ impl<'w> Sim<'w> {
         }
         for (seat, host) in std::mem::take(&mut self.casseroles) {
             self.st.seats[seat as usize].supply += r.scoring.casserole_supply;
-            self.public(Event::Casserole { seat, host, supply: r.scoring.casserole_supply });
+            self.public(Event::Casserole {
+                seat,
+                host,
+                supply: r.scoring.casserole_supply,
+            });
         }
         // Colorado sells one radar picture.
         self.intel_sale(next);
         // Free repairs: one step a night, starting the night after a hit.
         for i in 0..self.st.nodes.len() {
             let ns = &mut self.st.nodes[i];
-            if ns.health < 2 && !self.hit_tonight[i] && ns.owner.is_some() {
+            if let (true, false, Some(seat)) = (ns.health < 2, self.hit_tonight[i], ns.owner) {
                 ns.health += 1;
-                let (seat, h) = (ns.owner.unwrap(), ns.health);
-                self.private(seat, Event::Repaired { seat, node: i as u16, health: h, paid: false });
+                let h = ns.health;
+                self.private(
+                    seat,
+                    Event::Repaired {
+                        seat,
+                        node: i as u16,
+                        health: h,
+                        paid: false,
+                    },
+                );
             }
         }
         // New squadrons, salvage and returning aces.
@@ -1880,26 +2496,60 @@ impl<'w> Sim<'w> {
             match setup::place(w, &self.st, p.seat, p.kind) {
                 Some(base) => {
                     let id = self.new_squadron(p.seat, p.kind, base, MAX_STRENGTH, p.stars);
-                    self.private(p.seat, Event::Built { seat: p.seat, sq: id, kind: p.kind, node: base });
+                    self.private(
+                        p.seat,
+                        Event::Built {
+                            seat: p.seat,
+                            sq: id,
+                            kind: p.kind,
+                            node: base,
+                        },
+                    );
                 }
                 None => {
                     self.st.seats[p.seat as usize].supply += w.unit(p.kind).cost;
-                    self.private(p.seat, Event::BuildFailed { seat: p.seat, kind: p.kind, reason: "No room at any base. Refunded.".into() });
+                    self.private(
+                        p.seat,
+                        Event::BuildFailed {
+                            seat: p.seat,
+                            kind: p.kind,
+                            reason: "No room at any base. Refunded.".into(),
+                        },
+                    );
                 }
             }
         }
-        if night % 2 == 0 {
+        if night.is_multiple_of(2) {
             if let Some(by) = w.nodes.iter().find(|n| n.kind == NodeKind::Boneyard) {
                 if let Some(holder) = self.st.nodes[by.idx as usize].owner {
-                    let kind = if (night / 2) % 2 == 1 { UnitKind::Fighter } else { UnitKind::Bomber };
-                    let base = if rules::base_occupancy(&self.st, by.idx, None) < rules::base_capacity(w, &self.st, by.idx, kind) {
+                    let kind = if (night / 2) % 2 == 1 {
+                        UnitKind::Fighter
+                    } else {
+                        UnitKind::Bomber
+                    };
+                    let base = if rules::base_occupancy(&self.st, by.idx, None)
+                        < rules::base_capacity(w, &self.st, by.idx, kind)
+                    {
                         Some(by.idx)
                     } else {
                         setup::place(w, &self.st, holder, kind)
                     };
                     if let Some(base) = base {
-                        let id = self.new_squadron(holder, kind, base, r.factions.salvage_strength as u8, 0);
-                        self.private(holder, Event::Salvage { seat: holder, sq: id, kind });
+                        let id = self.new_squadron(
+                            holder,
+                            kind,
+                            base,
+                            r.factions.salvage_strength as u8,
+                            0,
+                        );
+                        self.private(
+                            holder,
+                            Event::Salvage {
+                                seat: holder,
+                                sq: id,
+                                kind,
+                            },
+                        );
                     }
                 }
             }
@@ -1911,9 +2561,14 @@ impl<'w> Sim<'w> {
                 let base_ok = {
                     let b = self.st.squadrons[i].base;
                     self.st.nodes[b as usize].owner == Some(seat)
-                        && rules::base_occupancy(&self.st, b, None) < rules::base_capacity(w, &self.st, b, kind)
+                        && rules::base_occupancy(&self.st, b, None)
+                            < rules::base_capacity(w, &self.st, b, kind)
                 };
-                let base = if base_ok { Some(self.st.squadrons[i].base) } else { setup::place(w, &self.st, seat, kind) };
+                let base = if base_ok {
+                    Some(self.st.squadrons[i].base)
+                } else {
+                    setup::place(w, &self.st, seat, kind)
+                };
                 if let Some(b) = base {
                     let s = &mut self.st.squadrons[i];
                     s.down_until = 0;
@@ -1939,21 +2594,44 @@ impl<'w> Sim<'w> {
         let scores: Vec<i32> = self.st.seats.iter().map(|s| s.score).collect();
         let min = *scores.iter().min().unwrap_or(&0);
         let all_tied = scores.iter().all(|&s| s == min);
-        self.st.scrappy = if all_tied { Vec::new() } else { (0..scores.len() as u8).filter(|&i| scores[i as usize] == min).collect() };
+        self.st.scrappy = if all_tied {
+            Vec::new()
+        } else {
+            (0..scores.len() as u8)
+                .filter(|&i| scores[i as usize] == min)
+                .collect()
+        };
         let mut rng = Rng::for_night(self.st.seed, night, 2);
         setup::roll_dawn_offers(w, &mut self.st, &mut rng);
-        self.st.history.push(NightRecord { night, scores: scores.clone() });
+        self.st.history.push(NightRecord {
+            night,
+            scores: scores.clone(),
+        });
         self.st.night = next;
         let (scrappy, patch, harvest) = (self.st.scrappy.clone(), self.st.patch, self.st.harvest);
         self.tick = r.ticks;
-        self.public(Event::Dawn { night, scores, scrappy, patch, harvest });
+        self.public(Event::Dawn {
+            night,
+            scores,
+            scrappy,
+            patch,
+            harvest,
+        });
     }
 
     fn twine_hit_tonight(&self) -> bool {
-        rules::is_seated(&self.st, FactionId::GrainBelt) && self.hit_tonight[self.w.jewels[FactionId::GrainBelt.index()] as usize]
+        rules::is_seated(&self.st, FactionId::GrainBelt)
+            && self.hit_tonight[self.w.jewels[FactionId::GrainBelt.index()] as usize]
     }
 
-    fn new_squadron(&mut self, seat: u8, kind: UnitKind, base: u16, strength: u8, stars: u8) -> u32 {
+    fn new_squadron(
+        &mut self,
+        seat: u8,
+        kind: UnitKind,
+        base: u16,
+        strength: u8,
+        stars: u8,
+    ) -> u32 {
         let id = self.st.next_sq;
         self.st.next_sq += 1;
         self.st.squadrons.push(Squadron {
@@ -1973,8 +2651,12 @@ impl<'w> Sim<'w> {
     }
 
     fn intel_sale(&mut self, next: u8) {
-        let Some(co) = rules::seat_of(&self.st, FactionId::FrontRange) else { return };
-        let Some(sale) = self.orders[co as usize].intel_sale.clone() else { return };
+        let Some(co) = rules::seat_of(&self.st, FactionId::FrontRange) else {
+            return;
+        };
+        let Some(sale) = self.orders[co as usize].intel_sale.clone() else {
+            return;
+        };
         if rules::effect_active(&self.st, co, EffectKind::RadarSealed, next) || sale.price < 0 {
             return;
         }
@@ -1984,7 +2666,10 @@ impl<'w> Sim<'w> {
                 continue;
             }
             if let Some(req) = &self.orders[seat as usize].intel_request {
-                if req.max_price >= sale.price && self.st.seats[seat as usize].supply >= sale.price && (req.zone as usize) < self.w.zones.len() {
+                if req.max_price >= sale.price
+                    && self.st.seats[seat as usize].supply >= sale.price
+                    && (req.zone as usize) < self.w.zones.len()
+                {
                     if best.is_empty() || req.max_price > best[0].0 {
                         best = vec![(req.max_price, seat, req.zone)];
                     } else if req.max_price == best[0].0 {
@@ -1999,8 +2684,21 @@ impl<'w> Sim<'w> {
         let (_, buyer, zone) = best[self.rng.below(best.len() as u32) as usize];
         self.st.seats[buyer as usize].supply -= sale.price;
         self.st.seats[co as usize].supply += sale.price;
-        self.st.intel[buyer as usize].revealed.push(Reveal { zone, radar_of: Some(co), half: false });
-        self.push(false, vec![co, buyer], Event::IntelSold { seller: co, buyer, zone, price: sale.price });
+        self.st.intel[buyer as usize].revealed.push(Reveal {
+            zone,
+            radar_of: Some(co),
+            half: false,
+        });
+        self.push(
+            false,
+            vec![co, buyer],
+            Event::IntelSold {
+                seller: co,
+                buyer,
+                zone,
+                price: sale.price,
+            },
+        );
     }
 
     fn update_intel(&mut self, next: u8) {
@@ -2014,8 +2712,16 @@ impl<'w> Sim<'w> {
             let half = w.zones[zone as usize].region.faction() == Some(FactionId::Cascadia)
                 && self.faction(seat) != FactionId::Cascadia
                 && rules::is_seated(&self.st, FactionId::Cascadia);
-            if !self.st.intel[seat as usize].revealed.iter().any(|r| r.zone == zone && r.radar_of.is_none()) {
-                self.st.intel[seat as usize].revealed.push(Reveal { zone, radar_of: None, half });
+            if !self.st.intel[seat as usize]
+                .revealed
+                .iter()
+                .any(|r| r.zone == zone && r.radar_of.is_none())
+            {
+                self.st.intel[seat as usize].revealed.push(Reveal {
+                    zone,
+                    radar_of: None,
+                    half,
+                });
             }
             self.private(seat, Event::ScoutReport { seat, zone, half });
         }
@@ -2028,11 +2734,15 @@ impl<'w> Sim<'w> {
                 continue;
             }
             match &e.e {
-                Event::Strike { node, health, .. } | Event::MassDriver { node, health, .. } | Event::Revenge { node, health, .. } => {
-                    public_hits.push((*node, *health))
+                Event::Strike { node, health, .. }
+                | Event::MassDriver { node, health, .. }
+                | Event::Revenge { node, health, .. } => public_hits.push((*node, *health)),
+                Event::Launch { squadrons, .. } => {
+                    seen_flying.extend(squadrons.iter().map(|s| s.sq))
                 }
-                Event::Launch { squadrons, .. } => seen_flying.extend(squadrons.iter().map(|s| s.sq)),
-                Event::Splash { sq, .. } | Event::Vanished { sq, .. } | Event::LostInStatic { sq, .. } => splashed.push(*sq),
+                Event::Splash { sq, .. }
+                | Event::Vanished { sq, .. }
+                | Event::LostInStatic { sq, .. } => splashed.push(*sq),
                 _ => {}
             }
         }
@@ -2043,7 +2753,8 @@ impl<'w> Sim<'w> {
             self.st.public_health[node as usize] = h;
         }
         for n in &w.nodes {
-            let always = vision::always_visible_zone(w, &self.st, n.zone) || (n.kind == NodeKind::Fuel && n.home == Some(FactionId::Texas));
+            let always = vision::always_visible_zone(w, &self.st, n.zone)
+                || (n.kind == NodeKind::Fuel && n.home == Some(FactionId::Texas));
             if always {
                 self.st.public_health[n.idx as usize] = self.st.nodes[n.idx as usize].health;
             }
@@ -2063,11 +2774,26 @@ impl<'w> Sim<'w> {
             }
             let visible: Vec<Ghost> = vision::visible_squadrons(w, &self.st, seat)
                 .into_iter()
-                .chain(self.st.squadrons.iter().filter(|s| seen_flying.contains(&s.id) && s.seat != seat && s.active()))
-                .map(|s| Ghost { sq: s.id, seat: s.seat, kind: s.kind, strength: s.strength, node: s.base, night: next, ace: s.ace })
+                .chain(
+                    self.st
+                        .squadrons
+                        .iter()
+                        .filter(|s| seen_flying.contains(&s.id) && s.seat != seat && s.active()),
+                )
+                .map(|s| Ghost {
+                    sq: s.id,
+                    seat: s.seat,
+                    kind: s.kind,
+                    strength: s.strength,
+                    node: s.base,
+                    night: next,
+                    ace: s.ace,
+                })
                 .collect();
             let intel = &mut self.st.intel[seat as usize];
-            intel.ghosts.retain(|g| !splashed.contains(&g.sq) && !visible.iter().any(|v| v.sq == g.sq));
+            intel
+                .ghosts
+                .retain(|g| !splashed.contains(&g.sq) && !visible.iter().any(|v| v.sq == g.sq));
             intel.ghosts.extend(visible);
             intel.ghosts.retain(|g| next.saturating_sub(g.night) <= 3);
             intel.ghosts.sort_by_key(|g| g.sq);
@@ -2078,12 +2804,17 @@ impl<'w> Sim<'w> {
 }
 
 fn airborne(g: &Group) -> bool {
-    matches!(g.phase, Phase::Outbound | Phase::OnStation | Phase::Returning)
+    matches!(
+        g.phase,
+        Phase::Outbound | Phase::OnStation | Phase::Returning
+    )
 }
 
 /// A 16-gon patrol orbit, starting at a varied angle. Integer trig table.
 fn orbit_points(center: P, radius: i32, start: usize) -> Vec<Fp> {
-    const COS: [i32; 16] = [1000, 924, 707, 383, 0, -383, -707, -924, -1000, -924, -707, -383, 0, 383, 707, 924];
+    const COS: [i32; 16] = [
+        1000, 924, 707, 383, 0, -383, -707, -924, -1000, -924, -707, -383, 0, 383, 707, 924,
+    ];
     let r = radius.max(10) * FX;
     let c = to_fp(center);
     (0..16)
@@ -2097,17 +2828,38 @@ fn orbit_points(center: P, radius: i32, start: usize) -> Vec<Fp> {
 
 /// Squadrons whose standing orders make sense to carry over into the next night.
 pub fn carry_over(world: &World, state: &GameState, seat: u8) -> Orders {
-    let mut o = Orders { seat, ..Default::default() };
-    for s in state.squadrons.iter().filter(|s| s.seat == seat && s.active()) {
-        let m = if rules::mission_check(world, state, s, &s.order).is_ok() { s.order.clone() } else { Mission::Rest };
-        o.missions.push(SqOrder { sq: s.id, mission: m, waypoint: s.waypoint });
+    let mut o = Orders {
+        seat,
+        ..Default::default()
+    };
+    for s in state
+        .squadrons
+        .iter()
+        .filter(|s| s.seat == seat && s.active())
+    {
+        let m = if rules::mission_check(world, state, s, &s.order).is_ok() {
+            s.order.clone()
+        } else {
+            Mission::Rest
+        };
+        o.missions.push(SqOrder {
+            sq: s.id,
+            mission: m,
+            waypoint: s.waypoint,
+        });
     }
     o
 }
 
 /// Fuel a mission costs: by distance flown, with free local guards and
 /// Remember the Alamo. `path` is the outbound route (escorts: their lead's).
-pub fn fuel_cost(world: &World, state: &GameState, sq: &Squadron, mission: &Mission, path: &[P]) -> i32 {
+pub fn fuel_cost(
+    world: &World,
+    state: &GameState,
+    sq: &Squadron,
+    mission: &Mission,
+    path: &[P],
+) -> i32 {
     let w = world;
     let one_way = w.unit(sq.kind).one_way || matches!(mission, Mission::Rebase { .. });
     let len = route::path_len(path) * if one_way { 1 } else { 2 };
@@ -2115,8 +2867,14 @@ pub fn fuel_cost(world: &World, state: &GameState, sq: &Squadron, mission: &Miss
     let free = w.rules().economy.free_guard_radius;
     match *mission {
         Mission::Rest => return 0,
-        Mission::Guard { node } | Mission::Rebase { node } if dist(base, w.nodes[node as usize].pos) <= free => return 0,
-        Mission::GuardZone { zone } if dist(base, w.zones[zone as usize].center) <= free => return 0,
+        Mission::Guard { node } | Mission::Rebase { node }
+            if dist(base, w.nodes[node as usize].pos) <= free =>
+        {
+            return 0
+        }
+        Mission::GuardZone { zone } if dist(base, w.zones[zone as usize].center) <= free => {
+            return 0
+        }
         Mission::Attack { node } if state.seats[sq.seat as usize].faction == FactionId::Texas => {
             // Remember the Alamo: hitting last night's attackers flies free.
             if let Some(o) = state.nodes[node as usize].owner {
@@ -2129,7 +2887,11 @@ pub fn fuel_cost(world: &World, state: &GameState, sq: &Squadron, mission: &Miss
     }
     let mut cost = (len * w.unit(sq.kind).fuel_rate + 999) / 1000;
     if sq.kind == UnitKind::Drone && state.seats[sq.seat as usize].faction == FactionId::Pacific {
-        if let Some(PatchEffect::Fuel(d)) = state.patch.and_then(|i| w.content.patch_notes.get(i as usize)).map(|p| p.effect) {
+        if let Some(PatchEffect::Fuel(d)) = state
+            .patch
+            .and_then(|i| w.content.patch_notes.get(i as usize))
+            .map(|p| p.effect)
+        {
             cost += d;
         }
     }
@@ -2140,8 +2902,13 @@ pub fn fuel_cost(world: &World, state: &GameState, sq: &Squadron, mission: &Miss
 pub fn mission_point(world: &World, state: &GameState, sq: &Squadron, m: &Mission) -> Option<P> {
     let w = world;
     Some(match *m {
-        Mission::Attack { node } | Mission::Guard { node } | Mission::Rebase { node } => w.nodes[node as usize].pos,
-        Mission::GuardZone { zone } | Mission::Sweep { zone } | Mission::Scout { zone } | Mission::JamZone { zone } => w.zones[zone as usize].center,
+        Mission::Attack { node } | Mission::Guard { node } | Mission::Rebase { node } => {
+            w.nodes[node as usize].pos
+        }
+        Mission::GuardZone { zone }
+        | Mission::Sweep { zone }
+        | Mission::Scout { zone }
+        | Mission::JamZone { zone } => w.zones[zone as usize].center,
         Mission::Rest => return None,
         Mission::Escort { sq: t } | Mission::JamEscort { sq: t } => {
             let lead = state.squadrons.iter().find(|s| s.id == t)?;

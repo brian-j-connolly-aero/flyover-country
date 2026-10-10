@@ -128,14 +128,14 @@ export interface SeatView {
   supply: number; fuel: number; income_supply: number; income_fuel: number; cap_supply: number; cap_fuel: number;
   build_capacity: number; seats: PublicSeat[]; nodes: NodeView[]; squadrons: Squadron[]; enemies: EnemyView[];
   revealed: Reveal[]; flows: Income; effects: Effect[]; patch: number | null; harvest: number;
-  texas_grudge: number[]; beehive_grudge: number[]; revenge_against: number | null; mass_driver_holder: number | null;
+  texas_grudge: number[]; beehive_grudge: number[]; revenge_against: number | null; mass_driver_holder: number | null; mass_driver_fired: boolean;
   pending: PendingBuild[]; builds: BuildOption[]; carry_over: Orders; history: NightRecord[];
 }
 
 export interface PublicNode { owner: number | null; health: number; active: boolean }
 export interface PublicView {
   night: number; nights: number; stage: number; over: boolean; seats: PublicSeat[]; nodes: PublicNode[];
-  effects: Effect[]; patch: number | null; harvest: number; mass_driver_holder: number | null; history: NightRecord[];
+  effects: Effect[]; patch: number | null; harvest: number; mass_driver_holder: number | null; mass_driver_fired: boolean; history: NightRecord[];
 }
 
 export type RiskColor = 'Green' | 'Yellow' | 'Red';

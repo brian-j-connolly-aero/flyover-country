@@ -84,6 +84,7 @@ pub struct SeatView {
     pub beehive_grudge: Vec<u8>,
     pub revenge_against: Option<u8>,
     pub mass_driver_holder: Option<u8>,
+    pub mass_driver_fired: bool,
     pub pending: Vec<PendingBuild>,
     pub builds: Vec<BuildOption>,
     pub carry_over: Orders,
@@ -109,6 +110,7 @@ pub struct PublicView {
     pub patch: Option<u16>,
     pub harvest: i32,
     pub mass_driver_holder: Option<u8>,
+    pub mass_driver_fired: bool,
     pub history: Vec<NightRecord>,
 }
 
@@ -131,7 +133,10 @@ fn public_seats(st: &GameState) -> Vec<PublicSeat> {
 }
 
 fn mass_driver_holder(w: &World, st: &GameState) -> Option<u8> {
-    w.nodes.iter().find(|n| n.kind == NodeKind::MassDriver).and_then(|n| st.nodes[n.idx as usize].owner)
+    w.nodes
+        .iter()
+        .find(|n| n.kind == NodeKind::MassDriver)
+        .and_then(|n| st.nodes[n.idx as usize].owner)
 }
 
 pub fn public_view(w: &World, st: &GameState) -> PublicView {
@@ -145,12 +150,17 @@ pub fn public_view(w: &World, st: &GameState) -> PublicView {
             .nodes
             .iter()
             .enumerate()
-            .map(|(i, n)| PublicNode { owner: n.owner, health: st.public_health.get(i).copied().unwrap_or(2), active: n.active })
+            .map(|(i, n)| PublicNode {
+                owner: n.owner,
+                health: st.public_health.get(i).copied().unwrap_or(2),
+                active: n.active,
+            })
             .collect(),
         effects: st.effects.clone(),
         patch: st.patch,
         harvest: st.harvest,
         mass_driver_holder: mass_driver_holder(w, st),
+        mass_driver_fired: st.mass_driver_fired,
         history: st.history.clone(),
     }
 }
@@ -166,23 +176,49 @@ pub fn seat_view(w: &World, st: &GameState, seat: u8) -> SeatView {
             let exact = vision::node_visible(w, st, seat, n.idx);
             NodeView {
                 owner: ns.owner,
-                health: if exact { ns.health } else { believed[n.idx as usize] },
+                health: if exact {
+                    ns.health
+                } else {
+                    believed[n.idx as usize]
+                },
                 exact,
-                smoke: st.smoke.iter().any(|sm| sm.node == n.idx && (sm.seat == seat || exact) && sm.until >= st.night),
+                smoke: st.smoke.iter().any(|sm| {
+                    sm.node == n.idx && (sm.seat == seat || exact) && sm.until >= st.night
+                }),
                 capturable: rules::capturable(w, st, n.idx),
                 active: ns.active,
-                attack: rules::attack_check(w, st, seat, n.idx).err().map(String::from),
-                guard: rules::guard_check(w, st, seat, n.idx).err().map(String::from),
+                attack: rules::attack_check(w, st, seat, n.idx)
+                    .err()
+                    .map(String::from),
+                guard: rules::guard_check(w, st, seat, n.idx)
+                    .err()
+                    .map(String::from),
             }
         })
         .collect();
     let mut enemies: Vec<EnemyView> = vision::visible_squadrons(w, st, seat)
         .into_iter()
-        .map(|q| EnemyView { sq: q.id, seat: q.seat, kind: q.kind, strength: q.strength, base: q.base, ace: q.ace, night: st.night })
+        .map(|q| EnemyView {
+            sq: q.id,
+            seat: q.seat,
+            kind: q.kind,
+            strength: q.strength,
+            base: q.base,
+            ace: q.ace,
+            night: st.night,
+        })
         .collect();
     for g in &st.intel[seat as usize].ghosts {
         if !enemies.iter().any(|e| e.sq == g.sq) {
-            enemies.push(EnemyView { sq: g.sq, seat: g.seat, kind: g.kind, strength: g.strength, base: g.node, ace: g.ace, night: g.night });
+            enemies.push(EnemyView {
+                sq: g.sq,
+                seat: g.seat,
+                kind: g.kind,
+                strength: g.strength,
+                base: g.node,
+                ace: g.ace,
+                night: g.night,
+            });
         }
     }
     enemies.sort_by_key(|e| e.sq);
@@ -193,7 +229,12 @@ pub fn seat_view(w: &World, st: &GameState, seat: u8) -> SeatView {
         .filter(|u| u.faction.is_none() || u.faction == Some(s.faction))
         .map(|u| {
             let r = rules::buildable(w, st, seat, u.kind).err();
-            BuildOption { kind: u.kind, cost: u.cost, ok: r.is_none(), reason: r.map(String::from) }
+            BuildOption {
+                kind: u.kind,
+                cost: u.cost,
+                ok: r.is_none(),
+                reason: r.map(String::from),
+            }
         })
         .collect();
     let night = st.night.min(w.rules().nights);
@@ -213,7 +254,12 @@ pub fn seat_view(w: &World, st: &GameState, seat: u8) -> SeatView {
         build_capacity: rules::build_capacity(w, st, seat),
         seats: public_seats(st),
         nodes,
-        squadrons: st.squadrons.iter().filter(|q| q.seat == seat).cloned().collect(),
+        squadrons: st
+            .squadrons
+            .iter()
+            .filter(|q| q.seat == seat)
+            .cloned()
+            .collect(),
         enemies,
         revealed: st.intel[seat as usize].revealed.clone(),
         flows: economy::income(w, st, seat, night),
@@ -224,7 +270,13 @@ pub fn seat_view(w: &World, st: &GameState, seat: u8) -> SeatView {
         beehive_grudge: st.beehive_grudge.clone(),
         revenge_against: st.revenge_against,
         mass_driver_holder: mass_driver_holder(w, st),
-        pending: st.pending.iter().filter(|p| p.seat == seat).cloned().collect(),
+        mass_driver_fired: st.mass_driver_fired,
+        pending: st
+            .pending
+            .iter()
+            .filter(|p| p.seat == seat)
+            .cloned()
+            .collect(),
         builds,
         carry_over: crate::plan::carry_over(w, st, seat),
         history: st.history.clone(),

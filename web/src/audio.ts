@@ -92,6 +92,10 @@ class Audio {
     const ctx = this.ensure();
     if (!ctx) return;
     const now = ctx.currentTime;
+    if (kind.startsWith('motif:')) {
+      this.motif(kind.slice(6), now);
+      return;
+    }
     // Don't machine-gun the same sound.
     const last = this.lastPlayed.get(kind) ?? 0;
     const gap = kind === 'guns' || kind === 'flak' ? 0.18 : 0.08;
@@ -150,6 +154,22 @@ class Audio {
         [660, 880].forEach((f, i) => this.tone(f, 'triangle', now + i * 0.08, 0.2, 0.07));
         break;
     }
+  }
+
+  /** Each faction's four-note motif, for its big moments. */
+  private motif(faction: string, now: number) {
+    const MOTIFS: Record<string, [number[], OscillatorType]> = {
+      Pacific: [[659, 784, 988, 1319], 'square'], // bright and upbeat, like a launch keynote
+      Cascadia: [[392, 440, 523, 440], 'triangle'], // soft, rainy
+      FrontRange: [[523, 659, 784, 1047], 'triangle'], // wide-open mountain fifths
+      Texas: [[196, 247, 294, 392], 'sawtooth'], // big brass
+      Dreamland: [[587, 698, 880, 1175], 'square'], // slot-machine jingle
+      GrainBelt: [[330, 392, 440, 392], 'triangle'], // county-fair fiddle
+      Beehive: [[523, 587, 659, 784], 'sine'], // polite and cheerful
+    };
+    const m = MOTIFS[faction];
+    if (!m) return;
+    m[0].forEach((f, i) => this.tone(f, m[1], now + 0.25 + i * 0.13, 0.22, 0.07));
   }
 
   /** A small synthwave loop. Gloves Off plays it faster and in a darker key. */

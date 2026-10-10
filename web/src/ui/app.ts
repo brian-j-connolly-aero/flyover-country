@@ -67,7 +67,10 @@ export class App {
     } else {
       const t = this.ensureLocalTheater();
       const visible = m.type === 'dawn' || m.type === 'show' || m.type === 'final' || (m.type === 'control' && this.overlay.style.display !== 'none');
-      if (m.type !== 'control' && m.type !== 'sound') this.overlay.style.display = visible ? 'block' : 'none';
+      if (m.type !== 'control' && m.type !== 'sound') {
+        this.overlay.style.display = visible ? 'block' : 'none';
+        t.setVisible(visible);
+      }
       void t.handle(m);
     }
   }
@@ -119,6 +122,7 @@ export class App {
     this.phase = 'menu';
     this.save = null;
     this.overlay.style.display = 'none';
+    this.theater?.setVisible(false);
     const saves = await listSaves();
     const latest = saves.find((s) => !s.tutorial && s.nights.length < this.engine.content.rules.nights);
     const dogs = h('div.menu-dogs', ...FACTIONS.map((f) => svg(leaderSvg(f, 'happy', { size: 120 }), 'menu-dog')));
@@ -482,7 +486,9 @@ export class App {
         this.phase === 'show' || this.phase === 'replay'
           ? h('div.ctl-row', btn(st?.paused ? '▶ Play' : '❚❚ Pause', () => ctl('pause')), btn('1×', () => ctl('speed', 1)), btn('2×', () => ctl('speed', 2)), btn('4×', () => ctl('speed', 4)), btn('Skip to report', () => ctl('skip')), btn('Play of the Night', () => ctl('replay')))
           : null,
-        h('button.big-btn', { onclick: () => this.onContinue() }, this.phase === 'dawn' ? 'Start planning ▸' : 'Continue ▸'),
+        this.phase === 'dawn' || st?.phase === 'report' || st?.phase === 'final'
+          ? h('button.big-btn', { onclick: () => this.onContinue() }, this.phase === 'dawn' ? 'Start planning ▸' : 'Continue ▸')
+          : h('div.side-note', 'Continue appears here once the morning report is up.'),
         h('div.side-note', 'Anyone can press Space on the TV window too.'),
         h('button.pbtn', { onclick: () => { this.save!.options.theater = 'single'; this.remoteAlive = false; if (this.lastTheaterMsg) this.toTheater(this.lastTheaterMsg); } }, 'Show it on this screen instead'),
       ),

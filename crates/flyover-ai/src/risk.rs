@@ -46,7 +46,9 @@ fn known_fighters_near(world: &World, state: &GameState, seat: u8, p: P, range: 
     let mut n = 0;
     let mut seen: Vec<u32> = Vec::new();
     for s in flyover_core::vision::visible_squadrons(world, state, seat) {
-        if world.unit(s.kind).class == CombatClass::Fighter && dist(world.nodes[s.base as usize].pos, p) <= range {
+        if world.unit(s.kind).class == CombatClass::Fighter
+            && dist(world.nodes[s.base as usize].pos, p) <= range
+        {
             n += 1;
             seen.push(s.id);
         }
@@ -56,7 +58,9 @@ fn known_fighters_near(world: &World, state: &GameState, seat: u8, p: P, range: 
             if seen.contains(&g.sq) {
                 continue;
             }
-            if world.unit(g.kind).class == CombatClass::Fighter && dist(world.nodes[g.node as usize].pos, p) <= range {
+            if world.unit(g.kind).class == CombatClass::Fighter
+                && dist(world.nodes[g.node as usize].pos, p) <= range
+            {
                 n += 1;
             }
         }
@@ -65,7 +69,14 @@ fn known_fighters_near(world: &World, state: &GameState, seat: u8, p: P, range: 
 }
 
 /// Preview one squadron's mission given the rest of tonight's draft orders.
-pub fn preview(world: &World, state: &GameState, orders: &Orders, sq: &Squadron, m: &Mission, waypoint: Option<P>) -> Option<Preview> {
+pub fn preview(
+    world: &World,
+    state: &GameState,
+    orders: &Orders,
+    sq: &Squadron,
+    m: &Mission,
+    waypoint: Option<P>,
+) -> Option<Preview> {
     let planner = route::Planner::for_seat(world, state, sq.seat);
     preview_with(world, state, orders, sq, m, waypoint, &planner)
 }
@@ -85,12 +96,20 @@ pub fn preview_with(
     let (lead, lead_m, lead_wp) = match *m {
         Mission::Escort { sq: t } | Mission::JamEscort { sq: t } => {
             let l = state.squadrons.iter().find(|s| s.id == t)?;
-            let lm = orders.missions.iter().find(|o| o.sq == t).map(|o| (o.mission.clone(), o.waypoint)).unwrap_or((l.order.clone(), l.waypoint));
+            let lm = orders
+                .missions
+                .iter()
+                .find(|o| o.sq == t)
+                .map(|o| (o.mission.clone(), o.waypoint))
+                .unwrap_or((l.order.clone(), l.waypoint));
             (l, lm.0, lm.1)
         }
         _ => (sq, m.clone(), waypoint),
     };
-    if matches!(lead_m, Mission::Rest | Mission::Escort { .. } | Mission::JamEscort { .. }) {
+    if matches!(
+        lead_m,
+        Mission::Rest | Mission::Escort { .. } | Mission::JamEscort { .. }
+    ) {
         return None;
     }
     let to = sim::mission_point(world, state, lead, &lead_m)?;
@@ -102,16 +121,28 @@ pub fn preview_with(
     let class = u.class;
     let r = world.rules();
     let lead_id = lead.id;
-    let escorted = orders.missions.iter().any(|o| matches!(o.mission, Mission::Escort { sq: t } if t == lead_id))
+    let escorted = orders
+        .missions
+        .iter()
+        .any(|o| matches!(o.mission, Mission::Escort { sq: t } if t == lead_id))
         || matches!(m, Mission::Escort { .. });
-    let jam_escort = orders.missions.iter().any(|o| matches!(o.mission, Mission::JamEscort { sq: t } if t == lead_id))
+    let jam_escort = orders
+        .missions
+        .iter()
+        .any(|o| matches!(o.mission, Mission::JamEscort { sq: t } if t == lead_id))
         || class == CombatClass::Jammer;
     let crossed = route::threats_crossed(threats, &path);
     // A jammed zone covers the AD sites inside it.
     let jammed_zones: Vec<u16> = orders
         .missions
         .iter()
-        .filter_map(|o| if let Mission::JamZone { zone } = o.mission { Some(zone) } else { None })
+        .filter_map(|o| {
+            if let Mission::JamZone { zone } = o.mission {
+                Some(zone)
+            } else {
+                None
+            }
+        })
         .collect();
     let mut ad_live = 0;
     for &ti in &crossed {
@@ -122,9 +153,17 @@ pub fn preview_with(
         }
     }
     let stealthy = u.stealth || (sq.ace && rules::faction(state, seat) == FactionId::Cascadia);
-    let passes = if u.one_way || matches!(lead_m, Mission::Rebase { .. }) { 1 } else { 2 };
+    let passes = if u.one_way || matches!(lead_m, Mission::Rebase { .. }) {
+        1
+    } else {
+        2
+    };
     let ad_hit = r.air_defense.hit[class.index()] - u.ad_evasion;
-    let expected_hits_x1000 = if stealthy { 0 } else { ad_live * passes * r.air_defense.shots_full * ad_hit };
+    let expected_hits_x1000 = if stealthy {
+        0
+    } else {
+        ad_live * passes * r.air_defense.shots_full * ad_hit
+    };
     // Enemy fighters near where we're going.
     let target_zone = world.zone_at(to);
     let region = world.zones[target_zone as usize].region.faction();
@@ -138,11 +177,22 @@ pub fn preview_with(
         p_guard = (450 + 150 * near).min(900);
     }
     let own_land = region == Some(rules::faction(state, seat));
-    if own_land && matches!(lead_m, Mission::Guard { .. } | Mission::GuardZone { .. } | Mission::Rebase { .. }) {
+    if own_land
+        && matches!(
+            lead_m,
+            Mission::Guard { .. } | Mission::GuardZone { .. } | Mission::Rebase { .. }
+        )
+    {
         p_guard = 60;
     }
     let mut loss_if_met = match class {
-        CombatClass::Bomber | CombatClass::Drone | CombatClass::Jammer => if escorted { 380 } else { 800 },
+        CombatClass::Bomber | CombatClass::Drone | CombatClass::Jammer => {
+            if escorted {
+                380
+            } else {
+                800
+            }
+        }
         CombatClass::Fighter => 300,
         CombatClass::Scout => 120,
     };
@@ -168,10 +218,24 @@ pub fn preview_with(
     let reason = if in_static {
         "flies into the Static east of the Mississippi".to_string()
     } else if ad_live > 0 && ad_risk >= fighter_risk {
-        format!("crosses {} air defense site{} with no jammer", ad_live, if ad_live == 1 { "" } else { "s" })
-    } else if fighter_risk >= 150 && !escorted && matches!(class, CombatClass::Bomber | CombatClass::Drone | CombatClass::Jammer) {
+        format!(
+            "crosses {} air defense site{} with no jammer",
+            ad_live,
+            if ad_live == 1 { "" } else { "s" }
+        )
+    } else if fighter_risk >= 150
+        && !escorted
+        && matches!(
+            class,
+            CombatClass::Bomber | CombatClass::Drone | CombatClass::Jammer
+        )
+    {
         if near > 0 {
-            format!("runs into {} enemy fighter squadron{} we know of, with no escort", near, if near == 1 { "" } else { "s" })
+            format!(
+                "runs into {} enemy fighter squadron{} we know of, with no escort",
+                near,
+                if near == 1 { "" } else { "s" }
+            )
         } else {
             "goes deep into enemy skies with no escort".to_string()
         }

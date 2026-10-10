@@ -306,7 +306,7 @@ export class PlanningScreen {
       }
       if (d.moved) {
         d.ghost.style.transform = `translate(${ev.clientX - 17}px, ${ev.clientY - 17}px)`;
-        const r = this.map.app.canvas.getBoundingClientRect();
+        const r = this.mapWrap.getBoundingClientRect();
         if (ev.clientX >= r.left && ev.clientX <= r.right && ev.clientY >= r.top && ev.clientY <= r.bottom) {
           this.hover(ev.clientX - r.left, ev.clientY - r.top);
         }
@@ -323,7 +323,7 @@ export class PlanningScreen {
         this.select(this.selected === sq ? null : sq);
         return;
       }
-      const r = this.map.app.canvas.getBoundingClientRect();
+      const r = this.mapWrap.getBoundingClientRect();
       if (ev.clientX >= r.left && ev.clientX <= r.right && ev.clientY >= r.top && ev.clientY <= r.bottom) {
         this.mapAction(sq, ev.clientX - r.left, ev.clientY - r.top, ev.clientX, ev.clientY);
       } else {
@@ -1025,12 +1025,12 @@ export class PlanningScreen {
       body.appendChild(h('div.fa-box', select([['none', 'pick a target'], ...enemyNodes.map((n) => [String(n.idx), n.name] as [string, string])], this.orders.revenge === null ? 'none' : String(this.orders.revenge), (x) => { this.orders.revenge = x === 'none' ? null : Number(x); this.refresh(); }), h('div.side-note', 'They hit the Ball of Twine. It cannot be intercepted.')));
     }
     // The Mass Driver.
-    if (v.mass_driver_holder === me && v.stage === 2) {
+    if (v.mass_driver_holder === me && v.stage === 2 && !v.mass_driver_fired) {
       const targets = c.nodes.filter((n) => v.nodes[n.idx].attack === null && v.nodes[n.idx].owner !== null && v.nodes[n.idx].owner !== me);
-      body.appendChild(h('div.side-h', 'White Sands Mass Driver: one shot tonight'));
+      body.appendChild(h('div.side-h', 'White Sands Mass Driver: one shot per game'));
       body.appendChild(h('div.fa-box', select([['none', 'hold fire'], ...targets.map((n) => [String(n.idx), `${n.name} (${faction(this.opts.factions[v.nodes[n.idx].owner!]).short})`] as [string, string])], this.orders.mass_driver === null ? 'none' : String(this.orders.mass_driver), (x) => { this.orders.mass_driver = x === 'none' ? null : Number(x); this.refresh(); }), h('div.side-note', 'Knocks any node down a step. Nothing can stop it.')));
     } else if (v.mass_driver_holder === me) {
-      body.appendChild(h('div.side-note', 'You hold the Mass Driver. It fires from Gloves Off (Night 6).'));
+      body.appendChild(h('div.side-note', v.mass_driver_fired ? 'You hold the Mass Driver. Its one shot has been fired.' : 'You hold the Mass Driver. Its one shot opens at Gloves Off (Night 6).'));
     }
     body.appendChild(h('div.side-h', 'Your five rules'));
     for (const [k, [t, d]] of Object.entries(card) as [string, [string, string]][]) body.appendChild(h('div.rule-mini', h('b', `${cap(k)}: ${t}. `), d));

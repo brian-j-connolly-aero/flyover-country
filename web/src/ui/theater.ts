@@ -48,6 +48,15 @@ export class Theater {
     setInterval(() => this.pumpChatter(), 250);
   }
 
+  /** Stop drawing while hidden behind the planning window. */
+  setVisible(v: boolean) {
+    void this.ready.then(() => {
+      if (!this.map) return;
+      if (v) this.map.app.ticker.start();
+      else this.map.app.ticker.stop();
+    });
+  }
+
   destroy() {
     window.removeEventListener('keydown', this.keyHandler);
     this.player?.destroy();
@@ -55,7 +64,7 @@ export class Theater {
   }
 
   private onKey(e: KeyboardEvent) {
-    if (!this.root.isConnected || this.root.offsetParent === null && !document.fullscreenElement && getComputedStyle(this.root).display === 'none') return;
+    if (!this.root.isConnected || this.root.getClientRects().length === 0) return;
     if ((e.target as HTMLElement)?.tagName === 'INPUT') return;
     if (e.code === 'Space') {
       e.preventDefault();
@@ -260,8 +269,8 @@ export class Theater {
     if (pv.harvest > 0) {
       cards.push(h('div.th-mini', { style: { '--fc': faction('GrainBelt').color } as unknown as CSSStyleDeclaration }, h('div.th-mini-head', 'HARVEST SHIPMENT'), h('div', `Worth ${pv.harvest} Supply. Bid in secret tonight.`)));
     }
-    if (d.stage === 2 && pv.mass_driver_holder !== null) {
-      cards.push(h('div.th-mini', h('div.th-mini-head', 'WHITE SANDS MASS DRIVER'), h('div', `${faction(this.factions[pv.mass_driver_holder]).short} holds it. One shot tonight.`)));
+    if (d.stage === 2 && pv.mass_driver_holder !== null && !pv.mass_driver_fired) {
+      cards.push(h('div.th-mini', h('div.th-mini-head', 'WHITE SANDS MASS DRIVER'), h('div', `${faction(this.factions[pv.mass_driver_holder]).short} holds it: one unstoppable shot, once per game.`)));
     }
     for (const e of effects) {
       cards.push(h('div.th-mini.warn', h('div.th-mini-head', faction(this.factions[e.seat]).short.toUpperCase()), h('div', effectText(e.kind))));
@@ -425,7 +434,7 @@ export class Theater {
         h('div.th-paper', h('div.th-paper-mast', 'MORNING REPORT'), h('div.th-paper-date', `After Night ${d.night}`), h('div.th-headline', s.headline)),
         h('div.th-reps', ...cards),
         s.highlights.length ? h('ul.th-highlights', ...s.highlights.map((x) => h('li', x))) : null,
-        h('div.th-report-actions', potn, h('button.th-continue', { onclick: () => this.send({ type: 'continue' }) }, d.last ? 'Final results ▸' : `Dawn of Night ${d.night + 1} ▸`)),
+        h('div.th-report-actions', potn, h('button.th-btn', { onclick: () => this.show(d) }, '↻ Replay the night'), h('button.th-continue', { onclick: () => this.send({ type: 'continue' }) }, d.last ? 'Final results ▸' : `Dawn of Night ${d.night + 1} ▸`)),
       ),
     );
     audio.play('report');

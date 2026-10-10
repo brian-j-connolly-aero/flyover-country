@@ -519,6 +519,7 @@ export class ShowPlayer {
         if (e.ace) {
           const ace = this.content.factions.find((f) => f.id === this.factions[e.seat])!.ace;
           this.hooks.banner('MISSION UPDATE', `${ace} IS DOWN. GOOD CHUTE.`, 'update');
+          if (e.by_seat !== null) this.hooks.sound(`motif:${this.factions[e.by_seat]}`);
           this.sayAce(e.seat, 'downed', salt, 4);
           this.hooks.sound('sting');
         } else {
@@ -546,6 +547,7 @@ export class ShowPlayer {
         if (e.jewel && e.steps > 0) {
           this.map.shake = 1.6;
           this.hooks.banner('MISSION UPDATE', `CROWN JEWEL HIT: ${n.name.toUpperCase()}`, 'update');
+          this.hooks.sound(`motif:${this.factions[e.seat]}`);
           this.say(e.seat, faction(this.factions[e.seat]).short.toUpperCase(), 'jewel_strike', { node: n.name }, salt, 5);
           this.hooks.sound('sting');
           this.hooks.sound('bigboom');
