@@ -34,6 +34,12 @@ pub struct GameState {
     /// Grain Belt's free revenge strike: the seat that hit the Ball of Twine.
     pub revenge_against: Option<u8>,
     pub history: Vec<NightRecord>,
+    /// Node health as everyone knows it (strikes are public; repairs are not).
+    #[serde(default)]
+    pub public_health: Vec<u8>,
+    /// The White Sands Mass Driver has one shot per game.
+    #[serde(default)]
+    pub mass_driver_fired: bool,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -49,6 +55,15 @@ pub struct SeatState {
     pub kills: i32,
     pub steps_dealt: i32,
     pub steps_taken: i32,
+    /// Project Bark Park: may retreat tonight (decided at dawn, public).
+    #[serde(default)]
+    pub doghouse: bool,
+    /// Already spent a night at the park this game.
+    #[serde(default)]
+    pub been_to_park: bool,
+    /// One shot of the Big Fetch, loaded and waiting (public).
+    #[serde(default)]
+    pub fetch: bool,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -170,15 +185,33 @@ pub struct NightRecord {
 pub enum Mission {
     #[default]
     Rest,
-    Attack { node: u16 },
-    Guard { node: u16 },
-    GuardZone { zone: u16 },
-    Escort { sq: u32 },
-    Sweep { zone: u16 },
-    Scout { zone: u16 },
-    JamZone { zone: u16 },
-    JamEscort { sq: u32 },
-    Rebase { node: u16 },
+    Attack {
+        node: u16,
+    },
+    Guard {
+        node: u16,
+    },
+    GuardZone {
+        zone: u16,
+    },
+    Escort {
+        sq: u32,
+    },
+    Sweep {
+        zone: u16,
+    },
+    Scout {
+        zone: u16,
+    },
+    JamZone {
+        zone: u16,
+    },
+    JamEscort {
+        sq: u32,
+    },
+    Rebase {
+        node: u16,
+    },
 }
 
 impl Mission {
@@ -253,6 +286,12 @@ pub struct Orders {
     pub mass_driver: Option<u16>,
     #[serde(default)]
     pub revenge: Option<u16>,
+    /// Spend tonight at Project Bark Park (only while in the doghouse).
+    #[serde(default)]
+    pub retreat: bool,
+    /// Fire the Big Fetch at this node.
+    #[serde(default)]
+    pub fetch: Option<u16>,
 }
 
 // --- Events --------------------------------------------------------------------
@@ -297,6 +336,7 @@ pub enum ScoreReason {
     Casserole,
     MassDriver,
     Revenge,
+    Fetch,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -427,6 +467,32 @@ pub enum Event {
         victim: Option<u8>,
         steps: i32,
         health: u8,
+    },
+    /// A faction spends the night at Project Bark Park: untouchable.
+    BarkPark {
+        seat: u8,
+    },
+    /// An attack on a faction at the park bounces off the fence.
+    Bounce {
+        seat: u8,
+        node: u16,
+        victim: u8,
+        /// The flight group, for strikes; None for the Mass Driver and friends.
+        group: Option<u32>,
+    },
+    /// The Big Fetch lands.
+    Fetch {
+        seat: u8,
+        node: u16,
+        victim: Option<u8>,
+        steps: i32,
+        health: u8,
+    },
+    /// Back from the park at dawn: fresh squadrons, Supply, the Big Fetch.
+    ParkReturn {
+        seat: u8,
+        built: Vec<UnitKind>,
+        supply: i32,
     },
     JewelEffect {
         seat: u8,

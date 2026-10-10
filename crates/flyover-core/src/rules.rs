@@ -17,7 +17,11 @@ pub fn stage(world: &World, night: u8) -> u8 {
 }
 
 pub fn seat_of(state: &GameState, f: FactionId) -> Option<u8> {
-    state.seats.iter().position(|s| s.faction == f).map(|i| i as u8)
+    state
+        .seats
+        .iter()
+        .position(|s| s.faction == f)
+        .map(|i| i as u8)
 }
 
 pub fn faction(state: &GameState, seat: u8) -> FactionId {
@@ -64,13 +68,20 @@ pub fn owner_of(state: &GameState, node: u16) -> Option<u8> {
 }
 
 /// Can `seat` order an attack on `node` tonight?
-pub fn attack_check(world: &World, state: &GameState, seat: u8, node: u16) -> Result<(), &'static str> {
+pub fn attack_check(
+    world: &World,
+    state: &GameState,
+    seat: u8,
+    node: u16,
+) -> Result<(), &'static str> {
     let n = &world.nodes[node as usize];
     let ns = &state.nodes[node as usize];
     let st = stage(world, state.night);
     match n.kind {
         NodeKind::Lake => return Err("You can't bomb a lake. The floatplanes know it."),
-        NodeKind::Capital if ns.owner.is_some() && n.home.map(|f| is_seated(state, f)).unwrap_or(false) => {
+        NodeKind::Capital
+            if ns.owner.is_some() && n.home.map(|f| is_seated(state, f)).unwrap_or(false) =>
+        {
             return Err("Capitals can't be destroyed.")
         }
         _ => {}
@@ -109,8 +120,48 @@ pub fn attack_check(world: &World, state: &GameState, seat: u8, node: u16) -> Re
     Ok(())
 }
 
+/// May `seat` spend tonight at Project Bark Park?
+pub fn retreat_check(world: &World, state: &GameState, seat: u8) -> Result<(), &'static str> {
+    let bp = &world.rules().bark_park;
+    let s = state.seats.get(seat as usize).ok_or("No such seat.")?;
+    if s.been_to_park {
+        return Err("Project Bark Park is once a game, and you've been.");
+    }
+    if state.night < bp.first_night || state.night > bp.last_night {
+        return Err("Project Bark Park is open from Night 3 to Night 7.");
+    }
+    if !s.doghouse {
+        return Err("Only a faction in the doghouse can go to the park.");
+    }
+    Ok(())
+}
+
+/// Can `seat` fire the Big Fetch at `node` tonight?
+pub fn fetch_check(
+    world: &World,
+    state: &GameState,
+    seat: u8,
+    node: u16,
+) -> Result<(), &'static str> {
+    if (node as usize) >= world.nodes.len() {
+        return Err("No such place.");
+    }
+    if !state.seats.get(seat as usize).is_some_and(|s| s.fetch) {
+        return Err("The Big Fetch isn't loaded.");
+    }
+    if state.nodes[node as usize].owner.is_none() {
+        return Err("Save the ball for somebody's land.");
+    }
+    attack_check(world, state, seat, node)
+}
+
 /// Can `seat` guard `node`?
-pub fn guard_check(world: &World, state: &GameState, seat: u8, node: u16) -> Result<(), &'static str> {
+pub fn guard_check(
+    world: &World,
+    state: &GameState,
+    seat: u8,
+    node: u16,
+) -> Result<(), &'static str> {
     let n = &world.nodes[node as usize];
     if n.kind == NodeKind::Lake {
         return Err("Guard a place on land.");
@@ -125,7 +176,12 @@ pub fn guard_check(world: &World, state: &GameState, seat: u8, node: u16) -> Res
     Err("You can only guard your own or neutral ground.")
 }
 
-pub fn guard_zone_check(world: &World, state: &GameState, seat: u8, zone: u16) -> Result<(), &'static str> {
+pub fn guard_zone_check(
+    world: &World,
+    state: &GameState,
+    seat: u8,
+    zone: u16,
+) -> Result<(), &'static str> {
     let z = &world.zones[zone as usize];
     match z.region.faction() {
         None => Ok(()),
@@ -167,7 +223,12 @@ pub fn base_occupancy(state: &GameState, node: u16, except: Option<u32>) -> i32 
 }
 
 /// Can `seat` base `sq` at `node`?
-pub fn rebase_check(world: &World, state: &GameState, sq: &Squadron, node: u16) -> Result<(), &'static str> {
+pub fn rebase_check(
+    world: &World,
+    state: &GameState,
+    sq: &Squadron,
+    node: u16,
+) -> Result<(), &'static str> {
     let n = &world.nodes[node as usize];
     let ns = &state.nodes[node as usize];
     if node == sq.base {
@@ -193,12 +254,23 @@ pub fn can_order(world: &World, kind: UnitKind, ok: OrderKind) -> bool {
 }
 
 /// Full legality check for a squadron's mission tonight.
-pub fn mission_check(world: &World, state: &GameState, sq: &Squadron, m: &Mission) -> Result<(), String> {
+pub fn mission_check(
+    world: &World,
+    state: &GameState,
+    sq: &Squadron,
+    m: &Mission,
+) -> Result<(), String> {
     if !sq.active() {
         return Err("That squadron is out of action.".into());
     }
     if !can_order(world, sq.kind, m.kind()) {
         return Err(format!("{} can't do that.", world.unit(sq.kind).name));
+    }
+    if sq.kind == UnitKind::Drone
+        && *m != Mission::Rest
+        && effect_active(state, sq.seat, EffectKind::NoDrones, state.night)
+    {
+        return Err("Scheduled maintenance: the Server Farm is down.".into());
     }
     let nn = world.nodes.len() as u16;
     let nz = world.zones.len() as u16;
@@ -263,7 +335,12 @@ pub fn build_capacity(world: &World, state: &GameState, seat: u8) -> i32 {
 }
 
 /// Can this seat build this unit at all?
-pub fn buildable(world: &World, state: &GameState, seat: u8, kind: UnitKind) -> Result<(), &'static str> {
+pub fn buildable(
+    world: &World,
+    state: &GameState,
+    seat: u8,
+    kind: UnitKind,
+) -> Result<(), &'static str> {
     let u = world.unit(kind);
     if !u.buildable {
         return Err("Can't be built; it comes back on its own.");
@@ -274,8 +351,16 @@ pub fn buildable(world: &World, state: &GameState, seat: u8, kind: UnitKind) -> 
         }
     }
     if u.max_owned > 0 {
-        let owned = state.squadrons.iter().filter(|s| s.seat == seat && s.kind == kind).count() as i32
-            + state.pending.iter().filter(|p| p.seat == seat && p.kind == kind).count() as i32;
+        let owned = state
+            .squadrons
+            .iter()
+            .filter(|s| s.seat == seat && s.kind == kind)
+            .count() as i32
+            + state
+                .pending
+                .iter()
+                .filter(|p| p.seat == seat && p.kind == kind)
+                .count() as i32;
         if owned >= u.max_owned {
             return Err("You already have as many of those as you can keep.");
         }

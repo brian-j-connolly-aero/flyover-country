@@ -40,6 +40,9 @@ pub fn new_game(world: &World, cfg: &GameConfig) -> Result<GameState, String> {
             kills: 0,
             steps_dealt: 0,
             steps_taken: 0,
+            doghouse: false,
+            been_to_park: false,
+            fetch: false,
         })
         .collect();
     let seat_of = |f: FactionId| cfg.factions.iter().position(|&x| x == f).map(|i| i as u8);
@@ -50,7 +53,11 @@ pub fn new_game(world: &World, cfg: &GameConfig) -> Result<GameState, String> {
             let owner = n.home.and_then(seat_of);
             let fallen = n.home.is_some() && owner.is_none();
             NodeState {
-                owner: if n.kind == NodeKind::Lake { None } else { owner },
+                owner: if n.kind == NodeKind::Lake {
+                    None
+                } else {
+                    owner
+                },
                 health: 2,
                 hit_night: 0,
                 active: !(fallen && n.kind == NodeKind::CrownJewel),
@@ -75,16 +82,27 @@ pub fn new_game(world: &World, cfg: &GameConfig) -> Result<GameState, String> {
         texas_grudge: Vec::new(),
         beehive_grudge: Vec::new(),
         revenge_against: None,
-        history: vec![NightRecord { night: 0, scores: vec![0; cfg.factions.len()] }],
+        history: vec![NightRecord {
+            night: 0,
+            scores: vec![0; cfg.factions.len()],
+        }],
+        public_health: vec![2; world.nodes.len()],
+        mass_driver_fired: false,
     };
     for seat in 0..state.seats.len() as u8 {
         let f = state.seats[seat as usize].faction;
         let fd = world.faction(f);
-        let mut kinds: Vec<(UnitKind, bool)> = world.rules().start_forces.iter().map(|&k| (k, false)).collect();
+        let mut kinds: Vec<(UnitKind, bool)> = world
+            .rules()
+            .start_forces
+            .iter()
+            .map(|&k| (k, false))
+            .collect();
         kinds.push((fd.unique, false));
         kinds.push((UnitKind::Fighter, true));
         for (kind, ace) in kinds {
-            let base = place(world, &state, seat, kind).ok_or_else(|| format!("{f:?} has no room for its {kind:?}"))?;
+            let base = place(world, &state, seat, kind)
+                .ok_or_else(|| format!("{f:?} has no room for its {kind:?}"))?;
             let id = state.next_sq;
             state.next_sq += 1;
             state.squadrons.push(Squadron {
@@ -102,7 +120,12 @@ pub fn new_game(world: &World, cfg: &GameConfig) -> Result<GameState, String> {
             });
         }
     }
-    state.intel = (0..state.seats.len()).map(|_| Intel { known: vec![2; world.nodes.len()], ..Default::default() }).collect();
+    state.intel = (0..state.seats.len())
+        .map(|_| Intel {
+            known: vec![2; world.nodes.len()],
+            ..Default::default()
+        })
+        .collect();
     let mut rng = Rng::for_night(cfg.seed, 0, 1);
     roll_dawn_offers(world, &mut state, &mut rng);
     for seat in 0..state.seats.len() as u8 {
@@ -127,7 +150,8 @@ pub fn place(world: &World, state: &GameState, seat: u8, kind: UnitKind) -> Opti
         if !ours {
             continue;
         }
-        let room = rules::base_capacity(world, state, n.idx, kind) - rules::base_occupancy(state, n.idx, None);
+        let room = rules::base_capacity(world, state, n.idx, kind)
+            - rules::base_occupancy(state, n.idx, None);
         if room <= 0 {
             continue;
         }

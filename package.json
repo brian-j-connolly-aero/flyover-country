@@ -1,0 +1,20 @@
+{
+  "name": "flyover-country",
+  "private": true,
+  "description": "A 4-player hotseat air war over a post-collapse American West, led by dogs.",
+  "workspaces": [
+    "web"
+  ],
+  "engines": {
+    "node": ">=20.19"
+  },
+  "scripts": {
+    "start": "npm run start -w web",
+    "dev": "npm run dev -w web",
+    "lan": "npm run lan -w web",
+    "build": "npm run build -w web",
+    "preview": "npm run preview -w web",
+    "typecheck": "npm run typecheck -w web",
+    "wasm": "npm run wasm -w web"
+  }
+}

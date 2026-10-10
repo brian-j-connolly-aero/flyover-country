@@ -35,7 +35,11 @@ struct Graph {
 
 impl Graph {
     fn new(n: usize) -> Graph {
-        Graph { adj: vec![Vec::new(); n], to: Vec::new(), cap: Vec::new() }
+        Graph {
+            adj: vec![Vec::new(); n],
+            to: Vec::new(),
+            cap: Vec::new(),
+        }
     }
     fn add(&mut self, a: usize, b: usize, c: i32) -> usize {
         let e = self.to.len();
@@ -98,7 +102,9 @@ pub fn production(world: &World, state: &GameState, node: u16, health: u8, c: Co
     match (n.kind, c) {
         (NodeKind::City, Commodity::Supply) => scale(e.city_supply),
         // A captured fallen capital works like a city.
-        (NodeKind::Capital, Commodity::Supply) if n.home.map(|f| !rules::is_seated(state, f)).unwrap_or(false) => {
+        (NodeKind::Capital, Commodity::Supply)
+            if n.home.map(|f| !rules::is_seated(state, f)).unwrap_or(false) =>
+        {
             scale(e.city_supply)
         }
         (NodeKind::Fuel, Commodity::Fuel) => match n.home {
@@ -129,7 +135,13 @@ fn link_cap(world: &World, k: LinkKind, c: Commodity) -> i32 {
 }
 
 /// Flow of one commodity to the capital. Returns (flow, per-link flow).
-fn flow(world: &World, state: &GameState, seat: u8, health: &[u8], c: Commodity) -> (i32, i32, Vec<(u16, i32)>) {
+fn flow(
+    world: &World,
+    state: &GameState,
+    seat: u8,
+    health: &[u8],
+    c: Commodity,
+) -> (i32, i32, Vec<(u16, i32)>) {
     let f = rules::faction(state, seat);
     let capital = world.capitals[f.index()] as usize;
     let n = world.nodes.len();
@@ -138,6 +150,7 @@ fn flow(world: &World, state: &GameState, seat: u8, health: &[u8], c: Commodity)
     let mut g = Graph::new(2 * n + 1);
     let owned = |v: usize| state.nodes[v].owner == Some(seat) && world.nodes[v].kind.on_network();
     let mut raw = 0;
+    #[allow(clippy::needless_range_loop)]
     for v in 0..n {
         if !owned(v) || v == capital {
             continue;
@@ -216,7 +229,13 @@ pub fn income_with(world: &World, state: &GameState, seat: u8, health: &[u8], ni
         }
     }
     links.sort_by_key(|x| x.0);
-    Income { supply, fuel, raw_supply: raw_s + e.capital_supply, raw_fuel: raw_f + e.capital_fuel, links }
+    Income {
+        supply,
+        fuel,
+        raw_supply: raw_s + e.capital_supply,
+        raw_fuel: raw_f + e.capital_fuel,
+        links,
+    }
 }
 
 pub fn income(world: &World, state: &GameState, seat: u8, night: u8) -> Income {
