@@ -108,7 +108,7 @@
         ace: "LIME JELLO", unique: Gull, jewel: "bee_jewel",
         card: RulesCard(
             signature: ("Service Project", "Utah fighters may guard anyone's nodes, not just their own. Every shoot-down over a neighbor's land earns a thank-you casserole: Supply and a Bragging Right."),
-            quirk: ("Oh My Heck", "Utah never throws the first punch: it can only attack factions that hit Utah first, until Gloves Off. In exchange, Utah's guards always get the first shot when defending a home, theirs or a neighbor's."),
+            quirk: ("Oh My Heck", "Utah never throws the first punch: it can only attack factions that hit Utah first, until Gloves Off. In exchange, Utah's guards always get the first shot, wherever they're standing guard."),
             unique: ("Seagull Squadron", "Cheap, fast interceptors that eat bombers and drones. Utah's state bird is the California gull."),
             jewel: ("Strategic Fry Sauce Reserve", "If hit, Utah's guards lose their first shot for two nights."),
             ace: ("LIME JELLO", "Wiggles but doesn't break: never turns back damaged, and survives one knockout a night."),

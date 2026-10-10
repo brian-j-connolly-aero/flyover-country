@@ -20,6 +20,10 @@ pub struct PublicSeat {
     pub steps_dealt: i32,
     pub steps_taken: i32,
     pub scrappy: bool,
+    /// Project Bark Park: may retreat tonight / has been / Big Fetch loaded.
+    pub doghouse: bool,
+    pub been_to_park: bool,
+    pub fetch: bool,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -128,6 +132,9 @@ fn public_seats(st: &GameState) -> Vec<PublicSeat> {
             steps_dealt: s.steps_dealt,
             steps_taken: s.steps_taken,
             scrappy: st.scrappy.contains(&(i as u8)),
+            doghouse: s.doghouse,
+            been_to_park: s.been_to_park,
+            fetch: s.fetch,
         })
         .collect()
 }

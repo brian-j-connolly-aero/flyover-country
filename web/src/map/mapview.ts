@@ -81,6 +81,7 @@ export class MapView {
     L.links.addChild(this.linkG);
     L.nodes.addChild(this.nodeG, this.hiG);
     this.drawBase();
+    this.drawLandmarks();
     this.app.ticker.add((t) => this.tick(t.deltaMS));
     // Follow the container, not just the window (panels resize, overlays show and hide).
     this.resizer = new ResizeObserver(() => {
@@ -226,6 +227,24 @@ export class MapView {
     edge.poly(river.flat(), false).stroke({ width: 6, color: 0xb9c6dd, alpha: 0.12 });
     edge.poly(river.flat(), false).stroke({ width: 1.5, color: 0xdfe7f5, alpha: 0.45 });
     this.layers.base.addChild(edge);
+  }
+
+  /** Places that aren't nodes. Project Bark Park: a fenced lawn, a pond and a ball. */
+  private drawLandmarks() {
+    const g = new Graphics();
+    for (const lm of this.content.landmarks ?? []) {
+      const [x, y] = lm.pos;
+      if (lm.id === 'bark_park') {
+        g.roundRect(x - 9, y - 6, 18, 12, 3).fill({ color: 0x2f7d4a, alpha: 0.95 });
+        g.roundRect(x - 9, y - 6, 18, 12, 3).stroke({ width: 0.8, color: 0xe9f5e1, alpha: 0.9 });
+        for (let i = 0; i <= 6; i++) g.circle(x - 9 + i * 3, y - 6, 0.55).fill({ color: 0xffffff });
+        g.ellipse(x - 3.5, y + 1.5, 3, 2).fill({ color: 0x6fb2ff, alpha: 0.9 });
+        g.circle(x + 4, y + 1, 2.3).fill({ color: 0xd7f542 });
+        g.moveTo(x + 2.3, y + 0.2).quadraticCurveTo(x + 4, y + 1.6, x + 5.7, y + 0.2).stroke({ width: 0.5, color: 0xffffff });
+      }
+      this.label(`lm-${lm.id}`, lm.name.toUpperCase(), [x, y + 13], 'label-landmark');
+    }
+    this.layers.base.addChild(g);
   }
 
   /** Redraw territory for the seated factions (unseated home regions are Fallen). */

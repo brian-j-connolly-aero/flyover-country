@@ -120,6 +120,41 @@ pub fn attack_check(
     Ok(())
 }
 
+/// May `seat` spend tonight at Project Bark Park?
+pub fn retreat_check(world: &World, state: &GameState, seat: u8) -> Result<(), &'static str> {
+    let bp = &world.rules().bark_park;
+    let s = state.seats.get(seat as usize).ok_or("No such seat.")?;
+    if s.been_to_park {
+        return Err("Project Bark Park is once a game, and you've been.");
+    }
+    if state.night < bp.first_night || state.night > bp.last_night {
+        return Err("Project Bark Park is open from Night 3 to Night 7.");
+    }
+    if !s.doghouse {
+        return Err("Only a faction in the doghouse can go to the park.");
+    }
+    Ok(())
+}
+
+/// Can `seat` fire the Big Fetch at `node` tonight?
+pub fn fetch_check(
+    world: &World,
+    state: &GameState,
+    seat: u8,
+    node: u16,
+) -> Result<(), &'static str> {
+    if (node as usize) >= world.nodes.len() {
+        return Err("No such place.");
+    }
+    if !state.seats.get(seat as usize).is_some_and(|s| s.fetch) {
+        return Err("The Big Fetch isn't loaded.");
+    }
+    if state.nodes[node as usize].owner.is_none() {
+        return Err("Save the ball for somebody's land.");
+    }
+    attack_check(world, state, seat, node)
+}
+
 /// Can `seat` guard `node`?
 pub fn guard_check(
     world: &World,

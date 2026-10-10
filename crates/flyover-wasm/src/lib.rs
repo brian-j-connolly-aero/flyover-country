@@ -55,6 +55,9 @@ pub struct FlavorDef {
     /// "Also in the Sentinel": one small story on each dawn's front page.
     #[serde(default)]
     pub sidebar: Vec<String>,
+    /// On the TV while a faction is at Project Bark Park.
+    #[serde(default)]
+    pub park_curtain: BTreeMap<String, Vec<String>>,
 }
 
 #[derive(Serialize)]
@@ -66,6 +69,7 @@ struct ContentOut<'a> {
     links: &'a [flyover_core::content::Link],
     fringe: &'a [Vec<P>],
     mississippi: &'a [P],
+    landmarks: &'a [flyover_core::content::LandmarkDef],
     units: &'a [flyover_core::content::UnitDef],
     factions: &'a [flyover_core::content::FactionDef],
     rules: &'a flyover_core::content::RulesDef,
@@ -150,6 +154,7 @@ impl Engine {
             links: &w.links,
             fringe: &c.map.fringe,
             mississippi: &c.map.mississippi,
+            landmarks: &c.map.landmarks,
             units: &c.units,
             factions: &c.factions,
             rules: &c.rules,
@@ -360,6 +365,27 @@ mod tests {
                 );
             }
         }
+        for fac in FACTIONS {
+            let ld = &f.leaders[fac];
+            for (k, lines) in [
+                ("retreat", &ld.retreat),
+                ("park_return", &ld.park_return),
+                ("fetch", &ld.fetch),
+            ] {
+                assert!(!lines.is_empty(), "leaders.{fac}.{k} (Bark Park) is empty");
+            }
+            for k in ["bounce", "park", "fetch"] {
+                assert!(f.chatter[fac].contains_key(k), "chatter.{fac}.{k}");
+            }
+            for k in ["doghouse", "retreating", "fetch_ready"] {
+                assert!(f.advisor[fac].contains_key(k), "advisor.{fac}.{k}");
+            }
+            assert!(f.park_curtain.contains_key(fac), "park_curtain.{fac}");
+        }
+        for k in ["bark_park", "bounce", "fetch", "fetch_jewel", "park_return"] {
+            assert!(f.headlines.contains_key(k), "headlines.{k}");
+        }
+        assert!(f.sidebar.len() >= 40, "plenty of sidebar stories");
         for l in &f.sidebar {
             assert!(
                 !l.contains('{'),

@@ -554,6 +554,20 @@ pub fn suggest(world: &World, state: &GameState, seat: u8, level: Level) -> Orde
         cap -= 1;
         room -= 1;
     }
+    // Project Bark Park: a bot in the doghouse always takes the night off.
+    if rules::retreat_check(world, state, seat).is_ok() {
+        c.orders.retreat = true;
+        for o in &mut c.orders.missions {
+            o.mission = Mission::Rest;
+            o.waypoint = None;
+        }
+        c.orders.mass_driver = None;
+        c.orders.revenge = None;
+    }
+    // The Big Fetch waits for Gloves Off, then goes at the leader's best target.
+    if state.seats[seat as usize].fetch && stage == 2 && !c.orders.retreat {
+        c.orders.fetch = fetch_target(world, state, seat);
+    }
     // Keep orders in a stable, priority order: guards, strikes, escorts, others.
     let prio = |m: &Mission| match m {
         Mission::Guard { .. } | Mission::GuardZone { .. } => 0,
@@ -712,6 +726,27 @@ fn faction_actions(c: &mut Ctx, supply: &mut i32) {
             }
         }
     }
+}
+
+/// Where to send the Big Fetch: the most valuable target, leaning toward the
+/// leader, skipping anyone who might be at the park tonight.
+pub fn fetch_target(world: &World, state: &GameState, seat: u8) -> Option<u16> {
+    let leader = (0..state.seats.len() as u8)
+        .filter(|&s| s != seat)
+        .max_by_key(|&s| (state.seats[s as usize].score, std::cmp::Reverse(s)))?;
+    analysis::best_targets(world, state, seat, 40)
+        .into_iter()
+        .filter(|t| rules::fetch_check(world, state, seat, t.node).is_ok())
+        .filter_map(|t| {
+            let owner = state.nodes[t.node as usize].owner?;
+            if state.seats[owner as usize].doghouse {
+                return None;
+            }
+            let bonus = if owner == leader { t.value / 2 } else { 0 };
+            Some((t.value + bonus, std::cmp::Reverse(t.node), t.node))
+        })
+        .max()
+        .map(|(_, _, node)| node)
 }
 
 /// Default carry-over orders plus fresh faction actions: what a quiet turn looks like.

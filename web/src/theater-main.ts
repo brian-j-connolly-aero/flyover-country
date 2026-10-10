@@ -6,10 +6,12 @@ import { Engine } from './engine';
 import { setContent } from './text';
 import { Theater } from './ui/theater';
 import { Bus, type FromTheater, type ToTheater } from './bus';
+import { audio } from './audio';
 
 // The Theater window is a dumb renderer: public state and event logs in,
 // "continue" and playback status out.
 async function boot() {
+  audio.unlockOnGesture();
   const root = document.getElementById('theater')!;
   const engine = await Engine.load();
   setContent(engine.content);

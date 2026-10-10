@@ -7,7 +7,7 @@
 //!   flyover replay <save.json[.gz]>                  (re-resolve and check every hash)
 
 use flyover_ai::{suggest, Level};
-use flyover_core::content::{Content, ContentFiles, FactionId, World};
+use flyover_core::content::{Content, ContentFiles, FactionId, NodeKind, World};
 use flyover_core::state::{Event, GameState, Orders};
 use flyover_core::{new_game, resolve_night, state_hash, GameConfig};
 use serde::Deserialize;
@@ -62,8 +62,13 @@ struct GameResult {
     hashes: Vec<String>,
     /// fights, splashes, strikes, steps, captures, jewel hits, grounded
     stats: [i64; 7],
-    /// Bragging Rights by reason: strike, jewel, splash, ace, ground, objective, other
-    by_reason: Vec<[i64; 7]>,
+    /// Bragging Rights by reason: strike, jewel, splash, ace, ground, objective, casserole, fetch
+    by_reason: Vec<[i64; 8]>,
+    /// Per seat: spent a night at Project Bark Park; fired the Big Fetch.
+    park: Vec<bool>,
+    fetched: Vec<bool>,
+    /// Per seat: times on the receiving end of the Big Fetch (jewel hits separately).
+    fetched_on: Vec<(u32, u32)>,
 }
 
 fn play(
@@ -83,7 +88,10 @@ fn play(
     .expect("new game");
     let mut hashes = Vec::new();
     let mut stats = [0i64; 7];
-    let mut by_reason = vec![[0i64; 7]; factions.len()];
+    let mut by_reason = vec![[0i64; 8]; factions.len()];
+    let mut park = vec![false; factions.len()];
+    let mut fetched = vec![false; factions.len()];
+    let mut fetched_on = vec![(0u32, 0u32); factions.len()];
     while st.night <= world.rules().nights {
         let orders: Vec<Orders> = (0..factions.len() as u8)
             .map(|s| suggest(world, &st, s, levels[s as usize]))
@@ -101,6 +109,18 @@ fn play(
                 Event::Capture { .. } => stats[4] += 1,
                 Event::JewelEffect { .. } => stats[5] += 1,
                 Event::Grounded { .. } => stats[6] += 1,
+                Event::BarkPark { seat } => park[*seat as usize] = true,
+                Event::Fetch {
+                    seat, node, victim, ..
+                } => {
+                    fetched[*seat as usize] = true;
+                    if let Some(v) = victim {
+                        let jewel = world.nodes[*node as usize].kind == NodeKind::CrownJewel;
+                        let f = &mut fetched_on[*v as usize];
+                        f.0 += 1;
+                        f.1 += jewel as u32;
+                    }
+                }
                 Event::Score {
                     seat,
                     delta,
@@ -115,6 +135,7 @@ fn play(
                         R::Ground => 4,
                         R::Objective => 5,
                         R::Casserole => 6,
+                        R::Fetch => 7,
                     };
                     by_reason[*seat as usize][k] += *delta as i64;
                 }
@@ -133,6 +154,9 @@ fn play(
         hashes,
         stats,
         by_reason,
+        park,
+        fetched,
+        fetched_on,
     }
 }
 
@@ -234,7 +258,11 @@ fn balance(world: &World, games: usize, threads: usize, level: Level) {
     let mut score_sum = [0i64; 7];
     let mut margin = 0i64;
     let mut stats = [0i64; 7];
-    let mut reasons = [[0i64; 7]; 7];
+    let mut reasons = [[0i64; 8]; 7];
+    let mut parks = [0u32; 7];
+    let mut fetches = [0u32; 7];
+    let mut fetched_on = [(0u32, 0u32); 7];
+    let (mut park_games, mut park_wins, mut park_from_last) = (0f64, 0f64, 0f64);
     for r in &results {
         for (total, v) in stats.iter_mut().zip(r.stats) {
             *total += v;
@@ -255,6 +283,21 @@ fn balance(world: &World, games: usize, threads: usize, level: Level) {
             if r.scores[i] == best {
                 wins[f.index()] += 1.0 / winners;
             }
+            if r.park[i] {
+                parks[f.index()] += 1;
+                park_games += 1.0;
+                if r.scores[i] == best {
+                    park_wins += 1.0 / winners;
+                }
+                if r.scores[i] > sorted[0] {
+                    park_from_last += 1.0;
+                }
+            }
+            if r.fetched[i] {
+                fetches[f.index()] += 1;
+            }
+            fetched_on[f.index()].0 += r.fetched_on[i].0;
+            fetched_on[f.index()].1 += r.fetched_on[i].1;
         }
     }
     println!(
@@ -297,13 +340,19 @@ fn balance(world: &World, games: usize, threads: usize, level: Level) {
         "per game: {:.1} dogfights, {:.1} splashes, {:.1} strikes, {:.1} steps, {:.1} captures, {:.2} jewel hits, {:.1} grounded",
         stats[0] as f64 / n, stats[1] as f64 / n, stats[2] as f64 / n, stats[3] as f64 / n, stats[4] as f64 / n, stats[5] as f64 / n, stats[6] as f64 / n
     );
-    println!("avg BR by source:          strike  jewel  splash   ace  ground  object  cass");
+    println!(
+        "Project Bark Park: {:.2} visits a game; visitors win {:.1}% and finish above last {:.1}% of the time",
+        park_games / n,
+        100.0 * park_wins / park_games.max(1.0),
+        100.0 * park_from_last / park_games.max(1.0)
+    );
+    println!("avg BR by source:          strike  jewel  splash   ace  ground  object  cass  fetch   park%  fetch%  hit-by-fetch (jewel)");
     for f in FactionId::ALL {
         let i = f.index();
         let g = played[i].max(1) as f64;
         let r = reasons[i];
         println!(
-            "{:<26} {:>6.1} {:>6.1} {:>7.1} {:>5.1} {:>7.1} {:>7.1} {:>5.1}",
+            "{:<26} {:>6.1} {:>6.1} {:>7.1} {:>5.1} {:>7.1} {:>7.1} {:>5.1} {:>6.1} {:>6.1}% {:>5.1}%  {:>5.2} ({:.2})",
             world.faction(f).name,
             r[0] as f64 / g,
             r[1] as f64 / g,
@@ -311,7 +360,12 @@ fn balance(world: &World, games: usize, threads: usize, level: Level) {
             r[3] as f64 / g,
             r[4] as f64 / g,
             r[5] as f64 / g,
-            r[6] as f64 / g
+            r[6] as f64 / g,
+            r[7] as f64 / g,
+            100.0 * parks[i] as f64 / g,
+            100.0 * fetches[i] as f64 / g,
+            fetched_on[i].0 as f64 / g,
+            fetched_on[i].1 as f64 / g
         );
     }
     if !ok {

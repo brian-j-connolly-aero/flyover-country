@@ -5,8 +5,10 @@ import './style.css';
 import { Engine } from './engine';
 import { setContent } from './text';
 import { App } from './ui/app';
+import { audio } from './audio';
 
 async function boot() {
+  audio.unlockOnGesture();
   const root = document.getElementById('app')!;
   try {
     const engine = await Engine.load();

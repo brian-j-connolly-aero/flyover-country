@@ -33,7 +33,7 @@ export class App {
   state = '';
   private committed: (Orders | null)[] = [];
   private planning: PlanningScreen | null = null;
-  private lastSummary: { headline: string; highlights: string[] } | null = null;
+  private lastSummary: { headline: string; highlights: string[]; returned: number[] } | null = null;
   private remoteStatus: Extract<FromTheater, { type: 'status' }> | null = null;
   private continueTo: (() => void) | null = null;
 
@@ -64,6 +64,7 @@ export class App {
     if (this.twoWindow) {
       this.bus!.send(m);
       this.overlay.style.display = 'none';
+      audio.music(null); // the TV window plays the music
     } else {
       const t = this.ensureLocalTheater();
       const visible = m.type === 'dawn' || m.type === 'show' || m.type === 'final' || (m.type === 'control' && this.overlay.style.display !== 'none');
@@ -79,7 +80,7 @@ export class App {
     if (remote && m.type === 'ready') {
       this.remoteAlive = true;
       if (this.lastTheaterMsg) this.bus!.send(this.lastTheaterMsg);
-      this.bus!.send({ type: 'sound', on: audio.on });
+      this.bus!.send({ type: 'sound', on: audio.on, music: audio.musicEnabled });
       if (this.overlay.style.display !== 'none' && this.save?.options.theater === 'two') {
         this.overlay.style.display = 'none';
         this.renderController();
@@ -126,7 +127,9 @@ export class App {
     const saves = await listSaves();
     const latest = saves.find((s) => !s.tutorial && s.nights.length < this.engine.content.rules.nights);
     const dogs = h('div.menu-dogs', ...FACTIONS.map((f) => svg(leaderSvg(f, 'happy', { size: 120 }), 'menu-dog')));
-    const sound = h('button.pbtn', { onclick: () => { audio.setEnabled(!audio.on); this.bus?.send({ type: 'sound', on: audio.on }); sound.textContent = audio.on ? 'Sound: on' : 'Sound: off'; } }, audio.on ? 'Sound: on' : 'Sound: off');
+    const sound = h('button.pbtn', { onclick: () => { audio.setEnabled(!audio.on); this.bus?.send({ type: 'sound', on: audio.on, music: audio.musicEnabled }); sound.textContent = audio.on ? 'Sound: on' : 'Sound: off'; } }, audio.on ? 'Sound: on' : 'Sound: off');
+    const music = h('button.pbtn', { onclick: () => { audio.setMusic(!audio.musicEnabled); this.bus?.send({ type: 'sound', on: audio.on, music: audio.musicEnabled }); music.textContent = audio.musicEnabled ? 'Music: on' : 'Music: off'; } }, audio.musicEnabled ? 'Music: on' : 'Music: off');
+    audio.music('theme');
     this.show(
       h(
         'div.menu',
@@ -141,7 +144,7 @@ export class App {
           h('button.big-btn.alt', { onclick: () => this.loadScreen() }, 'Saved wars and replays'),
           h('button.big-btn.alt', { onclick: () => rulesModal() }, 'Rules'),
         ),
-        h('div.menu-foot', sound, h('span', 'Best with a laptop for planning and a TV for the show. Everything runs in your browser; nothing is sent anywhere.')),
+        h('div.menu-foot', sound, music, h('span', 'Best with a laptop for planning and a TV for the show. Everything runs in your browser; nothing is sent anywhere.')),
       ),
     );
   }
@@ -309,6 +312,7 @@ export class App {
         ? ['Years after the Great Unplugging, the West has split into breakaway states. Nobody remembers who unplugged it. Everyone blames California.', 'Eight nights. Most Bragging Rights wins. Nobody dies on screen.']
         : this.lastSummary?.highlights ?? [],
       intro,
+      returned: intro ? [] : this.lastSummary?.returned ?? [],
     };
     this.continueTo = () => this.nextPlanner();
     this.toTheater({ type: 'dawn', data });
@@ -441,7 +445,7 @@ export class App {
     const pvBefore = this.pv(before);
     const pvAfter = this.pv(after);
     const sum = summarize(this.engine.content, pub, this.factions(), night, night * 977);
-    if (!replay) this.lastSummary = { headline: sum.headline, highlights: sum.highlights };
+    if (!replay) this.lastSummary = { headline: sum.headline, highlights: sum.highlights, returned: sum.returned };
     const data: ShowData = {
       night,
       factions: this.factions(),

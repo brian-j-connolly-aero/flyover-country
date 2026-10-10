@@ -104,7 +104,7 @@ fn main() {
                             ScoreReason::Ground => 4,
                             ScoreReason::Objective => 5,
                             ScoreReason::Casserole => 6,
-                            ScoreReason::MassDriver => 7,
+                            ScoreReason::MassDriver | ScoreReason::Fetch => 7,
                             ScoreReason::Revenge => 8,
                         };
                         st_all[f(*seat)].br_reason[k] += *delta as i64;

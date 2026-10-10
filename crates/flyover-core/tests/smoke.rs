@@ -108,3 +108,129 @@ fn a_cut_junction_costs_income() {
     );
     assert!(cut.fuel < full.fuel, "and Bakersfield's Fuel");
 }
+
+#[test]
+fn project_bark_park_bounces_attacks_and_returns_with_the_big_fetch() {
+    use flyover_core::content::{dist2, NodeKind};
+    use flyover_core::state::{Event, Mission, SqOrder};
+    let w = testkit::world();
+    let mut st = new_game(
+        &w,
+        &GameConfig {
+            seed: 3,
+            factions: vec![Pacific, Cascadia, FrontRange, Texas],
+        },
+    )
+    .unwrap();
+    st.night = 3; // Open Season, and the park is open.
+    assert!(
+        rules::retreat_check(&w, &st, 1).is_err(),
+        "not in the doghouse yet"
+    );
+    st.seats[1].doghouse = true;
+    assert!(rules::retreat_check(&w, &st, 1).is_ok());
+
+    // California's bombers go for the nearest Cascadian target while Cascadia
+    // spends the night at the park.
+    let bombers: Vec<_> = st
+        .squadrons
+        .iter()
+        .filter(|s| s.seat == 0 && s.kind == UnitKind::Bomber)
+        .cloned()
+        .collect();
+    let from = w.nodes[bombers[0].base as usize].pos;
+    let target = w
+        .nodes
+        .iter()
+        .filter(|n| st.nodes[n.idx as usize].owner == Some(1))
+        .filter(|n| rules::attack_check(&w, &st, 0, n.idx).is_ok())
+        .min_by_key(|n| dist2(n.pos, from))
+        .unwrap()
+        .idx;
+    let mut orders: Vec<Orders> = (0..4)
+        .map(|s| Orders {
+            seat: s,
+            ..Default::default()
+        })
+        .collect();
+    orders[1].retreat = true;
+    for b in &bombers {
+        orders[0].missions.push(SqOrder {
+            sq: b.id,
+            mission: Mission::Attack { node: target },
+            waypoint: None,
+        });
+    }
+    let (next, ev) = resolve_night(&w, &st, &orders);
+    assert!(ev
+        .iter()
+        .any(|e| matches!(e.e, Event::BarkPark { seat: 1 })));
+    assert!(
+        ev.iter().any(|e| matches!(
+            e.e,
+            Event::Bounce {
+                seat: 0,
+                victim: 1,
+                ..
+            }
+        )),
+        "the raid bounces off the fence"
+    );
+    assert!(!ev.iter().any(|e| matches!(
+        e.e,
+        Event::Strike {
+            victim: Some(1),
+            ..
+        }
+    )));
+    assert!(
+        !ev.iter()
+            .any(|e| matches!(e.e, Event::Launch { seat: 1, .. })),
+        "nobody from Cascadia flies tonight"
+    );
+    assert!(ev
+        .iter()
+        .any(|e| matches!(e.e, Event::ParkReturn { seat: 1, .. })));
+    let cas = &next.seats[1];
+    assert!(cas.been_to_park && cas.fetch && !cas.doghouse);
+    assert!(next
+        .nodes
+        .iter()
+        .filter(|n| n.owner == Some(1))
+        .all(|n| n.health == 2));
+    assert!(
+        next.squadrons
+            .iter()
+            .filter(|s| s.seat == 1 && s.active())
+            .count()
+            >= 5
+    );
+
+    // The next night, the Big Fetch lands on a Texan city.
+    let st = next;
+    assert!(rules::retreat_check(&w, &st, 1).is_err(), "once a game");
+    let city = w
+        .nodes
+        .iter()
+        .find(|n| {
+            n.kind == NodeKind::City
+                && st.nodes[n.idx as usize].owner == Some(3)
+                && rules::fetch_check(&w, &st, 1, n.idx).is_ok()
+        })
+        .unwrap()
+        .idx;
+    let mut orders: Vec<Orders> = (0..4).map(|s| carry_over(&w, &st, s)).collect();
+    orders[1].fetch = Some(city);
+    let before = st.seats[1].score;
+    let (next, ev) = resolve_night(&w, &st, &orders);
+    assert!(ev.iter().any(|e| matches!(
+        e.e,
+        Event::Fetch {
+            seat: 1,
+            steps: 2,
+            ..
+        }
+    )));
+    assert!(!next.seats[1].fetch, "one shot");
+    assert!(next.seats[1].score >= before + 4);
+}

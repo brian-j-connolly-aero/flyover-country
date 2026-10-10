@@ -284,4 +284,7 @@ MapDef(
         LinkDef(a: "tex_dallas", b: "grb_okc", kind: Rail),
         LinkDef(a: "be_billings", b: "grb_ab_rapid", kind: Highway),
     ],
+    landmarks: [
+        LandmarkDef(id: "bark_park", name: "Project Bark Park", pos: (488, 500), tagline: "Four Corners. A secret dog park with one very large tennis-ball launcher."),
+    ],
 )

@@ -79,6 +79,8 @@ export class PlanningScreen {
   private sideTab: 'advisor' | 'build' | 'faction' | 'intel' = 'advisor';
   private glyphSpots = new Map<number, P>();
   private destroyed = false;
+  /** Tonight's orders from before a trip to the park, in case it's called off. */
+  private parkSaved: Orders['missions'] | null = null;
 
   constructor(root: HTMLElement, opts: PlanningOpts) {
     this.opts = opts;
@@ -138,6 +140,10 @@ export class PlanningScreen {
   }
 
   setMission(sq: number, m: Mission, waypoint: P | null = null) {
+    if (this.orders.retreat && m.t !== 'Rest') {
+      toast("Not tonight: everyone's at Project Bark Park. Call off the trip in the Faction tab to fly.");
+      return;
+    }
     const i = this.orders.missions.findIndex((x) => x.sq === sq);
     const entry = { sq, mission: m, waypoint };
     if (i >= 0) this.orders.missions[i] = entry;
@@ -209,6 +215,7 @@ export class PlanningScreen {
         h('div.small', `+${v.income_fuel} at dawn`),
       ),
       h('div.plan-res', h('div.small', 'BRAGGING RIGHTS'), h('div.big', String(v.seats[v.seat].score))),
+      this.parkBadge() ?? "",
       this.timerEl,
       h(
         'div.plan-btns',
@@ -219,6 +226,16 @@ export class PlanningScreen {
         btn('Reset', () => this.reset(), false, "Go back to last night's orders"),
       ),
     );
+  }
+
+  /** A nudge in the header: the doghouse, a night at the park, or the Big Fetch. */
+  private parkBadge(): HTMLElement | null {
+    const me = this.view.seats[this.view.seat];
+    const go = () => { this.sideTab = 'faction'; this.renderSide(); };
+    if (this.orders.retreat) return h('button.park-badge.on', { onclick: go, title: 'Your squadrons rest tonight and your land cannot be touched.' }, '🎾 At the Bark Park tonight');
+    if (me.doghouse) return h('button.park-badge', { onclick: go, title: 'Once a game: a night off, untouchable, then back with the Big Fetch.' }, '🐾 In the doghouse: Bark Park open');
+    if (me.fetch) return h('button.park-badge', { onclick: go, title: 'One stadium-sized tennis ball, any target you could attack tonight.' }, this.orders.fetch === null ? '🎾 Big Fetch loaded' : `🎾 Big Fetch → ${nodeName(this.orders.fetch)}`);
+    return null;
   }
 
   private tickTimer() {
@@ -236,7 +253,18 @@ export class PlanningScreen {
 
   private renderTray() {
     clear(this.tray);
+    this.tray.classList.toggle('park', this.orders.retreat);
     const list = h('div.tray-list');
+    if (this.orders.retreat) {
+      list.appendChild(
+        h(
+          'div.park-note',
+          h('b', 'Everyone is at Project Bark Park tonight. '),
+          'Squadrons rest at home, and nothing can touch your land. Back at dawn with everything repaired, fresh squadrons and the Big Fetch. ',
+          h('button.pbtn', { onclick: () => this.setRetreat(false) }, 'Call off the trip'),
+        ),
+      );
+    }
     const sqs = [...this.view.squadrons].sort((a, b) => Number(b.ace) - Number(a.ace) || a.kind.localeCompare(b.kind) || a.id - b.id);
     for (const s of sqs) list.appendChild(this.card(s));
     const commitBtn = h('button.commit', { onclick: () => this.commit(false) }, 'Commit orders');
@@ -252,7 +280,8 @@ export class PlanningScreen {
     const stars = s.stars ? h('span.stars', '★'.repeat(s.stars)) : null;
     const risk = p ? h('span.risk', { style: { background: RISK_CSS[p.color] }, title: `${p.color}: ${p.reason}` }) : null;
     const squads = v.squadrons.map((q) => ({ id: q.id, label: this.label(q) }));
-    const orderText = down ? `Back on Night ${s.down_until}` : missionLabel(m, squads);
+    const atPark = this.orders.retreat && !down;
+    const orderText = down ? `Back on Night ${s.down_until}` : atPark ? 'At the Bark Park' : missionLabel(m, squads);
     const el = h(
       `div.sq-card${this.selected === s.id ? '.sel' : ''}${down ? '.down' : ''}${p ? '.' + p.color.toLowerCase() : ''}`,
       { 'data-sq': String(s.id), title: unitDef(s.kind).desc },
@@ -264,10 +293,10 @@ export class PlanningScreen {
         h('div.sq-order', risk, orderText, p ? h('span.fuel', ` · ${p.fuel} fuel`) : null),
         p && this.selected === s.id ? h('div.sq-reason', `${p.color}: ${p.reason}.`) : null,
       ),
-      !down && m.t !== 'Rest' ? h('button.sq-x', { title: 'Stay home and rest', onclick: (e: Event) => { e.stopPropagation(); this.setMission(s.id, { t: 'Rest' }); } }, '⌂') : null,
-      !down ? h('button.sq-more', { title: 'More orders', onclick: (e: Event) => { e.stopPropagation(); this.cardMenu(s, e as MouseEvent); } }, '⋯') : null,
+      !down && !atPark && m.t !== 'Rest' ? h('button.sq-x', { title: 'Stay home and rest', onclick: (e: Event) => { e.stopPropagation(); this.setMission(s.id, { t: 'Rest' }); } }, '⌂') : null,
+      !down && !atPark ? h('button.sq-more', { title: 'More orders', onclick: (e: Event) => { e.stopPropagation(); this.cardMenu(s, e as MouseEvent); } }, '⋯') : null,
     );
-    if (!down) {
+    if (!down && !atPark) {
       el.addEventListener('pointerdown', (e) => this.cardPointerDown(s.id, e));
     }
     return el;
@@ -293,6 +322,7 @@ export class PlanningScreen {
 
   private cardPointerDown(sq: number, e: PointerEvent) {
     if ((e.target as HTMLElement).closest('button')) return;
+    if (this.orders.retreat) return;
     e.preventDefault();
     const ghost = h('div.drag-ghost', svg(glyphSvg(this.view.faction, this.squad(sq)!.kind, 34)));
     this.cardDrag = { sq, ghost, x: e.clientX, y: e.clientY, moved: false };
@@ -735,6 +765,18 @@ export class PlanningScreen {
         map.label(`mark-t${t.node}`, `#${i + 1}`, [p[0] + 14, p[1] - 14], 'label-mark target');
       });
     }
+    // The Big Fetch target: a tennis ball, and its arc from the park.
+    if (this.orders.fetch !== null) {
+      const p = c.nodes[this.orders.fetch].pos;
+      const park = c.landmarks?.find((l) => l.id === 'bark_park')?.pos;
+      if (park) {
+        const mid: P = [(park[0] + p[0]) / 2, Math.min(park[1], p[1]) - 60];
+        mg.moveTo(park[0], park[1]).quadraticCurveTo(mid[0], mid[1], p[0], p[1]).stroke({ width: 1.5, color: 0xd7f542, alpha: 0.7 });
+      }
+      mg.circle(p[0], p[1], 16).stroke({ width: 2.5, color: 0xd7f542, alpha: 0.95 });
+      mg.circle(p[0], p[1], 5).fill({ color: 0xd7f542 });
+      map.label('mark-fetch', 'BIG FETCH', [p[0], p[1] - 24], 'label-mark fetch');
+    }
     // Revealed zones glow faintly.
     for (const r of v.revealed) {
       const z = c.zones[r.zone];
@@ -838,7 +880,7 @@ export class PlanningScreen {
       ['intel', 'Intel'],
     ];
     this.side.appendChild(
-      h('div.side-tabs', ...tabs.map(([k, label]) => h(`button.side-tab${this.sideTab === k ? '.on' : ''}`, { onclick: () => { this.sideTab = k; this.renderSide(); } }, label))),
+      h('div.side-tabs', ...tabs.map(([k, label]) => h(`button.side-tab${this.sideTab === k ? '.on' : ''}`, { onclick: () => { this.sideTab = k; this.renderSide(); } }, label, k === 'faction' && this.factionNeedsYou() ? h('span.tab-dot') : null))),
     );
     const body = h('div.side-body');
     this.side.appendChild(body);
@@ -846,6 +888,12 @@ export class PlanningScreen {
     if (this.sideTab === 'build') this.renderBuild(body);
     if (this.sideTab === 'faction') this.renderFaction(body);
     if (this.sideTab === 'intel') this.renderIntel(body);
+  }
+
+  /** The Faction tab has something time-sensitive: the doghouse or a loaded Big Fetch. */
+  private factionNeedsYou(): boolean {
+    const me = this.view.seats[this.view.seat];
+    return (me.doghouse && !this.orders.retreat) || (me.fetch && this.orders.fetch === null);
   }
 
   private renderAdvisor(body: HTMLElement) {
@@ -864,7 +912,12 @@ export class PlanningScreen {
       if (!line) continue;
       const box = h(
         `div.adv-line.sev${w.severity}`,
-        { onclick: () => { if (w.sq !== null) this.select(w.sq); } },
+        {
+          onclick: () => {
+            if (w.sq !== null) this.select(w.sq);
+            if (['doghouse', 'fetch_ready', 'retreating'].includes(w.key)) { this.sideTab = 'faction'; this.renderSide(); }
+          },
+        },
         ...turns(line).map((t) => h('div', t.who ? h('b', t.who + ': ') : null, t.text)),
       );
       body.appendChild(box);
@@ -940,6 +993,7 @@ export class PlanningScreen {
     const me = this.opts.seat;
     const others = this.opts.factions.map((x, i) => ({ f: x, i })).filter((x) => x.i !== me);
     const card = fd.card;
+    this.renderPark(body);
     body.appendChild(h('div.side-h', `${card.signature[0]}`));
     body.appendChild(h('div.side-note', card.signature[1]));
     const left = v.supply - this.supplyPlanned();
@@ -1034,6 +1088,73 @@ export class PlanningScreen {
     }
     body.appendChild(h('div.side-h', 'Your five rules'));
     for (const [k, [t, d]] of Object.entries(card) as [string, [string, string]][]) body.appendChild(h('div.rule-mini', h('b', `${cap(k)}: ${t}. `), d));
+  }
+
+  /** Project Bark Park and the Big Fetch, when they apply. */
+  private renderPark(body: HTMLElement) {
+    const v = this.view;
+    const c = this.engine.content;
+    const me = v.seats[v.seat];
+    const bp = c.rules.bark_park;
+    if (me.doghouse || this.orders.retreat) {
+      body.appendChild(
+        h(
+          `div.park-box${this.orders.retreat ? '.on' : ''}`,
+          h('div.park-title', '🐾 Project Bark Park'),
+          h('div.side-note', `You're in the doghouse. Once a game you can spend tonight at a secret dog park at Four Corners. Your squadrons stay home and rest, and nothing can touch your land tonight: bombs bounce off the fence. At dawn you're back with everything repaired, at least ${bp.floor} squadrons, ${bp.supply} more Supply, and one shot of the Big Fetch.`),
+          h(
+            `button.park-go${this.orders.retreat ? '.on' : ''}`,
+            { onclick: () => this.setRetreat(!this.orders.retreat) },
+            this.orders.retreat ? '✓ Going to the Bark Park tonight (tap to call it off)' : 'Retreat to the Bark Park tonight',
+          ),
+        ),
+      );
+    } else if (me.been_to_park) {
+      body.appendChild(h('div.side-note', 'You have been to Project Bark Park this game.'));
+    }
+    if (me.fetch) {
+      const targets = c.nodes.filter((n) => v.nodes[n.idx].attack === null && v.nodes[n.idx].owner !== null && v.nodes[n.idx].owner !== v.seat);
+      const label = (n: (typeof targets)[number]) => `${n.kind === 'CrownJewel' ? '★ ' : ''}${n.name} (${faction(this.opts.factions[v.nodes[n.idx].owner!]).short})`;
+      const sel = h(
+        'select',
+        { onchange: (e: Event) => { const x = (e.target as HTMLSelectElement).value; this.orders.fetch = x === 'none' ? null : Number(x); this.refresh(); } },
+        h('option', { value: 'none', selected: this.orders.fetch === null }, 'hold the ball'),
+        ...targets
+          .sort((a, b) => Number(b.kind === 'CrownJewel') - Number(a.kind === 'CrownJewel') || a.name.localeCompare(b.name))
+          .map((n) => h('option', { value: String(n.idx), selected: this.orders.fetch === n.idx }, label(n))),
+      );
+      body.appendChild(
+        h(
+          'div.park-box.fetch',
+          h('div.park-title', '🎾 The Big Fetch: one shot'),
+          h('div.fa-row', 'Target ', sel),
+          h('div.side-note', `A stadium-sized tennis ball from the Bark Park, late in the night. It can't be intercepted and knocks the target down ${bp.fetch_steps} steps; a crown jewel counts as a full hit.${v.stage < 2 ? ' Crown jewels open up at Gloves Off (Night 6).' : ''} It bounces off anyone at the park.`),
+        ),
+      );
+    }
+  }
+
+  /** Go to the park (everyone rests) or call it off (tonight's orders come back). */
+  private setRetreat(on: boolean) {
+    if (on === this.orders.retreat) return;
+    if (on) {
+      this.parkSaved = structuredClone(this.orders.missions);
+      this.orders.retreat = true;
+      for (const m of this.orders.missions) {
+        m.mission = { t: 'Rest' };
+        m.waypoint = null;
+      }
+      this.orders.mass_driver = null;
+      this.orders.revenge = null;
+      this.selected = null;
+      audio.play('commit');
+    } else {
+      this.orders.retreat = false;
+      if (this.parkSaved) this.orders.missions = this.parkSaved;
+      this.parkSaved = null;
+      audio.play('click');
+    }
+    this.refresh();
   }
 
   private renderIntel(body: HTMLElement) {
@@ -1145,6 +1266,9 @@ function normalize(o: Orders, v: SeatView): Orders {
   out.harvest_bid = v.harvest > 0 ? out.harvest_bid ?? 0 : 0;
   if (out.mass_driver !== null && v.mass_driver_holder !== v.seat) out.mass_driver = null;
   if (out.revenge !== null && v.revenge_against === null) out.revenge = null;
+  const me = v.seats[v.seat];
+  out.retreat = !!out.retreat && me.doghouse;
+  out.fetch = me.fetch && out.fetch !== null && out.fetch !== undefined && v.nodes[out.fetch]?.attack === null ? out.fetch : null;
   return out;
 }
 

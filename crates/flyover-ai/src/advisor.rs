@@ -63,7 +63,17 @@ pub fn advise(world: &World, state: &GameState, seat: u8, orders: &Orders) -> Ve
                     .unwrap_or((Mission::Rest, None))
             })
     };
+    // Project Bark Park: tonight is a night off, so there's nothing else to flag.
+    if orders.retreat && rules::retreat_check(w, st, seat).is_ok() {
+        return vec![warn("retreating", 0)];
+    }
     let mut out: Vec<Warning> = Vec::new();
+    if rules::retreat_check(w, st, seat).is_ok() {
+        out.push(warn("doghouse", 2));
+    }
+    if st.seats[seat as usize].fetch && orders.fetch.is_none() {
+        out.push(warn("fetch_ready", 1));
+    }
     let mut fuel_needed = 0;
     let mut flying = 0;
     let mut grounded_by_fuel = 0;

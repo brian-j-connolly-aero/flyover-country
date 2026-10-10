@@ -1,14 +1,28 @@
 // All sound is synthesized with WebAudio: no audio files to ship. A squelch
 // before every radio line, launch roars, explosion thumps, a "MISSION UPDATE"
-// sting, and a small synthwave loop that speeds up at Gloves Off.
+// sting, and the four-song soundtrack (music/songs.ts, played by music/synth.ts).
+
+/** The music bus, relative to the master volume. */
+const MUSIC_LEVEL = 0.8;
+
+function readMusicSetting(): boolean {
+  try {
+    return localStorage.getItem('flyover-music') !== '0';
+  } catch {
+    return true;
+  }
+}
+
+import { MusicPlayer, type TrackId } from './music/synth';
 
 class Audio {
   private ctx: AudioContext | null = null;
+  private songs: MusicPlayer | null = null;
+  private wantTrack: TrackId | null = null;
+  private musicOn = readMusicSetting();
   private master: GainNode | null = null;
   private musicGain: GainNode | null = null;
   private enabled = true;
-  private musicTimer: number | null = null;
-  private stage = 0;
   private lastPlayed = new Map<string, number>();
 
   private ensure(): AudioContext | null {
@@ -20,7 +34,7 @@ class Audio {
         this.master.gain.value = 0.5;
         this.master.connect(this.ctx.destination);
         this.musicGain = this.ctx.createGain();
-        this.musicGain.gain.value = 0.18;
+        this.musicGain.gain.value = MUSIC_LEVEL;
         this.musicGain.connect(this.master);
       } catch {
         return null;
@@ -36,7 +50,7 @@ class Audio {
       this.stopMusic();
       void this.ctx?.suspend();
     } else {
-      void this.ctx?.resume();
+      void this.ctx?.resume().then(() => this.applyMusic());
     }
   }
 
@@ -153,6 +167,45 @@ class Audio {
       case 'commit':
         [660, 880].forEach((f, i) => this.tone(f, 'triangle', now + i * 0.08, 0.2, 0.07));
         break;
+      case 'boing': {
+        // Off the Bark Park fence: a springy wobble.
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        const lfo = ctx.createOscillator();
+        const depth = ctx.createGain();
+        o.type = 'sine';
+        o.frequency.setValueAtTime(170, now);
+        o.frequency.linearRampToValueAtTime(520, now + 0.08);
+        o.frequency.exponentialRampToValueAtTime(260, now + 0.45);
+        lfo.frequency.value = 17;
+        depth.gain.setValueAtTime(60, now);
+        depth.gain.exponentialRampToValueAtTime(1, now + 0.45);
+        lfo.connect(depth).connect(o.frequency);
+        this.env(g, now, 0.01, 0.22, 0.45);
+        o.connect(g).connect(this.master!);
+        o.start(now);
+        lfo.start(now);
+        o.stop(now + 0.55);
+        lfo.stop(now + 0.55);
+        break;
+      }
+      case 'squeak':
+        // A dog toy, stadium-sized.
+        this.tone(1350, 'triangle', now, 0.09, 0.12, undefined, 1950);
+        this.tone(1750, 'triangle', now + 0.1, 0.14, 0.12, undefined, 1250);
+        break;
+      case 'fetch':
+        // The launcher: a thump, a whoosh and a rising whistle.
+        this.tone(95, 'sine', now, 0.35, 0.5, undefined, 40);
+        this.burst(now, 0.6, 700, 0.5, 0.18, 'lowpass');
+        this.tone(600, 'sine', now + 0.1, 0.9, 0.05, undefined, 1500);
+        break;
+      case 'park':
+        // A happy little jingle, and a woof.
+        [523, 659, 784, 1047].forEach((f, i) => this.tone(f, 'triangle', now + i * 0.1, 0.22, 0.08));
+        this.tone(170, 'sawtooth', now + 0.5, 0.12, 0.08, undefined, 110);
+        this.tone(170, 'sawtooth', now + 0.68, 0.12, 0.08, undefined, 110);
+        break;
     }
   }
 
@@ -172,42 +225,51 @@ class Audio {
     m[0].forEach((f, i) => this.tone(f, m[1], now + 0.25 + i * 0.13, 0.22, 0.07));
   }
 
-  /** A small synthwave loop. Gloves Off plays it faster and in a darker key. */
-  music(stage: number) {
-    this.stage = stage;
-    if (this.musicTimer !== null) return;
+  // --- Music ----------------------------------------------------------------------------------
+
+  /** Ask for a track; it starts as soon as the browser lets audio play (after the first click). */
+  music(track: TrackId | null) {
+    this.wantTrack = track;
+    this.applyMusic();
+  }
+
+  setMusic(on: boolean) {
+    this.musicOn = on;
+    try {
+      localStorage.setItem('flyover-music', on ? '1' : '0');
+    } catch {
+      // Private windows may refuse storage; the setting just won't stick.
+    }
+    this.applyMusic();
+  }
+
+  get musicEnabled() {
+    return this.musicOn;
+  }
+
+  private applyMusic() {
+    if (!this.enabled) {
+      this.songs?.play(null);
+      return;
+    }
     const ctx = this.ensure();
-    if (!ctx) return;
-    const bassLines = [
-      [55, 55, 65.4, 49],
-      [55, 65.4, 73.4, 49],
-      [49, 46.2, 55, 41.2],
-    ];
-    let step = 0;
-    let next = ctx.currentTime + 0.1;
-    const schedule = () => {
-      if (!this.enabled || !this.ctx) return;
-      const bpm = this.stage === 2 ? 132 : this.stage === 1 ? 116 : 104;
-      const beat = 60 / bpm / 2;
-      while (next < this.ctx.currentTime + 0.4) {
-        const bar = Math.floor(step / 8) % 4;
-        const root = bassLines[Math.min(this.stage, 2)][bar];
-        const note = step % 8 === 3 || step % 8 === 7 ? root * 2 : root;
-        this.tone(note, 'sawtooth', next, beat * 0.9, 0.18, this.musicGain!);
-        if (step % 8 === 0) {
-          [root * 4, root * 5, root * 6].forEach((f) => this.tone(f, 'triangle', next, beat * 7, 0.035, this.musicGain!));
-        }
-        if (step % 2 === 0) this.tone(step % 4 === 0 ? 60 : 3000, step % 4 === 0 ? 'sine' : 'square', next, 0.05, step % 4 === 0 ? 0.25 : 0.01, this.musicGain!, step % 4 === 0 ? 40 : undefined);
-        next += beat;
-        step++;
-      }
+    if (!ctx || ctx.state !== 'running') return;
+    this.songs ??= new MusicPlayer(ctx, this.musicGain!);
+    this.songs.play(this.musicOn ? this.wantTrack : null);
+  }
+
+  /** Browsers start audio suspended until the first click or key press. */
+  unlockOnGesture() {
+    const go = () => {
+      const ctx = this.ensure();
+      if (ctx) void ctx.resume().then(() => this.applyMusic());
     };
-    this.musicTimer = window.setInterval(schedule, 120);
+    window.addEventListener('pointerdown', go, { capture: true });
+    window.addEventListener('keydown', go, { capture: true });
   }
 
   stopMusic() {
-    if (this.musicTimer !== null) clearInterval(this.musicTimer);
-    this.musicTimer = null;
+    this.songs?.play(null);
   }
 }
 

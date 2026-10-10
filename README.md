@@ -160,8 +160,8 @@ rule-breaker. The main moves were:
 - Guards defend their post, and Sweep hunts traffic in transit.
 - Crown jewels are hardened. A single squadron rarely cracks one, so Gloves
   Off raids are team efforts.
-- Utah's first shot applies when defending a home (its own or a neighbor's),
-  not when grabbing neutral land.
+- Utah's guards always get the first shot. Utah scores mostly by defending,
+  and Project Bark Park nights mean less is flying, so Utah needed the help.
 - The Longhorn and the Seagulls were toned down; California's drones were
   toned up.
 

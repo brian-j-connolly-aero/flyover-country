@@ -143,6 +143,15 @@ pub struct LinkDef {
     pub kind: LinkKind,
 }
 
+/// A place on the map that isn't a node: nothing flies to it or fights over it.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct LandmarkDef {
+    pub id: String,
+    pub name: String,
+    pub pos: P,
+    pub tagline: String,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct MapDef {
     pub width: i32,
@@ -152,6 +161,8 @@ pub struct MapDef {
     pub mississippi: Vec<P>,
     pub nodes: Vec<NodeDef>,
     pub links: Vec<LinkDef>,
+    #[serde(default)]
+    pub landmarks: Vec<LandmarkDef>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
@@ -417,7 +428,29 @@ pub struct RulesDef {
     pub strike: StrikeRules,
     pub scoring: ScoringRules,
     pub factions: FactionRules,
+    pub bark_park: BarkParkRules,
     pub start_forces: Vec<UnitKind>,
+}
+
+/// Project Bark Park: nobody is ever knocked out. A faction in the doghouse
+/// may spend one night a game at the park, untouchable, and come back with
+/// fresh squadrons and one shot of the Big Fetch.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct BarkParkRules {
+    /// The park is open for these nights (inclusive).
+    pub first_night: u8,
+    pub last_night: u8,
+    /// In the doghouse: last place and at least this many Bragging Rights
+    /// behind the leader...
+    pub gap: i32,
+    /// ...or fewer than this many squadrons fit to fly.
+    pub low_squadrons: i32,
+    /// Coming back: squadrons topped up to this many, plus this much Supply.
+    pub floor: i32,
+    pub supply: i32,
+    /// The Big Fetch: steps of damage, and the tick it lands.
+    pub fetch_steps: i32,
+    pub fetch_tick: i32,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]

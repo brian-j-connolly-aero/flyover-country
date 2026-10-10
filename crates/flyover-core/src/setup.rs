@@ -40,6 +40,9 @@ pub fn new_game(world: &World, cfg: &GameConfig) -> Result<GameState, String> {
             kills: 0,
             steps_dealt: 0,
             steps_taken: 0,
+            doghouse: false,
+            been_to_park: false,
+            fetch: false,
         })
         .collect();
     let seat_of = |f: FactionId| cfg.factions.iter().position(|&x| x == f).map(|i| i as u8);

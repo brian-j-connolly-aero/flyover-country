@@ -6,8 +6,8 @@ import { MapView } from '../map/mapview';
 import { ShowPlayer } from '../show/player';
 import { summarize, finalHeadline, type NightSummary } from '../show/summary';
 import type { DawnData, FinalData, FromTheater, ShowData, ToTheater } from '../bus';
-import type { Content, FactionId, PublicView, SeatKind } from '../types';
-import { any, esc, faction, leader, patchText, stageBlurb, stageName, turns, effectText } from '../text';
+import type { Content, FactionId, PublicSeat, PublicView, SeatKind } from '../types';
+import { any, esc, faction, leader, patchText, pick, stageBlurb, stageName, turns, effectText } from '../text';
 import { leaderSvg, emblemSvg } from '../art/dogs';
 import { h, clear, svg } from './dom';
 import { audio } from '../audio';
@@ -27,6 +27,9 @@ export class Theater {
   private factions: FactionId[] = [];
   private kinds: SeatKind[] = [];
   private scores: number[] = [];
+  private seatInfo: PublicSeat[] = [];
+  /** Seats at Project Bark Park during tonight's show. */
+  private atPark = new Set<number>();
   private phase = 'idle';
   private chatterQueue: { who: string; color: string; text: string; pri: number; at: number }[] = [];
   private lastLine = 0;
@@ -90,6 +93,7 @@ export class Theater {
         if (m.pv) this.applyPublic(m.pv);
         clear(this.center);
         if (m.text) this.center.appendChild(h('div.th-card.th-idle', h('div.th-title', m.text)));
+        audio.music('theme');
         break;
       case 'dawn':
         this.dawn(m.data);
@@ -108,6 +112,7 @@ export class Theater {
         break;
       case 'sound':
         audio.setEnabled(m.on);
+        if (m.music !== undefined) audio.setMusic(m.music);
         break;
     }
   }
@@ -152,7 +157,8 @@ export class Theater {
     map.setNodes(pv.nodes.map((n) => ({ owner: n.owner, health: n.health, active: n.active })));
     map.setFlows(null, null);
     this.scores = pv.seats.map((s) => s.score);
-    this.renderBoard(pv.seats.map((s) => s.scrappy));
+    this.seatInfo = pv.seats;
+    this.renderBoard();
     this.labelCapitals();
   }
 
@@ -165,7 +171,7 @@ export class Theater {
     }
   }
 
-  private renderBoard(scrappy: boolean[] = []) {
+  private renderBoard() {
     clear(this.board);
     const order = this.factions.map((_, i) => i);
     const best = Math.max(...this.scores);
@@ -180,10 +186,21 @@ export class Theater {
           svg(emblemSvg(f, { size: 40 }), 'th-emblem'),
           h('div.th-score-name', fd.short, this.kinds[i] && this.kinds[i] !== 'human' ? h('span.bot', 'BOT') : null),
           h('div.th-score-num', String(this.scores[i] ?? 0)),
-          scrappy[i] ? h('div.th-scrappy', 'SCRAPPY') : null,
+          this.tags(i),
         ),
       );
     }
+  }
+
+  /** Little tags under a score: scrappy, in the doghouse, at the park, Big Fetch loaded. */
+  private tags(i: number): HTMLElement | null {
+    const s = this.seatInfo[i];
+    const out: HTMLElement[] = [];
+    if (this.atPark.has(i)) out.push(h('span.th-tag.park', 'AT THE PARK'));
+    else if (s?.doghouse && this.phase !== 'show') out.push(h('span.th-tag.dog', 'DOGHOUSE'));
+    if (s?.fetch) out.push(h('span.th-tag.fetch', 'BIG FETCH'));
+    if (s?.scrappy) out.push(h('span.th-tag', 'SCRAPPY'));
+    return out.length ? h('div.th-tags', ...out) : null;
   }
 
   private bumpScore(seat: number, delta: number) {
@@ -256,6 +273,7 @@ export class Theater {
     this.setPhase('dawn');
     this.factions = d.factions;
     this.kinds = d.kinds;
+    this.atPark.clear();
     this.applyPublic(d.pv);
     this.map!.focus(this.content.width / 2 + 10, this.content.height / 2, 1);
     clear(this.center);
@@ -275,16 +293,31 @@ export class Theater {
     for (const e of effects) {
       cards.push(h('div.th-mini.warn', h('div.th-mini-head', faction(this.factions[e.seat]).short.toUpperCase()), h('div', effectText(e.kind))));
     }
+    const names = (seats: PublicSeat[]) => seats.map((s) => faction(s.faction).short).join(' and ');
+    const dog = pv.seats.filter((s) => s.doghouse);
+    if (dog.length) {
+      cards.push(h('div.th-mini.park', h('div.th-mini-head', 'PROJECT BARK PARK IS OPEN'), h('div', `${names(dog)} ${dog.length > 1 ? 'are' : 'is'} in the doghouse and may spend tonight at the park, untouchable.`)));
+    }
+    const balls = pv.seats.filter((s) => s.fetch);
+    if (balls.length) {
+      cards.push(h('div.th-mini.fetch', h('div.th-mini-head', 'BIG FETCH LOADED'), h('div', `${names(balls)} ${balls.length > 1 ? 'have' : 'has'} one stadium-sized tennis ball to throw.`)));
+    }
+    const story = d.intro ? null : pick(this.content.flavor.sidebar, d.night * 7919 + pv.seats.reduce((a, s) => a + s.score, 0));
+    if (story) {
+      const [tag, ...rest] = story.split(': ');
+      cards.push(h('div.th-mini.sidebar', h('div.th-mini-head', `ALSO IN THE SENTINEL · ${rest.length ? tag : 'NEWS'}`), h('div', rest.length ? rest.join(': ') : story)));
+    }
     const quips = this.factions.map((f, i) => {
       const L = leader(f);
       const winning = this.scores[i] === Math.max(...this.scores) && this.scores[i] > 0;
       const losing = this.scores[i] === Math.min(...this.scores) && Math.max(...this.scores) > 0;
-      const list = d.intro ? L.pick : winning ? L.winning : losing ? L.losing : L.dawn;
+      const back = d.returned?.includes(i) && L.park_return?.length;
+      const list = d.intro ? L.pick : back ? L.park_return : winning ? L.winning : losing ? L.losing : L.dawn;
       const line = any(list) ?? '';
       return h(
         'div.th-quip',
         { style: { '--fc': faction(f).color } as unknown as CSSStyleDeclaration },
-        svg(leaderSvg(f, winning ? 'happy' : 'neutral', { size: 96, bg: true }), 'th-quip-dog'),
+        svg(leaderSvg(f, winning || back ? 'happy' : 'neutral', { size: 96, bg: true }), 'th-quip-dog'),
         h('div.th-quip-text', h('div.th-quip-name', L.name), ...turns(line).map((t) => h('div', t.who ? h('b', t.who + ': ') : null, t.text))),
       );
     });
@@ -299,13 +332,14 @@ export class Theater {
         h('button.th-continue', { onclick: () => this.send({ type: 'continue' }) }, 'Start planning ▸'),
       ),
     );
-    audio.music(d.stage);
+    audio.music('briefing');
   }
 
   // --- Curtain ------------------------------------------------------------------------------------
 
   private curtain(m: Extract<ToTheater, { type: 'curtain' }>) {
     this.setPhase('curtain');
+    audio.music('briefing');
     this.factions = m.factions;
     this.kinds = m.kinds;
     this.applyPublic(m.pv);
@@ -353,6 +387,7 @@ export class Theater {
     this.factions = d.factions;
     this.kinds = d.kinds;
     this.showData = d;
+    this.atPark = new Set(d.events.flatMap((r) => (r.e.t === 'BarkPark' ? [r.e.seat] : [])));
     this.applyPublic(d.before);
     this.player?.destroy();
     clear(this.center);
@@ -370,6 +405,7 @@ export class Theater {
     }
     this.center.appendChild(title);
     audio.play('sting');
+    audio.music(d.before.stage >= 2 ? 'glovesoff' : 'sortie');
     setTimeout(() => title.classList.add('out'), 3400);
     setTimeout(() => {
       title.remove();
@@ -398,6 +434,7 @@ export class Theater {
     this.chatterQueue = [];
     clear(this.subs);
     clear(this.hud);
+    this.atPark.clear();
     this.applyPublic(d.after);
     this.map!.focus(this.content.width / 2 + 10, this.content.height / 2, 1);
     const s = summarize(this.content, d.events, d.factions, d.night, d.night * 977);
@@ -421,6 +458,7 @@ export class Theater {
           h('div', `Squadrons lost: ${s.squadronsLost[i]}`),
           h('div', `Shot down: ${s.kills[i]}`),
           h('div', `Damage dealt / taken: ${s.stepsDealt[i]} / ${s.stepsTaken[i]}`),
+          s.park[i] ? h('div.th-rep-park', 'Spent the night at Project Bark Park') : null,
         ),
         quip ? h('div.th-rep-quip', ...turns(quip).map((t) => h('div', t.who ? h('b', t.who + ': ') : null, t.text))) : null,
       );
@@ -438,6 +476,7 @@ export class Theater {
       ),
     );
     audio.play('report');
+    audio.music('briefing');
   }
 
   private playOfTheNight() {
@@ -456,6 +495,7 @@ export class Theater {
 
   private final(d: FinalData) {
     this.setPhase('final');
+    audio.music('theme');
     this.factions = d.factions;
     this.kinds = d.kinds;
     this.applyPublic(d.pv);

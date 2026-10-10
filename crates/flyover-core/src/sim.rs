@@ -122,6 +122,8 @@ struct Sim<'w> {
     massdriver_holder: Option<u8>,
     scouted: Vec<(u8, u16)>,
     hit_texas: Vec<u8>,
+    /// Seats spending tonight at Project Bark Park.
+    park: Vec<bool>,
 }
 
 pub fn resolve_night(
@@ -152,6 +154,9 @@ impl<'w> Sim<'w> {
                 ord[o.seat as usize] = o.clone();
             }
         }
+        let park = (0..seats as u8)
+            .map(|s| ord[s as usize].retreat && rules::retreat_check(w, &st, s).is_ok())
+            .collect();
         Sim {
             w,
             st,
@@ -175,6 +180,7 @@ impl<'w> Sim<'w> {
             massdriver_holder: None,
             scouted: Vec::new(),
             hit_texas: Vec::new(),
+            park,
         }
     }
 
@@ -404,6 +410,15 @@ impl<'w> Sim<'w> {
             harvest_bid,
             harvest_value,
         });
+        // Project Bark Park: the whole faction takes the night off.
+        for seat in 0..self.st.seats.len() as u8 {
+            if self.park[seat as usize] {
+                let s = &mut self.st.seats[seat as usize];
+                s.been_to_park = true;
+                s.doghouse = false;
+                self.public(Event::BarkPark { seat });
+            }
+        }
 
         self.plan_missions();
     }
@@ -461,6 +476,10 @@ impl<'w> Sim<'w> {
         for &(_, _, i) in &order_rank {
             let sq = self.st.squadrons[i].clone();
             if !sq.active() {
+                continue;
+            }
+            if self.park[sq.seat as usize] {
+                self.rt[i].rested = true;
                 continue;
             }
             let m = sq.order.clone();
@@ -876,6 +895,9 @@ impl<'w> Sim<'w> {
             self.mass_driver();
             self.revenge();
         }
+        if t == self.w.rules().bark_park.fetch_tick {
+            self.big_fetch();
+        }
         if t % 3 == 0 {
             for g in &mut self.groups {
                 if airborne(g) {
@@ -1208,8 +1230,8 @@ impl<'w> Sim<'w> {
             }
             let ns = self.st.nodes[n.idx as usize].clone();
             let Some(owner) = ns.owner else { continue };
-            if ns.health == 0 || self.blinded[n.idx as usize] {
-                continue;
+            if ns.health == 0 || self.blinded[n.idx as usize] || self.park[owner as usize] {
+                continue; // knocked out, blinded, or everyone's at the park
             }
             let gb = self.faction(owner) == FactionId::GrainBelt;
             let range = if gb {
@@ -1424,18 +1446,10 @@ impl<'w> Sim<'w> {
             {
                 return true;
             }
-            // Oh My Heck: Utah's guards always get the first shot when defending
-            // a home (their own, or a neighbor's on a Service Project).
+            // Oh My Heck: Utah's guards always get the first shot.
             let g = &self.groups[gi];
-            let defending_home = g
-                .guard_node
-                .map(|n| {
-                    self.st.nodes[n as usize].owner.is_some() && !rules::capturable(w, &self.st, n)
-                })
-                .unwrap_or(true);
             if self.faction(seat) == FactionId::Beehive
                 && matches!(g.kind, GKind::Guard(_))
-                && defending_home
                 && !rules::effect_active(&self.st, seat, EffectKind::NoFirstShot, self.night)
             {
                 return true;
@@ -1998,6 +2012,21 @@ impl<'w> Sim<'w> {
         let w = self.w;
         let n = &w.nodes[node as usize];
         let victim = self.st.nodes[node as usize].owner;
+        // Project Bark Park: everything bounces off the fence tonight.
+        if let Some(v) = victim {
+            if v != seat && self.park[v as usize] {
+                let group = strike.as_ref().map(|s| s.0);
+                self.public(Event::Bounce {
+                    seat,
+                    node,
+                    victim: v,
+                    group,
+                });
+                // They still tried, and Utah keeps a list.
+                self.note_hit(seat, v, Some(node));
+                return;
+            }
+        }
         let jewel = n.kind == NodeKind::CrownJewel;
         let cheyenne = jewel && n.home == Some(FactionId::FrontRange);
         let health = self.st.nodes[node as usize].health as i32;
@@ -2025,6 +2054,13 @@ impl<'w> Sim<'w> {
                 });
             }
             (ScoreReason::MassDriver, _) => self.public(Event::MassDriver {
+                seat,
+                node,
+                victim,
+                steps,
+                health,
+            }),
+            (ScoreReason::Fetch, _) => self.public(Event::Fetch {
                 seat,
                 node,
                 victim,
@@ -2085,10 +2121,12 @@ impl<'w> Sim<'w> {
             };
             per * steps
         };
-        if self.night >= w.rules().nights {
+        // The Big Fetch is already the comeback: no last-place or Night 8 bonus on top.
+        let fetch = reason == ScoreReason::Fetch;
+        if self.night >= w.rules().nights && !fetch {
             pts *= sc.night8_mult;
         }
-        if self.st.scrappy.contains(&seat) {
+        if self.st.scrappy.contains(&seat) && !fetch {
             pts = (pts * (100 + sc.scrappy_pct) + 99) / 100;
         }
         let reason = if jewel && reason == ScoreReason::Strike {
@@ -2182,6 +2220,9 @@ impl<'w> Sim<'w> {
         let Some(holder) = self.massdriver_holder else {
             return;
         };
+        if self.park[holder as usize] {
+            return;
+        }
         if rules::stage(w, self.night) < 2 || self.st.mass_driver_fired {
             return;
         }
@@ -2205,11 +2246,33 @@ impl<'w> Sim<'w> {
         );
     }
 
+    /// The Big Fetch: one stadium-sized tennis ball, launched from the park.
+    fn big_fetch(&mut self) {
+        let w = self.w;
+        let steps = w.rules().bark_park.fetch_steps;
+        for seat in 0..self.st.seats.len() as u8 {
+            if self.park[seat as usize] {
+                continue;
+            }
+            let Some(node) = self.orders[seat as usize].fetch else {
+                continue;
+            };
+            if rules::fetch_check(w, &self.st, seat, node).is_err() {
+                continue;
+            }
+            self.st.seats[seat as usize].fetch = false;
+            self.apply_steps(seat, node, steps, steps * 2, ScoreReason::Fetch, None);
+        }
+    }
+
     fn revenge(&mut self) {
         let w = self.w;
         let Some(gb) = rules::seat_of(&self.st, FactionId::GrainBelt) else {
             return;
         };
+        if self.park[gb as usize] {
+            return;
+        }
         let Some(target_seat) = self.st.revenge_against else {
             return;
         };
@@ -2395,6 +2458,9 @@ impl<'w> Sim<'w> {
             }
             let seat = seats[0];
             let prev = self.st.nodes[node as usize].owner;
+            if prev.is_some_and(|p| p != seat && self.park[p as usize]) {
+                continue; // the park's fence covers everything they hold
+            }
             if prev != Some(seat) {
                 self.st.nodes[node as usize].owner = Some(seat);
                 self.public(Event::Capture { node, seat, prev });
@@ -2579,6 +2645,7 @@ impl<'w> Sim<'w> {
                 }
             }
         }
+        self.park_return();
         // Grudges for tomorrow. Texas remembers one night; a revenge strike is good for one night.
         let mut hit_texas = std::mem::take(&mut self.hit_texas);
         hit_texas.sort();
@@ -2601,6 +2668,21 @@ impl<'w> Sim<'w> {
                 .filter(|&i| scores[i as usize] == min)
                 .collect()
         };
+        // Who's in the doghouse tomorrow: far behind, or nearly out of planes.
+        let bp = &r.bark_park;
+        let max = *scores.iter().max().unwrap_or(&0);
+        let open = next >= bp.first_night && next <= bp.last_night;
+        for (seat, &score) in scores.iter().enumerate() {
+            let flyable = self
+                .st
+                .squadrons
+                .iter()
+                .filter(|q| q.seat as usize == seat && q.active())
+                .count() as i32;
+            let behind = !all_tied && score == min && max - score >= bp.gap;
+            let s = &mut self.st.seats[seat];
+            s.doghouse = open && !s.been_to_park && (behind || flyable < bp.low_squadrons);
+        }
         let mut rng = Rng::for_night(self.st.seed, night, 2);
         setup::roll_dawn_offers(w, &mut self.st, &mut rng);
         self.st.history.push(NightRecord {
@@ -2617,6 +2699,56 @@ impl<'w> Sim<'w> {
             patch,
             harvest,
         });
+    }
+
+    /// Back from Project Bark Park: everything fixed, squadrons topped up,
+    /// some Supply, and the Big Fetch loaded.
+    fn park_return(&mut self) {
+        let w = self.w;
+        let bp = w.rules().bark_park.clone();
+        for seat in 0..self.st.seats.len() as u8 {
+            if !self.park[seat as usize] {
+                continue;
+            }
+            for ns in &mut self.st.nodes {
+                if ns.owner == Some(seat) {
+                    ns.health = 2;
+                }
+            }
+            for s in &mut self.st.squadrons {
+                if s.seat == seat && s.down_until == 0 {
+                    s.strength = MAX_STRENGTH;
+                }
+            }
+            let mut active = self
+                .st
+                .squadrons
+                .iter()
+                .filter(|q| q.seat == seat && q.active())
+                .count() as i32;
+            let mut built = Vec::new();
+            while active < bp.floor {
+                let kind = if built.len() % 2 == 0 {
+                    UnitKind::Fighter
+                } else {
+                    UnitKind::Bomber
+                };
+                let Some(base) = setup::place(w, &self.st, seat, kind) else {
+                    break;
+                };
+                self.new_squadron(seat, kind, base, MAX_STRENGTH, 0);
+                built.push(kind);
+                active += 1;
+            }
+            let s = &mut self.st.seats[seat as usize];
+            s.supply += bp.supply;
+            s.fetch = true;
+            self.public(Event::ParkReturn {
+                seat,
+                built,
+                supply: bp.supply,
+            });
+        }
     }
 
     fn twine_hit_tonight(&self) -> bool {

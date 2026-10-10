@@ -42,6 +42,7 @@ export interface AceDef { callsign: string; launch: string[]; kill: string[]; du
 export interface LeaderDef {
   name: string; title: string; bio: string; pick: string[]; dawn: string[]; winning: string[];
   losing: string[]; our_jewel_hit: string[]; victory: string[]; defeat: string[];
+  retreat: string[]; park_return: string[]; fetch: string[];
 }
 export interface Flavor {
   chatter: Record<string, Record<string, string[]>>;
@@ -50,6 +51,8 @@ export interface Flavor {
   advisor: Record<string, Record<string, string[]>>;
   headlines: Record<string, string[]>;
   curtain: Record<string, string[]>;
+  sidebar: string[];
+  park_curtain: Record<string, string[]>;
 }
 
 export interface Rules {
@@ -59,12 +62,14 @@ export interface Rules {
   factions: Record<string, number>;
   radar: Record<string, number>;
   air_defense: { range: number; grainbelt_range: number } & Record<string, unknown>;
+  bark_park: { first_night: number; last_night: number; gap: number; low_squadrons: number; floor: number; supply: number; fetch_steps: number; fetch_tick: number };
 }
 
 export interface Content {
   width: number; height: number;
   nodes: MapNode[]; zones: Zone[]; links: Link[];
   fringe: P[][]; mississippi: P[];
+  landmarks: { id: string; name: string; pos: P; tagline: string }[];
   units: UnitDef[]; factions: FactionDef[]; rules: Rules; patch_notes: PatchNote[]; flavor: Flavor;
 }
 
@@ -95,6 +100,10 @@ export interface Orders {
   intel_request: { zone: number; max_price: number } | null;
   mass_driver: number | null;
   revenge: number | null;
+  /** Spend tonight at Project Bark Park (only while in the doghouse). */
+  retreat: boolean;
+  /** Fire the Big Fetch at this node. */
+  fetch: number | null;
 }
 
 // --- State ----------------------------------------------------------------------
@@ -111,6 +120,7 @@ export interface NightRecord { night: number; scores: number[] }
 export interface PublicSeat {
   seat: number; faction: FactionId; score: number; pride_lost: number; planes_lost: number;
   kills: number; steps_dealt: number; steps_taken: number; scrappy: boolean;
+  doghouse: boolean; been_to_park: boolean; fetch: boolean;
 }
 
 export interface NodeView {
@@ -153,7 +163,7 @@ export interface TargetInfo { node: number; value: number; why: string }
 export interface SqSnap { sq: number; seat: number; kind: UnitKind; strength: number; ace: boolean; stars: number }
 export interface Shot { from: number; to: number; hit: boolean }
 export type MissionTag = 'Attack' | 'Guard' | 'Sweep' | 'Scout' | 'Jam' | 'Rebase' | 'Smoke' | 'Watch';
-export type ScoreReason = 'Strike' | 'Jewel' | 'Splash' | 'Ace' | 'Ground' | 'Objective' | 'Casserole' | 'MassDriver' | 'Revenge';
+export type ScoreReason = 'Strike' | 'Jewel' | 'Splash' | 'Ace' | 'Ground' | 'Objective' | 'Casserole' | 'MassDriver' | 'Revenge' | 'Fetch';
 
 export type GameEvent =
   | { t: 'NightStart'; night: number; stage: number; patch: number | null; harvest_winner: number | null; harvest_bid: number; harvest_value: number }
@@ -179,6 +189,10 @@ export type GameEvent =
   | { t: 'LostInStatic'; sq: number; seat: number; x: number; y: number }
   | { t: 'MassDriver'; seat: number; node: number; victim: number | null; steps: number; health: number }
   | { t: 'Revenge'; seat: number; node: number; victim: number | null; steps: number; health: number }
+  | { t: 'BarkPark'; seat: number }
+  | { t: 'Bounce'; seat: number; node: number; victim: number; group: number | null }
+  | { t: 'Fetch'; seat: number; node: number; victim: number | null; steps: number; health: number }
+  | { t: 'ParkReturn'; seat: number; built: UnitKind[]; supply: number }
   | { t: 'JewelEffect'; seat: number; kind: EffectKind; nights: number }
   | { t: 'BetWin'; seat: number; on: number; node: number | null; victim: number | null; stake: number; payout: number }
   | { t: 'BetLost'; seat: number; stake: number }
@@ -223,4 +237,5 @@ export interface SaveFile {
 export const EMPTY_ORDERS = (seat: number): Orders => ({
   seat, missions: [], builds: [], repairs: [], harvest_bid: 0, bet: null,
   intel_sale: null, intel_request: null, mass_driver: null, revenge: null,
+  retreat: false, fetch: null,
 });

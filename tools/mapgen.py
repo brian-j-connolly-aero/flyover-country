@@ -477,5 +477,15 @@ out.append("    links: [")
 for a, b, k in L:
     out.append("        LinkDef(a: \"%s\", b: \"%s\", kind: %s)," % (a, b, k))
 out.append("    ],")
+# Landmarks: places on the map that aren't nodes. Nothing flies to them.
+LANDMARKS = [
+    ("bark_park", "Project Bark Park", (36.999, -109.045),
+     "Four Corners. A secret dog park with one very large tennis-ball launcher."),
+]
+out.append("    landmarks: [")
+for lid, name, (lat, lon), tag in LANDMARKS:
+    out.append("        LandmarkDef(id: \"%s\", name: \"%s\", pos: %s, tagline: \"%s\")," % (
+        lid, name, ipt(proj(lat, lon)), tag))
+out.append("    ],")
 out.append(")")
 print("\n".join(out))

@@ -6,8 +6,8 @@ import { Graphics } from 'pixi.js';
 import type { MapView, NodeState } from '../map/mapview';
 import type { Content, EventRec, FactionId, GameEvent, MissionTag, P, PublicView, SqSnap, UnitKind } from '../types';
 import { drawGlyph, factionColor } from '../theme';
-import { aceLine, chatter, eventSalt, faction, nodeName, unitName, zoneName } from '../text';
-import { moments, type Moment } from './summary';
+import { aceLine, chatter, eventSalt, faction, leader, nodeName, pick, unitName, zoneName } from '../text';
+import { barkPark, moments, type Moment } from './summary';
 
 interface GroupTrack {
   id: number;
@@ -35,7 +35,7 @@ interface Fx {
 
 export interface ShowHooks {
   chatter(who: string, color: string, text: string, priority: number): void;
-  banner(title: string, sub: string, kind: 'update' | 'jackpot' | 'static' | 'title'): void;
+  banner(title: string, sub: string, kind: 'update' | 'jackpot' | 'static' | 'title' | 'park'): void;
   score(seat: number, delta: number): void;
   sound(kind: string): void;
   ended(): void;
@@ -72,6 +72,14 @@ export class ShowPlayer {
   private range: [number, number] | null = null;
   private lockFocus: Moment | null = null;
   private quietNarration = false;
+  /** Project Bark Park: who's at the park tonight, their fence, and their radio. */
+  private park = new Set<number>();
+  private parkG = new Graphics();
+  private parkLines: { tick: number; seat: number; n: number; done: boolean }[] = [];
+  /** The Big Fetch: lifts off a few ticks before it lands. */
+  private fetches: { seat: number; node: number; tick: number; launched: boolean }[] = [];
+  private ballG = new Graphics();
+  private boings = 0;
 
   constructor(map: MapView, content: Content, factions: FactionId[], events: EventRec[], before: PublicView, after: PublicView, hooks: ShowHooks) {
     this.map = map;
@@ -101,8 +109,21 @@ export class ShowPlayer {
         }
       }
     }
+    const fetchTick = content.rules.bark_park?.fetch_tick ?? 240;
+    for (const r of this.events) {
+      const e = r.e;
+      if (e.t === 'BarkPark') {
+        this.park.add(e.seat);
+        [45, 135, 225, 305].forEach((t, n) => this.parkLines.push({ tick: t + e.seat * 7, seat: e.seat, n, done: false }));
+      }
+      if (e.t === 'Fetch' || (e.t === 'Bounce' && e.group === null && r.tick === fetchTick)) {
+        this.fetches.push({ seat: e.seat, node: e.node, tick: r.tick, launched: false });
+      }
+    }
     this.moments = moments(content, this.events, factions);
     this.buildDwell();
+    map.layers.links.addChildAt(this.parkG, 0);
+    map.layers.fx.addChild(this.ballG);
     map.layers.units.addChild(this.trailG, this.unitG);
     map.layers.fx.addChild(this.fxG);
     this.fxG.blendMode = 'add';
@@ -120,6 +141,9 @@ export class ShowPlayer {
     this.unitG.destroy();
     this.fxG.destroy();
     this.trailG.destroy();
+    this.parkG.destroy();
+    this.ballG.destroy();
+    this.map.removeLabels('boing-');
   }
 
   private buildDwell() {
@@ -131,6 +155,8 @@ export class ShowPlayer {
     for (const g of this.groups.values()) for (let t = g.first; t <= Math.min(TICKS, g.last); t++) airborne[t]++;
     this.dwell = [];
     let acc = 0;
+    // The Big Fetch is in the air for the three ticks before it lands.
+    for (const f of this.fetches) for (let t = Math.max(0, f.tick - 3); t < f.tick; t++) airborne[t]++;
     for (let t = 0; t <= TICKS; t++) {
       let d = airborne[t] > 0 ? 90 : 22;
       if (big[t] >= 30) d = 380;
@@ -192,6 +218,7 @@ export class ShowPlayer {
     this.t = t0;
     this.fired = this.events.findIndex((r) => r.tick >= t0);
     if (this.fired < 0) this.fired = this.events.length;
+    for (const f of this.fetches) if (f.tick >= t0) f.launched = false;
     this.quietNarration = true;
     this.fx = [];
     this.replayDone = onDone;
@@ -212,6 +239,8 @@ export class ShowPlayer {
     this.now += dt;
     if (this.done && !this.range) {
       this.drawFx();
+      this.drawPark();
+      this.ballG.clear();
       return;
     }
     if (!this.paused) {
@@ -219,12 +248,16 @@ export class ShowPlayer {
       this.clock += dt * this.speed * slowRange;
       this.t = this.tickAt(this.clock);
     }
+    this.launchFetches();
     while (this.fired < this.events.length && this.events[this.fired].tick <= this.t) {
       if (this.range && this.events[this.fired].tick > this.range[1]) break;
       this.fire(this.events[this.fired++], false);
     }
+    this.parkRadio();
     this.drawUnits();
     this.drawFx();
+    this.drawPark();
+    this.drawBalls();
     this.direct();
     this.hooks.progress?.(this.t);
     if (this.range && this.t >= this.range[1]) {
@@ -252,6 +285,14 @@ export class ShowPlayer {
       return;
     }
     const t = this.t;
+    const flying = this.fetches.find((f) => t >= f.tick - 3 && t < f.tick);
+    if (flying) {
+      const a = barkPark(this.content);
+      const b = this.content.nodes[flying.node].pos;
+      const d = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      this.map.focus((a[0] + b[0]) / 2, (a[1] + b[1]) / 2 - d * 0.18, Math.max(1, Math.min(2.2, (this.content.width * 0.5) / Math.max(d, 120))));
+      return;
+    }
     let best: Moment | null = null;
     for (const m of this.moments) {
       if (t >= m.tick - 6 && t <= m.tick + m.hold) {
@@ -404,6 +445,127 @@ export class ShowPlayer {
       }
     }
     this.fx = keep;
+  }
+
+  // --- Project Bark Park and the Big Fetch -------------------------------------------------------
+
+  /** A fence around each faction at the park, and dogs at the park itself. */
+  private drawPark() {
+    const g = this.parkG;
+    g.clear();
+    if (!this.park.size) return;
+    const pulse = 0.5 + 0.5 * Math.sin(this.now / 650);
+    for (const seat of this.park) {
+      const f = this.factions[seat];
+      const zones = this.content.zones.filter((z) => z.region === f);
+      for (const z of zones) g.poly(z.poly.flat()).fill({ color: 0x7fe08f, alpha: 0.05 + 0.06 * pulse });
+      // Only the outer edges get a fence: count each edge across the region's zones.
+      const edges = new Map<string, [P, P, number]>();
+      for (const z of zones) {
+        for (let i = 0; i < z.poly.length; i++) {
+          const a = z.poly[i];
+          const b = z.poly[(i + 1) % z.poly.length];
+          const k = a[0] < b[0] || (a[0] === b[0] && a[1] < b[1]) ? `${a}|${b}` : `${b}|${a}`;
+          const e = edges.get(k);
+          edges.set(k, e ? [e[0], e[1], e[2] + 1] : [a, b, 1]);
+        }
+      }
+      for (const [a, b, count] of edges.values()) {
+        if (count > 1) continue;
+        g.moveTo(a[0], a[1]).lineTo(b[0], b[1]).stroke({ width: 5, color: 0x7fe08f, alpha: 0.16 + 0.1 * pulse });
+        g.moveTo(a[0], a[1]).lineTo(b[0], b[1]).stroke({ width: 1.4, color: 0xe9f5e1, alpha: 0.85 });
+        const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+        for (let s = 0; s <= len; s += 9) {
+          const k = len > 0 ? s / len : 0;
+          g.circle(a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, 1.3).fill({ color: 0xffffff, alpha: 0.9 });
+        }
+      }
+    }
+    const bp = barkPark(this.content);
+    g.circle(bp[0], bp[1], 16 + 3 * pulse).stroke({ width: 2, color: 0x7fe08f, alpha: 0.7 });
+    let i = 0;
+    for (const seat of this.park) {
+      const ang = this.now / 900 + (i++ * Math.PI * 2) / this.park.size;
+      g.circle(bp[0] + Math.cos(ang) * 11, bp[1] + Math.sin(ang) * 7, 3).fill({ color: factionColor(this.factions[seat]) });
+    }
+  }
+
+  /** Radio from the park: the crews relaxing, and what the dog in charge is up to. */
+  private parkRadio() {
+    for (const l of this.parkLines) {
+      if (l.done || l.tick > this.t) continue;
+      l.done = true;
+      if (this.quietNarration) continue;
+      const f = this.factions[l.seat];
+      const fd = faction(f);
+      if (l.n % 2 === 0) {
+        const line = chatter(f, 'park', {}, l.tick * 13 + l.seat);
+        if (line) this.hooks.chatter(`${fd.short.toUpperCase()} AT THE PARK`, fd.color, line, 1);
+      } else {
+        const line = pick(this.content.flavor.park_curtain?.[f], l.tick * 7 + l.seat);
+        if (line) this.hooks.chatter('PROJECT BARK PARK', '#7fe08f', line, 1);
+      }
+    }
+  }
+
+  /** The ball lifts off from the park three ticks before it lands. */
+  private launchFetches() {
+    for (const f of this.fetches) {
+      if (f.launched || this.t < f.tick - 3 || this.t >= f.tick + 1) continue;
+      f.launched = true;
+      const short = faction(this.factions[f.seat]).short.toUpperCase();
+      this.hooks.banner('THE BIG FETCH', `${short} LAUNCHES FROM PROJECT BARK PARK`, 'park');
+      this.hooks.sound('fetch');
+      if (!this.quietNarration) this.say(f.seat, `${short} LAUNCH CREW`, 'fetch', { node: nodeName(f.node) }, f.tick + f.seat, 4);
+      const bp = barkPark(this.content);
+      this.addFx({ kind: 'ring', x: bp[0], y: bp[1], color: 0xd7f542, dur: 1400, size: 26 });
+    }
+  }
+
+  /** A stadium-sized tennis ball on an arc, with its shadow racing along the ground. */
+  private drawBalls() {
+    const g = this.ballG;
+    g.clear();
+    const t = this.t;
+    for (const f of this.fetches) {
+      const a = barkPark(this.content);
+      const b = this.content.nodes[f.node].pos;
+      if (t >= f.tick - 3 && t < f.tick) {
+        const k = (t - (f.tick - 3)) / 3;
+        const d = Math.hypot(b[0] - a[0], b[1] - a[1]);
+        const c: P = [(a[0] + b[0]) / 2, Math.min(a[1], b[1]) - d * 0.45 - 40];
+        const x = (1 - k) * (1 - k) * a[0] + 2 * (1 - k) * k * c[0] + k * k * b[0];
+        const y = (1 - k) * (1 - k) * a[1] + 2 * (1 - k) * k * c[1] + k * k * b[1];
+        const gx = a[0] + (b[0] - a[0]) * k;
+        const gy = a[1] + (b[1] - a[1]) * k;
+        const lift = Math.sin(Math.PI * k);
+        g.ellipse(gx, gy, 9 - 4 * lift, 4 - 2 * lift).fill({ color: 0x000000, alpha: 0.35 });
+        this.ball(g, x, y, 7 + 9 * lift, k * 9);
+      } else if (t >= f.tick && t < f.tick + 8) {
+        // It bounces away, as balls do.
+        const s = t - f.tick;
+        const fade = 1 - s / 8;
+        const x = b[0] + s * 5;
+        const y = b[1] - Math.abs(Math.sin(s * 1.7)) * 10 * fade;
+        g.ellipse(x, b[1] + 2, 6, 2.5).fill({ color: 0x000000, alpha: 0.25 * fade });
+        this.ball(g, x, y, 7, s * 3, fade);
+      }
+    }
+  }
+
+  private ball(g: Graphics, x: number, y: number, r: number, spin: number, alpha = 1) {
+    g.circle(x, y, r).fill({ color: 0xd7f542, alpha });
+    g.circle(x, y, r).stroke({ width: Math.max(0.8, r * 0.08), color: 0x9fb526, alpha });
+    g.moveTo(x + Math.cos(spin) * r, y + Math.sin(spin) * r)
+      .quadraticCurveTo(x + Math.cos(spin + Math.PI / 2) * r * 0.2, y + Math.sin(spin + Math.PI / 2) * r * 0.2, x + Math.cos(spin + Math.PI) * r, y + Math.sin(spin + Math.PI) * r)
+      .stroke({ width: Math.max(0.8, r * 0.12), color: 0xffffff, alpha: 0.9 * alpha });
+  }
+
+  /** A cartoon "BOING!" over a node. */
+  private boing(p: P) {
+    const id = `boing-${this.boings++}`;
+    this.map.label(id, 'BOING!', [p[0], p[1] - 16], 'label-boing');
+    setTimeout(() => this.map.removeLabel(id), 1500);
   }
 
   // --- Events ---------------------------------------------------------------------------------
@@ -615,6 +777,44 @@ export class ShowPlayer {
       }
       case 'AceReturns':
         this.sayAce(e.seat, 'returns', salt, 2);
+        break;
+      case 'BarkPark': {
+        const f = this.factions[e.seat];
+        this.hooks.banner('PROJECT BARK PARK', `${faction(f).short.toUpperCase()} SITS THIS ONE OUT. UNTOUCHABLE TILL DAWN.`, 'park');
+        const line = pick(leader(f).retreat, salt);
+        if (line && !this.quietNarration) this.hooks.chatter(leader(f).name, faction(f).color, line, 4);
+        this.hooks.sound('park');
+        break;
+      }
+      case 'Bounce': {
+        const n = this.content.nodes[e.node];
+        this.addFx({ kind: 'ring', x: n.pos[0], y: n.pos[1], color: 0x7fe08f, dur: 1300, size: 26 });
+        this.addFx({ kind: 'flash', x: n.pos[0], y: n.pos[1] - 6, color: 0xffffff, dur: 500, size: 7 });
+        this.boing(n.pos);
+        if (e.group !== null) this.say(e.seat, faction(this.factions[e.seat]).short.toUpperCase(), 'bounce', { enemy: enemyName(e.victim), node: n.name }, salt, 3);
+        this.hooks.sound('boing');
+        break;
+      }
+      case 'Fetch': {
+        const n = this.content.nodes[e.node];
+        const jewel = n.kind === 'CrownJewel';
+        this.addFx({ kind: 'boom', x: n.pos[0], y: n.pos[1], color: 0xd7f542, dur: 2600, size: jewel ? 30 : 24 });
+        this.addFx({ kind: 'ring', x: n.pos[0], y: n.pos[1], color: 0xffffff, dur: 1500, size: 34 });
+        for (let i = 0; i < 5; i++) this.addFx({ kind: 'smoke', x: n.pos[0] + (i - 2) * 4, y: n.pos[1], color: 0x999999, dur: 4200 + i * 500, size: 7 });
+        this.map.shake = jewel ? 1.8 : 1.3;
+        this.nodes[e.node] = { ...this.nodes[e.node], health: e.health };
+        this.map.setNodes(this.nodes.map((x) => ({ ...x })));
+        const f = this.factions[e.seat];
+        const victim = e.victim !== null ? faction(this.factions[e.victim]).short.toUpperCase() : '';
+        this.hooks.banner('SQUEAK-BOOM!', `THE BIG FETCH HITS ${n.name.toUpperCase()}${victim ? ` (${victim})` : ''}`, 'park');
+        const line = pick(leader(f).fetch, salt);
+        if (line && !this.quietNarration) this.hooks.chatter(leader(f).name, faction(f).color, line, 5);
+        this.hooks.sound('squeak');
+        this.hooks.sound('bigboom');
+        this.hooks.sound(`motif:${f}`);
+        break;
+      }
+      case 'ParkReturn':
         break;
       case 'JewelEffect':
       case 'Abort':

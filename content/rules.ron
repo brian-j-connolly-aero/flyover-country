@@ -49,5 +49,11 @@ RulesDef(
         mass_driver_steps: 1, revenge_steps: 2, salvage_strength: 3,
         brisket_range: 320, brisket_bonus: 60, pivot_tick: 200, pivot_range: 200,
     ),
+    bark_park: BarkParkRules(
+        first_night: 3, last_night: 7,
+        gap: 10, low_squadrons: 2,
+        floor: 5, supply: 6,
+        fetch_steps: 2, fetch_tick: 240,
+    ),
     start_forces: [Fighter, Fighter, Bomber, Bomber, Scout, Jammer],
 )

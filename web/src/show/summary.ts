@@ -26,6 +26,9 @@ export interface NightSummary {
   highlights: string[];
   play: Moment | null;
   jewelHit: boolean[];
+  /** Project Bark Park: at the park tonight; back at dawn with the Big Fetch. */
+  park: boolean[];
+  returned: number[];
 }
 
 function short(factions: FactionId[], seat: number | null | undefined): string {
@@ -82,9 +85,25 @@ export function moments(content: Content, events: EventRec[], factions: FactionI
       case 'Capture':
         out.push({ tick: t, pos: pos(e.node), importance: 30, hold: 6, kind: 'capture', label: `${short(factions, e.seat)} takes ${nodeName(e.node)}` });
         break;
+      case 'BarkPark':
+        out.push({ tick: t, pos: barkPark(content), importance: 40, hold: 10, kind: 'park', label: `${short(factions, e.seat)} heads to Project Bark Park` });
+        break;
+      case 'Bounce':
+        out.push({ tick: t, pos: pos(e.node), importance: 42, hold: 8, kind: 'bounce', label: `${short(factions, e.seat)} bounces off ${short(factions, e.victim)}'s fence` });
+        break;
+      case 'Fetch': {
+        const jewel = content.nodes[e.node].kind === 'CrownJewel';
+        out.push({ tick: t, pos: pos(e.node), importance: jewel ? 100 : 85, hold: 16, kind: 'fetch', label: `${short(factions, e.seat)} fires the Big Fetch at ${nodeName(e.node)}` });
+        break;
+      }
     }
   }
   return out;
+}
+
+/** Where Project Bark Park is (Four Corners), for the camera and the ball. */
+export function barkPark(content: Content): P {
+  return content.landmarks?.find((l) => l.id === 'bark_park')?.pos ?? [content.width / 2, content.height / 2];
 }
 
 export function summarize(content: Content, events: EventRec[], factions: FactionId[], night: number, salt: number): NightSummary {
@@ -95,11 +114,14 @@ export function summarize(content: Content, events: EventRec[], factions: Factio
   const stepsTaken = new Array(n).fill(0);
   const kills = new Array(n).fill(0);
   const jewelHit = new Array(n).fill(false);
+  const park = new Array(n).fill(false);
+  const returned: number[] = [];
   const highlights: string[] = [];
   const pub = events.filter((r) => r.public);
   let bigStrike: (GameEvent & { t: 'Strike' }) | null = null;
   const splashByZone = new Map<number, number>();
   const heads: { pri: number; text: string | null }[] = [];
+  const bounced = new Set<string>();
   const h = (pri: number, key: string, params: Record<string, string>) => heads.push({ pri, text: headline(key, params, salt + pri) });
   for (const r of pub) {
     const e = r.e;
@@ -184,6 +206,36 @@ export function summarize(content: Content, events: EventRec[], factions: Factio
       case 'Casserole':
         highlights.push(`Utah earned a thank-you casserole${e.host !== null ? ` from ${short(factions, e.host)}` : ''}.`);
         break;
+      case 'BarkPark':
+        park[e.seat] = true;
+        h(64, 'bark_park', { attacker: short(factions, e.seat) });
+        highlights.push(`${short(factions, e.seat)} spent the night at Project Bark Park. Nothing could touch them.`);
+        break;
+      case 'Bounce': {
+        const key = `${e.seat}-${e.victim}`;
+        if (!bounced.has(key)) {
+          bounced.add(key);
+          h(57, 'bounce', { attacker: short(factions, e.seat), victim: short(factions, e.victim), node: nodeName(e.node) });
+          highlights.push(`${short(factions, e.seat)}'s attack on ${nodeName(e.node)} bounced off the Bark Park fence.`);
+        }
+        break;
+      }
+      case 'Fetch': {
+        const jewel = content.nodes[e.node].kind === 'CrownJewel';
+        const params = { attacker: short(factions, e.seat), victim: short(factions, e.victim), node: nodeName(e.node) };
+        h(jewel ? 105 : 90, jewel ? 'fetch_jewel' : 'fetch', params);
+        highlights.push(`${short(factions, e.seat)} fired the Big Fetch at ${nodeName(e.node)}!`);
+        if (e.victim !== null) {
+          stepsDealt[e.seat] += e.steps;
+          stepsTaken[e.victim] += e.steps;
+          if (jewel && e.steps > 0) jewelHit[e.victim] = true;
+        }
+        break;
+      }
+      case 'ParkReturn':
+        returned.push(e.seat);
+        highlights.push(`${short(factions, e.seat)} is back from the park${e.built.length ? ` with ${e.built.length} fresh squadron${e.built.length > 1 ? 's' : ''}` : ''}, and the Big Fetch is loaded.`);
+        break;
     }
   }
   if (bigStrike && bigStrike.victim !== null) {
@@ -202,7 +254,7 @@ export function summarize(content: Content, events: EventRec[], factions: Factio
   const hl = heads.find((x) => x.text)?.text ?? 'A QUIET NIGHT OVER THE WEST';
   const ms = moments(content, pub, factions);
   ms.sort((a, b) => b.importance - a.importance || a.tick - b.tick);
-  return { night, factions, gained, squadronsLost, stepsDealt, stepsTaken, kills, headline: hl, highlights: highlights.slice(0, 6), play: ms[0] ?? null, jewelHit };
+  return { night, factions, gained, squadronsLost, stepsDealt, stepsTaken, kills, headline: hl, highlights: highlights.slice(0, 6), play: ms[0] ?? null, jewelHit, park, returned };
 }
 
 export function finalHeadline(factions: FactionId[], scores: number[], salt: number): string {

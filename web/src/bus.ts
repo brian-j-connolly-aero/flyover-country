@@ -13,6 +13,8 @@ export interface DawnData {
   headline: string;
   highlights: string[];
   intro: boolean;
+  /** Seats back from Project Bark Park this morning. */
+  returned?: number[];
 }
 
 export interface ShowData {
@@ -38,7 +40,7 @@ export type ToTheater =
   | { type: 'show'; data: ShowData }
   | { type: 'final'; data: FinalData }
   | { type: 'control'; action: 'pause' | 'speed' | 'skip' | 'replay'; value?: number }
-  | { type: 'sound'; on: boolean };
+  | { type: 'sound'; on: boolean; music?: boolean };
 
 export type FromTheater =
   | { type: 'ready' }
