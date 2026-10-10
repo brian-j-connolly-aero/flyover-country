@@ -1,0 +1,16 @@
+[package]
+name = "flyover-cli"
+description = "Headless bot-vs-bot batches, balance harness and replay verification for Flyover Country."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "flyover"
+path = "src/main.rs"
+
+[dependencies]
+flyover-core.workspace = true
+flyover-ai.workspace = true
+serde.workspace = true
+serde_json.workspace = true

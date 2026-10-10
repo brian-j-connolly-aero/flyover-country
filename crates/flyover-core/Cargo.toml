@@ -1,0 +1,13 @@
+[package]
+name = "flyover-core"
+description = "Deterministic simulation for Flyover Country: map, orders, combat, economy, event log. No I/O."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+ron.workspace = true
+rand_chacha.workspace = true
+rand_core.workspace = true

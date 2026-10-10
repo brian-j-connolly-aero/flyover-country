@@ -1,0 +1,17 @@
+[package]
+name = "flyover-wasm"
+description = "wasm-bindgen bindings exposing the Flyover Country core and advisor to the browser."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+flyover-core.workspace = true
+flyover-ai.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+ron.workspace = true
+wasm-bindgen = "=0.2.129"

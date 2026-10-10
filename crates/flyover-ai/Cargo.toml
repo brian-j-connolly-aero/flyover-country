@@ -1,0 +1,11 @@
+[package]
+name = "flyover-ai"
+description = "Advisor, Suggest Plan, bots, risk estimates and network analysis for Flyover Country."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+flyover-core.workspace = true
+serde.workspace = true
+serde_json.workspace = true
