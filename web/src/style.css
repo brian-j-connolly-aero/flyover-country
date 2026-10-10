@@ -188,6 +188,7 @@ input, select { font: inherit; color: var(--text); background: #0a1630; border: 
 .map-labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .map-label { position: absolute; left: 0; top: 0; white-space: pre; text-align: center; translate: -50% -50%; }
 .label-zone { font-family: var(--display); letter-spacing: 0.25em; color: #6f86b8; opacity: 0.38; font-size: calc(11px * min(var(--zoom, 1), 1.6)); }
+.label-compass { font-family: var(--display); font-size: 10px; letter-spacing: 0.1em; color: #ffd23f; opacity: 0.6; }
 .label-landmark { font-family: var(--display); font-size: 9.5px; letter-spacing: 0.12em; color: #9fe0a8; text-shadow: 0 0 4px #000, 0 0 2px #000; opacity: 0.9; }
 .label-node { font-size: 11px; color: #c5d0e8; text-shadow: 0 0 4px #000, 0 0 2px #000; }
 .label-mark { font-family: var(--display); font-size: 12px; letter-spacing: 0.08em; padding: 1px 5px; border-radius: 4px; }
@@ -386,3 +387,127 @@ input, select { font: inherit; color: var(--text); background: #0a1630; border: 
 .plan input, .plan select, .plan textarea { -webkit-user-select: text; user-select: text; }
 .th-report .th-highlights, .th-dawn .th-highlights { columns: 2; column-gap: 3vw; }
 .th-highlights li { break-inside: avoid; }
+
+/* --- Art pass: a few dog touches ------------------------------------------------------- */
+/* Everything here is decoration on top of the layouts above: no sizes or text change. */
+:root {
+  /* One paw print, used as a mask so it takes the color of whatever wears it. */
+  --paw: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cellipse cx='12' cy='16.2' rx='5.4' ry='4.6'/%3E%3Cellipse cx='4.9' cy='10' rx='2.2' ry='2.8' transform='rotate(-24 4.9 10)'/%3E%3Cellipse cx='9.4' cy='5.4' rx='2.2' ry='2.9' transform='rotate(-8 9.4 5.4)'/%3E%3Cellipse cx='14.6' cy='5.4' rx='2.2' ry='2.9' transform='rotate(8 14.6 5.4)'/%3E%3Cellipse cx='19.1' cy='10' rx='2.2' ry='2.8' transform='rotate(24 19.1 10)'/%3E%3C/svg%3E");
+  /* Two short trails of paw prints wandering across a tile, very faint. */
+  --paws: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'%3E%3Cdefs%3E%3Cg id='p'%3E%3Cellipse cx='0' cy='4' rx='5.4' ry='4.6'/%3E%3Cellipse cx='-6.8' cy='-2' rx='2.1' ry='2.7'/%3E%3Cellipse cx='-2.5' cy='-6.4' rx='2.1' ry='2.8'/%3E%3Cellipse cx='2.5' cy='-6.4' rx='2.1' ry='2.8'/%3E%3Cellipse cx='6.8' cy='-2' rx='2.1' ry='2.7'/%3E%3C/g%3E%3C/defs%3E%3Cg fill='%23ffffff' fill-opacity='0.045'%3E%3Cuse href='%23p' transform='translate(28 214) rotate(52)'/%3E%3Cuse href='%23p' transform='translate(56 206) rotate(52)'/%3E%3Cuse href='%23p' transform='translate(66 182) rotate(46)'/%3E%3Cuse href='%23p' transform='translate(94 174) rotate(40)'/%3E%3Cuse href='%23p' transform='translate(160 52) rotate(-118)'/%3E%3Cuse href='%23p' transform='translate(184 36) rotate(-118)'/%3E%3Cuse href='%23p' transform='translate(204 66) rotate(-124)'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Faint paw-print trails on the full-screen backdrops. */
+.menu { background: radial-gradient(ellipse at 50% 30%, #12285099, transparent 70%), var(--paws), var(--bg); }
+.setup, .loadscreen { background: var(--paws), var(--bg); }
+.curtain { background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--fc) 22%, transparent), transparent 60%), var(--paws), var(--bg); }
+
+/* The primary buttons get a paw. */
+.big-btn:not(.alt)::before, .commit::before, .th-continue::before {
+  content: '';
+  display: inline-block;
+  width: 0.85em;
+  height: 0.85em;
+  margin-right: 0.45em;
+  vertical-align: -0.05em;
+  background: currentColor;
+  -webkit-mask: var(--paw) center / contain no-repeat;
+  mask: var(--paw) center / contain no-repeat;
+  opacity: 0.85;
+}
+
+/* Scoreboard: each faction's score hangs on a dog tag, chain and all. */
+.th-score {
+  padding-left: 2vw;
+  border-radius: 1.8vh;
+  background: linear-gradient(160deg, #ffffff14, #ffffff00 42%), #0b1730cc;
+}
+.th-score::before {
+  content: '';
+  position: absolute;
+  left: 0.65vw;
+  top: 50%;
+  width: 1vh;
+  height: 1vh;
+  margin-top: -0.5vh;
+  border-radius: 50%;
+  background: #050b1a;
+  box-shadow: inset 0 0 0 1px #4a6699, 0 0 0 1px #0b1730;
+}
+.th-score::after {
+  content: '';
+  position: absolute;
+  left: calc(0.65vw + 0.25vh);
+  bottom: calc(50% + 0.2vh);
+  width: 0.5vh;
+  height: calc(50% + 1vh);
+  background: radial-gradient(circle, #9fb3d6 42%, transparent 48%) center top / 0.5vh 0.62vh repeat-y;
+  opacity: 0.6;
+}
+
+/* Dog quotes are speech bubbles pointing at the dog who said them. */
+.th-quip { background: transparent; border-left: 0; padding: 0.2vh 0; gap: 1.1vw; }
+.th-quip-text {
+  position: relative;
+  flex: 1;
+  background: #10234a;
+  border: 1px solid color-mix(in srgb, var(--fc) 55%, #22396a);
+  border-radius: 1.8vh;
+  padding: 0.9vh 1vw;
+}
+.th-quip-text::before {
+  content: '';
+  position: absolute;
+  left: -0.62vh;
+  top: calc(50% - 0.6vh);
+  width: 1.2vh;
+  height: 1.2vh;
+  background: inherit;
+  border-left: inherit;
+  border-bottom: inherit;
+  transform: rotate(45deg);
+}
+.adv-line { border-radius: 4px 14px 14px 14px; }
+.adv-head + .adv-line { margin-top: 12px; }
+.adv-head + .adv-line::before {
+  content: '';
+  position: absolute;
+  left: 30px;
+  top: -8px;
+  border: 8px solid transparent;
+  border-top: 0;
+  border-bottom-color: #0d1d3d;
+}
+
+/* The Western Sentinel: a paw on each side of the masthead, a double rule, and a dog-eared corner. */
+.th-paper { border-bottom: 4px double #33507f; }
+.th-paper-mast::before, .th-paper-mast::after {
+  content: '';
+  display: inline-block;
+  width: 1.5vh;
+  height: 1.5vh;
+  vertical-align: -0.1vh;
+  background: currentColor;
+  -webkit-mask: var(--paw) center / contain no-repeat;
+  mask: var(--paw) center / contain no-repeat;
+  opacity: 0.8;
+}
+.th-paper-mast::before { margin-right: 1em; transform: rotate(-14deg); }
+.th-paper-mast::after { margin-left: 0.6em; transform: rotate(14deg); }
+.th-card:has(> .th-paper) { position: relative; }
+/* The dog-ear needs corner-shape (a beveled corner whose border and shadow follow the cut).
+   Browsers without it keep the plain rounded card. */
+@supports (corner-shape: bevel) {
+  .th-card:has(> .th-paper) { border-top-right-radius: 3.4vh; corner-top-right-shape: bevel; }
+  .th-card:has(> .th-paper)::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 3.3vh;
+    height: 3.3vh;
+    background: linear-gradient(225deg, transparent 50%, #2c4a85 50%, #1b3060 100%);
+    border-bottom-left-radius: 0.5vh;
+    filter: drop-shadow(-0.25vh 0.3vh 0.35vh #000a);
+  }
+}

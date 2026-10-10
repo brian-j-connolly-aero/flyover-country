@@ -390,6 +390,18 @@ export class ShowPlayer {
           g.circle(f.x, f.y, f.size * (0.3 + k)).stroke({ width: 2.5 * a + 0.5, color: f.color, alpha: a });
           break;
         case 'boom':
+          // A comic-book burst under the fireball, gone in a blink.
+          if (k < 0.5) {
+            const b = 1 - k / 0.5;
+            const pts: number[] = [];
+            for (let i = 0; i < 18; i++) {
+              const ang = (i / 18) * Math.PI * 2 + f.size * 0.37;
+              const r = f.size * (0.8 + k * 1.6) * (i % 2 ? 0.55 : 1 + ((i * 7) % 5) * 0.1);
+              pts.push(f.x + Math.cos(ang) * r, f.y + Math.sin(ang) * r);
+            }
+            g.poly(pts).fill({ color: 0xffd76b, alpha: b * 0.4 });
+            g.poly(pts).stroke({ width: 1.2, color: 0xffffff, alpha: b * 0.55 });
+          }
           g.circle(f.x, f.y, f.size * (0.2 + k * 1.4)).fill({ color: f.color, alpha: a * 0.35 });
           g.circle(f.x, f.y, f.size * (0.1 + k * 0.6)).fill({ color: 0xffffff, alpha: a * 0.6 });
           g.circle(f.x, f.y, f.size * (0.4 + k * 2.2)).stroke({ width: 3 * a, color: f.color, alpha: a });
@@ -411,9 +423,13 @@ export class ShowPlayer {
           // A little parachute drifting down: everyone ejects.
           const y = f.y + k * 18;
           const x = f.x + Math.sin(k * 6) * 3;
-          g.moveTo(x - 5, y - 6).arc(x, y - 6, 5, Math.PI, 0).closePath().fill({ color: 0xffffff, alpha: a * 0.9 });
-          g.moveTo(x - 5, y - 6).lineTo(x, y).moveTo(x + 5, y - 6).lineTo(x, y).stroke({ width: 0.7, color: 0xffffff, alpha: a * 0.9 });
-          g.circle(x, y + 1, 1.2).fill({ color: f.color, alpha: a });
+          g.moveTo(x - 5.5, y - 7).arc(x, y - 7, 5.5, Math.PI, 0).closePath().fill({ color: 0xffffff, alpha: a * 0.9 });
+          g.moveTo(x - 5.5, y - 7).lineTo(x, y - 1).moveTo(x + 5.5, y - 7).lineTo(x, y - 1).stroke({ width: 0.7, color: 0xffffff, alpha: a * 0.9 });
+          // The pilot is a pup: floppy ears in the faction color, flapping on the way down.
+          const flap = Math.sin(k * 22) * 0.4;
+          g.ellipse(x - 2, y + 0.9 - flap, 0.95, 1.8).fill({ color: f.color, alpha: a });
+          g.ellipse(x + 2, y + 0.9 + flap, 0.95, 1.8).fill({ color: f.color, alpha: a });
+          g.circle(x, y + 0.6, 1.9).fill({ color: 0xf2dfc2, alpha: a });
           break;
         }
         case 'smoke':
