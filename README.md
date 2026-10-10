@@ -98,7 +98,18 @@ The harness plays Normal bots against each other across all 35 four-faction
 lineups, rotating seat order. Over 10,000 games, every faction lands inside
 the 20–30% win band:
 
-BALANCE_TABLE
+| Faction | Win rate | Avg. Bragging Rights |
+| --- | --- | --- |
+| Pacific Venture Republic | 21.5% | 46.5 |
+| Cascadian Commonwealth | 29.0% | 52.0 |
+| Front Range Free State | 23.6% | 47.9 |
+| Republic of Texas (Again) | 28.3% | 50.4 |
+| Dreamland Syndicate | 26.0% | 48.6 |
+| Grain Belt Union | 25.3% | 51.6 |
+| Beehive Cooperative | 21.3% | 46.4 |
+
+The average winning margin is 12 Bragging Rights, so most games stay close
+to the end.
 
 The tuning was done with prices and numbers, without removing any faction's
 rule-breaker. The main moves were:

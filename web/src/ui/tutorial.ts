@@ -62,6 +62,7 @@ export function tutorialCoach(): Coach {
     target?.classList.add('coach-glow');
     setTimeout(() => target?.classList.remove('coach-glow'), 2500);
   };
+  let watching: MutationObserver | null = null;
   return {
     step(screen: PlanningScreen) {
       if (i < STEPS.length && STEPS[i].done?.(screen)) i++;
@@ -70,13 +71,15 @@ export function tutorialCoach(): Coach {
         return;
       }
       render(screen);
-      const obs = new MutationObserver(() => {
+      // Tidy up the coach once the planning screen goes away.
+      watching?.disconnect();
+      watching = new MutationObserver(() => {
         if (!screen.el.isConnected) {
           box?.remove();
-          obs.disconnect();
+          watching?.disconnect();
         }
       });
-      obs.observe(document.body, { childList: true, subtree: true });
+      watching.observe(document.body, { childList: true, subtree: true });
     },
   };
 }
