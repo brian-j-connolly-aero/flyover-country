@@ -20,6 +20,12 @@ which takes a minute or two and needs the internet. Your browser then opens
 the game at <http://localhost:5173>. Keep the black window open while you
 play, and close it when you're done.
 
+- If Windows says it "protected your PC", choose **More info → Run anyway**.
+  `play.cmd` is a short text file, so you can open it in Notepad first.
+- You can also type the two commands yourself in a Command Prompt in the
+  game's folder: `npm install`, then `npm start`. If PowerShell says
+  running scripts is disabled, type `npm.cmd` instead of `npm`.
+
 **WSL (Windows Subsystem for Linux), macOS or Linux:** from the game's folder,
 
 ```sh
