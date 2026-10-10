@@ -76,6 +76,7 @@ pub fn new_game(world: &World, cfg: &GameConfig) -> Result<GameState, String> {
         beehive_grudge: Vec::new(),
         revenge_against: None,
         history: vec![NightRecord { night: 0, scores: vec![0; cfg.factions.len()] }],
+        public_health: vec![2; world.nodes.len()],
     };
     for seat in 0..state.seats.len() as u8 {
         let f = state.seats[seat as usize].faction;

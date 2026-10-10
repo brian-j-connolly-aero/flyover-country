@@ -34,6 +34,9 @@ pub struct GameState {
     /// Grain Belt's free revenge strike: the seat that hit the Ball of Twine.
     pub revenge_against: Option<u8>,
     pub history: Vec<NightRecord>,
+    /// Node health as everyone knows it (strikes are public; repairs are not).
+    #[serde(default)]
+    pub public_health: Vec<u8>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

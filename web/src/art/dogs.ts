@@ -733,13 +733,14 @@ const drawHuckleberry: DrawFn = (ctx, mood, o) => {
   const drop = (x: number, y: number, k: number): string =>
     PO(`M ${x} ${y - 7 * k} C ${x + 4.5 * k} ${y - 1 * k}, ${x + 4.5 * k} ${y + 4 * k}, ${x} ${y + 4 * k} C ${x - 4.5 * k} ${y + 4 * k}, ${x - 4.5 * k} ${y - 1 * k}, ${x} ${y - 7 * k} Z`, c.drop, 1.8) +
     E(x - 1.4 * k, y + 0.6 * k, 1.1 * k, 1.6 * k, c.dropHi);
-  hat += drop(54, 86, 1) + drop(196, 90, 0.9) + E(96, 59, 2.6, 1.4, c.dropHi, ' opacity="0.9"') + E(150, 60, 2, 1.1, c.dropHi, ' opacity="0.9"');
+  // beads of rain sitting on the brim (falling drops stay well away from the face)
+  hat += E(96, 59, 2.6, 1.4, c.dropHi, ' opacity="0.9"') + E(150, 60, 2, 1.1, c.dropHi, ' opacity="0.9"') + E(62, 65, 2, 1.1, c.dropHi, ' opacity="0.8"') + E(182, 66, 2.2, 1.2, c.dropHi, ' opacity="0.8"');
   h += G(hat, A ? 'translate(0 -6)' : '');
 
   const tilt = (A ? 2 : H ? -2 : 0) + (o.tilt ?? 0);
   s += G(h, rot(tilt, 120, 160));
   // a few raindrops in the air
-  s += drop(26, 36, 1.1) + drop(214, 30, 1) + drop(206, 140, 0.8) + drop(30, 168, 0.8);
+  s += drop(26, 36, 1.1) + drop(214, 30, 1) + drop(62, 18, 0.8) + drop(212, 150, 0.8) + drop(26, 166, 0.8);
   return s;
 };
 

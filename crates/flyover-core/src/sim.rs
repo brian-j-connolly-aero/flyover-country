@@ -2036,6 +2036,18 @@ impl<'w> Sim<'w> {
                 _ => {}
             }
         }
+        if self.st.public_health.len() != w.nodes.len() {
+            self.st.public_health = vec![2; w.nodes.len()];
+        }
+        for &(node, h) in &public_hits {
+            self.st.public_health[node as usize] = h;
+        }
+        for n in &w.nodes {
+            let always = vision::always_visible_zone(w, &self.st, n.zone) || (n.kind == NodeKind::Fuel && n.home == Some(FactionId::Texas));
+            if always {
+                self.st.public_health[n.idx as usize] = self.st.nodes[n.idx as usize].health;
+            }
+        }
         // Make the reveal checks see the new night.
         let saved_night = self.st.night;
         self.st.night = next;
