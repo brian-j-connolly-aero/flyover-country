@@ -94,8 +94,6 @@ const CO = (cx: number, cy: number, r: number, fill: string, sw = 3, stroke = OL
 const G = (inner: string, transform?: string, extra = ''): string =>
   transform ? `<g transform="${transform}"${extra}>${inner}</g>` : `<g${extra}>${inner}</g>`;
 const rot = (a: number, x: number, y: number): string => `rotate(${n(a)} ${n(x)} ${n(y)})`;
-const tr = (a: number): string => ` transform="${a}"`;
-void tr;
 const rotA = (a: number, x: number, y: number): string => ` transform="${rot(a, x, y)}"`;
 
 /**
@@ -292,7 +290,7 @@ function eye(ctx: Ctx, e: EyeSpec): string {
     inner += LN(`M ${n(x1)} ${n(yb + 2)} Q ${n(e.x)} ${n(yb - ry * 0.55)} ${n(x0)} ${n(yb + 2)}`, OL, 2.6);
   }
   let s = '';
-  if (e.rim) s += E(e.x, e.y, rx + 2.6, ry + 2.6, e.rim);
+  if (e.rim) s += E(e.x, e.y, rx + 1.8, ry + 1.8, e.rim);
   s += E(e.x, e.y, rx, ry, OL);
   s += `<g clip-path="url(#${eyeClip})">${inner}</g>`;
   return s;
@@ -401,77 +399,76 @@ type DrawFn = (ctx: Ctx, mood: Mood, o: DrawOpts) => string;
 const drawDonut: DrawFn = (ctx, mood, o) => {
   const c = {
     fur: '#5e3426', sh: '#43241a', hi: '#82503a',
-    tan: '#cd7d3f', tanSh: '#a8602c', tanHi: '#e8a464',
-    inner: '#b0706a', nose: '#a8645e', noseHi: '#dba69d', nostril: '#5a2a2c',
-    iris: '#c27d2c', collar: '#2a2233', collarHi: '#4a3f5a',
+    tan: '#cf7f40', tanSh: '#a8602c', tanHi: '#eaa868',
+    inner: '#b4766d', nose: '#a8645e', noseHi: '#dba69d', nostril: '#5a2a2c',
+    iris: '#c8832e', collar: '#2a2233', collarHi: '#4a3f5a',
     gold: '#f6c445', goldSh: '#cf931c', goldHi: '#fff3b0', gem: '#ff5fa2',
   };
   const A = mood === 'alarmed';
   const H = mood === 'happy';
   let s = '';
 
-  // shoulders + slim neck
-  const body = 'M 98 140 C 96 176, 74 194, 48 210 C 36 218, 31 234, 29 252 L 211 252 C 209 234, 204 218, 192 210 C 166 194, 144 176, 142 140 Z';
+  // shoulders + slim elegant neck
+  const body = 'M 99 140 C 97 176, 76 194, 50 210 C 38 218, 33 234, 31 252 L 209 252 C 207 234, 202 218, 190 210 C 164 194, 143 176, 141 140 Z';
   s += ctx.region(
     body,
     c.fur,
-    E(120, 168, 38, 20, c.sh) +
-      P('M 166 198 C 188 210, 203 226, 211 252 L 160 252 C 171 236, 175 216, 166 198 Z', c.sh) +
-      P('M 70 204 C 56 214, 47 230, 45 252 L 57 252 C 59 234, 65 220, 77 208 Z', c.hi) +
-      E(101, 230, 9, 7, c.tan, rotA(20, 101, 230)) +
-      E(139, 230, 9, 7, c.tan, rotA(-20, 139, 230)),
+    E(120, 166, 36, 20, c.sh) +
+      P('M 164 198 C 186 210, 201 226, 209 252 L 158 252 C 169 236, 173 216, 164 198 Z', c.sh) +
+      P('M 72 204 C 58 214, 49 230, 47 252 L 59 252 C 61 234, 67 220, 79 208 Z', c.hi),
   );
   // collar with a little gold ring
-  s += PO('M 93 160 Q 120 174 147 160 L 149 174 Q 120 190 91 174 Z', c.collar, 2.6);
-  s += LN('M 97 166 Q 120 178 143 166', c.collarHi, 1.6);
-  s += CO(120, 189, 5.2, c.gold, 2.4) + C(118.5, 187.5, 1.6, c.goldHi);
+  s += PO('M 96 168 Q 120 182 144 168 L 146 181 Q 120 197 94 181 Z', c.collar, 2.6);
+  s += LN('M 100 174 Q 120 186 140 174', c.collarHi, 1.6);
+  s += CO(120, 196, 5.2, c.gold, 2.4) + C(118.5, 194.5, 1.6, c.goldHi);
 
   // ---- head group ----
   let h = '';
-  const earL = 'M 100 54 C 84 46, 62 50, 50 66 C 42 80, 44 98, 56 114 C 62 104, 72 94, 84 86 C 88 74, 94 62, 100 54 Z';
-  const earIn = 'M 95 56 C 80 52, 66 58, 58 68 C 68 66, 78 68, 88 73 Z';
-  const earSh = 'M 52 66 C 44 82, 46 98, 56 114 L 40 118 L 36 60 Z';
-  const ea = A ? 18 : H ? -5 : 0;
-  h += G(ctx.region(earL, c.fur, P(earIn, c.inner) + P(earSh, c.sh)), rot(ea, 95, 58));
-  h += G(ctx.region(mirror(earL), c.fur, P(mirror(earIn), c.inner) + P('M 186 64 C 196 80, 194 98, 184 114 L 204 118 L 204 60 Z', c.sh)), rot(-ea, 145, 58));
+  // soft ears, folded back along the skull
+  const earL = 'M 103 52 C 89 43, 70 47, 61 60 C 54 71, 54 88, 60 104 C 67 95, 76 85, 87 78 C 91 69, 97 59, 103 52 Z';
+  const earIn = 'M 98 54 C 87 49, 74 53, 66 62 C 75 62, 84 65, 91 70 Z';
+  const earSh = 'M 61 60 C 54 72, 54 88, 60 104 L 50 106 L 50 58 Z';
+  const ea = A ? 16 : H ? -4 : 0;
+  h += G(ctx.region(earL, c.fur, P(earIn, c.inner) + P(earSh, c.sh) + LN('M 66 64 C 64 76, 64 88, 66 96', c.sh, 2.2)), rot(ea, 96, 58));
+  h += G(ctx.region(mirror(earL), c.fur, P(mirror(earIn), c.inner) + P(mirror('M 87 78 C 76 85, 67 95, 60 104 L 72 108 L 92 82 Z'), c.sh)), rot(-ea, 144, 58));
 
-  const head = 'M 120 42 C 96 42, 80 56, 78 78 C 76 96, 80 108, 88 120 C 96 134, 100 152, 104 164 C 108 174, 132 174, 136 164 C 140 152, 144 134, 152 120 C 160 108, 164 96, 162 78 C 160 56, 144 42, 120 42 Z';
+  const head = 'M 120 44 C 95 44, 78 58, 76 80 C 74 96, 79 108, 88 118 C 95 128, 99 142, 103 153 C 107 164, 133 164, 137 153 C 141 142, 145 128, 152 118 C 161 108, 166 96, 164 80 C 162 58, 145 44, 120 44 Z';
   h += ctx.region(
     head,
     c.fur,
-    P('M 150 48 C 168 64, 170 98, 154 122 C 146 136, 142 154, 138 176 L 178 176 L 178 40 Z', c.sh) +
-      E(103, 58, 15, 7, c.hi, rotA(-25, 103, 58)) +
+    P('M 150 50 C 168 66, 170 98, 154 122 C 146 136, 142 152, 138 174 L 178 174 L 178 40 Z', c.sh) +
+      E(103, 60, 15, 7, c.hi, rotA(-25, 103, 60)) +
       // tan cheeks + muzzle sides + chin
-      P('M 70 108 C 84 111, 97 117, 106 124 L 134 124 C 143 117, 156 111, 170 108 L 170 190 L 70 190 Z', c.tan) +
-      P('M 157 112 C 151 130, 145 150, 139 172 L 172 172 L 172 110 Z', c.tanSh) +
-      E(96, 132, 5, 9, c.tanHi, rotA(-20, 96, 132)) +
+      P('M 70 106 C 84 108, 96 113, 106 119 L 134 119 C 144 113, 156 108, 170 106 L 170 190 L 70 190 Z', c.tan) +
+      P('M 158 110 C 152 126, 146 144, 140 166 L 172 166 L 172 108 Z', c.tanSh) +
+      E(96, 124, 5, 9, c.tanHi, rotA(-20, 96, 124)) +
       // chocolate bridge down to the nose
-      P('M 101 98 C 107 118, 109 138, 109 154 L 131 154 C 131 138, 133 118, 139 98 Z', c.fur) +
-      P('M 131 104 C 130 122, 130 140, 131 154 L 139 154 L 139 100 Z', c.sh) +
-      P('M 112 104 C 114 120, 115 134, 115 146 L 119 146 C 119 134, 119 120, 118 104 Z', c.hi),
+      P('M 104 100 C 108 112, 111 124, 112 136 L 128 136 C 129 124, 132 112, 136 100 Z', c.fur) +
+      P('M 112 104 C 114 114, 115 122, 116 130 L 119 130 C 119 122, 119 114, 118 104 Z', c.hi, ' opacity="0.8"'),
   );
-  // tan eyebrow dots
-  const byL = A ? 68 : H ? 76 : 79;
-  const byR = A ? 68 : H ? 76 : 74;
+  // tan eyebrow dots (one cocked, naturally)
+  const byL = A ? 65 : H ? 72 : 75;
+  const byR = A ? 65 : H ? 72 : 70;
   const bA = A ? 22 : H ? 12 : 8;
-  h += E(100, byL, 7.5, 5.2, c.tan, rotA(-bA, 100, byL)) + E(98.5, byL - 1.5, 3.4, 2, c.tanHi, rotA(-bA, 100, byL));
-  h += E(140, byR, 7.5, 5.2, c.tan, rotA(bA + (A || H ? 0 : 10), 140, byR)) + E(138.5, byR - 1.5, 3.4, 2, c.tanHi, rotA(bA, 140, byR));
+  h += E(99, byL, 8, 5.6, c.tan, rotA(-bA, 99, byL)) + E(97.5, byL - 1.6, 3.6, 2.1, c.tanHi, rotA(-bA, 99, byL));
+  h += E(141, byR, 8, 5.6, c.tan, rotA(bA + (A || H ? 0 : 10), 141, byR)) + E(139.5, byR - 1.6, 3.6, 2.1, c.tanHi, rotA(bA, 141, byR));
 
-  const er = A ? 11.6 : 10.4;
-  const lid = A ? 0 : H ? 0 : 0.34;
+  const er = A ? 13.4 : H ? 12.8 : 12.4;
+  const lid = A || H ? 0 : 0.34;
   const look = o.look ?? (A ? [0, -0.2] : [0, 0]);
-  h += eye(ctx, { x: 100, y: 95, r: er, iris: c.iris, lid, lidTilt: -1.5, lidFill: c.fur, low: H ? 0.3 : 0, lowFill: c.fur, look, pupil: A ? 0.72 : 1, shine: H ? 1.15 : 1 });
-  h += eye(ctx, { x: 140, y: 95, r: er, iris: c.iris, lid: lid * 0.85, lidTilt: 1.5, lidFill: c.fur, low: H ? 0.3 : 0, lowFill: c.fur, look, pupil: A ? 0.72 : 1, shine: H ? 1.15 : 1 });
+  const eb = { r: er, iris: c.iris, lidFill: c.fur, look, pupil: A ? 0.72 : 1, shine: H ? 1.3 : 1 };
+  h += eye(ctx, { ...eb, x: 99, y: 92, lid, lidTilt: -1.5 });
+  h += eye(ctx, { ...eb, x: 141, y: 92, lid: lid * 0.8, lidTilt: 1.5 });
 
-  h += nose(120, 155, 27, 17, c.nose, c.noseHi, c.nostril);
-  h += mouth({ kind: H ? 'open' : A ? 'o' : 'smirk', x: 120, y: 163.5, w: 12, h: 4, depth: 15, tongue: 12 });
+  h += nose(120, 140, 28, 17, c.nose, c.noseHi, c.nostril);
+  h += mouth({ kind: H ? 'open' : A ? 'o' : 'smirk', x: 120, y: 148.5, w: 12, h: 4, depth: 15, tongue: 12 });
 
   // tiara (a little crooked, as is her right)
-  const tiara = 'M 96 52 L 96 44 L 102 32 L 108 41 L 114 36 L 120 21 L 126 36 L 132 41 L 138 32 L 144 44 L 144 52 Q 120 44 96 52 Z';
-  let t = ctx.region(tiara, c.gold, P('M 94 54 Q 120 46 146 54 L 146 47 Q 120 39 94 47 Z', c.goldSh) + P('M 120 21 L 114 36 L 118 38 Z', c.goldHi) + P('M 102 32 L 99 40 L 102 41 Z', c.goldHi), 2.6);
-  t += CO(102, 32, 2.6, c.gold, 2) + CO(138, 32, 2.6, c.gold, 2) + CO(120, 20, 3, c.gold, 2);
-  t += PO('M 120 33 L 125 39.5 L 120 46 L 115 39.5 Z', c.gem, 2.2) + P('M 120 34.5 L 117 39.5 L 120 39.5 Z', '#ffd3e6');
-  h += G(t, rot(-9 + (A ? -4 : 0), 120, 50) + (A ? ' translate(0 -5)' : ''));
+  const tiara = 'M 96 54 L 96 46 L 102 34 L 108 43 L 114 38 L 120 23 L 126 38 L 132 43 L 138 34 L 144 46 L 144 54 Q 120 46 96 54 Z';
+  let t = ctx.region(tiara, c.gold, P('M 94 56 Q 120 48 146 56 L 146 49 Q 120 41 94 49 Z', c.goldSh) + P('M 120 23 L 114 38 L 118 40 Z', c.goldHi) + P('M 102 34 L 99 42 L 102 43 Z', c.goldHi), 2.6);
+  t += CO(102, 34, 2.6, c.gold, 2) + CO(138, 34, 2.6, c.gold, 2) + CO(120, 22, 3, c.gold, 2);
+  t += PO('M 120 35 L 125 41.5 L 120 48 L 115 41.5 Z', c.gem, 2.2) + P('M 120 36.5 L 117 41.5 L 120 41.5 Z', '#ffd3e6');
+  h += G(t, rot(-9 + (A ? -4 : 0), 120, 52) + (A ? ' translate(0 -5)' : ''));
 
   const tilt = (A ? 3 : H ? -3 : -6) + (o.tilt ?? 0);
   s += G(h, rot(tilt, 120, 140));
@@ -484,7 +481,7 @@ const drawGriffin: DrawFn = (ctx, mood, o) => {
     w: '#f4f1ea', wSh: '#cdd0da', wHi: '#ffffff',
     b: '#1e1d25', bHi: '#3d3c4c', tick: '#3a3844', tickLt: '#7d7b89',
     inner: '#6c4c5c', innerHi: '#8e6a7a', nose: '#17151c', noseHi: '#5c5a68',
-    iris: '#a8642c', rim: '#4b4958', brow: '#77748a',
+    iris: '#a8642c', rim: '#34323f', brow: '#8a87a0',
     band: '#4CC9F0', bandSh: '#2a9ccc', bandHi: '#a6ecff',
   };
   const A = mood === 'alarmed';
@@ -498,7 +495,7 @@ const drawGriffin: DrawFn = (ctx, mood, o) => {
     c.w,
     E(120, 164, 34, 16, c.wSh) +
       P('M 172 202 C 190 212, 202 228, 207 252 L 168 252 C 177 236, 180 218, 172 202 Z', c.wSh) +
-      speckles(11, 70, 120, 222, 86, 36, 0.8, 2.3, c.tick) +
+      speckles(11, 150, 120, 224, 88, 36, 0.5, 1.5, c.tickLt) + speckles(14, 70, 120, 224, 88, 36, 0.5, 1.4, c.tick) +
       P('M 26 206 C 42 194, 62 196, 72 212 C 78 228, 74 242, 72 254 L 20 254 Z', c.b) +
       P('M 33 208 C 44 201, 56 202, 64 210 C 52 208, 42 212, 36 218 Z', c.bHi),
   );
@@ -540,22 +537,25 @@ const drawGriffin: DrawFn = (ctx, mood, o) => {
     // muzzle shading + ticking (the heeler "roan")
     P('M 146 116 C 144 134, 138 152, 120 166 L 168 166 L 168 110 Z', c.wSh) +
       E(104, 136, 7, 12, c.wHi, rotA(-15, 104, 136)) +
-      speckles(7, 95, 120, 140, 30, 22, 0.7, 2, c.tick) +
-      speckles(8, 30, 84, 124, 12, 10, 0.7, 1.9, c.tick) +
-      speckles(9, 30, 156, 124, 12, 10, 0.7, 1.9, c.tick) +
-      speckles(10, 10, 120, 74, 5, 16, 0.6, 1.3, c.tickLt) +
+      E(120, 142, 30, 21, '#e2e1e6') +
+      speckles(7, 150, 120, 140, 31, 23, 0.5, 1.5, c.tickLt) +
+      speckles(17, 110, 120, 142, 30, 22, 0.5, 1.4, c.tick) +
+      speckles(8, 50, 84, 124, 13, 10, 0.5, 1.4, c.tick) +
+      speckles(9, 50, 156, 124, 13, 10, 0.5, 1.4, c.tick) +
+      speckles(10, 14, 120, 76, 5, 16, 0.5, 1.1, c.tickLt) +
       // black mask patches with a white blaze between
       P(patchL, c.b) +
       P(mirror(patchL), c.b) +
       P('M 80 62 C 88 56, 98 56, 106 60 C 98 60, 90 62, 84 68 Z', c.bHi) +
       P(mirror('M 80 62 C 88 56, 98 56, 106 60 C 98 60, 90 62, 84 68 Z'), c.bHi) +
       speckles(12, 14, 74, 118, 10, 6, 0.7, 1.7, c.b) +
-      speckles(13, 14, 166, 118, 10, 6, 0.7, 1.7, c.b),
+      speckles(13, 14, 166, 118, 10, 6, 0.7, 1.7, c.b) +
+      E(120, 158, 15, 6, '#e2e1e6'),
   );
 
   const look = o.look ?? (A ? [0, -0.25] : [0.1, -0.1]);
-  const er = A ? 12 : 10.8;
-  const eyeBase = { r: er, iris: c.iris, rim: c.rim, lidFill: c.b, look, pupil: A ? 0.7 : 1, low: H ? 0.3 : 0, lowFill: c.b, shine: H ? 1.15 : 1 };
+  const er = A ? 12.6 : H ? 11.6 : 11.2;
+  const eyeBase = { r: er, iris: c.iris, rim: c.rim, lidFill: c.b, look, pupil: A ? 0.7 : 1, shine: H ? 1.3 : 1 };
   h += eye(ctx, { ...eyeBase, x: 99, y: 97 });
   h += eye(ctx, { ...eyeBase, x: 141, y: 97 });
 
@@ -575,59 +575,65 @@ const drawGriffin: DrawFn = (ctx, mood, o) => {
 // ---- Pan: big glossy black lab/shepherd, floppy ears, grey chin, sleepy eyes, knit beanie ----
 const drawPan: DrawFn = (ctx, mood, o) => {
   const c = {
-    f: '#26252e', sh: '#141319', hi: '#3c4259', gl: '#6474a3', mz: '#302f3a',
-    grey: '#9a98a8', nose: '#0e0d12', noseHi: '#59607a', iris: '#8a5224', rim: '#4d4c5a', brow: '#5d6384',
+    f: '#2b2a35', sh: '#17161d', hi: '#464d6b', gl: '#7d8dc4', mz: '#3a3947', mzHi: '#505672',
+    grey: '#a3a1b2', nose: '#0e0d12', noseHi: '#6a7294', iris: '#a2622a', rim: '#1c1b22', brow: '#7179a0',
     hat: '#3fb4e6', hatSh: '#2584b4', hatHi: '#94e0ff', stripe: '#f3f7fb', pom: '#f5f0e4', pomSh: '#d6cdb9',
   };
   const A = mood === 'alarmed';
   const H = mood === 'happy';
   let s = '';
 
+  // big broad shoulders
   const body = 'M 86 148 C 80 180, 54 196, 28 212 C 16 222, 12 236, 10 252 L 230 252 C 228 236, 224 222, 212 212 C 186 196, 160 180, 154 148 Z';
   s += ctx.region(
     body,
     c.f,
-    E(120, 174, 50, 22, c.sh) +
-      P('M 36 212 C 50 200, 68 194, 86 196 C 70 202, 54 212, 44 226 Z', c.hi) +
-      P('M 196 206 C 214 216, 226 232, 230 252 L 190 252 C 200 236, 202 220, 196 206 Z', c.sh) +
-      speckles(21, 34, 120, 220, 18, 15, 0.7, 1.6, c.grey, 0.85),
+    E(120, 174, 44, 18, c.sh, ' opacity="0.7"') +
+      P('M 30 222 C 42 206, 62 198, 86 196 C 66 204, 50 214, 40 230 Z', c.hi) +
+      LN('M 44 214 C 54 206, 66 202, 78 200', c.gl, 2.6, ' opacity="0.6"') +
+      P('M 196 206 C 214 216, 226 232, 230 252 L 190 252 C 200 236, 202 220, 196 206 Z', c.sh),
   );
 
   let h = '';
   // soft floppy ears
   const ea = A ? 10 : H ? -4 : 0;
   const earL = 'M 102 60 C 86 48, 63 50, 51 62 C 41 74, 40 96, 46 118 C 58 112, 71 99, 86 84 Z';
-  h += G(ctx.region(earL, c.f, P('M 55 64 C 48 78, 47 96, 50 110 C 45 96, 45 78, 55 64 Z', c.gl) + P('M 86 84 C 74 96, 62 108, 46 118 L 60 124 L 92 90 Z', c.sh) + LN('M 62 60 C 70 66, 78 74, 84 82', c.sh, 3)), rot(ea, 92, 66));
-  h += G(ctx.region(mirror(earL), c.f, P(mirror('M 55 64 C 48 78, 47 96, 50 110 C 45 96, 45 78, 55 64 Z'), c.hi) + P(mirror('M 86 84 C 74 96, 62 108, 46 118 L 60 124 L 92 90 Z'), c.sh) + LN(mirror('M 62 60 C 70 66, 78 74, 84 82'), c.sh, 3)), rot(-ea, 148, 66));
+  const earGl = 'M 55 64 C 48 78, 47 96, 50 110 C 45 96, 45 78, 55 64 Z';
+  const earSh = 'M 86 84 C 74 96, 62 108, 46 118 L 60 124 L 92 90 Z';
+  h += G(ctx.region(earL, c.f, P('M 51 62 C 41 74, 40 96, 46 118 L 54 112 C 50 96, 50 78, 58 64 Z', c.hi) + P(earGl, c.gl) + P(earSh, c.sh) + LN('M 62 60 C 70 66, 78 74, 84 82', c.sh, 3)), rot(ea, 92, 66));
+  h += G(ctx.region(mirror(earL), c.f, P(mirror(earGl), c.hi) + P(mirror(earSh), c.sh) + LN(mirror('M 62 60 C 70 66, 78 74, 84 82'), c.sh, 3)), rot(-ea, 148, 66));
 
-  const head = 'M 120 48 C 86 48, 64 68, 62 98 C 60 122, 70 140, 88 152 C 98 166, 106 176, 120 176 C 134 176, 142 166, 152 152 C 170 140, 180 122, 178 98 C 176 68, 154 48, 120 48 Z';
-  const muzzle = 'M 97 116 C 92 132, 92 152, 100 164 C 108 175, 132 175, 140 164 C 148 152, 148 132, 143 116 C 135 110, 105 110, 97 116 Z';
+  const head = 'M 120 48 C 86 48, 64 68, 62 98 C 60 120, 70 138, 87 150 C 97 166, 106 178, 120 178 C 134 178, 143 166, 153 150 C 170 138, 180 120, 178 98 C 176 68, 154 48, 120 48 Z';
+  const muzzle = 'M 99 114 C 94 130, 94 152, 101 166 C 108 178, 132 178, 139 166 C 146 152, 146 130, 141 114 C 134 108, 106 108, 99 114 Z';
   h += ctx.region(
     head,
     c.f,
-    P('M 156 58 C 178 76, 182 112, 166 136 C 156 150, 146 164, 136 180 L 190 180 L 190 50 Z', c.sh) +
-      E(100, 66, 20, 8, c.hi, rotA(-18, 100, 66)) +
-      E(92, 64, 9, 3.4, c.gl, rotA(-22, 92, 64)) +
+    P('M 156 58 C 178 76, 182 112, 166 136 C 156 150, 146 166, 136 182 L 190 182 L 190 50 Z', c.sh) +
+      // glossy sheen: forehead + rim light along the left of the skull
+      E(102, 66, 22, 9, c.hi, rotA(-18, 102, 66)) +
+      E(94, 63, 10, 3.6, c.gl, rotA(-22, 94, 63)) +
+      LN('M 67 112 C 64 96, 68 80, 78 68', c.gl, 3, ' opacity="0.75"') +
       P(muzzle, c.mz) +
-      E(108, 128, 5, 10, c.hi, rotA(-8, 108, 128)) +
-      speckles(22, 46, 120, 170, 20, 7, 0.6, 1.5, c.grey) +
-      speckles(23, 10, 104, 160, 6, 6, 0.5, 1.1, c.grey, 0.8) +
-      speckles(24, 10, 136, 160, 6, 6, 0.5, 1.1, c.grey, 0.8),
+      P('M 103 116 C 99 130, 100 146, 104 158 C 106 146, 108 130, 112 116 Z', c.mzHi) +
+      // grey chin ticking
+      speckles(22, 70, 120, 172, 20, 7, 0.5, 1.3, c.grey) +
+      speckles(23, 14, 105, 162, 6, 6, 0.4, 1, c.grey, 0.8) +
+      speckles(24, 14, 135, 162, 6, 6, 0.4, 1, c.grey, 0.8),
   );
 
   const look = o.look ?? (A ? [0, -0.2] : [0, 0.15]);
-  const lid = A ? 0.12 : H ? 0.36 : 0.5;
-  const er = A ? 11 : 10.2;
-  const eb = { r: er, iris: c.iris, rim: c.rim, lid, lidFill: c.f, look, low: H ? 0.26 : 0, lowFill: c.f, pupil: A ? 0.8 : 1 };
-  h += eye(ctx, { ...eb, x: 98, y: 104, lidTilt: 2 });
-  h += eye(ctx, { ...eb, x: 142, y: 104, lidTilt: -2 });
+  const lid = A ? 0.1 : H ? 0.3 : 0.44;
+  const er = A ? 12.2 : 11.4;
+  const eb = { r: er, iris: c.iris, rim: c.rim, lid, lidFill: c.f, look, pupil: A ? 0.8 : 0.95, shine: H ? 1.25 : 1.1 };
+  h += eye(ctx, { ...eb, x: 98, y: 102, lidTilt: 2.4 });
+  h += eye(ctx, { ...eb, x: 142, y: 102, lidTilt: -2.4 });
 
-  const by = A ? 82 : H ? 88 : 90;
+  const by = A ? 80 : H ? 86 : 88;
   h += brow(98, by, 16, A ? -10 : -4, A ? 3 : 1, c.brow, 4.5);
   h += brow(142, by, 16, A ? 10 : 4, A ? 3 : 1, c.brow, 4.5);
 
-  h += nose(120, 147, 30, 19, c.nose, c.noseHi, '#000000');
-  h += mouth({ kind: H ? 'open' : A ? 'o' : 'smile', x: 120, y: 156.5, w: 15, h: 5, depth: 16, tongue: 14, tongueX: H ? 4 : 0, ink: '#08070b' });
+  h += nose(120, 150, 28, 18, c.nose, c.noseHi, '#000000');
+  h += mouth({ kind: H ? 'open' : A ? 'o' : 'smile', x: 120, y: 159, w: 15, h: 5, depth: 16, tongue: 14, tongueX: H ? 4 : 0, ink: '#08070b' });
 
   // knit beanie
   let b = '';
@@ -635,9 +641,9 @@ const drawPan: DrawFn = (ctx, mood, o) => {
   b += ctx.region(crown, c.hat, P('M 144 26 C 160 36, 168 52, 166 72 L 150 72 C 154 56, 152 40, 144 26 Z', c.hatSh) + P('M 75 50 C 100 44, 140 44, 166 50 L 166 58 C 140 52, 100 52, 75 58 Z', c.stripe) + P('M 92 34 C 100 28, 110 26, 118 26 C 108 30, 100 34, 94 40 Z', c.hatHi));
   const cuff = 'M 70 70 C 92 62, 148 62, 170 70 L 168 86 C 146 77, 94 77, 72 86 Z';
   let ribs = '';
-  for (let x = 78; x <= 162; x += 7) ribs += `M ${x} ${70 - Math.sin(((x - 70) / 100) * Math.PI) * 6} L ${x} ${85 - Math.sin(((x - 70) / 100) * Math.PI) * 8}`;
+  for (let x = 78; x <= 162; x += 7) ribs += `M ${x} ${n(70 - Math.sin(((x - 70) / 100) * Math.PI) * 6)} L ${x} ${n(85 - Math.sin(((x - 70) / 100) * Math.PI) * 8)}`;
   b += ctx.region(cuff, c.hat, LN(ribs, c.hatSh, 2.2) + P('M 150 66 C 160 67, 166 69, 170 70 L 168 86 C 162 82, 156 80, 150 79 Z', c.hatSh, ' opacity="0.7"'));
-  b += ctx.region(bumpy(120, 18, 9, 1.4, 11), c.pom, C(124, 22, 5, c.pomSh) + C(116, 14, 3.4, '#ffffff'), 2.6);
+  b += ctx.region(bumpy(120, 19, 9, 1.4, 11), c.pom, C(124, 23, 5, c.pomSh) + C(116, 15, 3.4, '#ffffff'), 2.6);
   h += G(b, rot(7, 120, 70) + (A ? ' translate(0 -4)' : ''));
 
   const tilt = (A ? -2 : H ? 3 : 4) + (o.tilt ?? 0);
@@ -649,7 +655,7 @@ const drawPan: DrawFn = (ctx, mood, o) => {
 const drawHuckleberry: DrawFn = (ctx, mood, o) => {
   const c = {
     f: '#2a2120', sh: '#171110', hi: '#4b3c37', br: '#7d4c2d', brSh: '#5b3519', brHi: '#a26a42',
-    nose: '#110d0e', noseHi: '#5b4c4a', iris: '#6f411f', rim: '#4f403c',
+    nose: '#110d0e', noseHi: '#5b4c4a', iris: '#8a5426', rim: '#1a1413',
     hat: '#c69c59', hatSh: '#9d773d', hatHi: '#e3c287', band: '#4a3020',
     sl: '#ffd23f', slSh: '#e0a20e', slHi: '#fff1a0', drop: '#8fd8ff', dropHi: '#e8f8ff',
     pine: '#3DDC84',
@@ -693,12 +699,12 @@ const drawHuckleberry: DrawFn = (ctx, mood, o) => {
       P(mirror('M 70 132 C 76 128, 82 130, 86 134 C 80 136, 78 140, 80 146 C 74 142, 70 140, 70 132 Z'), c.brSh),
   );
   // tired eyes with bags
-  const lid = A ? 0.06 : H ? 0.32 : 0.56;
+  const lid = A ? 0.04 : H ? 0.26 : 0.54;
   const look = o.look ?? [0, A ? -0.2 : 0];
-  const eb = { r: A ? 10.8 : 9.8, iris: c.iris, rim: c.rim, lid, lidFill: c.f, look, low: H ? 0.24 : 0, lowFill: c.f, pupil: A ? 0.75 : 1 };
+  const eb = { r: A ? 11.6 : 10.6, iris: c.iris, rim: c.rim, lid, lidFill: c.f, look, pupil: A ? 0.75 : 1, shine: H ? 1.25 : 1 };
   h += eye(ctx, { ...eb, x: 98, y: 102, lidTilt: 1.5 });
   h += eye(ctx, { ...eb, x: 142, y: 102, lidTilt: -1.5 });
-  if (!H) h += LN('M 90 116 Q 98 120 106 116 M 134 116 Q 142 120 150 116', '#5e4b46', 2);
+  if (!H) h += LN('M 89 117 Q 98 121 107 117 M 133 117 Q 142 121 151 117', '#6a5550', 2);
   // brown brow dots
   const by = A ? 80 : H ? 86 : 89;
   const bAng = A ? 16 : 6;
@@ -711,13 +717,15 @@ const drawHuckleberry: DrawFn = (ctx, mood, o) => {
   let hat = '';
   const brim = 'M 36 68 C 36 56, 204 56, 204 68 C 204 80, 36 80, 36 68 Z';
   hat += ctx.region(brim, c.hat, P('M 36 70 C 60 78, 180 78, 204 70 L 204 82 L 36 82 Z', c.hatSh) + LN('M 50 64 C 90 59, 150 59, 190 64', c.hatHi, 2));
-  const crown = 'M 82 64 C 82 46, 92 32, 106 20 C 112 24, 116 26, 120 21 C 124 26, 128 24, 134 20 C 148 32, 158 46, 158 64 Z';
+  // Montana-peak crown: four dents pinched to a point
+  const crown = 'M 82 64 C 83 48, 92 34, 104 26 C 110 22, 116 18, 120 14 C 124 18, 130 22, 136 26 C 148 34, 157 48, 158 64 Z';
   hat += ctx.region(
     crown,
     c.hat,
-    P('M 140 26 C 152 38, 158 50, 158 64 L 144 64 C 144 50, 142 38, 134 22 Z', c.hatSh) +
-      LN('M 106 22 C 104 34, 104 44, 106 54 M 134 22 C 136 34, 136 44, 134 54', c.hatSh, 2.2) +
-      P('M 112 28 C 116 30, 118 32, 120 30 L 120 50 C 116 46, 113 40, 112 28 Z', c.hatHi, ' opacity="0.8"') +
+    P('M 136 26 C 148 34, 157 48, 158 64 L 140 64 C 140 50, 138 38, 130 24 Z', c.hatSh) +
+      P('M 120 14 C 114 26, 110 40, 110 56 L 104 56 C 102 42, 104 30, 110 22 Z', c.hatHi, ' opacity="0.85"') +
+      P('M 120 14 C 124 26, 128 40, 130 56 L 124 56 C 124 40, 122 28, 120 14 Z', c.hatSh, ' opacity="0.8"') +
+      LN('M 101 30 C 98 38, 96 46, 96 54 M 139 30 C 142 38, 144 46, 144 54', c.hatSh, 2.2) +
       P('M 80 54 C 100 58, 140 58, 160 54 L 160 66 L 80 66 Z', c.band),
   );
   hat += PO('M 120 52 L 126 62 L 122 62 L 122 64.5 L 118 64.5 L 118 62 L 114 62 Z', c.pine, 1.6);
@@ -739,7 +747,7 @@ const drawHuckleberry: DrawFn = (ctx, mood, o) => {
 const drawTank: DrawFn = (ctx, mood, o) => {
   const c = {
     f: '#707e8f', sh: '#566272', hi: '#97a6b8', mz: '#7f8c9c',
-    nose: '#3c434e', noseHi: '#7d8794', iris: '#f0a531', rim: '#4d5664', brow: '#46505e',
+    nose: '#3c434e', noseHi: '#7d8794', iris: '#f0a531', rim: '#4b5563', brow: '#46505e',
     cap: '#e8403f', capSh: '#b72d2d', capHi: '#ff7d73',
     polo: '#25314f', poloSh: '#18213a', poloHi: '#36466f', lan: '#ff4d4d',
     wh: '#d2d9e2', whSh: '#9aa4b0', whHi: '#ffffff',
@@ -749,7 +757,7 @@ const drawTank: DrawFn = (ctx, mood, o) => {
   let s = '';
 
   // neck fur, then the coach polo
-  s += ctx.region('M 96 140 L 144 140 L 150 200 L 90 200 Z', c.f, E(120, 160, 30, 16, c.sh) + P('M 108 176 L 132 176 L 120 196 Z', '#e9edf2'));
+  s += ctx.region('M 96 140 L 144 140 L 150 200 L 90 200 Z', c.f, E(120, 160, 30, 16, c.sh));
   const polo = 'M 22 252 C 24 230, 32 212, 50 202 C 68 192, 86 186, 96 178 L 108 196 L 120 206 L 132 196 L 144 178 C 154 186, 172 192, 190 202 C 208 212, 216 230, 218 252 Z';
   s += ctx.region(polo, c.polo, P('M 176 196 C 198 206, 212 226, 218 252 L 172 252 C 182 232, 186 214, 176 196 Z', c.poloSh) + P('M 52 208 C 40 218, 34 234, 32 252 L 44 252 C 46 236, 52 222, 62 212 Z', c.poloHi) + LN('M 120 206 L 120 236', c.poloSh, 2) + C(124, 216, 2, c.poloHi) + C(124, 228, 2, c.poloHi));
   // collar points
@@ -768,11 +776,12 @@ const drawTank: DrawFn = (ctx, mood, o) => {
   );
 
   let h = '';
-  // folded (rose) ears
-  const ea = A ? 14 : H ? -4 : 0;
-  const earL = 'M 102 66 C 90 54, 74 50, 62 52 C 54 58, 50 72, 52 86 C 62 80, 76 78, 90 80 Z';
-  h += G(ctx.region(earL, c.f, P('M 62 52 C 72 58, 80 66, 88 76 L 90 80 C 76 76, 62 72, 52 62 Z', c.sh) + LN('M 62 53 C 72 60, 80 68, 88 78', OL, 1.8) + P('M 56 62 C 54 70, 53 78, 53 84 L 48 84 L 52 60 Z', c.hi)), rot(ea, 92, 72));
-  h += G(ctx.region(mirror(earL), c.f, P(mirror('M 62 52 C 72 58, 80 66, 88 76 L 90 80 C 76 76, 62 72, 52 62 Z'), c.sh) + LN(mirror('M 62 53 C 72 60, 80 68, 88 78'), OL, 1.8)), rot(-ea, 148, 72));
+  // high-set ears that fold over and hang beside the cheeks
+  const ea = A ? 16 : H ? -4 : 0;
+  const earL = 'M 98 70 C 84 62, 66 64, 58 74 C 52 86, 54 102, 60 116 C 66 106, 74 96, 86 90 Z';
+  const earFold = 'M 96 70 C 84 65, 70 67, 62 76 C 72 76, 80 79, 88 84 Z';
+  h += G(ctx.region(earL, c.f, P(earFold, c.sh) + LN('M 62 76 C 72 76, 80 79, 88 84', OL, 1.8) + P('M 58 74 C 52 86, 54 102, 60 116 L 50 116 L 50 72 Z', c.hi)), rot(ea, 90, 74));
+  h += G(ctx.region(mirror(earL), c.f, P(mirror(earFold), c.sh) + LN(mirror('M 62 76 C 72 76, 80 79, 88 84'), OL, 1.8) + P(mirror('M 86 90 C 74 96, 66 106, 60 116 L 70 120 L 90 94 Z'), c.sh)), rot(-ea, 150, 74));
 
   const head = 'M 120 54 C 94 54, 77 70, 76 92 C 75 108, 80 120, 90 132 C 97 147, 104 160, 120 165 C 136 160, 143 147, 150 132 C 160 120, 165 108, 164 92 C 163 70, 146 54, 120 54 Z';
   h += ctx.region(
@@ -781,23 +790,22 @@ const drawTank: DrawFn = (ctx, mood, o) => {
     P('M 150 64 C 166 80, 168 110, 152 132 C 144 146, 138 158, 128 170 L 176 170 L 176 60 Z', c.sh) +
       E(120, 86, 46, 9, c.sh, ' opacity="0.8"') +
       P('M 99 116 C 94 128, 96 146, 104 156 C 110 164, 130 164, 136 156 C 144 146, 146 128, 141 116 C 134 110, 106 110, 99 116 Z', c.mz) +
-      E(106, 128, 5, 10, c.hi, rotA(-12, 106, 128)) +
-      LN('M 114 96 C 116 104, 118 110, 120 116 M 126 96 C 124 104, 122 110, 120 116', c.sh, 2),
+      E(106, 128, 5, 10, c.hi, rotA(-12, 106, 128)),
   );
 
   const look = o.look ?? [0, A ? -0.25 : 0];
-  const er = A ? 11.6 : 10.4;
-  const lid = A ? 0 : H ? 0 : 0.26;
-  const eb = { r: er, iris: c.iris, rim: c.rim, lid, lidFill: c.f, look, low: H ? 0.3 : 0, lowFill: c.f, pupil: A ? 0.62 : 0.85, shine: 1.05 };
-  h += eye(ctx, { ...eb, x: 100, y: 102, lidTilt: -3.5 });
-  h += eye(ctx, { ...eb, x: 140, y: 102, lidTilt: 3.5 });
+  const er = A ? 12.4 : 11.2;
+  const lid = A ? 0 : H ? 0 : 0.2;
+  const eb = { r: er, iris: c.iris, rim: c.rim, lid, lidFill: c.f, look, pupil: A ? 0.62 : 0.85, shine: H ? 1.25 : 1.05 };
+  h += eye(ctx, { ...eb, x: 100, y: 102, lidTilt: -2 });
+  h += eye(ctx, { ...eb, x: 140, y: 102, lidTilt: 2 });
   const by = A ? 80 : H ? 86 : 90;
-  const ba = A ? -14 : H ? -6 : 14;
+  const ba = A ? -14 : H ? -8 : 8;
   h += brow(100, by, 17, ba, A ? 3 : 1, c.brow, 5.2);
   h += brow(140, by, 17, -ba, A ? 3 : 1, c.brow, 5.2);
 
   h += nose(120, 144, 25, 16, c.nose, c.noseHi, '#191c22');
-  h += mouth({ kind: H ? 'open' : A ? 'o' : 'grin', x: 120, y: 152, w: 14, h: 4, depth: 18, tongue: 10 });
+  h += mouth({ kind: H ? 'open' : A ? 'o' : 'grin', x: 120, y: 152, w: H ? 15 : 16, h: 4, depth: 19, tongue: 10 });
 
   // ball cap with a lone star
   let cap = '';
@@ -835,7 +843,7 @@ function starPath(cx: number, cy: number, ro: number, ri: number): string {
 const drawLucky: DrawFn = (ctx, mood, o) => {
   const c = {
     f: '#e3b677', sh: '#c4935a', hi: '#f5d6a2', wr: '#a87844',
-    m: '#2c2329', mHi: '#4c3e49', nose: '#120e12', noseHi: '#5d4f5a', iris: '#4a2a17',
+    m: '#3b3038', mHi: '#5d4e5a', nose: '#0d090c', noseHi: '#8a7a88', iris: '#5a3319',
     vis: '#2fbf71', visSh: '#1d8a50', visHi: '#9ff5c4',
     bow: '#e3303d', bowSh: '#a81f2b', bowHi: '#ff7c86', shirt: '#f6f6fa', shirtSh: '#d5d6e2',
     vest: '#2d2444', vestSh: '#1c1630', vestHi: '#443a66', gold: '#f6c445',
@@ -863,9 +871,10 @@ const drawLucky: DrawFn = (ctx, mood, o) => {
   let h = '';
   // small black button ears
   const ea = A ? 14 : 0;
-  const earL = 'M 86 62 C 72 54, 56 58, 50 72 C 48 82, 52 90, 60 94 C 64 84, 72 76, 88 72 Z';
-  h += G(ctx.region(earL, c.m, P('M 52 70 C 50 80, 54 88, 60 92 L 50 96 L 46 68 Z', c.mHi)), rot(ea, 82, 68));
-  h += G(ctx.region(mirror(earL), c.m, P(mirror('M 88 72 C 72 76, 64 84, 60 94 L 70 96 L 92 76 Z'), '#1a1418')), rot(-ea, 158, 68));
+  const earL = 'M 90 60 C 76 56, 60 62, 53 74 C 50 82, 51 90, 55 96 C 62 88, 72 80, 86 76 Z';
+  const earFold = 'M 88 61 C 77 59, 65 64, 58 72 C 67 71, 76 72, 84 75 Z';
+  h += G(ctx.region(earL, c.m, P(earFold, c.mHi) + LN('M 58 72 C 67 71, 76 72, 84 75', '#140f13', 1.6)), rot(ea, 84, 68));
+  h += G(ctx.region(mirror(earL), c.m, P(mirror(earFold), c.mHi) + LN(mirror('M 58 72 C 67 71, 76 72, 84 75'), '#140f13', 1.6)), rot(-ea, 156, 68));
 
   const head = 'M 120 50 C 82 50, 61 76, 61 108 C 61 142, 86 168, 120 168 C 154 168, 179 142, 179 108 C 179 76, 158 50, 120 50 Z';
   const mask = 'M 120 100 C 104 100, 94 110, 94 124 C 94 146, 106 162, 120 162 C 134 162, 146 146, 146 124 C 146 110, 136 100, 120 100 Z';
@@ -891,7 +900,7 @@ const drawLucky: DrawFn = (ctx, mood, o) => {
   const er = A ? 14.2 : 12.6;
   const lidL = A ? 0 : H ? 0 : 0.38;
   const lidR = A ? 0 : H ? 0 : 0.18;
-  const eb = { r: er, ratio: 1, iris: c.iris, lidFill: c.m, look, low: H ? 0.24 : 0, lowFill: c.m, pupil: A ? 0.68 : 0.95, shine: 1.15 };
+  const eb = { r: er, ratio: 1, iris: c.iris, lidFill: c.m, look, pupil: A ? 0.68 : 0.95, shine: H ? 1.3 : 1.15 };
   h += eye(ctx, { ...eb, x: 94, y: eyeY, lid: lidL, lidTilt: -2 });
   h += eye(ctx, { ...eb, x: 146, y: eyeY, lid: lidR, lidTilt: 1 });
   // brows
@@ -966,8 +975,8 @@ const drawSorghum: DrawFn = (ctx, mood, o) => {
   );
 
   const look = o.look ?? [0, A ? -0.25 : 0];
-  const er = A ? 11.2 : 10;
-  const eb = { r: er, iris: c.iris, lidFill: c.f, look, low: H ? 0.3 : A ? 0 : 0.14, lowFill: c.f, pupil: A ? 0.72 : 1, shine: H ? 1.15 : 1 };
+  const er = A ? 12 : H ? 11.2 : 10.8;
+  const eb = { r: er, iris: c.iris, lidFill: c.f, look, low: H || A ? 0 : 0.12, lowFill: c.f, pupil: A ? 0.72 : 1, shine: H ? 1.3 : 1 };
   h += eye(ctx, { ...eb, x: 99, y: 102 });
   h += eye(ctx, { ...eb, x: 141, y: 102 });
   const by = A ? 81 : H ? 86 : 88;
@@ -1005,7 +1014,10 @@ const drawSorghum: DrawFn = (ctx, mood, o) => {
       P('M 130 37 C 137 46, 140 58, 139 70 L 132 70 C 133 58, 132 46, 128 38 Z', c.capFSh) +
       LN('M 101 70 C 100 50, 108 35, 120 33 C 132 35, 140 50, 139 70', OL, 1.8),
   );
-  cap += EO(120, 52, 9, 7, c.patch, 1.8) + P('M 120 58 C 116 54, 116 49, 120 46 C 124 49, 124 54, 120 58 Z', '#3f8f46') + LN('M 120 58 L 120 47', '#2b6b32', 1);
+  cap += `<rect x="110.5" y="44.5" width="19" height="14" rx="3.5" fill="${c.patch}" stroke="${OL}" stroke-width="1.8"/>` +
+    LN('M 120 56.5 L 120 50.5', '#2b6b32', 1.6) +
+    P('M 120 51.5 C 116 51.5, 113.6 49.6, 113.2 46.8 C 116.8 46.6, 119.2 48.4, 120 51.5 Z', '#3f8f46') +
+    P(mirror('M 120 51.5 C 116 51.5, 113.6 49.6, 113.2 46.8 C 116.8 46.6, 119.2 48.4, 120 51.5 Z'), '#3f8f46');
   cap += CO(120, 32, 2.8, c.mesh, 2);
   const bill = 'M 86 70 C 100 62, 140 62, 154 70 C 158 76, 152 82, 146 82 C 132 77, 108 77, 94 82 C 88 82, 82 76, 86 70 Z';
   cap += ctx.region(bill, c.mesh, P('M 82 76 C 100 72, 140 72, 158 76 L 158 86 L 82 86 Z', c.meshSh) + LN('M 94 69 C 108 65, 132 65, 146 69', '#6fc076', 1.6));
@@ -1022,7 +1034,7 @@ const drawBiscuit: DrawFn = (ctx, mood, o) => {
     f: '#e8a84b', sh: '#c4852f', hi: '#f8d08a', mz: '#f2c27c',
     nose: '#1b151a', noseHi: '#5f5560', iris: '#5d3519', brow: '#b87326',
     shirt: '#f7f8fb', shirtSh: '#d3d9e5', tie: '#1f2a44', tieHi: '#36466e', tag: '#15131a',
-    helm: '#4CC9F0', helmSh: '#2a96c2', helmHi: '#b5efff', vent: '#163a52', stripe: '#FF9F1C',
+    helm: '#4CC9F0', helmSh: '#2a96c2', helmHi: '#b5efff', vent: '#1d4d6b', stripe: '#FF9F1C',
   };
   const A = mood === 'alarmed';
   const H = mood === 'happy';
@@ -1054,6 +1066,8 @@ const drawBiscuit: DrawFn = (ctx, mood, o) => {
   s += `<text x="153" y="219.4" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="700" letter-spacing="0.5" fill="#ffffff">BISCUIT</text>`;
 
   let h = '';
+  // helmet straps (tucked behind the ears)
+  h += G(LN('M 76 84 C 79 100, 82 114, 85 128 M 164 84 C 161 100, 158 114, 155 128', OL, 4.2) + LN('M 76 84 C 79 100, 82 114, 85 128 M 164 84 C 161 100, 158 114, 155 128', '#3a3f55', 2), A ? 'translate(0 -5)' : '');
   // long feathered ears
   const ea = A ? 12 : H ? -3 : 0;
   const earL = 'M 88 64 C 70 62, 57 76, 54 98 C 52 116, 53 134, 57 148 C 60 154, 64 150, 67 156 C 71 160, 75 153, 79 156 C 83 138, 86 118, 90 98 C 92 84, 93 72, 88 64 Z';
@@ -1074,10 +1088,10 @@ const drawBiscuit: DrawFn = (ctx, mood, o) => {
   );
 
   const look = o.look ?? [0, A ? -0.25 : 0];
-  const er = A ? 11.2 : 10.2;
-  const eb = { r: er, iris: c.iris, lidFill: c.f, look, lid: A ? 0 : H ? 0 : 0.12, low: A ? 0 : H ? 0.3 : 0.18, lowFill: c.f, pupil: A ? 0.72 : 1, shine: 1.1 };
-  h += eye(ctx, { ...eb, x: 100, y: 102, lidTilt: 1 });
-  h += eye(ctx, { ...eb, x: 140, y: 102, lidTilt: -1 });
+  const er = A ? 12.2 : H ? 11.4 : 11;
+  const eb = { r: er, iris: c.iris, lidFill: c.f, look, lid: A || H ? 0 : 0.06, pupil: A ? 0.72 : 1, shine: H ? 1.3 : 1.15 };
+  h += eye(ctx, { ...eb, x: 100, y: 102 });
+  h += eye(ctx, { ...eb, x: 140, y: 102 });
   const by = A ? 80 : H ? 85 : 87;
   h += brow(100, by, 15, A ? -14 : -8, A ? 3 : 2, c.brow, 4.6);
   h += brow(140, by, 15, A ? 14 : 8, A ? 3 : 2, c.brow, 4.6);
@@ -1087,7 +1101,6 @@ const drawBiscuit: DrawFn = (ctx, mood, o) => {
 
   // bicycle helmet with chin straps
   let hel = '';
-  hel += LN('M 78 82 C 82 100, 86 114, 92 126 M 162 82 C 158 100, 154 114, 148 126', OL, 4.2) + LN('M 78 82 C 82 100, 86 114, 92 126 M 162 82 C 158 100, 154 114, 148 126', '#3a3f55', 2);
   const shell = 'M 70 84 C 66 52, 90 28, 120 28 C 150 28, 174 52, 170 84 C 154 74, 138 70, 120 70 C 102 70, 86 74, 70 84 Z';
   hel += ctx.region(
     shell,
@@ -1095,10 +1108,10 @@ const drawBiscuit: DrawFn = (ctx, mood, o) => {
     P('M 148 34 C 166 46, 174 66, 170 84 L 154 80 C 158 62, 156 46, 148 34 Z', c.helmSh) +
       P('M 112 30 L 128 30 L 126 72 L 114 72 Z', c.stripe) +
       P('M 92 40 C 100 34, 108 31, 112 31 C 104 36, 98 42, 95 48 Z', c.helmHi) +
-      PO('M 98 50 C 101 44, 106 41, 109 41 L 108 58 C 104 58, 100 58, 97 60 Z', c.vent, 1.2, c.vent) +
-      PO(mirror('M 98 50 C 101 44, 106 41, 109 41 L 108 58 C 104 58, 100 58, 97 60 Z'), c.vent, 1.2, c.vent) +
-      PO('M 80 64 C 82 58, 86 54, 90 52 L 92 64 C 88 66, 84 68, 81 70 Z', c.vent, 1.2, c.vent) +
-      PO(mirror('M 80 64 C 82 58, 86 54, 90 52 L 92 64 C 88 66, 84 68, 81 70 Z'), c.vent, 1.2, c.vent),
+      PO('M 100 52 C 102 46, 105 43, 108 42 L 107.5 60 C 105 60, 102 61, 100 62 Z', c.vent, 1.2, c.vent) +
+      PO(mirror('M 100 52 C 102 46, 105 43, 108 42 L 107.5 60 C 105 60, 102 61, 100 62 Z'), c.vent, 1.2, c.vent) +
+      PO('M 82 66 C 84 60, 87 56, 90 54 L 91.5 65 C 89 66.5, 86 68, 83 70 Z', c.vent, 1.2, c.vent) +
+      PO(mirror('M 82 66 C 84 60, 87 56, 90 54 L 91.5 65 C 89 66.5, 86 68, 83 70 Z'), c.vent, 1.2, c.vent),
   );
   hel += LN('M 72 82 C 88 72, 104 68, 120 68 C 136 68, 152 72, 168 82', c.helmSh, 2);
   h += G(hel, A ? 'translate(0 -5)' : '');
@@ -1164,9 +1177,9 @@ export function dogSvg(id: LeaderId, mood: Mood = 'neutral', opts: PortraitOptio
 export function duoSvg(mood: Mood = 'neutral', opts: PortraitOptions = {}): string {
   const ctx = new Ctx();
   const size = opts.size ?? 240;
-  const g = drawGriffin(ctx, mood, { look: mood === 'alarmed' ? [0.7, -0.5] : [0.85, -0.75], tilt: 7 });
+  const g = drawGriffin(ctx, mood, { look: mood === 'alarmed' ? [0.7, -0.5] : [0.85, -0.75], tilt: 4 });
   const p = drawPan(ctx, mood, { look: mood === 'alarmed' ? [-0.6, -0.1] : [-0.2, 0.25], tilt: -9 });
-  let art = G(g, 'translate(-4 34) scale(0.84)') + G(p, 'translate(106 8) scale(0.94)');
+  let art = G(g, 'translate(-16 34) scale(0.84)') + G(p, 'translate(122 8) scale(0.94)');
   if (opts.bg) art = framed(ctx, 320, 240, art, FACTION_COLORS.FrontRange);
   return svgDoc(ctx, 320, 240, size, art, 'Griffin and Pan');
 }
@@ -1229,62 +1242,71 @@ const EMBLEMS: Record<FactionKey, EmblemFn> = {
   },
   // radar dish on a snowy peak
   FrontRange: (_ctx, col, dark, light) => {
-    const mtn = 'M 3 58 L 22 32 L 28 38 L 36 24 L 61 58 Z';
-    const snow = 'M 36 24 L 29.5 35.5 L 33 34 L 36 38 L 39 34 L 43 36 Z';
+    const mtn = 'M 2 60 L 20 36 L 26 42 L 36 28 L 62 60 Z';
+    const snow = 'M 36 28 L 29.6 38.6 L 33 37.4 L 36 41 L 39 37.4 L 42.6 39.4 Z';
     return (
       PO(mtn, col, 2.6) +
-      P('M 36 24 L 61 58 L 40 58 L 38 40 Z', dark, ' opacity="0.45"') +
+      P('M 36 28 L 62 60 L 41 60 L 38 42 Z', dark, ' opacity="0.45"') +
       PO(snow, '#ffffff', 2) +
-      PO('M 22 32 L 18 37.5 L 21 36.5 L 23.5 38.5 L 25.5 35.5 Z', '#ffffff', 1.6) +
-      LN('M 36 24 L 36 17', OL, 3.4) +
-      PO('M 30 26 L 42 26 L 38 22 L 34 22 Z', dark, 2) +
-      G(PO('M -12 0 A 12 7 0 0 0 12 0 Z', light, 2.4) + LN('M 0 3.4 L 0 -8', OL, 2) + CO(0, -9, 2, col, 1.6), 'translate(36 12) rotate(-30) translate(0 -2)') +
-      LN('M 47 4 Q 52 6 53 11 M 50 0 Q 57 3 58 10', col, 2.4)
+      PO('M 20 36 L 16 41.5 L 19 40.6 L 21.6 42.4 L 23.6 39.6 Z', '#ffffff', 1.6) +
+      PO('M 33 29 L 39 29 L 37.5 21 L 34.5 21 Z', dark, 2) +
+      G(
+        PO('M -15 0 C -15 11, 15 11, 15 0 Z', light, 2.6) +
+          P('M -11 1.6 C -10 7, 10 7, 11 1.6 Z', col, ' opacity="0.55"') +
+          LN('M 0 4.5 L 0 -9', OL, 2.4) +
+          CO(0, -10, 2.6, '#ffffff', 2),
+        'translate(35 16) rotate(-28)',
+      ) +
+      LN('M 48 6.5 Q 53 8 54 13 M 51.5 2 Q 59 4.4 60 12', col, 2.8)
     );
   },
-  // lone star with longhorns
+  // lone star with longhorns (cream horns with dark tips)
   Texas: (_ctx, col, dark, light) => {
-    const horn = 'M 22 27 C 14 27, 7 25, 2 14 C 4 26, 11 34, 22 36 Z';
+    const horn = 'M 22 27 C 15 27, 9.5 26, 6.5 22.5 C 4.5 20, 3.4 17, 2.6 13.5 C 1.4 20, 2.4 26.5, 6.4 30.6 C 10.4 34.4, 16 35.6, 22 35.6 Z';
+    const tip = 'M 2.6 13.5 C 1.4 20, 2.4 24, 4.4 26.6 L 6 22 C 4.5 20, 3.4 17, 2.6 13.5 Z';
+    const bone = '#f4e6c8';
     return (
-      PO(horn, light, 2.4) +
-      PO(mirror(horn, 32), light, 2.4) +
-      P('M 22 33 C 12 32, 6 27, 3 18 C 6 30, 12 35, 22 36 Z', dark, ' opacity="0.35"') +
-      P(mirror('M 22 33 C 12 32, 6 27, 3 18 C 6 30, 12 35, 22 36 Z', 32), dark, ' opacity="0.35"') +
-      PO(starPath(32, 34, 19, 8), col, 2.8) +
-      P(`M 32 15 L 32 34 L 50.07 28.13 L 39.62 30.48 Z`, dark, ' opacity="0.3"') +
-      P(`M 32 15 L 27.3 30 L 32 34 Z`, light, ' opacity="0.6"')
+      PO(horn, bone, 2.4) +
+      P(tip, '#3b2b22') +
+      PO(mirror(horn, 32), bone, 2.4) +
+      P(mirror(tip, 32), '#3b2b22') +
+      P('M 22 32.4 C 14 32, 9 30, 6 26.4 C 8 31, 14 34.6, 22 35.6 Z', '#d2b98c') +
+      P(mirror('M 22 32.4 C 14 32, 9 30, 6 26.4 C 8 31, 14 34.6, 22 35.6 Z', 32), '#d2b98c') +
+      PO(starPath(32, 35, 19, 8), col, 2.8) +
+      P('M 32 16 L 32 35 L 50.07 29.13 L 39.6 31.5 Z', dark, ' opacity="0.3"') +
+      P('M 32 16 L 27.3 31 L 32 35 Z', light, ' opacity="0.6"')
     );
   },
   // flying saucer shaped like a poker chip
   Dreamland: (_ctx, col, dark, light) => {
     let edge = '';
-    for (const x of [12, 22, 32, 42, 52]) edge += `M ${x - 2} ${44 + (x === 32 ? 3.6 : x === 22 || x === 42 ? 2.6 : 0.4)} L ${x + 2} ${44 + (x === 32 ? 3.6 : x === 22 || x === 42 ? 2.6 : 0.4)}`;
+    for (const [x, dy] of [[10, 1.5], [21, 3.6], [32, 4.4], [43, 3.6], [54, 1.5]] as const) edge += `M ${x - 2.2} ${44 + dy} L ${x + 2.2} ${44 + dy} `;
     return (
-      P('M 22 50 L 42 50 L 52 63 L 12 63 Z', light, ' opacity="0.28"') +
-      PO('M 20 32 C 20 16, 44 16, 44 32 Z', light, 2.4) +
-      P('M 25 26 C 26 21, 30 19, 34 19 C 30 21, 28 24, 27.6 28 Z', '#ffffff', ' opacity="0.85"') +
-      PO('M 4 36 L 4 41 C 4 53, 60 53, 60 41 L 60 36 Z', dark, 2.6) +
+      P('M 24 50 L 40 50 L 48 62 L 16 62 Z', col, ' opacity="0.35"') +
+      PO('M 4 37 L 4 42 C 4 54, 60 54, 60 42 L 60 37 Z', dark, 2.6) +
       LN(edge, '#ffffff', 3.2) +
-      EO(32, 36, 28, 10, col, 2.6) +
-      `<ellipse cx="32" cy="36" rx="21" ry="6.6" fill="none" stroke="#ffffff" stroke-width="3.2" stroke-dasharray="6.4 5.6"/>` +
-      EO(32, 36, 13.5, 4.2, col, 1.8)
+      EO(32, 37, 28, 10, col, 2.6) +
+      `<ellipse cx="32" cy="37" rx="21.5" ry="6.8" fill="none" stroke="#ffffff" stroke-width="3.2" stroke-dasharray="6.2 5.4"/>` +
+      PO('M 19 35 C 19 16, 45 16, 45 35 C 45 39.5, 19 39.5, 19 35 Z', light, 2.4) +
+      P('M 23.5 30 C 24 23.5, 28 20.5, 33 20 C 29 22.5, 27 26, 26.6 31 Z', '#ffffff', ' opacity="0.9"') +
+      C(15, 46.5, 1.6, '#fff6a8') + C(32, 48.6, 1.6, '#fff6a8') + C(49, 46.5, 1.6, '#fff6a8')
     );
   },
   // wheat sheaf crossed with a propeller
   GrainBelt: (_ctx, col, dark, light) => {
-    const blade = 'M 0 -3 C -5 -10, -5 -22, 0 -29 C 5 -22, 5 -10, 0 -3 Z';
+    const blade = 'M 0 -4 C -7 -10, -7 -24, -1 -30 C 1 -31, 3 -30, 4 -28 C 6 -20, 5 -9, 0 -4 Z';
     const prop =
-      G(PO(blade, dark, 2.4) + P('M 0 -6 C -3 -12, -3 -21, 0 -26 Z', light, ' opacity="0.5"'), 'translate(32 32) rotate(-45)') +
-      G(PO(blade, dark, 2.4), 'translate(32 32) rotate(135)');
+      G(PO(blade, '#c9cfdc', 2.4) + P('M 0 -7 C -4 -12, -4 -22, -1 -27 Z', '#ffffff', ' opacity="0.6"'), 'translate(32 33) rotate(-50)') +
+      G(PO(blade, '#c9cfdc', 2.4) + P('M 0 -7 C -4 -12, -4 -22, -1 -27 Z', '#ffffff', ' opacity="0.6"'), 'translate(32 33) rotate(130)');
     const head = (x: number, y: number, a: number): string =>
-      G(PO('M 0 -11 C 4.6 -7, 4.6 6, 0 9 C -4.6 6, -4.6 -7, 0 -11 Z', col, 2.2) + LN('M -2.6 -3 L 0 -1 L 2.6 -3 M -2.6 3 L 0 5 L 2.6 3', dark, 1.3), `translate(${x} ${y}) rotate(${a})`);
+      G(PO('M 0 -12 C 5.4 -8, 5.4 7, 0 10 C -5.4 7, -5.4 -8, 0 -12 Z', col, 2.2) + LN('M -3 -4 L 0 -1.6 L 3 -4 M -3 2.6 L 0 5 L 3 2.6', dark, 1.4) + LN('M 0 -12 L 0 -17', col, 1.6), `translate(${x} ${y}) rotate(${a})`);
     return (
       prop +
-      LN('M 32 60 L 32 24 M 30 60 L 21 22 M 34 60 L 43 22', OL, 5.2) +
-      LN('M 32 60 L 32 24 M 30 60 L 21 22 M 34 60 L 43 22', col, 2.4) +
-      head(20.5, 16, -14) + head(43.5, 16, 14) + head(32, 14, 0) +
-      CO(32, 32, 4.5, light, 2.2) +
-      PO('M 25 42 L 39 42 L 39 48 L 25 48 Z', dark, 2.2)
+      LN('M 32 61 L 32 27 M 30 61 L 21 27 M 34 61 L 43 27', OL, 5.4) +
+      LN('M 32 61 L 32 27 M 30 61 L 21 27 M 34 61 L 43 27', col, 2.6) +
+      head(19.5, 20, -16) + head(44.5, 20, 16) + head(32, 18, 0) +
+      CO(32, 33, 4.6, '#c9cfdc', 2.2) +
+      PO('M 24.5 43 L 39.5 43 L 39.5 49 L 24.5 49 Z', dark, 2.2)
     );
   },
   // beehive skep with little wings

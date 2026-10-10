@@ -360,6 +360,7 @@ impl<'w> Sim<'w> {
         }
         order_rank.sort();
         // 2. Validate and route.
+        let planners: Vec<route::Planner> = self.threats.iter().map(|t| route::Planner::new(w, t.clone())).collect();
         let mut plans: Vec<Plan> = Vec::new();
         let mut escorts: Vec<(usize, u32, bool)> = Vec::new(); // (sq, target id, jammer)
         for &(_, _, i) in &order_rank {
@@ -397,7 +398,7 @@ impl<'w> Sim<'w> {
                 _ => {
                     let from = w.nodes[sq.base as usize].pos;
                     let to = self.mission_point(&m);
-                    let path = route::plan(w, &self.threats[sq.seat as usize], from, to, sq.waypoint);
+                    let path = planners[sq.seat as usize].plan(from, to, sq.waypoint);
                     plans.push(Plan { sq: i, mission: m, path });
                 }
             }
@@ -1153,7 +1154,8 @@ impl<'w> Sim<'w> {
     }
 
     /// One side fires at the other. Returns the shot log and the hits.
-    fn volley(&mut self, shooters: &[usize], targets: &[usize], escorts: &[usize], at: P) -> (Vec<Shot>, Vec<(usize, usize)>) {
+    /// A first-shot volley is a quick snap shot: only half the planes fire.
+    fn volley(&mut self, shooters: &[usize], targets: &[usize], escorts: &[usize], at: P, snap: bool) -> (Vec<Shot>, Vec<(usize, usize)>) {
         let w = self.w;
         let r = w.rules();
         let mut planes: Vec<usize> = Vec::new();
@@ -1172,6 +1174,7 @@ impl<'w> Sim<'w> {
         let cap = r.combat.shooter_cap as usize;
         let planes: Vec<usize> =
             planes.iter().enumerate().filter(|(k, _)| *k < cap || (k - cap) % 2 == 0).map(|(_, &s)| s).collect();
+        let planes: Vec<usize> = if snap { planes.iter().step_by(2).copied().collect() } else { planes };
         let escort_live: Vec<usize> = escorts.iter().copied().filter(|&i| self.sq_alive(i)).collect();
         let screen = (r.combat.escort_screen * escort_live.len() as i32).min(r.combat.escort_screen_max);
         let mut shots = Vec::new();
@@ -1253,12 +1256,12 @@ impl<'w> Sim<'w> {
             let mut shots = Vec::new();
             let mut all_hits: Vec<(usize, usize, u8)> = Vec::new();
             if a_fires {
-                let (s, h) = self.volley(&a_side, &b_side, &b_escorts, at);
+                let (s, h) = self.volley(&a_side, &b_side, &b_escorts, at, free);
                 shots.extend(s);
                 all_hits.extend(h.into_iter().map(|(x, y)| (x, y, a_seat)));
             }
             if b_fires {
-                let (s, h) = self.volley(&b_side, &a_side, &[], at);
+                let (s, h) = self.volley(&b_side, &a_side, &[], at, free);
                 shots.extend(s);
                 all_hits.extend(h.into_iter().map(|(x, y)| (x, y, b_seat)));
             }
