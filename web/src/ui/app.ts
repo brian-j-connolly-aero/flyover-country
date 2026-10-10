@@ -12,7 +12,7 @@ import type { FactionId, GameOptions, Orders, PublicView, SaveFile, SeatConfig, 
 import { FACTIONS } from '../types';
 import { any, faction, leader, turns } from '../text';
 import { leaderSvg, emblemSvg } from '../art/dogs';
-import { h, clear, svg, toast, modal } from './dom';
+import { h, clear, svg, toast, clearToast, modal } from './dom';
 import { audio } from '../audio';
 import { tutorialCoach } from './tutorial';
 
@@ -197,6 +197,7 @@ export class App {
       return row;
     };
     const go = () => {
+      clearToast();
       const cfg = picked.map((f) => ({ faction: f, kind: kinds.get(f) ?? 'human' }));
       void this.start(cfg, options);
     };

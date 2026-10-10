@@ -66,9 +66,22 @@ export function modal(content: HTMLElement, onClose?: () => void): () => void {
   return close;
 }
 
+let current: HTMLElement | null = null;
+
+/** A short message near the bottom of the screen. A new one replaces the old. */
 export function toast(text: string, ms = 2600) {
+  current?.remove();
   const t = h('div.toast', text);
+  current = t;
   document.body.appendChild(t);
   setTimeout(() => t.classList.add('out'), ms);
-  setTimeout(() => t.remove(), ms + 500);
+  setTimeout(() => {
+    t.remove();
+    if (current === t) current = null;
+  }, ms + 500);
+}
+
+export function clearToast() {
+  current?.remove();
+  current = null;
 }

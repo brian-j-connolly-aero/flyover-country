@@ -324,7 +324,7 @@ input, select { font: inherit; color: var(--text); background: #0a1630; border: 
 .confirm ul { text-align: left; }
 .confirm-btns { display: flex; gap: 10px; justify-content: center; margin-top: 12px; }
 .confirm-btns .commit { padding: 8px 22px; font-size: 18px; }
-.toast { position: fixed; left: 50%; bottom: 140px; translate: -50% 0; background: #0b1730f2; border: 1px solid #4cc9f0; border-radius: 10px; padding: 10px 16px; z-index: 90; max-width: 80vw; text-align: center; transition: opacity 0.4s; }
+.toast { pointer-events: none; position: fixed; left: 50%; bottom: 140px; translate: -50% 0; background: #0b1730f2; border: 1px solid #4cc9f0; border-radius: 10px; padding: 10px 16px; z-index: 90; max-width: 80vw; text-align: center; transition: opacity 0.4s; }
 .toast.out { opacity: 0; }
 .coach { position: fixed; right: 360px; bottom: 140px; z-index: 70; display: flex; gap: 10px; max-width: 460px; background: #10224aee; border: 2px solid #ff5fa2; border-radius: 14px; padding: 10px; box-shadow: 0 0 30px #ff5fa255; }
 .coach-step { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #ff5fa2; }
