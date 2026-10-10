@@ -1,0 +1,8 @@
+# Keep text files LF everywhere, except Windows batch files, which want CRLF.
+* text=auto eol=lf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# The prebuilt engine, so players don't need Rust.
+*.wasm binary
+web/src/wasm/** linguist-generated

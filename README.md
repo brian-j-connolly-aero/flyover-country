@@ -8,6 +8,39 @@ nights, one evening, and someone walks away with the Bragging Rights. Nobody
 dies on screen: planes splash and every pilot gets a good chute. The dogs in
 charge are never in any danger.
 
+## Start playing
+
+All you need is [Node.js](https://nodejs.org) 20.19 or newer. The LTS
+(long-term support) download is the right one. The game engine comes
+prebuilt, so you don't need Rust.
+
+**Windows:** get the code (Code → Download ZIP and unzip it, or `git clone`),
+then double-click **`play.cmd`**. The first run installs the game's tools,
+which takes a minute or two and needs the internet. Your browser then opens
+the game at <http://localhost:5173>. Keep the black window open while you
+play, and close it when you're done.
+
+**WSL (Windows Subsystem for Linux), macOS or Linux:** from the game's folder,
+
+```sh
+npm install
+npm start
+```
+
+(`./play.sh` does the same two steps.) Tips for WSL:
+
+- Install Node inside WSL with [nvm](https://github.com/nvm-sh/nvm):
+  `nvm install --lts`. The Node from Ubuntu's `apt` is often too old.
+- Keep the game in your Linux home folder (`~/`), not under `/mnt/c`.
+  Installing is much faster there.
+- The game opens in your Windows browser. If no window appears, go to
+  <http://localhost:5173> yourself.
+
+Saved games live in your browser at that address, so stick with the same
+browser. To play on a tablet on the same Wi-Fi, run `npm run lan` and open
+the "Network" address it prints. Windows may ask you to let Node.js through
+the firewall.
+
 ## The dogs in charge
 
 | Faction | Home | Leader | Plays like |
@@ -47,18 +80,22 @@ and the *Suggest Plan* button. The dog advisor flags problems as you plan.
 Games autosave at every dawn. From *Saved wars and replays* you can resume,
 replay any past night, or export and import a save file.
 
-## Running it locally
+## Working on the code
 
-You need Rust (stable, with the `wasm32-unknown-unknown` target),
-`wasm-bindgen-cli` 0.2.129 and Node 22.
+The Rust engine is compiled to WebAssembly and checked in under
+`web/src/wasm`, so playing needs only Node. If you change the Rust code,
+rebuild the engine and commit the result. CI (continuous integration)
+checks that the checked-in engine plays exactly like the Rust source.
+
+You need Rust (stable, with the `wasm32-unknown-unknown` target) and
+`wasm-bindgen-cli` 0.2.129:
 
 ```sh
 rustup target add wasm32-unknown-unknown
 cargo install wasm-bindgen-cli --version 0.2.129 --locked
-cd web
 npm install
 npm run wasm      # Rust engine -> web/src/wasm
-npm run dev       # http://localhost:5173
+npm run dev       # http://localhost:5173, without opening a browser
 npm run build     # static site in web/dist
 ```
 

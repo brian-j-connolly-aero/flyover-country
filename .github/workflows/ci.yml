@@ -35,24 +35,17 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: web/package-lock.json
       - run: npm ci
-        working-directory: web
-      - run: npm run wasm
-        working-directory: web
-      - name: Same seed and orders, same state, native vs WebAssembly
+      - run: cargo build --release -p flyover-cli
+      # Players run the engine committed in web/src/wasm, without Rust. Make
+      # sure it plays exactly like the Rust source it was built from.
+      - name: Committed engine matches the Rust source
+        run: ./web/scripts/compare-engines.sh
+      - name: Freshly built engine matches too
         run: |
-          cargo build --release -p flyover-cli
-          for args in "--seed 7 --factions Pacific,FrontRange,Texas,Beehive" \
-                      "--seed 123 --factions Cascadia,Dreamland,GrainBelt,Texas" \
-                      "--seed 9001 --factions Beehive,Pacific,GrainBelt,Cascadia"; do
-            ./target/release/flyover hashes $args > native.txt
-            node web/scripts/wasm-hashes.mjs $args > wasm.txt
-            diff native.txt wasm.txt
-            echo "match: $args"
-          done
+          npm run wasm
+          ./web/scripts/compare-engines.sh
       - run: npm run build
-        working-directory: web
 
   balance:
     name: Balance harness (10,000 bot games, all 35 lineups)
