@@ -1,0 +1,82 @@
+// Aircraft roles and faction uniques. Must stay in UnitKind order.
+// speed: tenths of a map unit per game minute. fuel_rate: Fuel per 1000 map units.
+// strike/air: per-plane hit chances in per mille. air is vs (Fighter, Bomber, Scout, Jammer, Drone).
+[
+    UnitDef(
+        kind: Fighter, name: "Fighters", faction: None, class: Fighter,
+        cost: 4, speed: 60, fuel_rate: 2, strike: 200,
+        air: (280, 420, 150, 420, 380),
+        orders: [Rest, Guard, Escort, Sweep, Attack, Rebase],
+        desc: "Shoot down aircraft. Guard, escort or sweep; they can attack, but weakly.",
+    ),
+    UnitDef(
+        kind: Bomber, name: "Bombers", faction: None, class: Bomber,
+        cost: 6, speed: 42, fuel_rate: 3, strike: 600,
+        air: (70, 0, 0, 0, 0),
+        orders: [Rest, Attack, Rebase],
+        desc: "Knock nodes down a step. Easy prey for fighters without an escort.",
+    ),
+    UnitDef(
+        kind: Scout, name: "Scouts", faction: None, class: Scout,
+        cost: 2, speed: 75, fuel_rate: 1, strike: 0,
+        air: (20, 0, 0, 0, 0), ad_evasion: 100,
+        orders: [Rest, Scout, Rebase],
+        desc: "Reveal a zone until next night: damage and parked squadrons. Usually outrun trouble.",
+    ),
+    UnitDef(
+        kind: Jammer, name: "Jammers", faction: None, class: Jammer,
+        cost: 5, speed: 45, fuel_rate: 2, strike: 0,
+        air: (0, 0, 0, 0, 0),
+        orders: [Rest, Jam, Rebase],
+        desc: "Blind air defense and radar along a strike's route or over a zone.",
+    ),
+    UnitDef(
+        kind: Drone, name: "Unicorn Swarm", faction: Some(Pacific), class: Drone,
+        cost: 3, speed: 52, fuel_rate: 2, strike: 450,
+        air: (0, 0, 0, 0, 0), one_way: true, ad_evasion: 60,
+        orders: [Rest, Attack],
+        desc: "Cheap one-way drones. Weak alone, scary in numbers: every extra swarm on the same target hits harder.",
+    ),
+    UnitDef(
+        kind: Floatplane, name: "Floatplanes", faction: Some(Cascadia), class: Bomber,
+        cost: 5, speed: 45, fuel_rate: 2, strike: 480,
+        air: (150, 260, 100, 260, 220),
+        orders: [Rest, Attack, Guard, Rebase],
+        desc: "Light strike planes that can base on any lake, where strikes can't catch them parked.",
+    ),
+    UnitDef(
+        kind: Watchtower, name: "Watchtower", faction: Some(FrontRange), class: Jammer,
+        cost: 5, speed: 42, fuel_rate: 2, strike: 0,
+        air: (0, 0, 0, 0, 0), radar: 150, max_owned: 2,
+        orders: [Rest, Guard, Escort, Rebase],
+        desc: "An airborne radar plane. Extends vision and gives nearby friendly fighters the first shot.",
+    ),
+    UnitDef(
+        kind: Longhorn, name: "The Longhorn", faction: Some(Texas), class: Bomber,
+        cost: 12, speed: 35, fuel_rate: 4, strike: 820, strike_mult: 2,
+        air: (150, 0, 0, 0, 0), armor: 450, buildable: false,
+        orders: [Rest, Attack, Rebase],
+        desc: "One super-heavy bomber, the hardest-hitting unit in the game. If shot down, it takes three nights to rebuild.",
+    ),
+    UnitDef(
+        kind: Prototype, name: "The Prototype", faction: Some(Dreamland), class: Bomber,
+        cost: 7, speed: 62, fuel_rate: 2, strike: 700,
+        air: (0, 0, 0, 0, 0), stealth: true, max_owned: 2,
+        orders: [Rest, Attack, Scout, Rebase],
+        desc: "A stealth saucer, invisible on radar until it attacks. One-in-six chance per mission it simply doesn't come back.",
+    ),
+    UnitDef(
+        kind: CropDuster, name: "Crop Dusters", faction: Some(GrainBelt), class: Jammer,
+        cost: 2, speed: 24, fuel_rate: 1, strike: 0,
+        air: (0, 0, 0, 0, 0),
+        orders: [Rest, Guard, Rebase],
+        desc: "Slow, cheap planes. Guard a node to lay smoke over it, cutting enemy strike accuracy there tonight and tomorrow.",
+    ),
+    UnitDef(
+        kind: Gull, name: "Seagull Squadron", faction: Some(Beehive), class: Fighter,
+        cost: 3, speed: 68, fuel_rate: 2, strike: 0,
+        air: (120, 430, 180, 400, 480),
+        orders: [Rest, Guard, Sweep, Rebase],
+        desc: "Cheap, fast interceptors that eat bombers and drones. Utah's state bird is the California gull.",
+    ),
+]

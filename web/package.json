@@ -1,0 +1,23 @@
+{
+  "name": "flyover-country-web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "wasm": "node scripts/build-wasm.mjs",
+    "content": "node scripts/sync-content.mjs",
+    "dev": "npm run content && vite",
+    "build": "npm run content && tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@fontsource/jetbrains-mono": "5.2.8",
+    "@fontsource/oswald": "5.2.8",
+    "pixi.js": "8.22.0"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "vite": "7.3.7"
+  }
+}

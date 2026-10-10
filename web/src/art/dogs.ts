@@ -1294,7 +1294,7 @@ const EMBLEMS: Record<FactionKey, EmblemFn> = {
     );
   },
   // wheat sheaf crossed with a propeller
-  GrainBelt: (_ctx, col, dark, light) => {
+  GrainBelt: (_ctx, col, dark, _light) => {
     const blade = 'M 0 -4 C -7 -10, -7 -24, -1 -30 C 1 -31, 3 -30, 4 -28 C 6 -20, 5 -9, 0 -4 Z';
     const prop =
       G(PO(blade, '#c9cfdc', 2.4) + P('M 0 -7 C -4 -12, -4 -22, -1 -27 Z', '#ffffff', ' opacity="0.6"'), 'translate(32 33) rotate(-50)') +
