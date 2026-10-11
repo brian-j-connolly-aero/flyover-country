@@ -134,7 +134,7 @@ export class App {
       h(
         'div.menu',
         h('div.menu-title', 'FLYOVER COUNTRY'),
-        h('div.menu-sub', 'Seven breakaway states. Eight nights. One evening. The Bragging Rights go to the best dog.'),
+        h('div.menu-sub', 'Seven breakaway states fight an eight-night air war, and a whole game fits in one evening. The Bragging Rights go to the best dog.'),
         dogs,
         h(
           'div.menu-btns',
@@ -322,7 +322,7 @@ export class App {
       pv,
       headline,
       highlights: intro
-        ? ['Years after the Great Unplugging, the West has split into breakaway states. Nobody remembers who unplugged it. Everyone blames California.', 'Eight nights. Most Bragging Rights wins. Nobody dies on screen.']
+        ? ['Years after the Great Unplugging, the West has split into breakaway states. Nobody remembers who unplugged it. Everyone blames California.', 'The war lasts eight nights, one round each. The most Bragging Rights after Night 8 wins. Nobody dies on screen.']
         : this.lastSummary?.highlights ?? [],
       intro,
       returned: intro ? [] : this.lastSummary?.returned ?? [],

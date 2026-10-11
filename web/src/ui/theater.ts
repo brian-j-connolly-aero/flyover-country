@@ -49,6 +49,19 @@ export class Theater {
     this.ready = this.map.init().then(() => this.map!.fit());
     window.addEventListener('keydown', this.keyHandler);
     setInterval(() => this.pumpChatter(), 250);
+    // A busy night can overflow a short screen: tighten the open card a step or two until it fits.
+    const fit = () => {
+      const card = this.center.querySelector<HTMLElement>('.th-dawn, .th-report, .th-final');
+      if (!card) return;
+      card.classList.remove('tight', 'tighter');
+      for (const step of ['tight', 'tighter']) {
+        if (card.scrollHeight <= card.clientHeight + 1) break;
+        card.classList.add(step);
+      }
+    };
+    new MutationObserver(() => requestAnimationFrame(fit)).observe(this.center, { childList: true });
+    window.addEventListener('resize', fit);
+    void document.fonts?.ready.then(fit);
   }
 
   /** Stop drawing while hidden behind the planning window. */

@@ -388,6 +388,18 @@ input, select { font: inherit; color: var(--text); background: #0a1630; border: 
 .th-report .th-highlights, .th-dawn .th-highlights { columns: 2; column-gap: 3vw; }
 .th-highlights li { break-inside: avoid; }
 
+/* A busy night on a short screen: the theater tightens the open card a step or two until it fits. */
+.th-card.tight .th-minis { margin: 0.6vh 0; }
+.th-card.tight .th-mini { font-size: 1.8vh; padding: 0.7vh 0.9vw; }
+.th-card.tight .th-highlights { font-size: 2vh; margin: 0.6vh 0; }
+.th-card.tight .th-quip-dog svg { width: 7.5vh; height: 7.5vh; }
+.th-card.tight .th-quip-text { font-size: 1.85vh; }
+.th-card.tight .th-quips { margin-top: 0.6vh; }
+.th-card.tight > .th-continue { margin-top: 1.2vh; }
+.th-card.tighter .th-mini.sidebar { display: none; }
+.th-card.tighter .th-paper { padding-bottom: 0.8vh; margin-bottom: 0.8vh; }
+.th-card.tighter .th-headline { font-size: clamp(20px, 4.4vh, 56px); }
+
 /* --- Art pass: a few dog touches ------------------------------------------------------- */
 /* Everything here is decoration on top of the layouts above: no sizes or text change. */
 :root {
