@@ -49,6 +49,19 @@ export class Theater {
     this.ready = this.map.init().then(() => this.map!.fit());
     window.addEventListener('keydown', this.keyHandler);
     setInterval(() => this.pumpChatter(), 250);
+    // A busy night can overflow a short screen: tighten the open card a step or two until it fits.
+    const fit = () => {
+      const card = this.center.querySelector<HTMLElement>('.th-dawn, .th-report, .th-final');
+      if (!card) return;
+      card.classList.remove('tight', 'tighter');
+      for (const step of ['tight', 'tighter']) {
+        if (card.scrollHeight <= card.clientHeight + 1) break;
+        card.classList.add(step);
+      }
+    };
+    new MutationObserver(() => requestAnimationFrame(fit)).observe(this.center, { childList: true });
+    window.addEventListener('resize', fit);
+    void document.fonts?.ready.then(fit);
   }
 
   /** Stop drawing while hidden behind the planning window. */
@@ -570,13 +583,16 @@ function raceChart(d: FinalData): string {
     out += `<line x1="${x(i)}" y1="${pad}" x2="${x(i)}" y2="${H - pad}" stroke="#23365e" stroke-width="1"/>`;
     out += `<text x="${x(i)}" y="${H - 8}" fill="#7f93bb" font-size="12" text-anchor="middle">${i === 0 ? 'Start' : `N${hist[i]?.night ?? i}`}</text>`;
   }
+  const last = hist[hist.length - 1];
   d.factions.forEach((f, s) => {
     const color = faction(f).color;
     const pts = hist.map((r, i) => `${x(i).toFixed(1)},${y(r.scores[s] ?? 0).toFixed(1)}`).join(' ');
     out += `<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="3" stroke-linejoin="round"/>`;
-    const last = hist[hist.length - 1];
-    out += `<text x="${W - padR + 6}" y="${y(last.scores[s] ?? 0) + 4}" fill="${color}" font-size="12">${esc(faction(f).short)}</text>`;
   });
+  // End labels, nudged apart so tied scores don't print on top of each other.
+  const labels = d.factions.map((f, s) => ({ f, y: y(last.scores[s] ?? 0) + 4 })).sort((a, b) => a.y - b.y);
+  for (let i = 1; i < labels.length; i++) labels[i].y = Math.max(labels[i].y, labels[i - 1].y + 13);
+  for (const l of labels) out += `<text x="${W - padR + 6}" y="${l.y.toFixed(1)}" fill="${faction(l.f).color}" font-size="12">${esc(faction(l.f).short)}</text>`;
   out += '</svg>';
   return out;
 }

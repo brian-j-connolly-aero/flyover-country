@@ -3,10 +3,11 @@
 A 4-player hotseat air war over a post-collapse American West, led by dogs.
 
 Everyone plans their sorties in secret on a laptop, then the whole couch
-watches the night's air war play out on the TV. Seven breakaway states, eight
-nights, one evening, and someone walks away with the Bragging Rights. Nobody
-dies on screen: planes splash and every pilot gets a good chute. The dogs in
-charge are never in any danger.
+watches the night's air war play out on the TV. Seven breakaway states fight
+an eight-night war: each night is one round, a whole game fits in one evening,
+and someone walks away with the Bragging Rights. Nobody dies on screen: planes
+splash and every pilot gets a good chute. The dogs in charge are never in any
+danger.
 
 ## Start playing
 

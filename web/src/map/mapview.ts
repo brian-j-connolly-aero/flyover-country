@@ -81,6 +81,7 @@ export class MapView {
     L.links.addChild(this.linkG);
     L.nodes.addChild(this.nodeG, this.hiG);
     this.drawBase();
+    this.drawCompass();
     this.drawLandmarks();
     this.app.ticker.add((t) => this.tick(t.deltaMS));
     // Follow the container, not just the window (panels resize, overlays show and hide).
@@ -227,6 +228,31 @@ export class MapView {
     edge.poly(river.flat(), false).stroke({ width: 6, color: 0xb9c6dd, alpha: 0.12 });
     edge.poly(river.flat(), false).stroke({ width: 1.5, color: 0xdfe7f5, alpha: 0.45 });
     this.layers.base.addChild(edge);
+  }
+
+  /** A compass rose out in the Pacific, with a bone across the middle. */
+  private drawCompass() {
+    const g = new Graphics();
+    const [x, y] = [128, 862];
+    const ink = 0x8da3c9;
+    g.circle(x, y, 27).stroke({ width: 0.8, color: ink, alpha: 0.35 });
+    g.circle(x, y, 22).stroke({ width: 0.5, color: ink, alpha: 0.25 });
+    for (let i = 0; i < 8; i++) {
+      const ang = (i * Math.PI) / 4 - Math.PI / 2;
+      const long = i % 2 === 0;
+      const r = long ? 25 : 14;
+      const w = long ? 4.2 : 3;
+      const [cx, cy] = [Math.cos(ang), Math.sin(ang)];
+      const [px, py] = [-cy * w, cx * w];
+      const north = i === 0;
+      g.poly([x + px, y + py, x + cx * r, y + cy * r, x - px, y - py]).fill({ color: north ? 0xffd23f : ink, alpha: north ? 0.55 : long ? 0.3 : 0.22 });
+    }
+    // The bone (solid, so its knobs don't double up where they overlap).
+    const bone = 0xa59b8c;
+    g.roundRect(x - 8.5, y - 1.9, 17, 3.8, 1.9).fill({ color: bone });
+    for (const [dx, dy] of [[-8.5, -2], [-8.5, 2], [8.5, -2], [8.5, 2]]) g.circle(x + dx, y + dy, 2.5).fill({ color: bone });
+    this.layers.base.addChild(g);
+    this.label('compass-n', 'N', [x, y - 33], 'label-compass');
   }
 
   /** Places that aren't nodes. Project Bark Park: a fenced lawn, a pond and a ball. */
