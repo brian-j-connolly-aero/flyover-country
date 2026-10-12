@@ -1,20 +1,31 @@
 // The planning window and the Theater window talk over BroadcastChannel; no
-// server needed. The Theater only ever receives public information.
+// server needed. The Theater never sees tonight's orders: only the game
+// state (all of which is public) and what happened once a night resolves.
 
-import type { EventRec, FactionId, PublicView, SeatKind } from './types';
+import type { EventRec, FactionId, GameState, SeatKind } from './types';
+import type { Caption } from './show/summary';
+import type { Mood } from './art/dogs';
 
-export interface DawnData {
+/** The morning card: last night in a few lines, one dog, and what's new. */
+export interface MorningData {
+  /** The night about to be planned. */
   night: number;
   nights: number;
-  stage: number;
   factions: FactionId[];
   kinds: SeatKind[];
-  pv: PublicView;
-  headline: string;
-  highlights: string[];
+  state: GameState;
+  report: { headline: string; highlights: string[]; gained: number[] } | null;
+  speaker: { seat: number; mood: Mood; line: string } | null;
+  news: string[];
   intro: boolean;
-  /** Seats back from Project Bark Park this morning. */
-  returned?: number[];
+}
+
+export interface FinalData {
+  factions: FactionId[];
+  kinds: SeatKind[];
+  state: GameState;
+  headline: string;
+  line: string | null;
 }
 
 export interface ShowData {
@@ -22,21 +33,17 @@ export interface ShowData {
   factions: FactionId[];
   kinds: SeatKind[];
   events: EventRec[];
-  before: PublicView;
-  after: PublicView;
-  last: boolean;
-}
-
-export interface FinalData {
-  factions: FactionId[];
-  kinds: SeatKind[];
-  pv: PublicView;
+  before: GameState;
+  after: GameState;
+  captions: Caption[];
+  /** What to put up when the show ends. */
+  next: { type: 'morning'; data: MorningData } | { type: 'final'; data: FinalData } | { type: 'back' };
 }
 
 export type ToTheater =
-  | { type: 'idle'; pv: PublicView | null; factions: FactionId[]; kinds: SeatKind[]; text?: string }
-  | { type: 'dawn'; data: DawnData }
-  | { type: 'curtain'; seat: number; faction: FactionId; pv: PublicView; factions: FactionId[]; kinds: SeatKind[]; deadline: number | null; waiting: FactionId[] }
+  | { type: 'idle'; state: GameState | null; factions: FactionId[]; kinds: SeatKind[]; text?: string }
+  | { type: 'morning'; data: MorningData }
+  | { type: 'curtain'; seat: number; faction: FactionId; state: GameState; factions: FactionId[]; kinds: SeatKind[]; deadline: number | null; waiting: FactionId[] }
   | { type: 'show'; data: ShowData }
   | { type: 'final'; data: FinalData }
   | { type: 'control'; action: 'pause' | 'speed' | 'skip' | 'replay'; value?: number }

@@ -1,48 +1,82 @@
-// Plays a resolved night back as a show: glowing tracks, dogfights, flak,
-// strikes and parachutes, with a camera that holds on the biggest moment.
-// The outcome is already decided, so pause, speed up and skip are safe.
+// Plays a resolved night back one moment at a time. Raids fly in straight
+// lines from their Airfield; whenever something happens (a patrol jumps a
+// raid, bombs land, a prize changes hands) the clock stops, the camera moves
+// in, and the result is stamped on the map with one line of caption. The
+// outcome is already decided, so pause, speed up and skip are all safe.
 
 import { Graphics } from 'pixi.js';
-import type { MapView, NodeState } from '../map/mapview';
-import type { Content, EventRec, FactionId, GameEvent, MissionTag, P, PublicView, SqSnap, UnitKind } from '../types';
-import { drawGlyph, factionColor } from '../theme';
-import { aceLine, chatter, eventSalt, faction, leader, nodeName, pick, unitName, zoneName } from '../text';
-import { barkPark, moments, type Moment } from './summary';
+import type { MapView } from '../map/mapview';
+import type { Content, EventRec, FactionId, GameState, Loss, P, UnitKind } from '../types';
+import { HIT_RED, INK, PAPER, dashedCircle, dashedLine, drawPlane, factionColor, mix } from '../theme';
+import type { Caption } from './summary';
 
-interface GroupTrack {
+export interface ShowHooks {
+  caption(c: Caption | null): void;
+  score(seat: number, delta: number): void;
+  sound(kind: string): void;
+  ended(): void;
+  progress?(k: number): void;
+}
+
+interface RaidTrack {
   id: number;
   seat: number;
-  faction: FactionId;
-  kinds: UnitKind[];
-  ace: boolean;
-  mission: MissionTag;
-  pts: [number, number, number][];
-  first: number;
-  last: number;
+  color: number;
+  from: P;
+  to: P;
+  launch: number;
+  arrive: number;
+  fighters: number;
+  bombers: number;
+  sqs: number[];
+  /** Tick it stopped flying in: arrived, wiped out, or parked on a prize. */
+  done: number | null;
+  /** Parked on this prize (holding it). */
+  holding: number | null;
+  /** Tick it started heading home, fading as it goes. */
+  home: number | null;
+  /** Where it was when shot down. */
+  lostAt: P | null;
+}
+
+interface PatrolTrack {
+  sq: number;
+  seat: number;
+  color: number;
+  at: P;
+  r: number;
+  planes: number;
+  phase: number;
 }
 
 interface Fx {
-  kind: 'ring' | 'flash' | 'chute' | 'tracer' | 'flak' | 'boom' | 'smoke' | 'static' | 'arc' | 'text';
+  kind: 'ring' | 'chute' | 'boom' | 'puff' | 'smoke' | 'boing';
   x: number;
   y: number;
-  x2?: number;
-  y2?: number;
+  vx: number;
+  vy: number;
   color: number;
   born: number;
   dur: number;
   size: number;
 }
 
-export interface ShowHooks {
-  chatter(who: string, color: string, text: string, priority: number): void;
-  banner(title: string, sub: string, kind: 'update' | 'jackpot' | 'static' | 'title' | 'park'): void;
-  score(seat: number, delta: number): void;
-  sound(kind: string): void;
-  ended(): void;
-  progress?(t: number): void;
-}
+/** Milliseconds per tick at 1x while raids are in the air. */
+const TICK_MS = 85;
+/** How long each kind of moment holds the screen at 1x. */
+const HOLD: Record<string, number> = {
+  BarkPark: 1500,
+  Intercept: 1700,
+  Flak: 1300,
+  StrikeHit: 1800,
+  StrikeMiss: 1100,
+  Bounce: 1400,
+  Hold: 1200,
+  PrizeFight: 1700,
+  Fetch: 2000,
+};
 
-const TICKS = 360;
+const BEATS = new Set(['BarkPark', 'Intercept', 'Strike', 'Bounce', 'Hold', 'PrizeFight', 'Fetch']);
 
 export class ShowPlayer {
   readonly map: MapView;
@@ -50,141 +84,64 @@ export class ShowPlayer {
   readonly factions: FactionId[];
   readonly events: EventRec[];
   private hooks: ShowHooks;
-  private groups = new Map<number, GroupTrack>();
-  private sqGroup = new Map<number, number>();
-  private dwell: number[] = [];
-  private moments: Moment[];
-  private fired = 0;
+  private captions = new Map<number, Caption>();
+  private kinds = new Map<number, UnitKind>();
+  private raids = new Map<number, RaidTrack>();
+  private patrols: PatrolTrack[] = [];
+  private park = new Set<number>();
+  private view: GameState;
+  private after: GameState;
   private fx: Fx[] = [];
+  private pathG = new Graphics();
   private unitG = new Graphics();
   private fxG = new Graphics();
-  private trailG = new Graphics();
-  private clock = 0; // real ms since start (scaled by speed)
-  private now = 0; // real ms, unscaled, for effects
-  private cumul: number[] = [];
+  private parkG = new Graphics();
+  private ball: { from: P; to: P; t0: number; t1: number; heard: boolean } | null = null;
+  private fetchAt = new Map<number, number>();
+  private i = 0;
+  private hold = 0;
+  private intro = 900;
+  private outro = -1;
+  private stamps = 0;
+  private now = 0;
+  private maxTick: number;
   t = 0;
   speed = 1;
   paused = false;
   done = false;
-  private endAt: number | null = null;
-  private nodes: NodeState[];
-  private finalNodes: NodeState[];
-  private range: [number, number] | null = null;
-  private lockFocus: Moment | null = null;
-  private quietNarration = false;
-  /** Project Bark Park: who's at the park tonight, their fence, and their radio. */
-  private park = new Set<number>();
-  private parkG = new Graphics();
-  private parkLines: { tick: number; seat: number; n: number; done: boolean }[] = [];
-  /** The Big Fetch: lifts off a few ticks before it lands. */
-  private fetches: { seat: number; node: number; tick: number; launched: boolean }[] = [];
-  private ballG = new Graphics();
-  private boings = 0;
 
-  constructor(map: MapView, content: Content, factions: FactionId[], events: EventRec[], before: PublicView, after: PublicView, hooks: ShowHooks) {
+  constructor(map: MapView, content: Content, factions: FactionId[], events: EventRec[], before: GameState, after: GameState, captions: Caption[], hooks: ShowHooks) {
     this.map = map;
     this.content = content;
     this.factions = factions;
-    this.events = events.filter((e) => e.public);
+    this.events = events;
     this.hooks = hooks;
-    this.nodes = before.nodes.map((n) => ({ owner: n.owner, health: n.health, active: n.active }));
-    this.finalNodes = after.nodes.map((n) => ({ owner: n.owner, health: n.health, active: n.active }));
-    for (const r of this.events) {
-      const e = r.e;
-      if (e.t === 'Launch') {
-        this.groups.set(e.group, {
-          id: e.group, seat: e.seat, faction: factions[e.seat], kinds: e.squadrons.map((s) => s.kind),
-          ace: e.squadrons.some((s) => s.ace), mission: e.mission, pts: [], first: r.tick, last: r.tick,
-        });
-        for (const s of e.squadrons) this.sqGroup.set(s.sq, e.group);
-      }
-      if (e.t === 'Track') {
-        const g = this.groups.get(e.group);
-        if (g) {
-          g.pts = e.pts;
-          if (e.pts.length) {
-            g.first = e.pts[0][0];
-            g.last = e.pts[e.pts.length - 1][0];
-          }
-        }
-      }
-    }
-    const fetchTick = content.rules.bark_park?.fetch_tick ?? 240;
-    for (const r of this.events) {
-      const e = r.e;
-      if (e.t === 'BarkPark') {
-        this.park.add(e.seat);
-        [45, 135, 225, 305].forEach((t, n) => this.parkLines.push({ tick: t + e.seat * 7, seat: e.seat, n, done: false }));
-      }
-      if (e.t === 'Fetch' || (e.t === 'Bounce' && e.group === null && r.tick === fetchTick)) {
-        this.fetches.push({ seat: e.seat, node: e.node, tick: r.tick, launched: false });
-      }
-    }
-    this.moments = moments(content, this.events, factions);
-    this.buildDwell();
-    map.layers.links.addChildAt(this.parkG, 0);
-    map.layers.fx.addChild(this.ballG);
-    map.layers.units.addChild(this.trailG, this.unitG);
+    this.view = structuredClone(before);
+    this.after = after;
+    for (const c of captions) this.captions.set(c.index, c);
+    for (const s of before.squadrons) this.kinds.set(s.id, s.kind);
+    this.maxTick = Math.max(1, ...events.filter((e) => e.t !== 'Dawn').map((e) => (e.t === 'Launch' ? e.arrive : e.tick)));
+    const fetchTick = content.rules.bark_park.fetch_tick;
+    events.forEach((e, k) => {
+      if (e.t === 'Fetch') this.fetchAt.set(k, fetchTick);
+      if (e.t === 'BarkPark') this.park.add(e.seat);
+    });
+    map.layers.plan.addChild(this.parkG, this.pathG);
+    map.layers.units.addChild(this.unitG);
     map.layers.fx.addChild(this.fxG);
-    this.fxG.blendMode = 'add';
-    this.trailG.blendMode = 'add';
-    map.setNodes(this.nodes.map((n) => ({ ...n })));
+    map.setMarks(null);
+    map.setState(this.view);
+    this.drawPark();
     this.unsubscribe = map.onTick((dt) => this.frame(dt));
   }
   private unsubscribe: () => void;
-  private destroyed = false;
 
   destroy() {
     this.done = true;
-    this.destroyed = true;
     this.unsubscribe();
-    this.unitG.destroy();
-    this.fxG.destroy();
-    this.trailG.destroy();
-    this.parkG.destroy();
-    this.ballG.destroy();
-    this.map.removeLabels('boing-');
-  }
-
-  private buildDwell() {
-    const big = new Array(TICKS + 2).fill(0);
-    for (const m of this.moments) {
-      for (let t = Math.max(0, m.tick - 3); t <= Math.min(TICKS, m.tick + Math.max(6, m.hold)); t++) big[t] = Math.max(big[t], m.importance);
-    }
-    const airborne = new Array(TICKS + 2).fill(0);
-    for (const g of this.groups.values()) for (let t = g.first; t <= Math.min(TICKS, g.last); t++) airborne[t]++;
-    this.dwell = [];
-    let acc = 0;
-    // The Big Fetch is in the air for the three ticks before it lands.
-    for (const f of this.fetches) for (let t = Math.max(0, f.tick - 3); t < f.tick; t++) airborne[t]++;
-    for (let t = 0; t <= TICKS; t++) {
-      let d = airborne[t] > 0 ? 90 : 22;
-      if (big[t] >= 30) d = 380;
-      if (big[t] >= 80) d = 700; // slow motion on ace duels and crown jewels
-      this.dwell.push(d);
-      this.cumul.push(acc);
-      acc += d;
-    }
-    this.cumul.push(acc);
-  }
-
-  /** Total show length at 1x, in seconds. */
-  get length(): number {
-    return this.cumul[this.cumul.length - 1] / 1000;
-  }
-
-  private tickAt(ms: number): number {
-    // Binary search the cumulative dwell table.
-    let lo = 0;
-    let hi = this.cumul.length - 1;
-    while (lo < hi) {
-      const mid = (lo + hi + 1) >> 1;
-      if (this.cumul[mid] <= ms) lo = mid;
-      else hi = mid - 1;
-    }
-    const base = this.cumul[lo];
-    const span = this.dwell[lo] ?? 1;
-    return Math.min(TICKS + 1, lo + Math.min(1, (ms - base) / span));
+    for (const g of [this.pathG, this.unitG, this.fxG, this.parkG]) g.destroy();
+    this.map.removeLabels('stamp-');
+    this.map.removeLabels('pop-');
   }
 
   setSpeed(s: number) {
@@ -195,671 +152,467 @@ export class ShowPlayer {
     this.paused = !this.paused;
   }
 
+  /** Jump to the end: every score lands, the map shows the morning. */
   skip() {
-    // Fire everything that's left so the scoreboard ends right, then stop.
-    this.range = null;
-    this.clock = this.cumul[this.cumul.length - 1];
-    this.t = TICKS + 1;
-    while (this.fired < this.events.length) this.fire(this.events[this.fired++], true);
-    this.map.setNodes(this.finalNodes.map((n) => ({ ...n })));
-    this.fx = [];
+    if (this.done) return;
+    while (this.i < this.events.length) {
+      const r = this.events[this.i++];
+      if (r.t === 'Score') this.hooks.score(r.seat, r.delta);
+    }
     this.finish();
   }
-
-  /** Replay a slice (the Play of the Night) with the camera locked on it. */
-  playRange(m: Moment, onDone: () => void) {
-    const t0 = Math.max(0, m.tick - 14);
-    const t1 = Math.min(TICKS, m.tick + 14);
-    this.range = [t0, t1];
-    this.lockFocus = m;
-    this.done = false;
-    this.endAt = null;
-    this.clock = this.cumul[t0];
-    this.t = t0;
-    this.fired = this.events.findIndex((r) => r.tick >= t0);
-    if (this.fired < 0) this.fired = this.events.length;
-    for (const f of this.fetches) if (f.tick >= t0) f.launched = false;
-    this.quietNarration = true;
-    this.fx = [];
-    this.replayDone = onDone;
-  }
-  private replayDone: (() => void) | null = null;
 
   private finish() {
     if (this.done) return;
     this.done = true;
-    this.map.setNodes(this.finalNodes.map((n) => ({ ...n })));
+    this.hold = 0;
+    this.raids.clear();
+    this.patrols = [];
+    this.ball = null;
+    this.fx = [];
+    this.pathG.clear();
     this.unitG.clear();
-    this.trailG.clear();
+    this.fxG.clear();
+    this.parkG.clear();
+    this.map.removeLabels('stamp-');
+    this.map.removeLabels('pop-');
+    this.map.setState(this.after);
+    this.map.setNight(0);
+    { const home = this.map.home(); this.map.focus(home.x, home.y, home.zoom); }
+    this.hooks.caption(null);
+    this.hooks.progress?.(1);
     this.hooks.ended();
   }
 
+  // --- The clock -------------------------------------------------------------------------------
+
   private frame(dt: number) {
-    if (this.destroyed) return;
+    if (this.done) return;
     this.now += dt;
-    if (this.done && !this.range) {
-      this.drawFx();
-      this.drawPark();
-      this.ballG.clear();
-      return;
-    }
     if (!this.paused) {
-      const slowRange = this.range ? 0.6 : 1;
-      this.clock += dt * this.speed * slowRange;
-      this.t = this.tickAt(this.clock);
-    }
-    this.launchFetches();
-    while (this.fired < this.events.length && this.events[this.fired].tick <= this.t) {
-      if (this.range && this.events[this.fired].tick > this.range[1]) break;
-      this.fire(this.events[this.fired++], false);
-    }
-    this.parkRadio();
-    this.drawUnits();
-    this.drawFx();
-    this.drawPark();
-    this.drawBalls();
-    this.direct();
-    this.hooks.progress?.(this.t);
-    if (this.range && this.t >= this.range[1]) {
-      this.range = null;
-      this.lockFocus = null;
-      this.quietNarration = false;
-      this.done = true;
-      this.unitG.clear();
-      this.trailG.clear();
-      const cb = this.replayDone;
-      this.replayDone = null;
-      this.map.setNodes(this.finalNodes.map((n) => ({ ...n })));
-      cb?.();
-      return;
-    }
-    if (!this.range && this.t >= TICKS && this.endAt === null) this.endAt = this.now + 1200;
-    if (this.endAt !== null && this.now >= this.endAt) this.finish();
-  }
-
-  // --- Camera director ---------------------------------------------------------------------
-
-  private direct() {
-    if (this.lockFocus) {
-      this.map.focus(this.lockFocus.pos[0], this.lockFocus.pos[1], 2.4);
-      return;
-    }
-    const t = this.t;
-    const flying = this.fetches.find((f) => t >= f.tick - 3 && t < f.tick);
-    if (flying) {
-      const a = barkPark(this.content);
-      const b = this.content.nodes[flying.node].pos;
-      const d = Math.hypot(b[0] - a[0], b[1] - a[1]);
-      this.map.focus((a[0] + b[0]) / 2, (a[1] + b[1]) / 2 - d * 0.18, Math.max(1, Math.min(2.2, (this.content.width * 0.5) / Math.max(d, 120))));
-      return;
-    }
-    let best: Moment | null = null;
-    for (const m of this.moments) {
-      if (t >= m.tick - 6 && t <= m.tick + m.hold) {
-        // Never cut away from an ace duel in progress.
-        if (!best || m.importance > best.importance || (best.kind !== 'duel' && m.kind === 'duel')) best = m;
-      }
-    }
-    if (best) {
-      const z = best.importance >= 80 ? 2.5 : best.importance >= 50 ? 2.0 : 1.6;
-      this.map.focus(best.pos[0], best.pos[1], z);
-      return;
-    }
-    // Otherwise follow the visible traffic, or pull back to the whole West.
-    let n = 0;
-    let sx = 0;
-    let sy = 0;
-    for (const g of this.groups.values()) {
-      if (t < g.first || t > g.last) continue;
-      const p = this.posAt(g, t);
-      if (!p) continue;
-      sx += p[0];
-      sy += p[1];
-      n++;
-    }
-    if (n > 0) this.map.focus(sx / n, sy / n, n === 1 ? 1.5 : 1.2);
-    else this.map.focus(this.content.width / 2 + 10, this.content.height / 2, 1);
-  }
-
-  // --- Drawing ---------------------------------------------------------------------------------
-
-  private posAt(g: GroupTrack, t: number): P | null {
-    const pts = g.pts;
-    if (!pts.length || t < pts[0][0] || t > pts[pts.length - 1][0] + 0.001) return null;
-    let i = 0;
-    while (i < pts.length - 1 && pts[i + 1][0] < t) i++;
-    const a = pts[i];
-    const b = pts[Math.min(i + 1, pts.length - 1)];
-    const span = b[0] - a[0];
-    const k = span > 0 ? (t - a[0]) / span : 0;
-    return [a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
-  }
-
-  private drawUnits() {
-    const g = this.unitG;
-    const tr = this.trailG;
-    g.clear();
-    tr.clear();
-    const t = this.t;
-    const zoom = this.map.cam.zoom;
-    for (const grp of this.groups.values()) {
-      if (t < grp.first || t > grp.last) continue;
-      const p = this.posAt(grp, t);
-      if (!p) continue;
-      const color = factionColor(grp.faction);
-      // Contrail: the last 30 ticks, fading.
-      const trail: P[] = [];
-      for (const q of grp.pts) if (q[0] >= t - 30 && q[0] <= t) trail.push([q[1], q[2]]);
-      trail.push(p);
-      for (let i = 1; i < trail.length; i++) {
-        const a = i / trail.length;
-        tr.moveTo(trail[i - 1][0], trail[i - 1][1]).lineTo(trail[i][0], trail[i][1]).stroke({ width: 2.2 / zoom + 0.6, color, alpha: a * 0.55 });
-      }
-      const prev = this.posAt(grp, Math.max(grp.first, t - 1.5)) ?? p;
-      let ang = Math.atan2(p[1] - prev[1], p[0] - prev[0]);
-      if (!Number.isFinite(ang) || (p[0] === prev[0] && p[1] === prev[1])) ang = -Math.PI / 2;
-      const size = 6.5 / Math.sqrt(zoom);
-      const lead = grp.kinds.includes('Longhorn') ? 'Longhorn' : grp.kinds[0];
-      g.circle(p[0], p[1], size * 1.8).fill({ color, alpha: 0.12 });
-      drawGlyph(g, grp.faction, lead, p[0], p[1], size, ang);
-      if (grp.kinds.length > 1) {
-        for (let k = 1; k < Math.min(grp.kinds.length, 4); k++) {
-          const off = k * size * 1.2;
-          drawGlyph(g, grp.faction, grp.kinds[k], p[0] - Math.cos(ang) * off + Math.sin(ang) * off * 0.6 * (k % 2 ? 1 : -1), p[1] - Math.sin(ang) * off - Math.cos(ang) * off * 0.6 * (k % 2 ? 1 : -1), size * 0.75, ang);
-        }
-      }
-      if (grp.ace) g.circle(p[0], p[1], size * 1.6).stroke({ width: 1, color: 0xffffff, alpha: 0.7 });
-    }
-  }
-
-  private addFx(f: Omit<Fx, 'born'>) {
-    this.fx.push({ ...f, born: this.now });
-  }
-
-  private drawFx() {
-    const g = this.fxG;
-    g.clear();
-    const keep: Fx[] = [];
-    for (const f of this.fx) {
-      const k = (this.now - f.born) / f.dur;
-      if (k >= 1) continue;
-      keep.push(f);
-      const a = 1 - k;
-      switch (f.kind) {
-        case 'ring':
-          g.circle(f.x, f.y, f.size * (0.3 + k)).stroke({ width: 2.5 * a + 0.5, color: f.color, alpha: a });
-          break;
-        case 'boom':
-          // A comic-book burst under the fireball, gone in a blink.
-          if (k < 0.5) {
-            const b = 1 - k / 0.5;
-            const pts: number[] = [];
-            for (let i = 0; i < 18; i++) {
-              const ang = (i / 18) * Math.PI * 2 + f.size * 0.37;
-              const r = f.size * (0.8 + k * 1.6) * (i % 2 ? 0.55 : 1 + ((i * 7) % 5) * 0.1);
-              pts.push(f.x + Math.cos(ang) * r, f.y + Math.sin(ang) * r);
-            }
-            g.poly(pts).fill({ color: 0xffd76b, alpha: b * 0.4 });
-            g.poly(pts).stroke({ width: 1.2, color: 0xffffff, alpha: b * 0.55 });
-          }
-          g.circle(f.x, f.y, f.size * (0.2 + k * 1.4)).fill({ color: f.color, alpha: a * 0.35 });
-          g.circle(f.x, f.y, f.size * (0.1 + k * 0.6)).fill({ color: 0xffffff, alpha: a * 0.6 });
-          g.circle(f.x, f.y, f.size * (0.4 + k * 2.2)).stroke({ width: 3 * a, color: f.color, alpha: a });
-          break;
-        case 'flash':
-          g.circle(f.x, f.y, f.size * (1 - k * 0.5)).fill({ color: f.color, alpha: a * 0.8 });
-          break;
-        case 'tracer':
-          g.moveTo(f.x, f.y).lineTo(f.x2!, f.y2!).stroke({ width: 1.2, color: f.color, alpha: a * 0.9 });
-          break;
-        case 'flak':
-          for (let i = 0; i < 5; i++) {
-            const ang = i * 1.3 + f.size;
-            g.circle(f.x + Math.cos(ang) * 6 * (0.5 + k), f.y + Math.sin(ang) * 6 * (0.5 + k), 1.6 + k * 2).fill({ color: f.color, alpha: a * 0.7 });
-          }
-          if (f.x2 !== undefined) g.moveTo(f.x2, f.y2!).lineTo(f.x, f.y).stroke({ width: 0.8, color: f.color, alpha: a * 0.35 });
-          break;
-        case 'chute': {
-          // A little parachute drifting down: everyone ejects.
-          const y = f.y + k * 18;
-          const x = f.x + Math.sin(k * 6) * 3;
-          g.moveTo(x - 5.5, y - 7).arc(x, y - 7, 5.5, Math.PI, 0).closePath().fill({ color: 0xffffff, alpha: a * 0.9 });
-          g.moveTo(x - 5.5, y - 7).lineTo(x, y - 1).moveTo(x + 5.5, y - 7).lineTo(x, y - 1).stroke({ width: 0.7, color: 0xffffff, alpha: a * 0.9 });
-          // The pilot is a pup: floppy ears in the faction color, flapping on the way down.
-          const flap = Math.sin(k * 22) * 0.4;
-          g.ellipse(x - 2, y + 0.9 - flap, 0.95, 1.8).fill({ color: f.color, alpha: a });
-          g.ellipse(x + 2, y + 0.9 + flap, 0.95, 1.8).fill({ color: f.color, alpha: a });
-          g.circle(x, y + 0.6, 1.9).fill({ color: 0xf2dfc2, alpha: a });
-          break;
-        }
-        case 'smoke':
-          g.circle(f.x + k * 6, f.y - k * 12, f.size * (0.5 + k)).fill({ color: 0x9aa4b5, alpha: a * 0.3 });
-          break;
-        case 'static':
-          for (let i = 0; i < 12; i++) {
-            g.rect(f.x + (Math.random() - 0.5) * 30, f.y + (Math.random() - 0.5) * 30, 3, 1.5).fill({ color: 0xdde6f5, alpha: a * Math.random() });
-          }
-          break;
-        case 'arc': {
-          const mx = (f.x + f.x2!) / 2;
-          const my = Math.min(f.y, f.y2!) - 120;
-          const p = Math.min(1, k * 1.6);
-          let px = f.x;
-          let py = f.y;
-          g.moveTo(px, py);
-          for (let i = 1; i <= 24 * p; i++) {
-            const s = i / 24;
-            px = (1 - s) * (1 - s) * f.x + 2 * (1 - s) * s * mx + s * s * f.x2!;
-            py = (1 - s) * (1 - s) * f.y + 2 * (1 - s) * s * my + s * s * f.y2!;
-            g.lineTo(px, py);
-          }
-          g.stroke({ width: 2.5, color: f.color, alpha: a });
-          break;
-        }
-        case 'text':
-          break;
-      }
-    }
-    this.fx = keep;
-  }
-
-  // --- Project Bark Park and the Big Fetch -------------------------------------------------------
-
-  /** A fence around each faction at the park, and dogs at the park itself. */
-  private drawPark() {
-    const g = this.parkG;
-    g.clear();
-    if (!this.park.size) return;
-    const pulse = 0.5 + 0.5 * Math.sin(this.now / 650);
-    for (const seat of this.park) {
-      const f = this.factions[seat];
-      const zones = this.content.zones.filter((z) => z.region === f);
-      for (const z of zones) g.poly(z.poly.flat()).fill({ color: 0x7fe08f, alpha: 0.05 + 0.06 * pulse });
-      // Only the outer edges get a fence: count each edge across the region's zones.
-      const edges = new Map<string, [P, P, number]>();
-      for (const z of zones) {
-        for (let i = 0; i < z.poly.length; i++) {
-          const a = z.poly[i];
-          const b = z.poly[(i + 1) % z.poly.length];
-          const k = a[0] < b[0] || (a[0] === b[0] && a[1] < b[1]) ? `${a}|${b}` : `${b}|${a}`;
-          const e = edges.get(k);
-          edges.set(k, e ? [e[0], e[1], e[2] + 1] : [a, b, 1]);
-        }
-      }
-      for (const [a, b, count] of edges.values()) {
-        if (count > 1) continue;
-        g.moveTo(a[0], a[1]).lineTo(b[0], b[1]).stroke({ width: 5, color: 0x7fe08f, alpha: 0.16 + 0.1 * pulse });
-        g.moveTo(a[0], a[1]).lineTo(b[0], b[1]).stroke({ width: 1.4, color: 0xe9f5e1, alpha: 0.85 });
-        const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
-        for (let s = 0; s <= len; s += 9) {
-          const k = len > 0 ? s / len : 0;
-          g.circle(a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, 1.3).fill({ color: 0xffffff, alpha: 0.9 });
-        }
-      }
-    }
-    const bp = barkPark(this.content);
-    g.circle(bp[0], bp[1], 16 + 3 * pulse).stroke({ width: 2, color: 0x7fe08f, alpha: 0.7 });
-    let i = 0;
-    for (const seat of this.park) {
-      const ang = this.now / 900 + (i++ * Math.PI * 2) / this.park.size;
-      g.circle(bp[0] + Math.cos(ang) * 11, bp[1] + Math.sin(ang) * 7, 3).fill({ color: factionColor(this.factions[seat]) });
-    }
-  }
-
-  /** Radio from the park: the crews relaxing, and what the dog in charge is up to. */
-  private parkRadio() {
-    for (const l of this.parkLines) {
-      if (l.done || l.tick > this.t) continue;
-      l.done = true;
-      if (this.quietNarration) continue;
-      const f = this.factions[l.seat];
-      const fd = faction(f);
-      if (l.n % 2 === 0) {
-        const line = chatter(f, 'park', {}, l.tick * 13 + l.seat);
-        if (line) this.hooks.chatter(`${fd.short.toUpperCase()} AT THE PARK`, fd.color, line, 1);
+      const sdt = dt * this.speed;
+      if (this.intro > 0) {
+        this.intro -= sdt;
+        this.map.setNight(Math.min(1, 1 - this.intro / 900));
+      } else if (this.outro >= 0) {
+        this.outro += sdt;
+        this.map.setNight(Math.max(0, 1 - this.outro / 900));
+        if (this.outro >= 900) this.finish();
+      } else if (this.hold > 0) {
+        this.hold -= sdt;
+        if (this.hold <= 0) this.endBeat();
       } else {
-        const line = pick(this.content.flavor.park_curtain?.[f], l.tick * 7 + l.seat);
-        if (line) this.hooks.chatter('PROJECT BARK PARK', '#7fe08f', line, 1);
+        this.t += sdt / TICK_MS;
+        this.pump();
       }
     }
+    if (this.done) return;
+    this.draw(dt);
+    this.hooks.progress?.(Math.min(1, this.t / this.maxTick));
   }
 
-  /** The ball lifts off from the park three ticks before it lands. */
-  private launchFetches() {
-    for (const f of this.fetches) {
-      if (f.launched || this.t < f.tick - 3 || this.t >= f.tick + 1) continue;
-      f.launched = true;
-      const short = faction(this.factions[f.seat]).short.toUpperCase();
-      this.hooks.banner('THE BIG FETCH', `${short} LAUNCHES FROM PROJECT BARK PARK`, 'park');
-      this.hooks.sound('fetch');
-      if (!this.quietNarration) this.say(f.seat, `${short} LAUNCH CREW`, 'fetch', { node: nodeName(f.node) }, f.tick + f.seat, 4);
-      const bp = barkPark(this.content);
-      this.addFx({ kind: 'ring', x: bp[0], y: bp[1], color: 0xd7f542, dur: 1400, size: 26 });
-    }
-  }
-
-  /** A stadium-sized tennis ball on an arc, with its shadow racing along the ground. */
-  private drawBalls() {
-    const g = this.ballG;
-    g.clear();
-    const t = this.t;
-    for (const f of this.fetches) {
-      const a = barkPark(this.content);
-      const b = this.content.nodes[f.node].pos;
-      if (t >= f.tick - 3 && t < f.tick) {
-        const k = (t - (f.tick - 3)) / 3;
-        const d = Math.hypot(b[0] - a[0], b[1] - a[1]);
-        const c: P = [(a[0] + b[0]) / 2, Math.min(a[1], b[1]) - d * 0.45 - 40];
-        const x = (1 - k) * (1 - k) * a[0] + 2 * (1 - k) * k * c[0] + k * k * b[0];
-        const y = (1 - k) * (1 - k) * a[1] + 2 * (1 - k) * k * c[1] + k * k * b[1];
-        const gx = a[0] + (b[0] - a[0]) * k;
-        const gy = a[1] + (b[1] - a[1]) * k;
-        const lift = Math.sin(Math.PI * k);
-        g.ellipse(gx, gy, 12 - 5 * lift, 5 - 2 * lift).fill({ color: 0x000000, alpha: 0.35 });
-        this.ball(g, x, y, 10 + 16 * lift, k * 9);
-      } else if (t >= f.tick && t < f.tick + 8) {
-        // It bounces away, as balls do.
-        const s = t - f.tick;
-        const fade = 1 - s / 8;
-        const x = b[0] + s * 5;
-        const y = b[1] - Math.abs(Math.sin(s * 1.7)) * 10 * fade;
-        g.ellipse(x, b[1] + 2, 6, 2.5).fill({ color: 0x000000, alpha: 0.25 * fade });
-        this.ball(g, x, y, 9, s * 3, fade);
+  /** Apply every event up to the clock, stopping at the next moment worth showing. */
+  private pump() {
+    while (this.hold <= 0 && this.i < this.events.length) {
+      const r = this.events[this.i];
+      if (r.t === 'Dawn') break;
+      // The Big Fetch takes off a little before it lands.
+      const fetchTick = this.fetchAt.get(this.i);
+      if (fetchTick !== undefined && r.t === 'Fetch' && !this.ball) {
+        const from = this.content.landmarks.find((l) => l.id === 'bark_park')?.pos ?? [0, 0];
+        this.ball = { from, to: this.content.sites[r.site].pos, t0: fetchTick - 14, t1: fetchTick, heard: false };
       }
+      if (r.tick > this.t) break;
+      this.i++;
+      this.apply(r, this.i - 1);
     }
-  }
-
-  private ball(g: Graphics, x: number, y: number, r: number, spin: number, alpha = 1) {
-    g.circle(x, y, r).fill({ color: 0xd7f542, alpha });
-    g.circle(x, y, r).stroke({ width: Math.max(0.8, r * 0.08), color: 0x9fb526, alpha });
-    g.moveTo(x + Math.cos(spin) * r, y + Math.sin(spin) * r)
-      .quadraticCurveTo(x + Math.cos(spin + Math.PI / 2) * r * 0.2, y + Math.sin(spin + Math.PI / 2) * r * 0.2, x + Math.cos(spin + Math.PI) * r, y + Math.sin(spin + Math.PI) * r)
-      .stroke({ width: Math.max(0.8, r * 0.12), color: 0xffffff, alpha: 0.9 * alpha });
-  }
-
-  /** A cartoon "BOING!" over a node. */
-  private boing(p: P) {
-    const id = `boing-${this.boings++}`;
-    this.map.label(id, 'BOING!', [p[0], p[1] - 16], 'label-boing');
-    setTimeout(() => this.map.removeLabel(id), 1500);
-  }
-
-  // --- Events ---------------------------------------------------------------------------------
-
-  private callsign(s: SqSnap): string {
-    if (s.ace) return this.content.factions.find((f) => f.id === this.factions[s.seat])!.ace;
-    const words: Record<string, string> = {
-      Fighter: 'FLIGHT', Bomber: 'HEAVY', Scout: 'EYEBALL', Jammer: 'HUSH', Drone: 'UNICORN', Floatplane: 'PONTOON',
-      Watchtower: 'WATCHTOWER', Longhorn: 'LONGHORN', Prototype: 'SAUCER', CropDuster: 'DUSTER', Gull: 'GULL',
-    };
-    return `${words[s.kind] ?? 'FLIGHT'} ${(s.sq % 9) + 1}`;
-  }
-
-  private say(seat: number, who: string, key: string, params: Record<string, string>, salt: number, priority: number) {
-    if (this.quietNarration) return;
-    const f = this.factions[seat];
-    const line = chatter(f, key, params, salt);
-    if (line) this.hooks.chatter(who, faction(f).color, line, priority);
-  }
-
-  private sayAce(seat: number, key: 'launch' | 'kill' | 'duel' | 'downed' | 'returns', salt: number, priority: number) {
-    if (this.quietNarration) return;
-    const f = this.factions[seat];
-    const line = aceLine(f, key, salt);
-    if (line) this.hooks.chatter(this.content.factions.find((x) => x.id === f)!.ace, faction(f).color, line, priority);
-  }
-
-  private snapFromGroup(gid: number): SqSnap | null {
-    const g = this.groups.get(gid);
-    if (!g) return null;
-    return { sq: gid, seat: g.seat, kind: g.kinds[0], strength: 4, ace: g.ace, stars: 0 };
-  }
-
-  private fire(r: EventRec, silent: boolean) {
-    const e: GameEvent = r.e;
-    const salt = eventSalt(e, r.tick);
-    const enemyName = (seat: number) => faction(this.factions[seat]).short;
-    if (silent) {
-      if (e.t === 'Score') this.hooks.score(e.seat, e.delta);
+    if (this.hold > 0) return;
+    // A raid with nothing left to do when it gets there (fighters on a sweep,
+    // or a target already flattened) just turns for home.
+    for (const r of this.raids.values()) if (r.done === null && this.t > r.arrive) this.goHome(r, r.arrive);
+    const next = this.events[this.i];
+    const moving = this.flying();
+    if (!next || next.t === 'Dawn') {
+      if (!moving) this.outro = 0;
       return;
     }
-    switch (e.t) {
-      case 'NightStart':
+    // Nothing in the air: skip ahead to the next thing that happens.
+    if (!moving && next.tick > this.t + 2) {
+      const lead = this.fetchAt.has(this.i) ? 15 : 1;
+      this.t = Math.max(this.t, next.tick - lead);
+    }
+  }
+
+  private flying(): boolean {
+    for (const r of this.raids.values()) {
+      if (r.done === null) return true;
+      if (r.home !== null && this.t < r.home + 16) return true;
+    }
+    return !!this.ball && this.t < this.ball.t1;
+  }
+
+  private apply(r: EventRec, index: number) {
+    switch (r.t) {
+      case 'Patrol':
+        this.patrols.push({ sq: r.sq, seat: r.seat, color: this.color(r.seat), at: r.at, r: r.r, planes: r.planes, phase: Math.random() * Math.PI * 2 });
         break;
       case 'Launch': {
-        const lead = e.squadrons[0];
-        if (lead) {
-          if (lead.ace && salt % 2 === 0) this.sayAce(e.seat, 'launch', salt, 1);
-          else if (salt % 3 === 0) this.say(e.seat, this.callsign(lead), 'launch', {}, salt, 0);
-        }
-        const base = this.content.nodes[e.base].pos;
-        this.addFx({ kind: 'ring', x: base[0], y: base[1], color: factionColor(this.factions[e.seat]), dur: 900, size: 10 });
-        this.hooks.sound('launch');
-        break;
-      }
-      case 'Engage': {
-        const colorA = factionColor(this.factions[e.a_seat]);
-        const colorB = factionColor(this.factions[e.b_seat]);
-        this.addFx({ kind: 'ring', x: e.x, y: e.y, color: 0xffffff, dur: 1200, size: 22 });
-        const shots = e.rounds.flat();
-        let i = 0;
-        for (const s of shots.slice(0, 18)) {
-          const fromA = e.a.some((q) => q.sq === s.from);
-          const ang = (i++ * 2.4) % (Math.PI * 2);
-          const r1 = 10;
-          this.addFx({
-            kind: 'tracer', x: e.x + Math.cos(ang) * r1, y: e.y + Math.sin(ang) * r1,
-            x2: e.x - Math.cos(ang) * r1 * 0.4, y2: e.y - Math.sin(ang) * r1 * 0.4,
-            color: fromA ? colorA : colorB, dur: 500 + i * 60, size: 1,
-          });
-          if (s.hit) this.addFx({ kind: 'flash', x: e.x + Math.cos(ang) * 4, y: e.y + Math.sin(ang) * 4, color: 0xffd36b, dur: 400 + i * 50, size: 3 });
-        }
-        this.hooks.sound(e.ace_duel ? 'duel' : 'guns');
-        const a0 = e.a[0];
-        const b0 = e.b[0];
-        if (e.ace_duel) {
-          this.hooks.banner('ACE DUEL', `${this.callsign(e.a.find((s) => s.ace)!)} vs ${this.callsign(e.b.find((s) => s.ace)!)}`, 'update');
-          this.sayAce(e.a_seat, 'duel', salt, 3);
-        } else if (a0 && b0) {
-          const zone = this.zoneOf([e.x, e.y]);
-          if (a0.ace && salt % 2 === 0) this.sayAce(e.a_seat, 'duel', salt, 2);
-          else this.say(e.a_seat, this.callsign(a0), 'engage', { enemy: enemyName(e.b_seat), zone }, salt, 2);
-          // Gulls, watchtowers and other uniques get their moment.
-          const unique = this.content.factions.find((f) => f.id === this.factions[e.a_seat])!.unique;
-          if (e.a.some((s) => s.kind === unique) && salt % 2 === 1) this.say(e.a_seat, this.callsign(e.a.find((s) => s.kind === unique)!), 'unique', {}, salt + 1, 1);
-        }
-        if (e.first_shot !== null && e.first_shot !== undefined) {
-          const fs = e.first_shot;
-          this.addFx({ kind: 'flash', x: e.x, y: e.y, color: factionColor(this.factions[fs]), dur: 500, size: 8 });
-        }
-        break;
-      }
-      case 'Flak': {
-        const site = this.content.nodes[e.site].pos;
-        const color = factionColor(this.factions[e.site_seat]);
-        e.shots.forEach((s, i) => {
-          this.addFx({ kind: 'flak', x: e.x + (i - 1) * 4, y: e.y - 3 + i * 2, x2: site[0], y2: site[1], color: s.hit ? 0xffb347 : color, dur: 800 + i * 150, size: i });
+        this.raids.set(r.raid, {
+          id: r.raid, seat: r.seat, color: this.color(r.seat), from: r.from, to: r.to, launch: r.tick, arrive: r.arrive,
+          fighters: r.fighters, bombers: r.bombers, sqs: r.sqs, done: null, holding: null, home: null, lostAt: null,
         });
-        const g = this.snapFromGroup(e.group);
-        if (g && salt % 2 === 0) this.say(e.seat, this.callsign(g), 'flak', {}, salt, 1);
-        this.hooks.sound('flak');
+        if (this.raids.size === 1) this.hooks.sound('launch');
         break;
       }
-      case 'Splash': {
-        const color = factionColor(this.factions[e.seat]);
-        if (e.ground) {
-          this.addFx({ kind: 'boom', x: e.x, y: e.y, color, dur: 1200, size: 8 });
-        } else {
-          this.addFx({ kind: 'flash', x: e.x, y: e.y, color: 0xffffff, dur: 600, size: 6 });
-          this.addFx({ kind: 'ring', x: e.x, y: e.y, color, dur: 1000, size: 12 });
-        }
-        this.addFx({ kind: 'chute', x: e.x + 4, y: e.y - 4, color, dur: 3200, size: 1 });
-        if (e.ace) {
-          const ace = this.content.factions.find((f) => f.id === this.factions[e.seat])!.ace;
-          this.hooks.banner('MISSION UPDATE', `${ace} IS DOWN. GOOD CHUTE.`, 'update');
-          if (e.by_seat !== null) this.hooks.sound(`motif:${this.factions[e.by_seat]}`);
-          this.sayAce(e.seat, 'downed', salt, 4);
-          this.hooks.sound('sting');
-        } else {
-          const me: SqSnap = { sq: e.sq, seat: e.seat, kind: e.kind, strength: 0, ace: false, stars: 0 };
-          if (e.by_seat !== null && e.by_sq !== null && salt % 2 === 0) {
-            const shooterAce = this.isAce(e.by_sq);
-            if (shooterAce) this.sayAce(e.by_seat, 'kill', salt, 3);
-            else this.say(e.by_seat, `${faction(this.factions[e.by_seat]).short.toUpperCase()}`, 'splash', { enemy: enemyName(e.seat) }, salt, 2);
-          } else {
-            this.say(e.seat, this.callsign(me), 'ejected', {}, salt, 2);
-          }
-        }
-        this.hooks.sound('splash');
-        break;
-      }
-      case 'Strike': {
-        const n = this.content.nodes[e.node];
-        const color = factionColor(this.factions[e.seat]);
-        this.addFx({ kind: 'boom', x: n.pos[0], y: n.pos[1], color: e.steps > 0 ? 0xff8a3d : color, dur: e.jewel ? 2600 : 1600, size: e.jewel ? 26 : 12 + e.steps * 6 });
-        if (e.steps > 0) {
-          for (let i = 0; i < 4; i++) this.addFx({ kind: 'smoke', x: n.pos[0] + (i - 2) * 3, y: n.pos[1], color: 0x999999, dur: 4000 + i * 600, size: 6 });
-          this.nodes[e.node] = { ...this.nodes[e.node], health: e.health };
-          this.map.setNodes(this.nodes.map((x) => ({ ...x })));
-        }
-        if (e.jewel && e.steps > 0) {
-          this.map.shake = 1.6;
-          this.hooks.banner('MISSION UPDATE', `CROWN JEWEL HIT: ${n.name.toUpperCase()}`, 'update');
-          this.hooks.sound(`motif:${this.factions[e.seat]}`);
-          this.say(e.seat, faction(this.factions[e.seat]).short.toUpperCase(), 'jewel_strike', { node: n.name }, salt, 5);
-          this.hooks.sound('sting');
-          this.hooks.sound('bigboom');
-        } else if (e.steps > 0) {
-          const unique = this.content.factions.find((f) => f.id === this.factions[e.seat])!.unique;
-          if (e.kinds.includes(unique) && salt % 2 === 0) this.say(e.seat, unitName(unique).toUpperCase(), 'unique', {}, salt, 2);
-          else this.say(e.seat, faction(this.factions[e.seat]).short.toUpperCase(), 'strike', { node: n.name }, salt, 2);
-          this.map.shake = Math.max(this.map.shake, 0.35);
-          this.hooks.sound('boom');
-        } else {
-          this.say(e.seat, faction(this.factions[e.seat]).short.toUpperCase(), 'miss', {}, salt, 1);
-          this.hooks.sound('thud');
-        }
-        break;
-      }
-      case 'MassDriver':
-      case 'Revenge': {
-        const n = this.content.nodes[e.node];
-        const from = e.t === 'MassDriver' ? this.content.nodes.find((x) => x.kind === 'MassDriver')!.pos : this.content.nodes.find((x) => x.kind === 'CrownJewel' && x.home === 'GrainBelt')!.pos;
-        this.addFx({ kind: 'arc', x: from[0], y: from[1], x2: n.pos[0], y2: n.pos[1], color: 0xfff1a8, dur: 1800, size: 1 });
-        this.addFx({ kind: 'boom', x: n.pos[0], y: n.pos[1], color: 0xffd36b, dur: 2400, size: 24 });
-        this.map.shake = 1.2;
-        this.hooks.banner(e.t === 'MassDriver' ? 'MASS DRIVER FIRED' : 'REVENGE STRIKE', `${faction(this.factions[e.seat]).short.toUpperCase()} HITS ${n.name.toUpperCase()}`, 'update');
-        this.nodes[e.node] = { ...this.nodes[e.node], health: e.health };
-        this.map.setNodes(this.nodes.map((x) => ({ ...x })));
-        this.hooks.sound('bigboom');
-        break;
-      }
-      case 'Smoke': {
-        const n = this.content.nodes[e.node];
-        for (let i = 0; i < 6; i++) this.addFx({ kind: 'smoke', x: n.pos[0] + (i - 3) * 4, y: n.pos[1] + 4, color: 0xaaaaaa, dur: 5000, size: 8 });
-        this.say(e.seat, 'DUSTER', 'unique', {}, salt, 1);
-        break;
-      }
-      case 'Pivot':
-        this.sayAce(e.seat, 'launch', salt, 3);
-        this.hooks.banner('PIVOT', `PIVOTS TO STRIKE ${nodeName(e.node).toUpperCase()}`, 'update');
-        break;
-      case 'Vanished':
-        this.addFx({ kind: 'static', x: e.x, y: e.y, color: 0xffffff, dur: 1600, size: 1 });
-        this.hooks.banner('SIGNAL LOST', "THE PROTOTYPE DIDN'T COME BACK. NOBODY ASKS.", 'static');
-        break;
-      case 'LostInStatic':
-        this.addFx({ kind: 'static', x: e.x, y: e.y, color: 0xffffff, dur: 2000, size: 1 });
-        this.hooks.banner('LOST IN THE STATIC', 'EAST OF THE MISSISSIPPI, NOBODY HEARS YOU', 'static');
-        this.hooks.sound('static');
-        break;
-      case 'BetWin':
-        this.hooks.banner('JACKPOT', `DREAMLAND'S BET PAYS ${e.payout} SUPPLY`, 'jackpot');
-        this.hooks.sound('coin');
-        break;
-      case 'Jiggle':
-        this.hooks.banner('LIME JELLO', 'WIGGLES BUT DOES NOT BREAK', 'update');
-        break;
-      case 'Score':
-        this.hooks.score(e.seat, e.delta);
-        break;
-      case 'Capture': {
-        const n = this.content.nodes[e.node];
-        this.nodes[e.node] = { ...this.nodes[e.node], owner: e.seat };
-        this.map.setNodes(this.nodes.map((x) => ({ ...x })));
-        this.addFx({ kind: 'ring', x: n.pos[0], y: n.pos[1], color: factionColor(this.factions[e.seat]), dur: 1600, size: 18 });
-        this.say(e.seat, faction(this.factions[e.seat]).short.toUpperCase(), 'capture', { node: n.name }, salt, 1);
-        break;
-      }
-      case 'AceReturns':
-        this.sayAce(e.seat, 'returns', salt, 2);
-        break;
       case 'BarkPark': {
-        const f = this.factions[e.seat];
-        this.hooks.banner('PROJECT BARK PARK', `${faction(f).short.toUpperCase()} SITS THIS ONE OUT. UNTOUCHABLE TILL DAWN.`, 'park');
-        const line = pick(leader(f).retreat, salt);
-        if (line && !this.quietNarration) this.hooks.chatter(leader(f).name, faction(f).color, line, 4);
+        const pos = this.content.landmarks.find((l) => l.id === 'bark_park')?.pos ?? [0, 0];
+        this.beat(index, pos, 'AT THE PARK', 'park', HOLD.BarkPark);
         this.hooks.sound('park');
         break;
       }
+      case 'Intercept': {
+        const raid = this.raids.get(r.raid);
+        const down = this.lose(raid, r.raid_lost);
+        const p = this.patrols.find((x) => x.sq === r.patrol);
+        if (p) p.planes = Math.max(0, p.planes - r.patrol_lost);
+        this.burst(r.at, this.color(r.patrol_seat), 'ring', 1);
+        this.chutes(r.at, down, this.color(r.seat));
+        this.chutes(r.at, r.patrol_lost, this.color(r.patrol_seat));
+        if (raid && r.wiped) {
+          raid.done = r.tick;
+          raid.lostAt = r.at;
+        }
+        const stamp = r.wiped ? 'WIPED OUT' : down > 0 ? `${down} DOWN` : 'NO HITS';
+        this.beat(index, r.at, stamp, down > 0 ? 'hit' : 'miss', HOLD.Intercept);
+        this.hooks.sound('guns');
+        break;
+      }
+      case 'Flak': {
+        const raid = this.raids.get(r.raid);
+        const pos = this.content.sites[r.site].pos;
+        const down = this.lose(raid, r.raid_lost);
+        for (let k = 0; k < 5; k++) this.burst([pos[0] + (Math.random() - 0.5) * 30, pos[1] - 8 - Math.random() * 18], INK, 'puff', 0.6);
+        this.chutes(pos, down, this.color(r.seat));
+        this.hooks.sound('flak');
+        if (this.captions.has(index)) {
+          if (raid && raid.fighters + raid.bombers === 0) raid.done = r.tick;
+          this.beat(index, pos, `FLAK: ${down} DOWN`, 'hit', HOLD.Flak);
+        }
+        break;
+      }
+      case 'Strike': {
+        const raid = this.raids.get(r.raid);
+        const site = this.content.sites[r.site];
+        if (raid) this.goHome(raid, r.tick);
+        this.view.sites[r.site].health = r.health;
+        this.map.setState(this.view);
+        if (r.hits > 0) {
+          const big = site.kind === 'HQ' || site.kind === 'Jewel';
+          this.burst(site.pos, HIT_RED, 'boom', big ? 1.5 : 1.1);
+          this.map.shake = big ? 1 : 0.6;
+          this.hooks.sound(big ? 'bigboom' : 'boom');
+          this.beat(index, site.pos, r.health === 0 ? 'KNOCKED OUT' : `HIT −${r.hits}`, 'hit', HOLD.StrikeHit);
+        } else {
+          for (let k = 0; k < 3; k++) this.burst([site.pos[0] + (Math.random() - 0.5) * 34, site.pos[1] + (Math.random() - 0.5) * 34], INK, 'smoke', 0.7);
+          this.hooks.sound('thud');
+          this.beat(index, site.pos, 'MISSED', 'miss', HOLD.StrikeMiss);
+        }
+        break;
+      }
       case 'Bounce': {
-        const n = this.content.nodes[e.node];
-        this.addFx({ kind: 'ring', x: n.pos[0], y: n.pos[1], color: 0x7fe08f, dur: 1300, size: 26 });
-        this.addFx({ kind: 'flash', x: n.pos[0], y: n.pos[1] - 6, color: 0xffffff, dur: 500, size: 7 });
-        this.boing(n.pos);
-        if (e.group !== null) this.say(e.seat, faction(this.factions[e.seat]).short.toUpperCase(), 'bounce', { enemy: enemyName(e.victim), node: n.name }, salt, 3);
+        const raid = this.raids.get(r.raid);
+        const pos = this.content.sites[r.site].pos;
+        if (raid) this.goHome(raid, r.tick);
+        this.burst(pos, 0x8fbf6a, 'boing', 1);
         this.hooks.sound('boing');
+        this.beat(index, pos, 'BOING!', 'park', HOLD.Bounce);
+        break;
+      }
+      case 'Hold': {
+        const raid = this.raids.get(r.raid);
+        const pos = this.content.prizes[r.prize].pos;
+        if (raid) {
+          raid.done = r.tick;
+          raid.holding = r.prize;
+        }
+        this.view.prizes[r.prize].owner = r.seat;
+        this.map.setState(this.view);
+        this.burst(pos, this.color(r.seat), 'ring', 1);
+        this.hooks.sound('coin');
+        this.beat(index, pos, 'TAKEN', 'take', HOLD.Hold);
+        break;
+      }
+      case 'PrizeFight': {
+        const raid = this.raids.get(r.raid);
+        const pos = this.content.prizes[r.prize].pos;
+        const down = this.lose(raid, r.raid_lost);
+        let held = 0;
+        for (const l of r.holder_lost) {
+          held += l.planes;
+          for (const x of this.raids.values()) if (x.holding === r.prize && x.sqs.includes(l.sq)) this.lose(x, [l]);
+        }
+        this.chutes(pos, down, this.color(r.seat));
+        this.chutes(pos, held, this.color(r.holder));
+        this.burst(pos, this.color(r.taken ? r.seat : r.holder), 'ring', 1.2);
+        if (raid) {
+          raid.done = r.tick;
+          if (r.taken) {
+            for (const x of this.raids.values()) if (x.holding === r.prize) this.goHome(x, r.tick);
+            raid.holding = r.prize;
+            this.view.prizes[r.prize].owner = r.seat;
+          } else {
+            this.goHome(raid, r.tick);
+            let left = 0;
+            for (const x of this.raids.values()) if (x.holding === r.prize) left += x.fighters + x.bombers;
+            if (left === 0) this.view.prizes[r.prize].owner = null;
+          }
+        }
+        this.map.setState(this.view);
+        this.hooks.sound('guns');
+        this.beat(index, pos, r.taken ? 'TAKEN' : 'HELD', r.taken ? 'take' : 'miss', HOLD.PrizeFight);
         break;
       }
       case 'Fetch': {
-        const n = this.content.nodes[e.node];
-        const jewel = n.kind === 'CrownJewel';
-        this.addFx({ kind: 'boom', x: n.pos[0], y: n.pos[1], color: 0xd7f542, dur: 2600, size: jewel ? 30 : 24 });
-        this.addFx({ kind: 'ring', x: n.pos[0], y: n.pos[1], color: 0xffffff, dur: 1500, size: 34 });
-        for (let i = 0; i < 5; i++) this.addFx({ kind: 'smoke', x: n.pos[0] + (i - 2) * 4, y: n.pos[1], color: 0x999999, dur: 4200 + i * 500, size: 7 });
-        this.map.shake = jewel ? 1.8 : 1.3;
-        this.nodes[e.node] = { ...this.nodes[e.node], health: e.health };
-        this.map.setNodes(this.nodes.map((x) => ({ ...x })));
-        const f = this.factions[e.seat];
-        const victim = e.victim !== null ? faction(this.factions[e.victim]).short.toUpperCase() : '';
-        this.hooks.banner('SQUEAK-BOOM!', `THE BIG FETCH HITS ${n.name.toUpperCase()}${victim ? ` (${victim})` : ''}`, 'park');
-        const line = pick(leader(f).fetch, salt);
-        if (line && !this.quietNarration) this.hooks.chatter(leader(f).name, faction(f).color, line, 5);
-        this.hooks.sound('squeak');
-        this.hooks.sound('bigboom');
-        this.hooks.sound(`motif:${f}`);
+        const pos = this.content.sites[r.site].pos;
+        this.ball = null;
+        if (r.bounced) {
+          this.burst(pos, 0x8fbf6a, 'boing', 1.3);
+          this.hooks.sound('boing');
+          this.beat(index, pos, 'BOING!', 'park', HOLD.Fetch);
+        } else {
+          this.view.sites[r.site].health = r.health;
+          this.map.setState(this.view);
+          this.burst(pos, 0xd7e63e, 'boom', 1.7);
+          this.map.shake = 1.2;
+          this.hooks.sound('bigboom');
+          this.beat(index, pos, `FETCH −${r.hits}`, 'hit', HOLD.Fetch);
+        }
         break;
       }
-      case 'ParkReturn':
-        break;
-      case 'JewelEffect':
-      case 'Abort':
-      case 'Casserole':
-      case 'Dawn':
+      case 'Score':
+        this.hooks.score(r.seat, r.delta);
         break;
       default:
         break;
     }
   }
 
-  private isAce(sq: number): boolean {
-    for (const r of this.events) {
-      if (r.e.t === 'Launch' && r.e.squadrons.some((s) => s.sq === sq && s.ace)) return true;
-      if (r.e.t === 'Engage' && [...r.e.a, ...r.e.b].some((s) => s.sq === sq && s.ace)) return true;
-    }
-    return false;
-  }
-
-  private zoneOf(p: P): string {
-    let best = 0;
-    let bd = Infinity;
-    for (const z of this.content.zones) {
-      const d = (z.center[0] - p[0]) ** 2 + (z.center[1] - p[1]) ** 2;
-      if (d < bd) {
-        bd = d;
-        best = z.idx;
+  /** Stop the clock on a moment: camera in, stamp on the map, one caption. */
+  private beat(index: number, pos: P, stamp: string, kind: string, ms: number) {
+    const r = this.events[index];
+    this.t = Math.max(this.t, r.tick);
+    // Points scored in this moment land with it.
+    while (this.i < this.events.length) {
+      const n = this.events[this.i];
+      if (n.tick !== r.tick || (n.t !== 'Score' && n.t !== 'SquadronDown')) break;
+      this.i++;
+      if (n.t === 'Score') {
+        this.hooks.score(n.seat, n.delta);
+        const pop = this.map.label(`pop-${this.stamps}-${n.seat}`, `+${n.delta}`, [pos[0] + 16, pos[1] - 18], 'label-pop');
+        pop.style.setProperty('--fc', `#${this.color(n.seat).toString(16).padStart(6, '0')}`);
       }
     }
-    return zoneName(best);
+    if (!BEATS.has(r.t) && !this.captions.has(index)) return;
+    this.map.removeLabels('stamp-');
+    this.map.label(`stamp-${this.stamps++}`, stamp, [pos[0], pos[1] - 26], `label-stamp ${kind}`);
+    const zoom = this.map.home().zoom * (r.t === 'BarkPark' ? 1.6 : 2.1);
+    this.map.focus(pos[0], pos[1] + 10, zoom);
+    this.hooks.caption(this.captions.get(index) ?? null);
+    this.hold = ms;
+  }
+
+  private endBeat() {
+    this.hold = 0;
+    this.map.removeLabels('stamp-');
+    this.map.removeLabels('pop-');
+    // Pull back out unless another moment follows right away.
+    let next: EventRec | null = null;
+    for (let k = this.i; k < this.events.length && !next; k++) if (BEATS.has(this.events[k].t) || this.captions.has(k)) next = this.events[k];
+    if (!next || next.tick > this.t + 6) {
+      const home = this.map.home();
+      this.map.focus(home.x, home.y, home.zoom);
+    }
+  }
+
+  private goHome(raid: RaidTrack, tick: number) {
+    raid.done = tick;
+    raid.holding = null;
+    raid.home = tick;
+  }
+
+  private lose(raid: RaidTrack | undefined, losses: Loss[]): number {
+    let n = 0;
+    for (const l of losses) {
+      n += l.planes;
+      if (!raid) continue;
+      if (this.kinds.get(l.sq) === 'Bomber') raid.bombers = Math.max(0, raid.bombers - l.planes);
+      else raid.fighters = Math.max(0, raid.fighters - l.planes);
+    }
+    return n;
+  }
+
+  private color(seat: number): number {
+    return factionColor(this.factions[seat]);
+  }
+
+  // --- Drawing ---------------------------------------------------------------------------------
+
+  private drawPark() {
+    const g = this.parkG;
+    g.clear();
+    for (const seat of this.park) {
+      const f = this.factions[seat];
+      this.content.sites.forEach((s, i) => {
+        if (s.faction !== f || !this.view.sites[i].active) return;
+        dashedCircle(g, s.pos[0], s.pos[1], 17, 2.5, 2.4, 0x8fbf6a, 0.95);
+      });
+    }
+  }
+
+  private pos(r: RaidTrack): P {
+    const k = Math.max(0, Math.min(1, (this.t - r.launch) / Math.max(1, r.arrive - r.launch)));
+    return [r.from[0] + (r.to[0] - r.from[0]) * k, r.from[1] + (r.to[1] - r.from[1]) * k];
+  }
+
+  private draw(dt: number) {
+    const paths = this.pathG;
+    const g = this.unitG;
+    paths.clear();
+    g.clear();
+    const time = this.now / 1000;
+    // Patrols: a ring of the area they guard, their fighters circling it.
+    for (const p of this.patrols) {
+      if (p.planes <= 0) continue;
+      g.circle(p.at[0], p.at[1], p.r).fill({ color: p.color, alpha: 0.1 });
+      dashedCircle(g, p.at[0], p.at[1], p.r, 6, 2.2, mix(p.color, PAPER, 0.25), 0.9);
+      for (let k = 0; k < p.planes; k++) {
+        const a = p.phase + time * 0.6 + (k / p.planes) * Math.PI * 2;
+        drawPlane(g, 'Fighter', p.at[0] + Math.cos(a) * p.r, p.at[1] + Math.sin(a) * p.r, 5.5, a + Math.PI / 2, p.color, 1, PAPER);
+      }
+    }
+    for (const r of this.raids.values()) {
+      if (this.t < r.launch) continue;
+      const n = r.fighters + r.bombers;
+      // The route, faint ahead and solid behind, so you can see where it's going.
+      if (r.done === null) {
+        const at = this.pos(r);
+        dashedLine(paths, at, r.to, 5, 1.6, mix(r.color, PAPER, 0.3), 0.75);
+        paths.moveTo(r.from[0], r.from[1]).lineTo(at[0], at[1]).stroke({ width: 2.4, color: r.color, alpha: 0.8 });
+        if (n > 0) this.formation(g, r, at, Math.atan2(r.to[1] - r.from[1], r.to[0] - r.from[0]), 1);
+      } else if (r.holding !== null && n > 0) {
+        const c = this.content.prizes[r.holding].pos;
+        const a = time * 0.9 + r.id;
+        this.formation(g, r, [c[0] + Math.cos(a) * 18, c[1] + Math.sin(a) * 18], a + Math.PI / 2, 1);
+      } else if (r.home !== null && n > 0) {
+        const k = (this.t - r.home) / 16;
+        if (k >= 1) continue;
+        const dx = r.from[0] - r.to[0];
+        const dy = r.from[1] - r.to[1];
+        const len = Math.hypot(dx, dy) || 1;
+        const d = k * 90;
+        this.formation(g, r, [r.to[0] + (dx / len) * d, r.to[1] + (dy / len) * d], Math.atan2(dy, dx), 1 - k);
+      }
+    }
+    // The Big Fetch: a tennis ball the size of a stadium, lobbed from the park.
+    if (this.ball && this.t >= this.ball.t0) {
+      const b = this.ball;
+      if (!b.heard) {
+        b.heard = true;
+        this.hooks.sound('fetch');
+      }
+      const k = Math.min(1, (this.t - b.t0) / (b.t1 - b.t0));
+      const x = b.from[0] + (b.to[0] - b.from[0]) * k;
+      const y = b.from[1] + (b.to[1] - b.from[1]) * k;
+      const hgt = Math.sin(k * Math.PI) * 90;
+      g.ellipse(x, y, 8, 3.5).fill({ color: INK, alpha: 0.35 });
+      g.circle(x, y - hgt, 9 + Math.sin(k * Math.PI) * 4).fill({ color: 0xd7e63e }).stroke({ width: 1.6, color: INK });
+      g.moveTo(x - 6, y - hgt - 4).quadraticCurveTo(x, y - hgt + 2, x + 6, y - hgt - 4).stroke({ width: 1.2, color: PAPER });
+    }
+    this.drawFx(dt);
+  }
+
+  /** A raid as you'd see it from above: bombers in a V, fighters on the wings. */
+  private formation(g: Graphics, r: RaidTrack, at: P, angle: number, alpha: number) {
+    const c = Math.cos(angle);
+    const s = Math.sin(angle);
+    const put = (along: number, side: number): P => [at[0] + along * c - side * s, at[1] + along * s + side * c];
+    for (let i = 0; i < r.bombers; i++) {
+      const row = Math.ceil(i / 2);
+      const [x, y] = put(-row * 9, (i % 2 ? 1 : -1) * row * 9);
+      drawPlane(g, 'Bomber', x, y, 7, angle, r.color, alpha, PAPER);
+    }
+    for (let i = 0; i < r.fighters; i++) {
+      const row = Math.floor(i / 2);
+      const [x, y] = put(5 - row * 9, (i % 2 ? 1 : -1) * (r.bombers ? 17 : 6 + row * 4));
+      drawPlane(g, 'Fighter', x, y, 5.5, angle, r.color, alpha, PAPER);
+    }
+  }
+
+  private burst(at: P, color: number, kind: Fx['kind'], size: number) {
+    const base = { x: at[0], y: at[1], vx: 0, vy: 0, color, born: this.now, size };
+    if (kind === 'boom') {
+      this.fx.push({ ...base, kind: 'boom', dur: 900 });
+      for (let k = 0; k < 6; k++) {
+        const a = Math.random() * Math.PI * 2;
+        this.fx.push({ ...base, kind: 'smoke', vx: Math.cos(a) * 9, vy: Math.sin(a) * 9 - 6, dur: 1800 + Math.random() * 600, size: size * (0.6 + Math.random() * 0.5) });
+      }
+    } else {
+      this.fx.push({ ...base, kind, dur: kind === 'puff' ? 700 + Math.random() * 400 : kind === 'smoke' ? 1600 : 1000 });
+    }
+  }
+
+  /** One little parachute per plane lost. The pups are fine. */
+  private chutes(at: P, n: number, color: number) {
+    for (let k = 0; k < n; k++) {
+      this.fx.push({ kind: 'chute', x: at[0] + (k - (n - 1) / 2) * 11, y: at[1] - 6, vx: (Math.random() - 0.5) * 3, vy: 7, color, born: this.now + k * 120, dur: 2600, size: 1 });
+    }
+  }
+
+  private drawFx(dt: number) {
+    const g = this.fxG;
+    g.clear();
+    const now = this.now;
+    this.fx = this.fx.filter((f) => now - f.born < f.dur);
+    for (const f of this.fx) {
+      const age = now - f.born;
+      if (age < 0) continue;
+      const k = age / f.dur;
+      f.x += (f.vx * dt) / 1000;
+      f.y += (f.vy * dt) / 1000;
+      switch (f.kind) {
+        case 'ring':
+          g.circle(f.x, f.y, (10 + k * 34) * f.size).stroke({ width: 3 * (1 - k) + 0.5, color: f.color, alpha: 1 - k });
+          break;
+        case 'boing':
+          for (let j = 0; j < 3; j++) {
+            const kk = Math.max(0, k - j * 0.15);
+            if (kk > 0) g.circle(f.x, f.y, (14 + kk * 30) * f.size).stroke({ width: 2.5, color: f.color, alpha: 1 - kk });
+          }
+          break;
+        case 'boom': {
+          const r = (8 + Math.sqrt(k) * 24) * f.size;
+          g.circle(f.x, f.y, r).fill({ color: 0xf2b134, alpha: (1 - k) * 0.85 });
+          g.circle(f.x, f.y, r * 0.6).fill({ color: f.color, alpha: 1 - k });
+          g.circle(f.x, f.y, r).stroke({ width: 2, color: INK, alpha: (1 - k) * 0.8 });
+          break;
+        }
+        case 'puff':
+          g.circle(f.x, f.y, (3 + k * 6) * f.size * 2).fill({ color: mix(INK, PAPER, 0.35), alpha: (1 - k) * 0.8 });
+          break;
+        case 'smoke':
+          g.circle(f.x, f.y, (5 + k * 12) * f.size).fill({ color: mix(INK, PAPER, 0.25), alpha: (1 - k) * 0.55 });
+          break;
+        case 'chute': {
+          const sway = Math.sin(age / 260 + f.x) * 3;
+          const x = f.x + sway;
+          const y = f.y;
+          const a = k > 0.75 ? (1 - k) / 0.25 : 1;
+          g.moveTo(x - 6, y).arc(x, y, 6, Math.PI, 0).closePath().fill({ color: PAPER, alpha: a }).stroke({ width: 1.2, color: f.color, alpha: a });
+          g.moveTo(x - 6, y).lineTo(x, y + 8).lineTo(x + 6, y).stroke({ width: 0.8, color: PAPER, alpha: a * 0.8 });
+          g.circle(x, y + 9, 2.2).fill({ color: f.color, alpha: a }).stroke({ width: 0.8, color: PAPER, alpha: a });
+          break;
+        }
+      }
+    }
   }
 }

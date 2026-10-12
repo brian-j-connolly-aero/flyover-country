@@ -1,28 +1,54 @@
-// Colors, shapes and small drawing helpers shared by the map and the show.
+// Postcard West: one palette and one way of drawing, shared by the map, the
+// show and the screens. Paper and ink by day; the same map dimmed to twilight
+// at night, with faction inks that read on both.
 
 import { Graphics } from 'pixi.js';
-import type { Content, FactionId, NodeKind, UnitKind } from './types';
+import type { Content, FactionId, SiteKind, UnitKind, P } from './types';
 
-export const NAVY = 0x071022;
-export const NEUTRAL = 0x8a9bb8;
-export const STATIC_EDGE = 0xb9c6dd;
+export const PAPER = 0xf3ead7;
+export const PAPER_2 = 0xe7d9bb;
+export const INK = 0x231e1a;
+export const INK_2 = 0x51463c;
+export const MUTED = 0x8b7e70;
+export const OCEAN = 0xa9c2c9;
+export const LAND = 0xeee2c6;
+export const FRINGE = 0xe0d2b3;
+/** Night is a multiply wash: cream turns twilight blue, colors stay apart. */
+export const NIGHT = 0x4e5d94;
+export const HIT_RED = 0xb8321e;
+export const GOOD = 0x2e7d4f;
 
 export const FACTION_HEX: Record<FactionId, string> = {
-  Pacific: '#FF5FA2',
-  Cascadia: '#3DDC84',
-  FrontRange: '#4CC9F0',
-  Texas: '#FF4D4D',
-  Dreamland: '#B388FF',
-  GrainBelt: '#F2E86D',
-  Beehive: '#FF9F1C',
+  Pacific: '#D9467A',
+  Cascadia: '#1E8A6E',
+  FrontRange: '#2E6DB4',
+  Texas: '#C2471F',
+  Dreamland: '#7A55C2',
+  GrainBelt: '#7E9A2E',
+  Beehive: '#E2A21A',
 };
+
+/** Faction inks come from factions.ron; this keeps the drawing code in step. */
+export function setFactionColors(c: Content) {
+  for (const f of c.factions) FACTION_HEX[f.id] = f.color;
+}
 
 export function hexNum(h: string): number {
   return parseInt(h.replace('#', ''), 16);
 }
 
 export function factionColor(f: FactionId | null | undefined): number {
-  return f ? hexNum(FACTION_HEX[f]) : NEUTRAL;
+  return f ? hexNum(FACTION_HEX[f]) : MUTED;
+}
+
+/** Mix two 0xRRGGBB colors: t = 0 gives a, 1 gives b. */
+export function mix(a: number, b: number, t: number): number {
+  const ch = (s: number) => {
+    const x = (a >> s) & 255;
+    const y = (b >> s) & 255;
+    return Math.round(x + (y - x) * t) << s;
+  };
+  return ch(16) | ch(8) | ch(0);
 }
 
 export const SHAPES: Record<FactionId, 'circle' | 'triangle' | 'diamond' | 'star' | 'ring' | 'square' | 'hexagon'> = {
@@ -35,7 +61,7 @@ export const SHAPES: Record<FactionId, 'circle' | 'triangle' | 'diamond' | 'star
   Beehive: 'hexagon',
 };
 
-/** Draw a faction's colorblind-safe shape centered at (x, y). */
+/** A faction's shape (for color-blind players), centered at (x, y). */
 export function drawShape(g: Graphics, f: FactionId | null, x: number, y: number, r: number, color: number, alpha = 1) {
   const shape = f ? SHAPES[f] : 'circle';
   switch (shape) {
@@ -63,164 +89,154 @@ export function drawShape(g: Graphics, f: FactionId | null, x: number, y: number
       g.poly(pts).fill({ color, alpha });
       break;
     }
-    case 'star': {
-      const pts: number[] = [];
-      for (let i = 0; i < 10; i++) {
-        const a = (Math.PI / 5) * i - Math.PI / 2;
-        const rr = i % 2 === 0 ? r * 1.2 : r * 0.5;
-        pts.push(x + Math.cos(a) * rr, y + Math.sin(a) * rr);
-      }
-      g.poly(pts).fill({ color, alpha });
+    case 'star':
+      g.poly(star(x, y, r * 1.2, r * 0.5, 5)).fill({ color, alpha });
       break;
-    }
   }
 }
 
-/** A unit glyph: a triangle pointing along `angle` with the faction shape inside. */
-export function drawGlyph(g: Graphics, f: FactionId | null, kind: UnitKind, x: number, y: number, size: number, angle = -Math.PI / 2, alpha = 1) {
-  const color = factionColor(f);
-  const c = Math.cos(angle);
-  const s = Math.sin(angle);
-  const pt = (fx: number, fy: number): [number, number] => [x + (fx * c - fy * s) * size, y + (fx * s + fy * c) * size];
-  let body: [number, number][];
-  switch (kind) {
-    case 'Bomber':
-    case 'Longhorn':
-    case 'Floatplane':
-      body = [pt(1.1, 0), pt(-0.7, 1.0), pt(-0.4, 0), pt(-0.7, -1.0)];
-      break;
-    case 'Scout':
-      body = [pt(1.2, 0), pt(-0.6, 0.5), pt(-0.6, -0.5)];
-      break;
-    case 'Drone':
-      body = [pt(0.8, 0), pt(-0.5, 0.6), pt(-0.5, -0.6)];
-      break;
-    case 'Prototype':
-      g.ellipse(x, y, size * 1.1, size * 0.55).fill({ color, alpha: alpha * 0.9 }).stroke({ width: size * 0.18, color: 0xffffff, alpha: alpha * 0.6 });
-      return;
-    case 'Watchtower':
-    case 'Jammer':
-    case 'CropDuster':
-      body = [pt(1.0, 0), pt(-0.6, 0.85), pt(-0.6, -0.85)];
-      break;
-    default:
-      body = [pt(1.15, 0), pt(-0.65, 0.75), pt(-0.65, -0.75)];
+function star(x: number, y: number, outer: number, inner: number, points: number): number[] {
+  const pts: number[] = [];
+  for (let i = 0; i < points * 2; i++) {
+    const a = (Math.PI / points) * i - Math.PI / 2;
+    const r = i % 2 === 0 ? outer : inner;
+    pts.push(x + Math.cos(a) * r, y + Math.sin(a) * r);
   }
-  g.poly(body.flat()).fill({ color: NAVY, alpha: alpha * 0.85 }).stroke({ width: Math.max(1, size * 0.22), color, alpha });
-  drawShape(g, f, x - c * size * 0.05, y - s * size * 0.05, size * 0.32, color, alpha);
-  if (kind === 'Watchtower') g.circle(x, y, size * 0.75).stroke({ width: size * 0.12, color, alpha: alpha * 0.8 });
-  if (kind === 'Jammer') {
-    const a = pt(-0.9, -0.5);
-    const b = pt(-1.2, 0);
-    const d = pt(-0.9, 0.5);
-    g.moveTo(a[0], a[1]).lineTo(b[0], b[1]).lineTo(d[0], d[1]).stroke({ width: size * 0.15, color, alpha });
-  }
-  if (kind === 'Longhorn') {
-    const l1 = pt(0.6, -0.4);
-    const l2 = pt(1.0, -0.95);
-    const r1 = pt(0.6, 0.4);
-    const r2 = pt(1.0, 0.95);
-    g.moveTo(l1[0], l1[1]).lineTo(l2[0], l2[1]).moveTo(r1[0], r1[1]).lineTo(r2[0], r2[1]).stroke({ width: size * 0.2, color: 0xfff3d6, alpha });
-  }
+  return pts;
 }
 
-export const NODE_LABEL: Record<NodeKind, string> = {
-  Capital: 'Capital',
-  City: 'City',
-  Fuel: 'Fuel site',
+export const SITE_LABEL: Record<SiteKind, string> = {
+  HQ: 'HQ',
   Factory: 'Factory',
-  Airbase: 'Airbase',
-  Radar: 'Radar site',
-  AirDefense: 'Air defense',
-  Junction: 'Junction',
-  CrownJewel: 'Crown jewel',
-  Lake: 'Lake',
-  Boneyard: 'The Boneyard',
-  MassDriver: 'Mass Driver',
-  TruckStop: 'Truck stop',
+  Airfield: 'Airfield',
+  Jewel: 'Crown Jewel',
 };
 
-/** Draw a node icon. `health` 2/1/0; `color` is the holder's color. */
-export function drawNode(g: Graphics, kind: NodeKind, x: number, y: number, r: number, color: number, health: number, active = true) {
-  const a = active ? 1 : 0.35;
-  const fillA = (health === 2 ? 0.95 : health === 1 ? 0.55 : 0.18) * a;
-  const line = { width: Math.max(1, r * 0.22), color, alpha: a };
+/**
+ * A site pictogram on a paper token with an ink outline: a capitol star for
+ * the HQ, a sawtooth roof for the Factory, a runway for the Airfield and a
+ * gem for the Crown Jewel. `health` 0 draws it knocked flat.
+ */
+export function drawSite(g: Graphics, kind: SiteKind, x: number, y: number, r: number, color: number, health: number, dim = false) {
+  const a = dim ? 0.4 : 1;
+  const down = health <= 0;
+  const ink = { width: Math.max(1, r * 0.16), color: INK, alpha: a };
+  const fill = down ? PAPER_2 : color;
+  // Token
+  g.circle(x + r * 0.12, y + r * 0.14, r).fill({ color: INK, alpha: 0.35 * a });
+  g.circle(x, y, r).fill({ color: PAPER, alpha: a }).stroke(ink);
+  const s = r * 0.62;
   switch (kind) {
-    case 'Capital': {
-      g.circle(x, y, r * 1.5).stroke({ width: r * 0.25, color, alpha: 0.6 * a });
-      const pts: number[] = [];
-      for (let i = 0; i < 10; i++) {
-        const ang = (Math.PI / 5) * i - Math.PI / 2;
-        const rr = i % 2 === 0 ? r * 1.1 : r * 0.48;
-        pts.push(x + Math.cos(ang) * rr, y + Math.sin(ang) * rr);
-      }
-      g.poly(pts).fill({ color, alpha: fillA });
+    case 'HQ':
+      g.poly(star(x, y + s * 0.06, s * 1.05, s * 0.45, 5)).fill({ color: fill, alpha: a }).stroke({ ...ink, width: ink.width * 0.7 });
+      break;
+    case 'Factory': {
+      const b = y + s * 0.7;
+      const l = x - s;
+      g.poly([l, b, l, y - s * 0.1, l + s * 0.5, y - s * 0.55, l + s * 0.5, y - s * 0.1, l + s, y - s * 0.55, l + s, y - s * 0.1, l + s * 1.5, y - s * 0.55, l + s * 1.5, y - s * 0.95, l + s * 2, y - s * 0.95, l + s * 2, b])
+        .fill({ color: fill, alpha: a })
+        .stroke({ ...ink, width: ink.width * 0.7 });
       break;
     }
-    case 'City':
-      g.circle(x, y, r).fill({ color, alpha: fillA }).stroke(line);
+    case 'Airfield': {
+      const ang = -0.6;
+      const c = Math.cos(ang);
+      const sn = Math.sin(ang);
+      const pt = (u: number, v: number) => [x + u * c - v * sn, y + u * sn + v * c];
+      const w = s * 0.42;
+      const L = s * 1.15;
+      g.poly([...pt(-L, -w), ...pt(L, -w), ...pt(L, w), ...pt(-L, w)]).fill({ color: fill, alpha: a }).stroke({ ...ink, width: ink.width * 0.7 });
+      for (let i = -2; i <= 2; i++) {
+        const [x1, y1] = pt(i * s * 0.42 - s * 0.12, 0);
+        const [x2, y2] = pt(i * s * 0.42 + s * 0.12, 0);
+        g.moveTo(x1, y1).lineTo(x2, y2);
+      }
+      g.stroke({ width: Math.max(0.8, r * 0.1), color: PAPER, alpha: a });
       break;
-    case 'Fuel':
-      g.poly([x, y - r * 1.2, x + r * 0.85, y + r * 0.3, x, y + r, x - r * 0.85, y + r * 0.3]).fill({ color, alpha: fillA }).stroke(line);
-      break;
-    case 'Factory':
-      g.rect(x - r, y - r * 0.7, r * 2, r * 1.5).fill({ color, alpha: fillA }).stroke(line);
-      g.rect(x + r * 0.35, y - r * 1.3, r * 0.45, r * 0.7).fill({ color, alpha: fillA });
-      break;
-    case 'Airbase':
-    case 'Boneyard':
-      g.poly([x - r * 1.2, y + r * 0.4, x + r * 0.9, y - r * 0.9, x + r * 1.2, y - r * 0.4, x - r * 0.9, y + r * 0.9]).fill({ color, alpha: fillA }).stroke(line);
-      if (kind === 'Boneyard') g.circle(x, y, r * 1.6).stroke({ width: r * 0.2, color, alpha: 0.5 * a });
-      break;
-    case 'Radar':
-      g.moveTo(x + Math.cos(Math.PI * 1.05) * r * 1.1, y + Math.sin(Math.PI * 1.05) * r * 1.1)
-        .arc(x, y, r * 1.1, Math.PI * 1.05, Math.PI * 1.95)
-        .stroke({ width: r * 0.35, color, alpha: a });
-      g.circle(x, y + r * 0.2, r * 0.45).fill({ color, alpha: fillA });
-      break;
-    case 'AirDefense':
-      g.poly([x, y - r * 1.1, x + r, y + r * 0.8, x - r, y + r * 0.8]).fill({ color, alpha: fillA }).stroke(line);
-      break;
-    case 'Junction':
-      g.circle(x, y, r * 0.75).fill({ color: NAVY, alpha: 0.9 * a }).stroke(line);
-      g.circle(x, y, r * 0.3).fill({ color, alpha: fillA });
-      break;
-    case 'CrownJewel':
-      g.poly([x, y - r * 1.5, x + r * 1.1, y - r * 0.3, x, y + r * 1.3, x - r * 1.1, y - r * 0.3]).fill({ color, alpha: fillA }).stroke({ width: r * 0.25, color: 0xffffff, alpha: 0.85 * a });
-      break;
-    case 'Lake':
-      g.ellipse(x, y, r * 1.3, r * 0.8).fill({ color: 0x2a6fdb, alpha: 0.5 }).stroke({ width: r * 0.15, color: 0x6fb2ff, alpha: 0.8 });
-      break;
-    case 'MassDriver':
-      g.rect(x - r * 1.4, y - r * 0.35, r * 2.8, r * 0.7).fill({ color, alpha: fillA }).stroke(line);
-      g.poly([x + r * 1.4, y - r * 0.8, x + r * 2.1, y, x + r * 1.4, y + r * 0.8]).fill({ color, alpha: fillA });
-      break;
-    case 'TruckStop':
-      g.roundRect(x - r * 0.75, y - r * 0.9, r * 1.5, r * 1.8, r * 0.3).fill({ color, alpha: fillA }).stroke(line);
+    }
+    case 'Jewel':
+      g.poly([x, y - s * 1.05, x + s * 0.95, y - s * 0.2, x, y + s * 1.0, x - s * 0.95, y - s * 0.2]).fill({ color: fill, alpha: a }).stroke({ ...ink, width: ink.width * 0.7 });
+      g.moveTo(x - s * 0.95, y - s * 0.2).lineTo(x + s * 0.95, y - s * 0.2).stroke({ width: ink.width * 0.5, color: INK, alpha: 0.6 * a });
       break;
   }
-  if (health === 0 && kind !== 'Lake') {
-    g.moveTo(x - r, y - r).lineTo(x + r, y + r).moveTo(x + r, y - r).lineTo(x - r, y + r).stroke({ width: r * 0.3, color: 0xff3b3b, alpha: 0.9 });
+  if (down) {
+    g.moveTo(x - r * 0.62, y - r * 0.62).lineTo(x + r * 0.62, y + r * 0.62).moveTo(x + r * 0.62, y - r * 0.62).lineTo(x - r * 0.62, y + r * 0.62).stroke({ width: r * 0.2, color: HIT_RED, alpha: 0.9 * a });
   }
 }
 
-export function nodeRadius(kind: NodeKind): number {
-  switch (kind) {
-    case 'Capital':
-      return 7;
-    case 'CrownJewel':
-      return 6.5;
-    case 'City':
-    case 'Factory':
-      return 5.5;
-    case 'Junction':
-    case 'TruckStop':
-      return 4.5;
-    default:
-      return 5;
+/** Health pips in a row under a site: filled ink for health left, hollow for lost. */
+export function drawPips(g: Graphics, x: number, y: number, health: number, max: number, size: number, onDark = false) {
+  const gap = size * 1.45;
+  const x0 = x - ((max - 1) * gap) / 2;
+  const line = onDark ? PAPER : INK;
+  for (let i = 0; i < max; i++) {
+    const px = x0 + i * gap;
+    if (i < health) g.rect(px - size / 2, y - size / 2, size, size).fill({ color: line });
+    else g.rect(px - size / 2, y - size / 2, size, size).stroke({ width: Math.max(0.6, size * 0.2), color: line, alpha: 0.75 });
   }
 }
 
-export function unitName(content: Content, kind: UnitKind): string {
-  return content.units.find((u) => u.kind === kind)?.name ?? kind;
+/** A prize: a pennant on a pole, in its owner's ink (paper if nobody holds it). */
+export function drawPrize(g: Graphics, x: number, y: number, r: number, owner: number | null, dim = false) {
+  const a = dim ? 0.45 : 1;
+  const ink = { width: Math.max(1, r * 0.15), color: INK, alpha: a };
+  g.circle(x + r * 0.12, y + r * 0.14, r).fill({ color: INK, alpha: 0.35 * a });
+  g.circle(x, y, r).fill({ color: PAPER, alpha: a }).stroke(ink);
+  const px = x - r * 0.35;
+  g.moveTo(px, y + r * 0.62).lineTo(px, y - r * 0.68).stroke({ ...ink, width: ink.width * 0.9 });
+  g.poly([px, y - r * 0.68, px + r * 0.85, y - r * 0.4, px, y - r * 0.1]).fill({ color: owner ?? PAPER_2, alpha: a }).stroke({ ...ink, width: ink.width * 0.7 });
+}
+
+/** A plane silhouette pointing along `angle`: a dart for fighters, wide wings for bombers. */
+export function drawPlane(g: Graphics, kind: UnitKind, x: number, y: number, size: number, angle: number, color: number, alpha = 1, outline = INK) {
+  const c = Math.cos(angle);
+  const s = Math.sin(angle);
+  const pt = (u: number, v: number) => [x + (u * c - v * s) * size, y + (u * s + v * c) * size];
+  const body =
+    kind === 'Fighter'
+      ? [pt(1.1, 0), pt(0.1, 0.2), pt(-0.2, 0.95), pt(-0.45, 0.95), pt(-0.35, 0.2), pt(-0.8, 0.22), pt(-0.95, 0.5), pt(-1.05, 0.5), pt(-0.95, 0), pt(-1.05, -0.5), pt(-0.95, -0.5), pt(-0.8, -0.22), pt(-0.35, -0.2), pt(-0.45, -0.95), pt(-0.2, -0.95), pt(0.1, -0.2)]
+      : [pt(1.0, 0), pt(0.75, 0.16), pt(0.2, 0.16), pt(0.05, 1.15), pt(-0.25, 1.15), pt(-0.2, 0.16), pt(-0.75, 0.16), pt(-0.92, 0.5), pt(-1.05, 0.5), pt(-0.98, 0), pt(-1.05, -0.5), pt(-0.92, -0.5), pt(-0.75, -0.16), pt(-0.2, -0.16), pt(-0.25, -1.15), pt(0.05, -1.15), pt(0.2, -0.16), pt(0.75, -0.16)];
+  g.poly(body.flat()).fill({ color, alpha }).stroke({ width: Math.max(0.8, size * 0.14), color: outline, alpha });
+}
+
+/** A dashed circle (patrol rings, last night's marks). */
+export function dashedCircle(g: Graphics, x: number, y: number, r: number, dash: number, width: number, color: number, alpha: number) {
+  const n = Math.max(8, Math.round((2 * Math.PI * r) / (dash * 2)));
+  for (let i = 0; i < n; i++) {
+    const a0 = (i / n) * Math.PI * 2;
+    const a1 = a0 + (Math.PI / n);
+    g.moveTo(x + Math.cos(a0) * r, y + Math.sin(a0) * r).arc(x, y, r, a0, a1);
+  }
+  g.stroke({ width, color, alpha });
+}
+
+/** A dashed straight line. */
+export function dashedLine(g: Graphics, a: P, b: P, dash: number, width: number, color: number, alpha: number) {
+  const dx = b[0] - a[0];
+  const dy = b[1] - a[1];
+  const len = Math.hypot(dx, dy);
+  const n = Math.max(1, Math.floor(len / (dash * 2)));
+  for (let i = 0; i < n; i++) {
+    const t0 = (i * 2 * dash) / len;
+    const t1 = Math.min(1, ((i * 2 + 1) * dash) / len);
+    g.moveTo(a[0] + dx * t0, a[1] + dy * t0).lineTo(a[0] + dx * t1, a[1] + dy * t1);
+  }
+  g.stroke({ width, color, alpha });
+}
+
+/** A raid's path: a thick ink-edged ribbon with an arrowhead at the target. */
+export function drawRaidPath(g: Graphics, from: P, to: P, color: number, width: number, alpha = 1, stopShort = 0) {
+  const dx = to[0] - from[0];
+  const dy = to[1] - from[1];
+  const len = Math.hypot(dx, dy) || 1;
+  const ux = dx / len;
+  const uy = dy / len;
+  const end: P = [to[0] - ux * stopShort, to[1] - uy * stopShort];
+  const head = width * 3.2;
+  const base: P = [end[0] - ux * head, end[1] - uy * head];
+  g.moveTo(from[0], from[1]).lineTo(base[0], base[1]).stroke({ width: width + 2, color: INK, alpha: alpha * 0.85, cap: 'round' });
+  g.moveTo(from[0], from[1]).lineTo(base[0], base[1]).stroke({ width, color, alpha, cap: 'round' });
+  const px = -uy * head * 0.62;
+  const py = ux * head * 0.62;
+  g.poly([end[0], end[1], base[0] + px, base[1] + py, base[0] - px, base[1] - py]).fill({ color, alpha }).stroke({ width: 1.2, color: INK, alpha: alpha * 0.85 });
 }

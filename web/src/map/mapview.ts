@@ -1,10 +1,27 @@
-// The glowing map of the West: dark navy, old state borders as faint dotted
-// lines, faction territory as glowing outlines, and animated static east of
-// the Mississippi. Shared by the planning window and the Theater.
+// The map of the West as a printed postcard: cream land, soft blue sea, each
+// faction's home washed in its ink, and a band of TV static east of the
+// Mississippi. At night the same map dims to twilight. Shared by the planning
+// screen and the Theater.
 
 import { Application, Container, Graphics, Texture, TilingSprite } from 'pixi.js';
-import type { Content, FactionId, P } from '../types';
-import { NAVY, NEUTRAL, drawNode, factionColor, nodeRadius } from '../theme';
+import type { Content, FactionId, GameState, P, PatrolMark, RaidMark } from '../types';
+import {
+  FRINGE, INK, INK_2, LAND, NIGHT, OCEAN, PAPER, dashedCircle, dashedLine, drawPips, drawPrize, drawSite, factionColor, mix,
+} from '../theme';
+
+/** Another place a label may go if its first spot is taken: a = 0 centered on p, 1 to its right, -1 to its left. */
+export interface LabelAlt {
+  p: P;
+  a: -1 | 0 | 1;
+}
+
+interface LabelEntry {
+  el: HTMLElement;
+  pos: P;
+  alts: LabelAlt[] | null;
+  w: number;
+  h: number;
+}
 
 export interface Camera {
   x: number;
@@ -12,13 +29,8 @@ export interface Camera {
   zoom: number;
 }
 
-export interface NodeState {
-  owner: number | null;
-  health: number;
-  active: boolean;
-  smoke?: boolean;
-  exact?: boolean;
-}
+export const SITE_R = 10;
+export const PRIZE_R = 10;
 
 export class MapView {
   readonly content: Content;
@@ -28,9 +40,10 @@ export class MapView {
   readonly layers = {
     base: new Container(),
     territory: new Container(),
-    links: new Container(),
-    nodes: new Container(),
-    overlay: new Container(),
+    marks: new Container(),
+    night: new Container(),
+    plan: new Container(),
+    sites: new Container(),
     units: new Container(),
     fx: new Container(),
   };
@@ -39,21 +52,24 @@ export class MapView {
   camTarget: Camera | null = null;
   shake = 0;
   seatFactions: FactionId[] = [];
-  nodes: NodeState[] = [];
-  /** Highlight rings drawn on top of nodes: node idx -> color. */
-  highlights = new Map<number, number>();
-  private staticSprite: TilingSprite | null = null;
-  private nodeG = new Graphics();
-  private linkG = new Graphics();
+  state: GameState | null = null;
+  /** Rings drawn around sites or prizes while dragging: key "s3" / "p1" -> color. */
+  highlights = new Map<string, number>();
+  private siteG = new Graphics();
   private hiG = new Graphics();
-  private labelEls = new Map<string, { el: HTMLElement; pos: P }>();
+  private marksG = new Graphics();
+  private nightG = new Graphics();
+  private staticSprite: TilingSprite | null = null;
+  private labelEls = new Map<string, LabelEntry>();
+  /** Screen space kept clear at the edges (the Theater's scoreboard). */
+  insets = { top: 0, bottom: 0 };
   private tickers: ((dt: number) => void)[] = [];
   private lastW = 0;
   private lastH = 0;
   private dirtyLabels = true;
   private destroyed = false;
-  linkFlows: Map<number, number> | null = null;
-  flowSeat: number | null = null;
+  private nightK = 0;
+  private staticClock = 0;
 
   constructor(root: HTMLElement, content: Content) {
     this.root = root;
@@ -66,7 +82,7 @@ export class MapView {
   async init(): Promise<void> {
     await this.app.init({
       resizeTo: this.root,
-      background: NAVY,
+      background: OCEAN,
       antialias: true,
       autoDensity: true,
       resolution: Math.min(window.devicePixelRatio || 1, 2),
@@ -77,14 +93,12 @@ export class MapView {
     this.root.appendChild(this.labels);
     this.app.stage.addChild(this.world);
     const L = this.layers;
-    this.world.addChild(L.base, L.territory, L.links, L.nodes, L.overlay, L.units, L.fx);
-    L.links.addChild(this.linkG);
-    L.nodes.addChild(this.nodeG, this.hiG);
+    this.world.addChild(L.base, L.territory, L.marks, L.night, L.plan, L.sites, L.units, L.fx);
+    L.marks.addChild(this.marksG);
+    L.night.addChild(this.nightG);
+    L.sites.addChild(this.hiG, this.siteG);
     this.drawBase();
-    this.drawCompass();
-    this.drawLandmarks();
     this.app.ticker.add((t) => this.tick(t.deltaMS));
-    // Follow the container, not just the window (panels resize, overlays show and hide).
     this.resizer = new ResizeObserver(() => {
       if (!this.destroyed) this.app.resize();
     });
@@ -111,7 +125,7 @@ export class MapView {
   get fitScale(): number {
     const w = this.app.screen.width;
     const h = this.app.screen.height;
-    return Math.min(w / (this.content.width + 40), h / (this.content.height + 40));
+    return Math.min(w / (this.content.width * 0.86), h / (this.content.height * 0.86));
   }
 
   get scale(): number {
@@ -128,20 +142,37 @@ export class MapView {
     return [(x - this.app.screen.width / 2) / s + this.cam.x, (y - this.app.screen.height / 2) / s + this.cam.y];
   }
 
+  /** Frame the playable West (the Static is cropped off the right edge). */
   fit() {
-    this.cam = { x: this.content.width / 2 + 10, y: this.content.height / 2, zoom: 1 };
+    this.cam = this.home();
     this.camTarget = null;
     this.dirtyLabels = true;
   }
 
-  /** Ease the camera toward a target (the show's director uses this). */
+  /** The whole West in view: every site and prize, clear of the screen's insets. */
+  home(): Camera {
+    const c = this.content;
+    const w = this.app.screen?.width ?? 0;
+    const h = this.app.screen?.height ?? 0;
+    if (!w || !h) return { x: c.width * 0.45, y: c.height * 0.47, zoom: 1 };
+    const pts = [...c.sites.map((s) => s.pos), ...c.prizes.map((p) => p.pos), ...c.landmarks.map((l) => l.pos)];
+    const pad = 46;
+    const x0 = Math.min(...pts.map((p) => p[0])) - pad;
+    const x1 = Math.max(...pts.map((p) => p[0])) + pad;
+    const y0 = Math.min(...pts.map((p) => p[1])) - pad;
+    const y1 = Math.max(...pts.map((p) => p[1])) + pad;
+    const avail = Math.max(100, h - this.insets.top - this.insets.bottom);
+    const scale = Math.min(w / (x1 - x0), avail / (y1 - y0));
+    return { x: (x0 + x1) / 2, y: (y0 + y1) / 2 - (this.insets.top - this.insets.bottom) / 2 / scale, zoom: scale / this.fitScale };
+  }
+
   focus(x: number, y: number, zoom: number) {
     this.camTarget = { x, y, zoom };
   }
 
   zoomAt(sx: number, sy: number, factor: number) {
     const before = this.toMap(sx, sy);
-    this.cam.zoom = Math.min(4, Math.max(0.8, this.cam.zoom * factor));
+    this.cam.zoom = Math.min(3.5, Math.max(0.85, this.cam.zoom * factor));
     const after = this.toMap(sx, sy);
     this.cam.x += before[0] - after[0];
     this.cam.y += before[1] - after[1];
@@ -160,7 +191,7 @@ export class MapView {
   private tick(dt: number) {
     if (this.destroyed) return;
     if (this.camTarget) {
-      const k = 1 - Math.pow(0.0025, dt / 1000);
+      const k = 1 - Math.pow(0.004, dt / 1000);
       this.cam.x += (this.camTarget.x - this.cam.x) * k;
       this.cam.y += (this.camTarget.y - this.cam.y) * k;
       this.cam.zoom += (this.camTarget.zoom - this.cam.zoom) * k;
@@ -170,8 +201,8 @@ export class MapView {
     let sx = 0;
     let sy = 0;
     if (this.shake > 0.01) {
-      sx = (Math.random() - 0.5) * this.shake * 14;
-      sy = (Math.random() - 0.5) * this.shake * 14;
+      sx = (Math.random() - 0.5) * this.shake * 12;
+      sy = (Math.random() - 0.5) * this.shake * 12;
       this.shake *= Math.pow(0.02, dt / 1000);
       this.dirtyLabels = true;
     }
@@ -182,7 +213,10 @@ export class MapView {
       this.lastH = this.app.screen.height;
       this.dirtyLabels = true;
     }
-    if (this.staticSprite) {
+    // The Static flickers, slowly: a printed map shouldn't buzz.
+    this.staticClock += dt;
+    if (this.staticSprite && this.staticClock > 140) {
+      this.staticClock = 0;
       this.staticSprite.tilePosition.set(Math.random() * 128, Math.random() * 128);
     }
     for (const f of [...this.tickers]) {
@@ -195,231 +229,191 @@ export class MapView {
     if (this.dirtyLabels) this.placeLabels();
   }
 
-  // --- Static base map ----------------------------------------------------------------
+  // --- The printed map ---------------------------------------------------------------
 
   private drawBase() {
     const c = this.content;
     const g = new Graphics();
-    // Ocean grid, faint.
-    for (let x = -200; x <= c.width + 200; x += 40) g.moveTo(x, -200).lineTo(x, c.height + 200);
-    for (let y = -200; y <= c.height + 200; y += 40) g.moveTo(-200, y).lineTo(c.width + 200, y);
-    g.stroke({ width: 0.5, color: 0x1b2d52, alpha: 0.35 });
-    // Fringe states fade toward the Static.
-    for (const poly of c.fringe) {
-      g.poly(poly.flat()).fill({ color: 0x0c1730, alpha: 0.9 });
-      dotted(g, poly, 0x2a3c63, 0.5);
-    }
+    // A faint graticule on the sea, like an old chart.
+    for (let x = -200; x <= c.width + 200; x += 60) g.moveTo(x, -200).lineTo(x, c.height + 200);
+    for (let y = -200; y <= c.height + 200; y += 60) g.moveTo(-200, y).lineTo(c.width + 200, y);
+    g.stroke({ width: 0.6, color: mix(OCEAN, INK, 0.25), alpha: 0.35 });
+    for (const poly of c.fringe) g.poly(poly.flat()).fill({ color: FRINGE });
+    for (const z of c.zones) g.poly(z.poly.flat()).fill({ color: LAND });
     this.layers.base.addChild(g);
-    // The Static: animated noise east of the Mississippi.
-    const tex = noiseTexture();
-    const sprite = new TilingSprite({ texture: tex, width: c.width + 400, height: c.height + 400 });
-    sprite.position.set(0, -200);
-    sprite.alpha = 0.55;
+    // The Static: everything east of the Mississippi, where the signal died.
+    const sprite = new TilingSprite({ texture: noiseTexture(), width: c.width + 600, height: c.height + 600 });
+    sprite.position.set(0, -300);
+    sprite.alpha = 0.9;
     const mask = new Graphics();
     const river = c.mississippi;
-    const pts: number[] = [river[0][0], -200];
+    const pts: number[] = [river[0][0], -300];
     for (const p of river) pts.push(p[0], p[1]);
-    pts.push(river[river.length - 1][0], c.height + 200, c.width + 400, c.height + 200, c.width + 400, -200);
+    pts.push(river[river.length - 1][0], c.height + 300, c.width + 600, c.height + 300, c.width + 600, -300);
     mask.poly(pts).fill({ color: 0xffffff });
     sprite.mask = mask;
-    this.layers.base.addChild(sprite, mask);
-    this.staticSprite = sprite;
     const edge = new Graphics();
-    edge.poly(river.flat(), false).stroke({ width: 6, color: 0xb9c6dd, alpha: 0.12 });
-    edge.poly(river.flat(), false).stroke({ width: 1.5, color: 0xdfe7f5, alpha: 0.45 });
-    this.layers.base.addChild(edge);
+    edge.poly(river.flat(), false).stroke({ width: 2.2, color: INK_2, alpha: 0.75 });
+    this.layers.base.addChild(sprite, mask, edge);
+    this.staticSprite = sprite;
+    // Night: the same postcard printed in blue ink. A multiply wash keeps
+    // land, sea and each faction's color apart; everything that moves sits on top.
+    this.nightG.rect(-400, -400, c.width + 1200, c.height + 800).fill({ color: NIGHT });
+    this.nightG.blendMode = 'multiply';
+    this.nightG.alpha = 0;
   }
 
-  /** A compass rose out in the Pacific, with a bone across the middle. */
-  private drawCompass() {
-    const g = new Graphics();
-    const [x, y] = [128, 862];
-    const ink = 0x8da3c9;
-    g.circle(x, y, 27).stroke({ width: 0.8, color: ink, alpha: 0.35 });
-    g.circle(x, y, 22).stroke({ width: 0.5, color: ink, alpha: 0.25 });
-    for (let i = 0; i < 8; i++) {
-      const ang = (i * Math.PI) / 4 - Math.PI / 2;
-      const long = i % 2 === 0;
-      const r = long ? 25 : 14;
-      const w = long ? 4.2 : 3;
-      const [cx, cy] = [Math.cos(ang), Math.sin(ang)];
-      const [px, py] = [-cy * w, cx * w];
-      const north = i === 0;
-      g.poly([x + px, y + py, x + cx * r, y + cy * r, x - px, y - py]).fill({ color: north ? 0xffd23f : ink, alpha: north ? 0.55 : long ? 0.3 : 0.22 });
-    }
-    // The bone (solid, so its knobs don't double up where they overlap).
-    const bone = 0xa59b8c;
-    g.roundRect(x - 8.5, y - 1.9, 17, 3.8, 1.9).fill({ color: bone });
-    for (const [dx, dy] of [[-8.5, -2], [-8.5, 2], [8.5, -2], [8.5, 2]]) g.circle(x + dx, y + dy, 2.5).fill({ color: bone });
-    this.layers.base.addChild(g);
-    this.label('compass-n', 'N', [x, y - 33], 'label-compass');
+  /** 0 = day (planning), 1 = full night (the show). */
+  setNight(k: number) {
+    this.nightK = k;
+    this.nightG.alpha = k;
+    this.labels.classList.toggle('night', k > 0.5);
   }
 
-  /** Places that aren't nodes. Project Bark Park: a fenced lawn, a pond and a ball. */
-  private drawLandmarks() {
-    const g = new Graphics();
-    for (const lm of this.content.landmarks ?? []) {
-      const [x, y] = lm.pos;
-      if (lm.id === 'bark_park') {
-        g.roundRect(x - 9, y - 6, 18, 12, 3).fill({ color: 0x2f7d4a, alpha: 0.95 });
-        g.roundRect(x - 9, y - 6, 18, 12, 3).stroke({ width: 0.8, color: 0xe9f5e1, alpha: 0.9 });
-        for (let i = 0; i <= 6; i++) g.circle(x - 9 + i * 3, y - 6, 0.55).fill({ color: 0xffffff });
-        g.ellipse(x - 3.5, y + 1.5, 3, 2).fill({ color: 0x6fb2ff, alpha: 0.9 });
-        g.circle(x + 4, y + 1, 2.3).fill({ color: 0xd7f542 });
-        g.moveTo(x + 2.3, y + 0.2).quadraticCurveTo(x + 4, y + 1.6, x + 5.7, y + 0.2).stroke({ width: 0.5, color: 0xffffff });
-      }
-      this.label(`lm-${lm.id}`, lm.name.toUpperCase(), [x, y + 13], 'label-landmark');
-    }
-    // Above the territory fills (Four Corners sits right on a border), under the nodes.
-    this.layers.nodes.addChildAt(g, 0);
+  get night(): number {
+    return this.nightK;
   }
 
-  /** Redraw territory for the seated factions (unseated home regions are Fallen). */
+  /** Wash each seated faction's home in its ink; unseated homes join the Big Empty. */
   setSeats(factions: FactionId[]) {
     this.seatFactions = factions;
     const c = this.content;
     this.layers.territory.removeChildren();
     const fill = new Graphics();
-    const glow = new Graphics();
     const lines = new Graphics();
-    const regionKey = (r: string) => (r === 'BigEmpty' || !factions.includes(r as FactionId) ? 'neutral' : r);
+    const borders = new Graphics();
+    const seated = (r: string) => r !== 'BigEmpty' && factions.includes(r as FactionId);
     for (const z of c.zones) {
-      const key = regionKey(z.region);
-      const color = key === 'neutral' ? 0x132344 : factionColor(key as FactionId);
-      const alpha = key === 'neutral' ? (z.region === 'BigEmpty' ? 0.85 : 0.6) : 0.1;
-      fill.poly(z.poly.flat()).fill({ color: key === 'neutral' ? color : NAVY, alpha: key === 'neutral' ? alpha : 1 });
-      if (key !== 'neutral') fill.poly(z.poly.flat()).fill({ color, alpha });
-      dotted(lines, z.poly, 0x3b5487, 0.45);
+      if (seated(z.region)) fill.poly(z.poly.flat()).fill({ color: factionColor(z.region as FactionId), alpha: 0.2 });
     }
-    // Glowing borders where regions meet.
+    // Old state lines, thin and dotted.
+    for (const z of c.zones) {
+      for (let i = 0; i < z.poly.length; i++) dashedLine(lines, z.poly[i], z.poly[(i + 1) % z.poly.length], 2.5, 0.8, INK_2, 0.35);
+    }
+    // Each faction's outer border in its ink.
     const edges = new Map<string, { a: P; b: P; regions: string[] }>();
     for (const z of c.zones) {
-      const key = regionKey(z.region);
       for (let i = 0; i < z.poly.length; i++) {
         const a = z.poly[i];
         const b = z.poly[(i + 1) % z.poly.length];
         const k = a[0] < b[0] || (a[0] === b[0] && a[1] < b[1]) ? `${a}|${b}` : `${b}|${a}`;
         const e = edges.get(k) ?? { a, b, regions: [] };
-        e.regions.push(key);
+        e.regions.push(z.region);
         edges.set(k, e);
       }
     }
     for (const e of edges.values()) {
-      for (const key of new Set(e.regions)) {
+      for (const r of new Set(e.regions)) {
         const interior = e.regions.length === 2 && e.regions[0] === e.regions[1];
-        if (interior || key === 'neutral') continue;
-        const color = factionColor(key as FactionId);
-        glow.moveTo(e.a[0], e.a[1]).lineTo(e.b[0], e.b[1]).stroke({ width: 7, color, alpha: 0.12 });
-        glow.moveTo(e.a[0], e.a[1]).lineTo(e.b[0], e.b[1]).stroke({ width: 3, color, alpha: 0.25 });
-        glow.moveTo(e.a[0], e.a[1]).lineTo(e.b[0], e.b[1]).stroke({ width: 1.2, color, alpha: 0.9 });
+        if (interior || !seated(r)) continue;
+        const col = mix(factionColor(r as FactionId), INK, 0.25);
+        borders.moveTo(e.a[0], e.a[1]).lineTo(e.b[0], e.b[1]).stroke({ width: 2.2, color: col, alpha: 0.9 });
       }
     }
-    glow.blendMode = 'add';
-    this.layers.territory.addChild(fill, lines, glow);
-    // Zone labels.
+    this.layers.territory.addChild(fill, lines, borders);
+    this.removeLabels('zone-');
     for (const z of c.zones) {
-      const key = regionKey(z.region);
-      const fallen = z.region !== 'BigEmpty' && key === 'neutral';
-      this.label(`zone-${z.idx}`, z.name.toUpperCase() + (fallen ? '\nFALLEN' : ''), z.center, 'label-zone');
+      const fallen = z.region !== 'BigEmpty' && !seated(z.region);
+      this.label(`zone-${z.id}`, z.name.toUpperCase(), z.center, fallen ? 'label-zone fallen' : 'label-zone');
     }
     this.dirtyLabels = true;
   }
 
-  // --- Nodes and links ------------------------------------------------------------------
-
-  setNodes(states: NodeState[]) {
-    this.nodes = states;
-    this.drawNodes();
-    this.drawLinks();
-  }
-
-  ownerFaction(seat: number | null): FactionId | null {
+  ownerFaction(seat: number | null | undefined): FactionId | null {
     return seat === null || seat === undefined ? null : this.seatFactions[seat] ?? null;
   }
 
-  drawNodes() {
-    const g = this.nodeG;
+  /** Sites, prizes and the dog park, from a game state. */
+  setState(st: GameState) {
+    this.state = st;
+    this.drawSites();
+  }
+
+  drawSites() {
+    const g = this.siteG;
     g.clear();
-    for (const n of this.content.nodes) {
-      const st = this.nodes[n.idx] ?? { owner: null, health: 2, active: true };
-      const color = n.kind === 'Lake' ? 0x6fb2ff : st.owner === null ? NEUTRAL : factionColor(this.ownerFaction(st.owner));
-      const r = nodeRadius(n.kind);
-      if (n.objective > 0 && n.kind !== 'Lake') {
-        g.circle(n.pos[0], n.pos[1], r * 2.1).stroke({ width: 1, color: 0xffffff, alpha: 0.25 });
-      }
-      drawNode(g, n.kind, n.pos[0], n.pos[1], r, color, st.health, st.active);
-      if (st.smoke) {
-        g.circle(n.pos[0] - 4, n.pos[1] - 6, 6).fill({ color: 0xbfc7d5, alpha: 0.35 });
-        g.circle(n.pos[0] + 4, n.pos[1] - 8, 5).fill({ color: 0xbfc7d5, alpha: 0.3 });
-      }
-      if (st.exact === false && st.owner !== null) {
-        g.circle(n.pos[0] + r, n.pos[1] - r, 1.6).fill({ color: 0xffffff, alpha: 0.5 });
-      }
+    const st = this.state;
+    const c = this.content;
+    // Project Bark Park, a fenced lawn with a pond and a ball.
+    for (const lm of c.landmarks) {
+      if (lm.id !== 'bark_park') continue;
+      const [x, y] = lm.pos;
+      g.roundRect(x - 11 + 1.2, y - 7 + 1.4, 22, 14, 3).fill({ color: INK, alpha: 0.35 });
+      g.roundRect(x - 11, y - 7, 22, 14, 3).fill({ color: 0x8fbf6a }).stroke({ width: 1.4, color: INK });
+      for (let i = 0; i <= 7; i++) g.moveTo(x - 10 + i * 2.85, y - 7).lineTo(x - 10 + i * 2.85, y - 4.5);
+      g.stroke({ width: 0.8, color: INK, alpha: 0.7 });
+      g.ellipse(x - 4, y + 1.5, 3.4, 2.2).fill({ color: 0x6fa8d6 }).stroke({ width: 0.7, color: INK, alpha: 0.6 });
+      g.circle(x + 4.5, y + 1, 2.6).fill({ color: 0xd7e63e }).stroke({ width: 0.7, color: INK });
+      this.label(`lm-${lm.id}`, lm.name, [x, y + 15], 'label-landmark', around(lm.pos, 11));
     }
+    c.sites.forEach((s, i) => {
+      const ss = st?.sites[i];
+      const active = ss ? ss.active : this.seatFactions.includes(s.faction);
+      if (!active) {
+        this.removeLabel(`site-${i}`);
+        return;
+      }
+      const color = factionColor(s.faction);
+      const r = s.kind === 'HQ' ? SITE_R * 1.15 : SITE_R;
+      drawSite(g, s.kind, s.pos[0], s.pos[1], r, color, ss ? ss.health : 3);
+      if (ss) drawPips(g, s.pos[0], s.pos[1] + r + 4.5, ss.health, ss.max, 3.2);
+      this.label(`site-${i}`, s.name, [s.pos[0], s.pos[1] + r + 12], 'label-site', around(s.pos, r));
+    });
+    c.prizes.forEach((p, i) => {
+      const owner = st?.prizes[i]?.owner;
+      const color = owner === null || owner === undefined ? null : factionColor(this.ownerFaction(owner));
+      drawPrize(g, p.pos[0], p.pos[1], PRIZE_R, color);
+      this.label(`prize-${i}`, p.name, [p.pos[0], p.pos[1] + PRIZE_R + 8], 'label-prize', around(p.pos, PRIZE_R));
+    });
     this.drawHighlights();
   }
 
   drawHighlights() {
     const g = this.hiG;
     g.clear();
-    for (const [idx, color] of this.highlights) {
-      const n = this.content.nodes[idx];
-      const r = nodeRadius(n.kind) * 2.2;
-      g.circle(n.pos[0], n.pos[1], r).stroke({ width: 2, color, alpha: 0.9 });
-      g.circle(n.pos[0], n.pos[1], r + 3).stroke({ width: 4, color, alpha: 0.2 });
+    for (const [key, color] of this.highlights) {
+      const i = Number(key.slice(1));
+      const pos = key[0] === 's' ? this.content.sites[i]?.pos : this.content.prizes[i]?.pos;
+      if (!pos) continue;
+      g.circle(pos[0], pos[1], SITE_R * 1.9).fill({ color, alpha: 0.18 }).stroke({ width: 2.4, color, alpha: 0.95 });
     }
   }
 
-  /** Links: faint everywhere; thick glowing flow lines for one seat's network. */
-  drawLinks() {
-    const g = this.linkG;
+  /** Last night's patrols and raids, faint and dashed: a hint of habits. */
+  setMarks(last: { patrols: PatrolMark[]; raids: RaidMark[] } | null, except: number | null = null) {
+    const g = this.marksG;
     g.clear();
-    for (const l of this.content.links) {
-      const a = this.content.nodes[l.a].pos;
-      const b = this.content.nodes[l.b].pos;
-      const oa = this.nodes[l.a]?.owner ?? null;
-      const ob = this.nodes[l.b]?.owner ?? null;
-      const same = oa !== null && oa === ob;
-      const color = same ? factionColor(this.ownerFaction(oa)) : 0x5a6f96;
-      const flow = this.linkFlows?.get(l.idx) ?? 0;
-      const mine = this.flowSeat !== null && same && oa === this.flowSeat;
-      const broken = mine && ((this.nodes[l.a]?.health ?? 2) === 0 || (this.nodes[l.b]?.health ?? 2) === 0);
-      if (broken) {
-        dashed(g, a, b, 0xff3b3b, 2, 0.9);
-        continue;
-      }
-      if (mine && flow > 0) {
-        g.moveTo(a[0], a[1]).lineTo(b[0], b[1]).stroke({ width: 1.5 + flow * 0.9, color, alpha: 0.28 });
-        g.moveTo(a[0], a[1]).lineTo(b[0], b[1]).stroke({ width: 1.2, color, alpha: 0.9 });
-      } else if (l.kind === 'Pipeline') {
-        dashed(g, a, b, color, 1, same ? 0.45 : 0.22, 2, 4);
-      } else if (l.kind === 'Rail') {
-        dashed(g, a, b, color, 1, same ? 0.5 : 0.25, 7, 3);
-      } else {
-        g.moveTo(a[0], a[1]).lineTo(b[0], b[1]).stroke({ width: 0.8, color, alpha: same ? 0.45 : 0.2 });
-      }
+    if (!last) return;
+    for (const r of last.raids) {
+      if (r.seat === except) continue;
+      dashedLine(g, r.from, r.to, 5, 1.6, factionColor(this.ownerFaction(r.seat)), 0.5);
     }
-  }
-
-  setFlows(seat: number | null, links: [number, number, number][] | null) {
-    this.flowSeat = seat;
-    this.linkFlows = links ? new Map(links.map(([l, s, f]) => [l, s + f])) : null;
-    this.drawLinks();
+    for (const p of last.patrols) {
+      if (p.seat === except) continue;
+      const col = factionColor(this.ownerFaction(p.seat));
+      g.circle(p.at[0], p.at[1], p.r).fill({ color: col, alpha: 0.06 });
+      dashedCircle(g, p.at[0], p.at[1], p.r, 5, 1.6, col, 0.55);
+    }
   }
 
   // --- HTML labels (crisp at any zoom) ----------------------------------------------------
 
-  label(id: string, text: string, pos: P, cls: string): HTMLElement {
+  label(id: string, text: string, pos: P, cls: string, alts: LabelAlt[] | null = null): HTMLElement {
     let entry = this.labelEls.get(id);
     if (!entry) {
       const el = document.createElement('div');
       this.labels.appendChild(el);
-      entry = { el, pos };
+      entry = { el, pos, alts, w: -1, h: -1 };
       this.labelEls.set(id, entry);
     }
-    entry.el.className = `map-label ${cls}`;
-    entry.el.textContent = text;
+    const name = `map-label ${cls}`;
+    if (entry.el.className !== name || entry.el.textContent !== text) {
+      entry.el.className = name;
+      entry.el.textContent = text;
+      entry.w = -1;
+    }
     entry.pos = pos;
+    entry.alts = alts;
     this.dirtyLabels = true;
     return entry.el;
   }
@@ -436,13 +430,55 @@ export class MapView {
     for (const id of [...this.labelEls.keys()]) if (id.startsWith(prefix)) this.removeLabel(id);
   }
 
+  /**
+   * Put every label on screen. Labels that name a place try a few spots
+   * around it and take the first one that doesn't cover another label or
+   * another place's token.
+   */
   placeLabels() {
     this.dirtyLabels = false;
-    const zoom = this.cam.zoom;
-    this.labels.style.setProperty('--zoom', String(zoom));
-    for (const { el, pos } of this.labelEls.values()) {
+    this.labels.style.setProperty('--zoom', String(this.cam.zoom));
+    this.labels.style.setProperty('--scale', String(this.scale));
+    const s = this.scale;
+    const taken: number[][] = [];
+    const tokens = (pos: P, r: number) => {
       const [x, y] = this.toScreen(pos);
-      el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+      taken.push([x - r * s, y - r * s, x + r * s, y + (r + 6) * s]);
+    };
+    this.content.sites.forEach((site, i) => {
+      if (!this.state || this.state.sites[i].active) tokens(site.pos, SITE_R);
+    });
+    this.content.prizes.forEach((p) => tokens(p.pos, PRIZE_R));
+    const free = (r: number[]) => !taken.some((t) => r[0] < t[2] && r[2] > t[0] && r[1] < t[3] && r[3] > t[1]);
+    for (const e of this.labelEls.values()) {
+      const { el } = e;
+      if (!e.alts) {
+        const [x, y] = this.toScreen(e.pos);
+        el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+        el.style.translate = '';
+        continue;
+      }
+      if (e.w < 0) {
+        e.w = el.offsetWidth;
+        e.h = el.offsetHeight;
+      }
+      const options: LabelAlt[] = [{ p: e.pos, a: 0 }, ...e.alts];
+      let pick: { x: number; y: number; a: number; r: number[] } | null = null;
+      for (const o of options) {
+        const [x, y] = this.toScreen(o.p);
+        const r = o.a === 0 ? [x - e.w / 2, y - e.h / 2, x + e.w / 2, y + e.h / 2] : o.a === 1 ? [x, y - e.h / 2, x + e.w, y + e.h / 2] : [x - e.w, y - e.h / 2, x, y + e.h / 2];
+        const fit = { x, y, a: o.a, r: [r[0] - 2, r[1] - 1, r[2] + 2, r[3] + 1] };
+        if (free(fit.r)) {
+          pick = fit;
+          break;
+        }
+      }
+      // Nowhere to go: hide it until the camera moves in (hovering still names it).
+      el.style.visibility = pick ? '' : 'hidden';
+      if (!pick) continue;
+      taken.push(pick.r);
+      el.style.transform = `translate(${pick.x.toFixed(1)}px, ${pick.y.toFixed(1)}px)`;
+      el.style.translate = pick.a === 0 ? '' : pick.a === 1 ? '0 -50%' : '-100% -50%';
     }
   }
 
@@ -452,24 +488,43 @@ export class MapView {
 
   // --- Hit testing ---------------------------------------------------------------------------
 
-  nodeAt(sx: number, sy: number, radiusPx = 16): number | null {
-    let best: number | null = null;
+  /** The site or prize nearest a screen point, within `radiusPx`. */
+  pickAt(sx: number, sy: number, radiusPx = 22): { site: number } | { prize: number } | null {
+    let best: { site: number } | { prize: number } | null = null;
     let bd = radiusPx * radiusPx;
-    for (const n of this.content.nodes) {
-      const [x, y] = this.toScreen(n.pos);
+    this.content.sites.forEach((s, i) => {
+      if (this.state && !this.state.sites[i].active) return;
+      const [x, y] = this.toScreen(s.pos);
       const d = (x - sx) ** 2 + (y - sy) ** 2;
       if (d < bd) {
         bd = d;
-        best = n.idx;
+        best = { site: i };
       }
-    }
+    });
+    this.content.prizes.forEach((p, i) => {
+      const [x, y] = this.toScreen(p.pos);
+      const d = (x - sx) ** 2 + (y - sy) ** 2;
+      if (d < bd) {
+        bd = d;
+        best = { prize: i };
+      }
+    });
     return best;
   }
 
-  zoneAt(p: P): number | null {
-    for (const z of this.content.zones) if (pointInPoly(p, z.poly)) return z.idx;
+  regionAt(p: P): string | null {
+    for (const z of this.content.zones) if (pointInPoly(p, z.poly)) return z.region;
     return null;
   }
+}
+
+/** Spots around a token for its label: above, right, left. */
+function around(pos: P, r: number): LabelAlt[] {
+  return [
+    { p: [pos[0], pos[1] - r - 9], a: 0 },
+    { p: [pos[0] + r + 3, pos[1]], a: 1 },
+    { p: [pos[0] - r - 3, pos[1]], a: -1 },
+  ];
 }
 
 export function pointInPoly(p: P, poly: P[]): boolean {
@@ -482,27 +537,8 @@ export function pointInPoly(p: P, poly: P[]): boolean {
   return inside;
 }
 
-function dotted(g: Graphics, poly: P[], color: number, alpha: number) {
-  for (let i = 0; i < poly.length; i++) {
-    dashed(g, poly[i], poly[(i + 1) % poly.length], color, 0.7, alpha, 2, 5);
-  }
-}
-
-export function dashed(g: Graphics, a: P, b: P, color: number, width: number, alpha: number, on = 5, off = 4) {
-  const dx = b[0] - a[0];
-  const dy = b[1] - a[1];
-  const len = Math.hypot(dx, dy);
-  if (len < 0.01) return;
-  const ux = dx / len;
-  const uy = dy / len;
-  for (let d = 0; d < len; d += on + off) {
-    const e = Math.min(len, d + on);
-    g.moveTo(a[0] + ux * d, a[1] + uy * d).lineTo(a[0] + ux * e, a[1] + uy * e);
-  }
-  g.stroke({ width, color, alpha });
-}
-
 let noiseTex: Texture | null = null;
+/** Paper-toned static: grain in ink and cream, not neon. */
 function noiseTexture(): Texture {
   if (noiseTex) return noiseTex;
   const c = document.createElement('canvas');
@@ -510,14 +546,16 @@ function noiseTexture(): Texture {
   c.height = 128;
   const ctx = c.getContext('2d')!;
   const img = ctx.createImageData(128, 128);
+  const paper = [0xc9, 0xbd, 0xa6];
+  const ink = [0x4a, 0x42, 0x3a];
   for (let i = 0; i < img.data.length; i += 4) {
-    const v = Math.random() * 255;
-    img.data[i] = v * 0.8;
-    img.data[i + 1] = v * 0.85;
-    img.data[i + 2] = v;
-    img.data[i + 3] = 160 + Math.random() * 95;
+    const t = Math.random();
+    for (let k = 0; k < 3; k++) img.data[i + k] = paper[k] + (ink[k] - paper[k]) * t;
+    img.data[i + 3] = 255;
   }
   ctx.putImageData(img, 0, 0);
   noiseTex = Texture.from(c);
   return noiseTex;
 }
+
+export { PAPER };

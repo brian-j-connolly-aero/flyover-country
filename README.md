@@ -1,13 +1,12 @@
 # Flyover Country
 
-A 4-player hotseat air war over a post-collapse American West, led by dogs.
+An air war over a post-collapse American West, for 1 to 7 players on one
+laptop (plus a TV, if you have one), led by dogs.
 
-Everyone plans their sorties in secret on a laptop, then the whole couch
-watches the night's air war play out on the TV. Seven breakaway states fight
-an eight-night war: each night is one round, a whole game fits in one evening,
-and someone walks away with the Bragging Rights. Nobody dies on screen: planes
-splash and every pilot gets a good chute. The dogs in charge are never in any
-danger.
+Everyone plans in secret, then the whole couch watches the night play out on
+the TV. A game is eight nights and fits in an evening. Nobody dies on screen:
+planes splash and every pilot gets a little parachute. The dogs in charge are
+never in any danger.
 
 ## Start playing
 
@@ -50,57 +49,68 @@ the firewall.
 
 ## The dogs in charge
 
-| Faction | Home | Leader | Plays like |
-| --- | --- | --- | --- |
-| Pacific Venture Republic | California | **Princess Donut**, Founder & Chief Princess Officer | Swarm cheaply, gamble on updates |
-| Front Range Free State | Colorado | **Griffin & Pan**, Co-Commanders (Brothers) | See everything, sell secrets |
-| Cascadian Commonwealth | Washington, Oregon | Ranger Huckleberry | Hide in the clouds, strike from lakes |
-| Republic of Texas (Again) | Texas | Coach Tank | Huge bombers, longer grudges |
-| Dreamland Syndicate | Nevada | Lucky | Bet on everyone else's war |
-| Grain Belt Union | North Dakota to Oklahoma | Agent Sorghum | Feed the West, auction dinner |
-| Beehive Cooperative | Utah | Biscuit | Help the neighbors, never start it |
+| Side | Leader | Perk |
+| --- | --- | --- |
+| California | **Princess Donut**, Founder & Chief Princess Officer | *Move fast:* any new squadron costs 3 Supply |
+| Cascadia | Ranger Huckleberry | *Overcast:* the first patrol a raid meets gets only one round at it |
+| Colorado | **Griffin & Pan**, Co-Commanders (Brothers) | *The Mountain:* bigger patrol circles |
+| Texas | Coach Tank | *Everything's bigger:* 4-plane bomber squadrons |
+| Nevada | Lucky | *High roller:* prizes pay double Supply |
+| Grain Belt | Agent Sorghum | *Crop dusters:* bombs hit more often |
+| Utah | Biscuit | *Neighborhood watch:* patrols jump every raid that flies through |
 
-Princess Donut, Griffin and Pan are drawn from the real dogs. Griffin and Pan
-bicker in every advisor line, but they love each other.
+A perk works while that side's Crown Jewel stands. Princess Donut, Griffin and
+Pan are drawn from the real dogs.
 
 ## Playing
 
-Open the game in a browser (desktop Chrome, Firefox, Safari or Edge, or a
-tablet). Pick four factions, and make any seat a human or a bot. Then:
+Pick 2 to 7 sides and make each one a person or a bot. Then, every night:
 
-1. **Dawn briefing** on the TV: the newspaper, the scores and tonight's stage.
-2. **Planning**, in secret: pass the laptop. Hold the button to reveal your
-   map. Drag squadron cards onto targets, zones or other squadrons. Routes
-   draw themselves in green, yellow or red risk. Queue builds and repairs,
-   use your faction's special action, then Commit.
-3. **The show** on the TV: the night plays out with radio chatter, flak,
-   dogfights, strikes and parachutes. Space pauses; 1, 2 and 4 set the speed.
-4. **Morning report**: the scorecards, a headline and the Play of the Night.
+1. **Plan, in secret.** Pass the laptop. Drag a **Bombers** card onto an
+   enemy site to bomb it. Drag a **Fighters** card onto your own land to
+   patrol: the circle is the sky they guard, and they jump raids that fly
+   through it on the way to your sites or to a prize. Drop fighters on a
+   target instead to fly along and protect the raid. Spend Supply on new
+   squadrons and repairs, then Commit. *Suggest Plan* fills in a sensible
+   plan you can change.
+2. **Watch.** Every plan plays out at once on the TV. Raids fly in straight
+   lines. Whenever something happens, the night pauses, the camera moves in
+   and the result is stamped on the map: *2 DOWN*, *HIT −1*, *MISSED*,
+   *TAKEN*.
+3. **Morning.** One card: the headline, what happened, who scored, one dog
+   talking, and anything new for tonight.
 
-**Nobody gets knocked out: Project Bark Park.** Fall far behind (last place
-and 10 or more Bragging Rights off the lead) or down to your last squadron,
-and you're *in the doghouse*. Once a game, between Nights 3 and 7, you can
-spend a night at Project Bark Park, a secret dog park at Four Corners. Your
-squadrons rest, and nothing can touch your land: bombs bounce off the fence.
-At dawn you're back with everything repaired, at least five squadrons, extra
-Supply and one shot of **the Big Fetch**: a stadium-sized tennis ball you can
-land on any target you could attack. It can't be intercepted, and a crown
-jewel counts as a full hit. Find it in the Faction tab.
+**Sites and points.** Each side has an HQ, a Factory, an Airfield and a
+Crown Jewel, each with a few pips of health. Knock off a pip: 2 points (3
+for an HQ or Crown Jewel). Shoot down a plane: 1. Airfields and the three
+prizes (Old Faithful, the Boneyard and White Sands) are open from Night 1,
+Factories from Night 3, HQs and Crown Jewels from Night 6. The first raid to
+reach a prize holds it, worth 1 point and 1 Supply each morning.
 
-**Music:** four chiptune songs with an Ace Combat accent play by screen: the
-main theme on the menu and final results, "Briefing Room" while you read and
-plan, "Night Sortie" during the show, and "Gloves Off" for Nights 6–8. The
-menu has separate Sound and Music switches.
+**Everything is public except tonight's orders.** The map shows where
+everyone flew and patrolled last night as faded marks, so you can read
+habits.
 
-**Laptop + TV:** choose "Laptop + TV" under Screens at setup. A Theater window opens.
-Drag it onto the TV and double-click it for full screen. It only ever gets
-public information. **One screen** works too, on the honor system.
+**Nobody gets knocked out: Project Bark Park.** Last place and 10 or more
+points off the lead, or down to one squadron? Once a game, between Nights 3
+and 7, you can spend a night at a secret dog park. Nothing can hit you that
+night: bombs bounce off the fence. You come back repaired and topped up with
+the **Big Fetch**, a stadium-sized tennis ball that knocks 2 pips off any
+open target and can't be stopped.
 
-**New players:** use *Night Zero* (the 5-minute tutorial with Princess Donut)
-and the *Suggest Plan* button. The dog advisor flags problems as you plan.
+**Laptop + TV:** choose it under Screens at setup. A TV window opens: drag it
+onto the TV and double-click for full screen. The laptop becomes a remote
+while the TV plays. **One screen** works too.
 
-Games autosave at every dawn. From *Saved wars and replays* you can resume,
-replay any past night, or export and import a save file.
+**New players:** *Learn by playing* is a normal game against three easy bots,
+with four short tips from Princess Donut on the first night. *Rules* is one
+card.
+
+**Music:** four chiptune songs play by screen. The menu has Sound and Music
+switches.
+
+Games save themselves every morning. From *Saved games* you can resume,
+watch any past night again, or export and import a save file.
 
 ## Working on the code
 
@@ -129,18 +139,19 @@ to **GitHub Actions**. After that, every push to `main` deploys the game.
 
 | Piece | Job |
 | --- | --- |
-| `crates/flyover-core` | Pure deterministic simulation: map, orders, combat, economy, night resolution, event log. Integer math only, seeded ChaCha8 per night, no I/O. |
-| `crates/flyover-ai` | Advisor warnings, risk colors, Suggest Plan, Easy/Normal bots, Weak Spot (minimum-cut style analysis), Best Targets, seat and public views. |
+| `crates/flyover-core` | Pure deterministic simulation: map, orders, patrols, raids, fights, flak, bombs, prizes, the economy and the event log. Integer math only, seeded ChaCha8 per night, no I/O. |
+| `crates/flyover-ai` | Suggest Plan, the Easy and Normal bots, the planning preview (raid paths and which patrols they cross) and the advisor's tips. |
 | `crates/flyover-wasm` | wasm-bindgen bindings for the browser. |
 | `crates/flyover-cli` | `flyover play`, `flyover balance`, `flyover hashes`, `flyover replay <save>`. |
-| `content/*.ron` | The map, units, factions, rules, Patch Notes and every line of flavor text. Loaded at startup, so balance changes need no recompile. |
-| `web/` | TypeScript + PixiJS frontend: planning window, Theater window, show playback, synthesized audio, saves, offline service worker. |
+| `content/*.ron` | The map, factions, rules and every line the dogs say. Loaded at startup, so balance changes need no recompile. |
+| `web/` | TypeScript + PixiJS frontend: planning screen, TV window, the night show, synthesized audio, saves, offline service worker. |
 | `web/src/music/` | The soundtrack: four songs written in MML (Music Macro Language, the classic chiptune notation) in `songs.ts`, a parser, and a WebAudio synth with NES-style voices. `node web/scripts/check-music.ts` checks every song. |
 | `tools/mapgen.py` | Builds `content/map.ron` from real coordinates, nudged apart so nothing overlaps on a TV. |
 
 The whole night resolves in one call, `resolve_night(state, orders) ->
-(state, events)`. A night is 360 one-minute ticks of flying, radar, air
-defense, dogfights and strikes. The show is a playback of the event log. That
+(state, events)`. Raids fly straight from their Airfield to their target;
+patrols are circles that jump raids passing through. The show is a playback
+of the event log. That
 means a save is just the seed plus everyone's orders. Replays are exact, and
 the native and WebAssembly builds produce byte-identical states (CI checks
 this).
@@ -148,72 +159,60 @@ this).
 ### Tests
 
 ```sh
-cargo test --release                                   # determinism, replays, invariants, rules
+cargo test --release                                   # determinism, rules, 2 to 7 sides
 cargo run --release -p flyover-cli -- balance --games 10000
+cargo run --release -p flyover-cli -- balance --players 6 # any count from 2 to 7
 ```
 
 ## Balance
 
-The harness plays Normal bots against each other across all 35 four-faction
-lineups, rotating seat order. Over 10,000 games, every faction lands inside
-the 20–30% win band:
+The harness plays Normal bots against each other across every lineup,
+rotating seat order. Four sides is the tuned count: over 10,000 games, every
+faction lands inside the 20–30% win band.
 
-| Faction | Win rate | Avg. Bragging Rights |
+| Faction | Win rate | Avg. points |
 | --- | --- | --- |
-| Pacific Venture Republic | 25.8% | 49.6 |
-| Cascadian Commonwealth | 24.0% | 51.1 |
-| Front Range Free State | 21.5% | 48.3 |
-| Republic of Texas (Again) | 28.8% | 51.3 |
-| Dreamland Syndicate | 22.1% | 48.0 |
-| Grain Belt Union | 26.3% | 52.0 |
-| Beehive Cooperative | 26.5% | 49.7 |
+| California | 25.1% | 52.6 |
+| Cascadia | 28.1% | 54.0 |
+| Colorado | 22.3% | 52.0 |
+| Texas | 24.1% | 53.6 |
+| Nevada | 24.8% | 53.1 |
+| Grain Belt | 23.2% | 52.5 |
+| Utah | 27.3% | 52.9 |
 
-Project Bark Park gets about 1.7 visits a game. Visitors win 18% of the time
-and finish above last place 63% of the time.
+Project Bark Park gets about 2.4 visits a game. Visitors win 21% of the time
+and climb out of last place 70% of the time. The average winning margin is
+11.5 points, so most games stay close to the end.
 
-The average winning margin is 12 Bragging Rights, so most games stay close
-to the end.
+Other sizes play fine but aren't tuned as tightly. Utah's neighborhood watch
+gets stronger the more raids are in the air, and Cascadia's clouds matter
+most one on one:
 
-The tuning was done with prices and numbers, without removing any faction's
-rule-breaker. The main moves were:
+| Sides | Fair share | Lowest | Highest |
+| --- | --- | --- | --- |
+| 2 | 50% | Utah 37% | Cascadia 60% |
+| 3 | 33% | Utah 29% | Cascadia 39% |
+| 5 | 20% | Grain Belt 15% | Utah 24% |
+| 6 | 17% | Grain Belt 12% | Utah 22% |
+| 7 | 14% | Colorado 9% | Utah 21% |
 
-- Guards defend their post, and Sweep hunts traffic in transit.
-- Crown jewels are hardened. A single squadron rarely cracks one, so Gloves
-  Off raids are team efforts.
-- Utah's guards always get the first shot. Utah scores mostly by defending,
-  and Project Bark Park nights mean less is flying, so Utah needed the help.
-- The Longhorn and the Seagulls were toned down; California's drones were
-  toned up.
+## Version 2
 
-## Design decisions beyond the requirements doc
+Version 2 came out of a playtest: the game was fun, but hidden. What changed:
 
-- **Dogs lead every faction**, and each dog is that faction's advisor.
-- **Utah is a seventh faction**, the Beehive Cooperative, so any four of seven
-  play. The Big Empty is now Idaho, Montana, Wyoming, Arizona and New Mexico.
-- **The Mass Driver moved to White Sands, New Mexico** (Utah's salt flats are
-  Utah's now). It fires **once per game**, from Night 6. Firing every night
-  was worth about 10 Bragging Rights to whoever held it, which swung games too
-  hard.
-- **Arizona and New Mexico** stay in the Big Empty, with the Boneyard, the
-  Mass Driver and the Route 66 truck stops.
-- **Laptop + TV** is the default recommendation; single-screen is supported.
-- **Bets and bids:** the Harvest winner and winning bid are announced on the
-  title card, and winning bets flash during the show. Losing bids and bets
-  stay secret.
-- **Suggest Plan is always available.** It's a learning tool, and the bots use
-  the same planner.
-- **8 nights** as written. The stages are Saber Rattling (1–2), Open Season
-  (3–5) and Gloves Off (6–8).
-- **Colorado's radar sale** needs both sides. Colorado lists a price, buyers
-  name a region and a top price, and the deal delivers at dawn.
-- **Project Bark Park** answers "no player elimination". It's a comeback, not
-  a reset: in bot games, factions that visit win about 18% of the time (a
-  quarter would be average), and they climb out of last place in about two
-  games out of three. Bots always take the park when they can and save the
-  Big Fetch for Gloves Off.
-- **Utah's guards always get the first shot** (it used to be only when
-  defending a home). With someone at the park most games there is less in
-  the air, and Utah, which scores by defending, had slipped below 20%.
-- **Tone:** every line stays affectionate and about places and food. The
-  Beehive's humor is fry sauce, green Jell-O, "oh my heck", casseroles and the
-  Greatest Snow on Earth. There is nothing about religion.
+- **One clear loop.** Four sites per side instead of a web of nodes, three
+  prizes, and two kinds of squadron. Patrols are circles you can see, and a
+  raid's path shows which circles it crosses.
+- **A show you can follow.** The night stops on every moment that matters
+  and stamps the result on the map, with one caption.
+- **Far less text.** One morning card instead of a briefing and a report;
+  one dog line a morning, never repeated within a game; no jokes about
+  rules you haven't met yet; a one-card rulebook.
+- **Postcard West.** Paper and ink by day, the same map in blue ink at
+  night, one slab typeface and one plain one, and each side's own ink color.
+- **No planning timer by default** (3 or 5 minutes if you want one), and
+  last night's orders carry over.
+- **2 to 7 sides.**
+
+The full design is in [`docs/design-v2.md`](docs/design-v2.md).
+

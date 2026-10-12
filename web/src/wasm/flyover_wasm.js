@@ -12,12 +12,41 @@ export class Engine {
         wasm.__wbg_engine_free(ptr, 0);
     }
     /**
+     * Last night's missions that still make sense, as tonight's starting plan.
      * @param {string} state
-     * @param {number} seat
+     * @param {string} prev
+     * @returns {string}
+     */
+    carry_over(state, prev) {
+        let deferred4_0;
+        let deferred4_1;
+        try {
+            const ptr0 = passStringToWasm0(state, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+            const len0 = WASM_VECTOR_LEN;
+            const ptr1 = passStringToWasm0(prev, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+            const len1 = WASM_VECTOR_LEN;
+            const ret = wasm.engine_carry_over(this.__wbg_ptr, ptr0, len0, ptr1, len1);
+            var ptr3 = ret[0];
+            var len3 = ret[1];
+            if (ret[3]) {
+                ptr3 = 0; len3 = 0;
+                throw takeFromExternrefTable0(ret[2]);
+            }
+            deferred4_0 = ptr3;
+            deferred4_1 = len3;
+            return getStringFromWasm0(ptr3, len3);
+        } finally {
+            wasm.__wbindgen_free(deferred4_0, deferred4_1, 1);
+        }
+    }
+    /**
+     * The plan as the night will read it, what the map should draw for it,
+     * and the advisor's tips.
+     * @param {string} state
      * @param {string} orders
      * @returns {string}
      */
-    advise(state, seat, orders) {
+    check(state, orders) {
         let deferred4_0;
         let deferred4_1;
         try {
@@ -25,7 +54,7 @@ export class Engine {
             const len0 = WASM_VECTOR_LEN;
             const ptr1 = passStringToWasm0(orders, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
             const len1 = WASM_VECTOR_LEN;
-            const ret = wasm.engine_advise(this.__wbg_ptr, ptr0, len0, seat, ptr1, len1);
+            const ret = wasm.engine_check(this.__wbg_ptr, ptr0, len0, ptr1, len1);
             var ptr3 = ret[0];
             var len3 = ret[1];
             if (ret[3]) {
@@ -40,85 +69,7 @@ export class Engine {
         }
     }
     /**
-     * @param {string} state
-     * @param {number} seat
-     * @returns {string}
-     */
-    best_targets(state, seat) {
-        let deferred3_0;
-        let deferred3_1;
-        try {
-            const ptr0 = passStringToWasm0(state, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-            const len0 = WASM_VECTOR_LEN;
-            const ret = wasm.engine_best_targets(this.__wbg_ptr, ptr0, len0, seat);
-            var ptr2 = ret[0];
-            var len2 = ret[1];
-            if (ret[3]) {
-                ptr2 = 0; len2 = 0;
-                throw takeFromExternrefTable0(ret[2]);
-            }
-            deferred3_0 = ptr2;
-            deferred3_1 = len2;
-            return getStringFromWasm0(ptr2, len2);
-        } finally {
-            wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
-        }
-    }
-    /**
-     * @param {string} state
-     * @param {number} seat
-     * @returns {string}
-     */
-    carry_over(state, seat) {
-        let deferred3_0;
-        let deferred3_1;
-        try {
-            const ptr0 = passStringToWasm0(state, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-            const len0 = WASM_VECTOR_LEN;
-            const ret = wasm.engine_carry_over(this.__wbg_ptr, ptr0, len0, seat);
-            var ptr2 = ret[0];
-            var len2 = ret[1];
-            if (ret[3]) {
-                ptr2 = 0; len2 = 0;
-                throw takeFromExternrefTable0(ret[2]);
-            }
-            deferred3_0 = ptr2;
-            deferred3_1 = len2;
-            return getStringFromWasm0(ptr2, len2);
-        } finally {
-            wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
-        }
-    }
-    /**
-     * @param {string} state
-     * @param {number} sq
-     * @param {string} mission
-     * @returns {string}
-     */
-    check_mission(state, sq, mission) {
-        let deferred4_0;
-        let deferred4_1;
-        try {
-            const ptr0 = passStringToWasm0(state, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-            const len0 = WASM_VECTOR_LEN;
-            const ptr1 = passStringToWasm0(mission, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-            const len1 = WASM_VECTOR_LEN;
-            const ret = wasm.engine_check_mission(this.__wbg_ptr, ptr0, len0, sq, ptr1, len1);
-            var ptr3 = ret[0];
-            var len3 = ret[1];
-            if (ret[3]) {
-                ptr3 = 0; len3 = 0;
-                throw takeFromExternrefTable0(ret[2]);
-            }
-            deferred4_0 = ptr3;
-            deferred4_1 = len3;
-            return getStringFromWasm0(ptr3, len3);
-        } finally {
-            wasm.__wbindgen_free(deferred4_0, deferred4_1, 1);
-        }
-    }
-    /**
-     * Everything the renderer needs to draw the map and write the words.
+     * Everything the screens need to draw the map and write the words.
      * @returns {string}
      */
     content_json() {
@@ -140,27 +91,50 @@ export class Engine {
         }
     }
     /**
+     * Why a squadron can't take a mission ("" if it can).
+     * @param {string} state
+     * @param {number} sq
+     * @param {string} mission
+     * @returns {string}
+     */
+    mission_error(state, sq, mission) {
+        let deferred4_0;
+        let deferred4_1;
+        try {
+            const ptr0 = passStringToWasm0(state, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+            const len0 = WASM_VECTOR_LEN;
+            const ptr1 = passStringToWasm0(mission, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+            const len1 = WASM_VECTOR_LEN;
+            const ret = wasm.engine_mission_error(this.__wbg_ptr, ptr0, len0, sq, ptr1, len1);
+            var ptr3 = ret[0];
+            var len3 = ret[1];
+            if (ret[3]) {
+                ptr3 = 0; len3 = 0;
+                throw takeFromExternrefTable0(ret[2]);
+            }
+            deferred4_0 = ptr3;
+            deferred4_1 = len3;
+            return getStringFromWasm0(ptr3, len3);
+        } finally {
+            wasm.__wbindgen_free(deferred4_0, deferred4_1, 1);
+        }
+    }
+    /**
      * @param {string} map
-     * @param {string} units
      * @param {string} factions
      * @param {string} rules
-     * @param {string} patch_notes
      * @param {string} flavor
      */
-    constructor(map, units, factions, rules, patch_notes, flavor) {
+    constructor(map, factions, rules, flavor) {
         const ptr0 = passStringToWasm0(map, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len0 = WASM_VECTOR_LEN;
-        const ptr1 = passStringToWasm0(units, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const ptr1 = passStringToWasm0(factions, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len1 = WASM_VECTOR_LEN;
-        const ptr2 = passStringToWasm0(factions, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const ptr2 = passStringToWasm0(rules, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len2 = WASM_VECTOR_LEN;
-        const ptr3 = passStringToWasm0(rules, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const ptr3 = passStringToWasm0(flavor, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len3 = WASM_VECTOR_LEN;
-        const ptr4 = passStringToWasm0(patch_notes, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        const len4 = WASM_VECTOR_LEN;
-        const ptr5 = passStringToWasm0(flavor, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        const len5 = WASM_VECTOR_LEN;
-        const ret = wasm.engine_new(ptr0, len0, ptr1, len1, ptr2, len2, ptr3, len3, ptr4, len4, ptr5, len5);
+        const ret = wasm.engine_new(ptr0, len0, ptr1, len1, ptr2, len2, ptr3, len3);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -193,75 +167,20 @@ export class Engine {
         }
     }
     /**
-     * One mission preview against a draft (for drag feedback).
+     * Why a seat can't patrol here ("" if it can).
      * @param {string} state
-     * @param {string} orders
-     * @param {string} req
+     * @param {number} seat
+     * @param {number} x
+     * @param {number} y
      * @returns {string}
      */
-    preview(state, orders, req) {
-        let deferred5_0;
-        let deferred5_1;
-        try {
-            const ptr0 = passStringToWasm0(state, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-            const len0 = WASM_VECTOR_LEN;
-            const ptr1 = passStringToWasm0(orders, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-            const len1 = WASM_VECTOR_LEN;
-            const ptr2 = passStringToWasm0(req, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-            const len2 = WASM_VECTOR_LEN;
-            const ret = wasm.engine_preview(this.__wbg_ptr, ptr0, len0, ptr1, len1, ptr2, len2);
-            var ptr4 = ret[0];
-            var len4 = ret[1];
-            if (ret[3]) {
-                ptr4 = 0; len4 = 0;
-                throw takeFromExternrefTable0(ret[2]);
-            }
-            deferred5_0 = ptr4;
-            deferred5_1 = len4;
-            return getStringFromWasm0(ptr4, len4);
-        } finally {
-            wasm.__wbindgen_free(deferred5_0, deferred5_1, 1);
-        }
-    }
-    /**
-     * Route, Fuel and risk for every flying mission in a draft.
-     * @param {string} state
-     * @param {string} orders
-     * @returns {string}
-     */
-    previews(state, orders) {
-        let deferred4_0;
-        let deferred4_1;
-        try {
-            const ptr0 = passStringToWasm0(state, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-            const len0 = WASM_VECTOR_LEN;
-            const ptr1 = passStringToWasm0(orders, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-            const len1 = WASM_VECTOR_LEN;
-            const ret = wasm.engine_previews(this.__wbg_ptr, ptr0, len0, ptr1, len1);
-            var ptr3 = ret[0];
-            var len3 = ret[1];
-            if (ret[3]) {
-                ptr3 = 0; len3 = 0;
-                throw takeFromExternrefTable0(ret[2]);
-            }
-            deferred4_0 = ptr3;
-            deferred4_1 = len3;
-            return getStringFromWasm0(ptr3, len3);
-        } finally {
-            wasm.__wbindgen_free(deferred4_0, deferred4_1, 1);
-        }
-    }
-    /**
-     * @param {string} state
-     * @returns {string}
-     */
-    public_view(state) {
+    patrol_error(state, seat, x, y) {
         let deferred3_0;
         let deferred3_1;
         try {
             const ptr0 = passStringToWasm0(state, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
             const len0 = WASM_VECTOR_LEN;
-            const ret = wasm.engine_public_view(this.__wbg_ptr, ptr0, len0);
+            const ret = wasm.engine_patrol_error(this.__wbg_ptr, ptr0, len0, seat, x, y);
             var ptr2 = ret[0];
             var len2 = ret[1];
             if (ret[3]) {
@@ -276,7 +195,7 @@ export class Engine {
         }
     }
     /**
-     * Resolve a night. Returns {"state": ..., "events": [...], "hash": "..."}.
+     * Resolve a night: `orders` is a JSON array with one entry per seat.
      * @param {string} state
      * @param {string} orders
      * @returns {string}
@@ -304,17 +223,19 @@ export class Engine {
         }
     }
     /**
+     * Why a seat can't hit this site tonight ("" if it can).
      * @param {string} state
      * @param {number} seat
+     * @param {number} site
      * @returns {string}
      */
-    seat_view(state, seat) {
+    site_error(state, seat, site) {
         let deferred3_0;
         let deferred3_1;
         try {
             const ptr0 = passStringToWasm0(state, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
             const len0 = WASM_VECTOR_LEN;
-            const ret = wasm.engine_seat_view(this.__wbg_ptr, ptr0, len0, seat);
+            const ret = wasm.engine_site_error(this.__wbg_ptr, ptr0, len0, seat, site);
             var ptr2 = ret[0];
             var len2 = ret[1];
             if (ret[3]) {
@@ -378,32 +299,6 @@ export class Engine {
             return getStringFromWasm0(ptr3, len3);
         } finally {
             wasm.__wbindgen_free(deferred4_0, deferred4_1, 1);
-        }
-    }
-    /**
-     * @param {string} state
-     * @param {number} viewer
-     * @param {number} target
-     * @returns {string}
-     */
-    weak_spot(state, viewer, target) {
-        let deferred3_0;
-        let deferred3_1;
-        try {
-            const ptr0 = passStringToWasm0(state, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-            const len0 = WASM_VECTOR_LEN;
-            const ret = wasm.engine_weak_spot(this.__wbg_ptr, ptr0, len0, viewer, target);
-            var ptr2 = ret[0];
-            var len2 = ret[1];
-            if (ret[3]) {
-                ptr2 = 0; len2 = 0;
-                throw takeFromExternrefTable0(ret[2]);
-            }
-            deferred3_0 = ptr2;
-            deferred3_1 = len2;
-            return getStringFromWasm0(ptr2, len2);
-        } finally {
-            wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
         }
     }
 }

@@ -4,7 +4,7 @@
   "description": "A 4-player hotseat air war over a post-collapse American West, led by dogs.",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#071022",
-  "theme_color": "#071022",
+  "background_color": "#f3ead7",
+  "theme_color": "#f3ead7",
   "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
 }

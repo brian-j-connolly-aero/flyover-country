@@ -17,7 +17,7 @@ export type FactionKey = 'Pacific' | 'Cascadia' | 'FrontRange' | 'Texas' | 'Drea
 export interface PortraitOptions {
   /** Rendered height in px (width too, for square portraits). Default 240. */
   size?: number;
-  /** Draw the rounded navy backdrop with a faction-colored glow. Default false (transparent). */
+  /** Draw the postcard-stamp backdrop in the faction's ink. Default false (transparent). */
   bg?: boolean;
 }
 
@@ -27,13 +27,13 @@ export interface EmblemOptions {
 }
 
 export const FACTION_COLORS: Record<FactionKey, string> = {
-  Pacific: '#FF5FA2',
-  Cascadia: '#3DDC84',
-  FrontRange: '#4CC9F0',
-  Texas: '#FF4D4D',
-  Dreamland: '#B388FF',
-  GrainBelt: '#F2E86D',
-  Beehive: '#FF9F1C',
+  Pacific: '#D9467A',
+  Cascadia: '#1E8A6E',
+  FrontRange: '#2E6DB4',
+  Texas: '#C2471F',
+  Dreamland: '#7A55C2',
+  GrainBelt: '#7E9A2E',
+  Beehive: '#E2A21A',
 };
 
 /** Which faction each dog leads (Griffin and Pan co-lead the Front Range). */
@@ -1139,20 +1139,24 @@ const DRAW: Record<LeaderId, DrawFn> = {
 
 /** Rounded navy card with a soft faction-colored glow behind the dog. */
 function framed(ctx: Ctx, w: number, h: number, art: string, color: string): string {
-  const glow = ctx.id('g');
-  const navy = ctx.id('v');
-  ctx.defs.push(
-    `<radialGradient id="${glow}" gradientUnits="userSpaceOnUse" cx="${n(w / 2)}" cy="${n(h * 0.42)}" r="${n(h * 0.62)}"><stop offset="0" stop-color="${color}" stop-opacity="0.72"/><stop offset="0.45" stop-color="${color}" stop-opacity="0.26"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></radialGradient>`,
-    `<linearGradient id="${navy}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#11204a"/><stop offset="1" stop-color="#070f24"/></linearGradient>`,
-  );
-  const r = n(h * 0.15);
+  // A postcard stamp: the faction's ink washed over paper, a sunburst behind
+  // the dog, and a hard ink border.
+  const r = n(h * 0.12);
   const rect = `<rect x="0" y="0" width="${w}" height="${h}" rx="${r}" ry="${r}"`;
   const clip = ctx.clip(rect + '/>');
+  const cx = w / 2;
+  const cy = h * 0.62;
+  const R = Math.hypot(w, h);
+  let rays = '';
+  for (let i = 0; i < 18; i += 2) {
+    const a0 = (i / 18) * Math.PI * 2;
+    const a1 = ((i + 1) / 18) * Math.PI * 2;
+    rays += `M ${n(cx)} ${n(cy)} L ${n(cx + Math.cos(a0) * R)} ${n(cy + Math.sin(a0) * R)} L ${n(cx + Math.cos(a1) * R)} ${n(cy + Math.sin(a1) * R)} Z `;
+  }
   return (
-    rect + ` fill="url(#${navy})"/>` +
-    rect + ` fill="url(#${glow})"/>` +
-    `<g clip-path="url(#${clip})">${art}</g>` +
-    `<rect x="1.5" y="1.5" width="${w - 3}" height="${h - 3}" rx="${n(h * 0.15 - 1.5)}" fill="none" stroke="${color}" stroke-opacity="0.45" stroke-width="2"/>`
+    rect + ` fill="${mix(color, '#f3ead7', 0.72)}"/>` +
+    `<g clip-path="url(#${clip})"><path d="${rays}" fill="${mix(color, '#f3ead7', 0.55)}"/>${art}</g>` +
+    `<rect x="2" y="2" width="${w - 4}" height="${h - 4}" rx="${n(h * 0.12 - 2)}" fill="none" stroke="#231e1a" stroke-width="4"/>`
   );
 }
 
