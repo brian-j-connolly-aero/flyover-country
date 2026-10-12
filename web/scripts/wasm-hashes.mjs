@@ -13,11 +13,11 @@ const factions = (args.factions ?? 'Pacific,FrontRange,Texas,Beehive').split(','
 
 initSync({ module: readFileSync(join(here, '..', 'src', 'wasm', 'flyover_wasm_bg.wasm')) });
 const read = (f) => readFileSync(join(root, 'content', `${f}.ron`), 'utf8');
-const engine = new Engine(read('map'), read('units'), read('factions'), read('rules'), read('patch_notes'), read('flavor'));
+const engine = new Engine(read('map'), read('factions'), read('rules'), read('flavor'));
 let state = engine.new_game(JSON.stringify({ seed, factions }));
 for (let night = 1; night <= 8; night++) {
   const orders = factions.map((_, seat) => JSON.parse(engine.suggest(state, seat, 'normal')));
   const r = JSON.parse(engine.resolve(state, JSON.stringify(orders)));
   state = JSON.stringify(r.state);
-  console.log(r.hash);
+  console.log(engine.state_hash(state));
 }

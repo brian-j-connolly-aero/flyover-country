@@ -1,9 +1,11 @@
-import '@fontsource/oswald/500.css';
-import '@fontsource/oswald/700.css';
-import '@fontsource/jetbrains-mono/400.css';
+import '@fontsource/alfa-slab-one/400.css';
+import '@fontsource/atkinson-hyperlegible/400.css';
+import '@fontsource/atkinson-hyperlegible/700.css';
+import '@fontsource/atkinson-hyperlegible/400-italic.css';
 import './style.css';
 import { Engine } from './engine';
 import { setContent } from './text';
+import { setFactionColors } from './theme';
 import { App } from './ui/app';
 import { audio } from './audio';
 
@@ -13,6 +15,7 @@ async function boot() {
   try {
     const engine = await Engine.load();
     setContent(engine.content);
+    setFactionColors(engine.content);
     root.innerHTML = '';
     const app = new App(root, engine);
     (window as unknown as { flyover: App; flyoverAudio: typeof audio }).flyover = app;

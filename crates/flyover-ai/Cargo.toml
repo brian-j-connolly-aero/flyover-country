@@ -1,6 +1,6 @@
 [package]
 name = "flyover-ai"
-description = "Advisor, Suggest Plan, bots, risk estimates and network analysis for Flyover Country."
+description = "Bots, Suggest Plan, planning previews and advisor tips for Flyover Country."
 version.workspace = true
 edition.workspace = true
 license.workspace = true

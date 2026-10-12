@@ -2,9 +2,8 @@
 //! [`Engine::new`], and from then on passes game state and orders as JSON.
 //! The engine is stateless apart from a one-entry parse cache.
 
-use flyover_ai::{advisor, analysis, plan, risk, view, Level};
-use flyover_core::content::{Content, ContentFiles, World, P};
-use flyover_core::route::Planner;
+use flyover_ai::{advisor, plan, preview, Level};
+use flyover_core::content::{ContentFiles, World};
 use flyover_core::state::{GameState, Mission, Orders};
 use flyover_core::{new_game, resolve_night, rules, state_hash, GameConfig};
 use serde::{Deserialize, Serialize};
@@ -12,68 +11,65 @@ use std::cell::RefCell;
 use std::collections::BTreeMap;
 use wasm_bindgen::prelude::*;
 
+/// What one dog says, by situation. Every list is a pool: the screens never
+/// show the same line twice in a game while the pool lasts.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct AceDef {
-    pub callsign: String,
-    pub launch: Vec<String>,
-    pub kill: Vec<String>,
-    pub duel: Vec<String>,
-    pub downed: Vec<String>,
-    pub returns: Vec<String>,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct LeaderDef {
-    pub name: String,
-    pub title: String,
-    pub bio: String,
-    pub pick: Vec<String>,
+pub struct LeaderLines {
+    /// The first morning, right after the pick.
+    pub intro: Vec<String>,
+    /// An ordinary morning.
     pub dawn: Vec<String>,
-    pub winning: Vec<String>,
-    pub losing: Vec<String>,
-    pub our_jewel_hit: Vec<String>,
-    pub victory: Vec<String>,
-    pub defeat: Vec<String>,
-    /// Project Bark Park: heading out, coming back, and firing the Big Fetch.
-    #[serde(default)]
-    pub retreat: Vec<String>,
-    #[serde(default)]
-    pub park_return: Vec<String>,
-    #[serde(default)]
+    pub ahead: Vec<String>,
+    pub behind: Vec<String>,
+    /// The morning after one of their sites got hit.
+    pub hit: Vec<String>,
+    /// The morning after their raid landed.
+    pub landed: Vec<String>,
+    /// Off to Project Bark Park.
+    pub park: Vec<String>,
+    /// Back from the park.
+    pub back: Vec<String>,
+    /// Throwing the Big Fetch.
     pub fetch: Vec<String>,
+    pub win: Vec<String>,
+    pub lose: Vec<String>,
 }
 
-/// Radio chatter, ace lines, leader lines, advisor text and headlines.
+/// Short radio calls during the night.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Radio {
+    /// Their patrol jumps a raid.
+    pub intercept: Vec<String>,
+    /// Their raid gets jumped.
+    pub jumped: Vec<String>,
+    /// Their bombs land.
+    pub hit: Vec<String>,
+    /// Their bombs miss.
+    pub miss: Vec<String>,
+    /// They take or hold a prize.
+    pub prize: Vec<String>,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FlavorDef {
-    pub chatter: BTreeMap<String, BTreeMap<String, Vec<String>>>,
-    pub aces: BTreeMap<String, AceDef>,
-    pub leaders: BTreeMap<String, LeaderDef>,
-    pub advisor: BTreeMap<String, BTreeMap<String, Vec<String>>>,
+    pub leaders: BTreeMap<String, LeaderLines>,
+    pub radio: BTreeMap<String, Radio>,
+    /// Newspaper headlines by story.
     pub headlines: BTreeMap<String, Vec<String>>,
-    pub curtain: BTreeMap<String, Vec<String>>,
-    /// "Also in the Sentinel": one small story on each dawn's front page.
-    #[serde(default)]
-    pub sidebar: Vec<String>,
-    /// On the TV while a faction is at Project Bark Park.
-    #[serde(default)]
-    pub park_curtain: BTreeMap<String, Vec<String>>,
 }
 
 #[derive(Serialize)]
 struct ContentOut<'a> {
     width: i32,
     height: i32,
-    nodes: &'a [flyover_core::content::Node],
-    zones: &'a [flyover_core::content::Zone],
-    links: &'a [flyover_core::content::Link],
-    fringe: &'a [Vec<P>],
-    mississippi: &'a [P],
+    zones: &'a [flyover_core::content::ZoneDef],
+    fringe: &'a [Vec<flyover_core::geom::P>],
+    mississippi: &'a [flyover_core::geom::P],
+    sites: &'a [flyover_core::content::SiteDef],
+    prizes: &'a [flyover_core::content::PrizeDef],
     landmarks: &'a [flyover_core::content::LandmarkDef],
-    units: &'a [flyover_core::content::UnitDef],
     factions: &'a [flyover_core::content::FactionDef],
     rules: &'a flyover_core::content::RulesDef,
-    patch_notes: &'a [flyover_core::content::PatchNote],
     flavor: &'a FlavorDef,
 }
 
@@ -92,14 +88,6 @@ pub struct Engine {
     cache: RefCell<Option<(String, GameState)>>,
 }
 
-#[derive(Deserialize)]
-struct PreviewReq {
-    sq: u32,
-    mission: Mission,
-    #[serde(default)]
-    waypoint: Option<P>,
-}
-
 impl Engine {
     fn state(&self, json: &str) -> Result<GameState, JsValue> {
         if let Some((k, st)) = self.cache.borrow().as_ref() {
@@ -113,26 +101,28 @@ impl Engine {
     }
 }
 
+#[derive(Serialize)]
+struct Resolved {
+    state: GameState,
+    events: Vec<flyover_core::EventRec>,
+}
+
+#[derive(Serialize)]
+struct Checked {
+    preview: preview::Preview,
+    tips: Vec<advisor::Tip>,
+}
+
 #[wasm_bindgen]
 impl Engine {
     #[wasm_bindgen(constructor)]
-    pub fn new(
-        map: &str,
-        units: &str,
-        factions: &str,
-        rules: &str,
-        patch_notes: &str,
-        flavor: &str,
-    ) -> Result<Engine, JsValue> {
-        let content = Content::parse(&ContentFiles {
+    pub fn new(map: &str, factions: &str, rules: &str, flavor: &str) -> Result<Engine, JsValue> {
+        let world = World::from_files(&ContentFiles {
             map,
-            units,
             factions,
             rules,
-            patch_notes,
         })
         .map_err(err)?;
-        let world = World::new(content).map_err(err)?;
         let flavor: FlavorDef =
             ron::de::from_str(flavor).map_err(|e| err(format!("flavor.ron: {e}")))?;
         Ok(Engine {
@@ -142,23 +132,20 @@ impl Engine {
         })
     }
 
-    /// Everything the renderer needs to draw the map and write the words.
+    /// Everything the screens need to draw the map and write the words.
     pub fn content_json(&self) -> Result<String, JsValue> {
-        let w = &self.world;
-        let c = &w.content;
+        let c = &self.world.content;
         to_json(&ContentOut {
             width: c.map.width,
             height: c.map.height,
-            nodes: &w.nodes,
-            zones: &w.zones,
-            links: &w.links,
+            zones: &c.map.zones,
             fringe: &c.map.fringe,
             mississippi: &c.map.mississippi,
+            sites: &c.map.sites,
+            prizes: &c.map.prizes,
             landmarks: &c.map.landmarks,
-            units: &c.units,
             factions: &c.factions,
             rules: &c.rules,
-            patch_notes: &c.patch_notes,
             flavor: &self.flavor,
         })
     }
@@ -168,73 +155,56 @@ impl Engine {
         to_json(&new_game(&self.world, &cfg).map_err(err)?)
     }
 
-    /// Resolve a night. Returns {"state": ..., "events": [...], "hash": "..."}.
+    /// Resolve a night: `orders` is a JSON array with one entry per seat.
     pub fn resolve(&self, state: &str, orders: &str) -> Result<String, JsValue> {
         let st = self.state(state)?;
         let orders: Vec<Orders> = serde_json::from_str(orders).map_err(err)?;
-        let (next, events) = resolve_night(&self.world, &st, &orders);
-        let hash = state_hash(&next);
-        to_json(&serde_json::json!({ "state": next, "events": events, "hash": hash }))
+        let (state, events) = resolve_night(&self.world, &st, &orders);
+        to_json(&Resolved { state, events })
     }
 
-    pub fn seat_view(&self, state: &str, seat: u8) -> Result<String, JsValue> {
-        to_json(&view::seat_view(&self.world, &self.state(state)?, seat))
-    }
-
-    pub fn public_view(&self, state: &str) -> Result<String, JsValue> {
-        to_json(&view::public_view(&self.world, &self.state(state)?))
-    }
-
-    /// Route, Fuel and risk for every flying mission in a draft.
-    pub fn previews(&self, state: &str, orders: &str) -> Result<String, JsValue> {
+    /// The plan as the night will read it, what the map should draw for it,
+    /// and the advisor's tips.
+    pub fn check(&self, state: &str, orders: &str) -> Result<String, JsValue> {
         let st = self.state(state)?;
         let o: Orders = serde_json::from_str(orders).map_err(err)?;
-        let planner = Planner::for_seat(&self.world, &st, o.seat);
-        let mut out = Vec::new();
-        for so in &o.missions {
-            let Some(sq) = st.squadrons.iter().find(|s| s.id == so.sq) else {
-                continue;
-            };
-            if let Some(p) =
-                risk::preview_with(&self.world, &st, &o, sq, &so.mission, so.waypoint, &planner)
-            {
-                out.push(p);
-            }
-        }
-        to_json(&out)
+        to_json(&Checked {
+            preview: preview::preview(&self.world, &st, &o),
+            tips: advisor::advise(&self.world, &st, &o),
+        })
     }
 
-    /// One mission preview against a draft (for drag feedback).
-    pub fn preview(&self, state: &str, orders: &str, req: &str) -> Result<String, JsValue> {
-        let st = self.state(state)?;
-        let o: Orders = serde_json::from_str(orders).map_err(err)?;
-        let r: PreviewReq = serde_json::from_str(req).map_err(err)?;
-        let Some(sq) = st.squadrons.iter().find(|s| s.id == r.sq) else {
-            return Ok("null".into());
-        };
-        let check = rules::mission_check(&self.world, &st, sq, &r.mission).err();
-        let p = risk::preview(&self.world, &st, &o, sq, &r.mission, r.waypoint);
-        to_json(&serde_json::json!({ "preview": p, "error": check }))
-    }
-
-    pub fn check_mission(&self, state: &str, sq: u32, mission: &str) -> Result<String, JsValue> {
+    /// Why a squadron can't take a mission ("" if it can).
+    pub fn mission_error(&self, state: &str, sq: u32, mission: &str) -> Result<String, JsValue> {
         let st = self.state(state)?;
         let m: Mission = serde_json::from_str(mission).map_err(err)?;
-        let Some(s) = st.squadrons.iter().find(|s| s.id == sq) else {
-            return to_json(&Some("No such squadron."));
+        let Some(s) = st.squadron(sq) else {
+            return Ok("No such squadron.".into());
         };
-        to_json(&rules::mission_check(&self.world, &st, s, &m).err())
+        Ok(rules::mission_check(&self.world, &st, s, &m)
+            .err()
+            .unwrap_or_default())
     }
 
-    pub fn advise(&self, state: &str, seat: u8, orders: &str) -> Result<String, JsValue> {
+    /// Why a seat can't patrol here ("" if it can).
+    pub fn patrol_error(&self, state: &str, seat: u8, x: i32, y: i32) -> Result<String, JsValue> {
         let st = self.state(state)?;
-        let o: Orders = serde_json::from_str(orders).map_err(err)?;
-        to_json(&advisor::advise(&self.world, &st, seat, &o))
+        Ok(rules::patrol_ok(&self.world, &st, seat, (x, y))
+            .err()
+            .unwrap_or_default())
+    }
+
+    /// Why a seat can't hit this site tonight ("" if it can).
+    pub fn site_error(&self, state: &str, seat: u8, site: u16) -> Result<String, JsValue> {
+        let st = self.state(state)?;
+        Ok(rules::site_open(&self.world, &st, seat, site)
+            .err()
+            .unwrap_or_default())
     }
 
     pub fn suggest(&self, state: &str, seat: u8, level: &str) -> Result<String, JsValue> {
         let st = self.state(state)?;
-        let level = if level.eq_ignore_ascii_case("easy") {
+        let level = if level == "easy" {
             Level::Easy
         } else {
             Level::Normal
@@ -242,26 +212,11 @@ impl Engine {
         to_json(&plan::suggest(&self.world, &st, seat, level))
     }
 
-    pub fn carry_over(&self, state: &str, seat: u8) -> Result<String, JsValue> {
-        to_json(&plan::carry_over(&self.world, &self.state(state)?, seat))
-    }
-
-    pub fn weak_spot(&self, state: &str, viewer: u8, target: u8) -> Result<String, JsValue> {
-        to_json(&analysis::weak_spot(
-            &self.world,
-            &self.state(state)?,
-            viewer,
-            target,
-        ))
-    }
-
-    pub fn best_targets(&self, state: &str, seat: u8) -> Result<String, JsValue> {
-        to_json(&analysis::best_targets(
-            &self.world,
-            &self.state(state)?,
-            seat,
-            6,
-        ))
+    /// Last night's missions that still make sense, as tonight's starting plan.
+    pub fn carry_over(&self, state: &str, prev: &str) -> Result<String, JsValue> {
+        let st = self.state(state)?;
+        let prev: Orders = serde_json::from_str(prev).map_err(err)?;
+        to_json(&flyover_core::carry_over(&self.world, &st, &prev))
     }
 
     pub fn state_hash(&self, state: &str) -> Result<String, JsValue> {
@@ -303,94 +258,110 @@ mod tests {
         }
     }
 
+    fn check_pool(section: &str, lines: &[String], min: usize, max_len: usize, allowed: &[&str]) {
+        assert!(
+            lines.len() >= min,
+            "{section} needs at least {min} lines, has {}",
+            lines.len()
+        );
+        for l in lines {
+            assert!(l.chars().count() <= max_len, "{section} too long: {l:?}");
+            assert!(
+                !l.contains(": ") || l.starts_with("Griffin:"),
+                "{section} reads like a title: {l:?}"
+            );
+            check_placeholders(section, l, allowed);
+        }
+        let mut seen = std::collections::BTreeSet::new();
+        for l in lines {
+            assert!(seen.insert(l), "{section} repeats {l:?}");
+        }
+    }
+
     #[test]
     fn flavor_is_complete_and_well_formed() {
         let f = flavor();
-        let keys: Vec<&String> = f.chatter["Pacific"].keys().collect();
         for fac in FACTIONS {
-            let ch = f
-                .chatter
-                .get(fac)
-                .unwrap_or_else(|| panic!("chatter.{fac}"));
-            let mine: Vec<&String> = ch.keys().collect();
-            assert_eq!(mine, keys, "chatter.{fac} has the same keys as Pacific");
-            for (k, lines) in ch {
-                assert!(!lines.is_empty(), "chatter.{fac}.{k} is empty");
-                for l in lines {
-                    assert!(l.chars().count() <= 90, "chatter.{fac}.{k} too long: {l:?}");
-                    check_placeholders("chatter", l, &["node", "enemy", "zone"]);
-                }
-            }
-            let ld = f
+            let l = f
                 .leaders
                 .get(fac)
                 .unwrap_or_else(|| panic!("leaders.{fac}"));
+            let pools = [
+                ("intro", &l.intro, 2),
+                ("dawn", &l.dawn, 8),
+                ("ahead", &l.ahead, 4),
+                ("behind", &l.behind, 4),
+                ("hit", &l.hit, 4),
+                ("landed", &l.landed, 4),
+                ("park", &l.park, 2),
+                ("back", &l.back, 2),
+                ("fetch", &l.fetch, 2),
+                ("win", &l.win, 2),
+                ("lose", &l.lose, 2),
+            ];
+            for (k, lines, min) in pools {
+                check_pool(
+                    &format!("leaders.{fac}.{k}"),
+                    lines,
+                    min,
+                    110,
+                    &["rival", "site"],
+                );
+            }
+            let r = f.radio.get(fac).unwrap_or_else(|| panic!("radio.{fac}"));
             for (k, lines) in [
-                ("pick", &ld.pick),
-                ("dawn", &ld.dawn),
-                ("winning", &ld.winning),
-                ("losing", &ld.losing),
-                ("our_jewel_hit", &ld.our_jewel_hit),
-                ("victory", &ld.victory),
-                ("defeat", &ld.defeat),
+                ("intercept", &r.intercept),
+                ("jumped", &r.jumped),
+                ("hit", &r.hit),
+                ("miss", &r.miss),
+                ("prize", &r.prize),
             ] {
-                assert!(!lines.is_empty(), "leaders.{fac}.{k} is empty");
-            }
-            let adv = f
-                .advisor
-                .get(fac)
-                .unwrap_or_else(|| panic!("advisor.{fac}"));
-            for lines in adv.values() {
-                for l in lines {
-                    check_placeholders(
-                        "advisor",
-                        l,
-                        &[
-                            "unit", "count", "node", "nodes", "pct", "resource", "jewel", "reason",
-                        ],
-                    );
-                }
-            }
-            assert!(
-                f.curtain.get(fac).is_some_and(|c| !c.is_empty()),
-                "curtain.{fac}"
-            );
-        }
-        for (k, lines) in &f.headlines {
-            for l in lines {
-                check_placeholders(
-                    &format!("headlines.{k}"),
-                    l,
-                    &["attacker", "victim", "node", "ace", "count", "zone"],
+                check_pool(
+                    &format!("radio.{fac}.{k}"),
+                    lines,
+                    4,
+                    80,
+                    &["rival", "site", "prize"],
                 );
             }
         }
-        for fac in FACTIONS {
-            let ld = &f.leaders[fac];
-            for (k, lines) in [
-                ("retreat", &ld.retreat),
-                ("park_return", &ld.park_return),
-                ("fetch", &ld.fetch),
-            ] {
-                assert!(!lines.is_empty(), "leaders.{fac}.{k} (Bark Park) is empty");
-            }
-            for k in ["bounce", "park", "fetch"] {
-                assert!(f.chatter[fac].contains_key(k), "chatter.{fac}.{k}");
-            }
-            for k in ["doghouse", "retreating", "fetch_ready"] {
-                assert!(f.advisor[fac].contains_key(k), "advisor.{fac}.{k}");
-            }
-            assert!(f.park_curtain.contains_key(fac), "park_curtain.{fac}");
-        }
-        for k in ["bark_park", "bounce", "fetch", "fetch_jewel", "park_return"] {
-            assert!(f.headlines.contains_key(k), "headlines.{k}");
-        }
-        assert!(f.sidebar.len() >= 40, "plenty of sidebar stories");
-        for l in &f.sidebar {
-            assert!(
-                !l.contains('{'),
-                "sidebar lines have no placeholders: {l:?}"
+        for k in [
+            "first", "strike", "hq", "jewel", "wiped", "prize", "quiet", "park", "fetch", "win",
+        ] {
+            let lines = f
+                .headlines
+                .get(k)
+                .unwrap_or_else(|| panic!("headlines.{k}"));
+            check_pool(
+                &format!("headlines.{k}"),
+                lines,
+                4,
+                72,
+                &["attacker", "victim", "site", "prize", "n"],
             );
         }
+    }
+
+    #[test]
+    fn engine_round_trip() {
+        let t = flyover_core::testkit::files();
+        let e = Engine::new(
+            t.map,
+            t.factions,
+            t.rules,
+            include_str!("../../../content/flavor.ron"),
+        )
+        .expect("engine");
+        let st = e
+            .new_game(r#"{"seed":3,"factions":["Pacific","Texas"]}"#)
+            .expect("new game");
+        let plan = e.suggest(&st, 0, "normal").expect("suggest");
+        let checked = e.check(&st, &plan).expect("check");
+        assert!(checked.contains("\"preview\""));
+        let plan1 = e.suggest(&st, 1, "normal").expect("suggest");
+        let out = e
+            .resolve(&st, &format!("[{plan},{plan1}]"))
+            .expect("resolve");
+        assert!(out.contains("\"Dawn\""));
     }
 }

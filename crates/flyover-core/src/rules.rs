@@ -1,373 +1,262 @@
-//! Rule checks shared by the simulation, the advisor and the user interface:
-//! escalation stages, legal targets, legal orders and base capacity.
+//! Rule checks shared by the simulation, the bots and the planning screen.
 
-use crate::content::{FactionId, NodeKind, OrderKind, UnitKind, World};
-use crate::state::{EffectKind, GameState, Mission, Squadron};
+use crate::content::{FactionId, Region, SiteKind, UnitKind, World};
+use crate::geom::P;
+use crate::state::{GameState, Mission, MissionOrder, Orders, Squadron, Target};
 
 /// 0 = Saber Rattling, 1 = Open Season, 2 = Gloves Off.
 pub fn stage(world: &World, night: u8) -> u8 {
     let r = world.rules();
-    if night >= r.gloves_off {
+    if night >= r.open_hqs {
         2
-    } else if night >= r.open_season {
+    } else if night >= r.open_factories {
         1
     } else {
         0
     }
 }
 
-pub fn seat_of(state: &GameState, f: FactionId) -> Option<u8> {
-    state
-        .seats
-        .iter()
-        .position(|s| s.faction == f)
-        .map(|i| i as u8)
-}
-
-pub fn faction(state: &GameState, seat: u8) -> FactionId {
-    state.seats[seat as usize].faction
-}
-
-pub fn is_seated(state: &GameState, f: FactionId) -> bool {
-    seat_of(state, f).is_some()
-}
-
-pub fn effect_active(state: &GameState, seat: u8, kind: EffectKind, night: u8) -> bool {
-    state
-        .effects
-        .iter()
-        .any(|e| e.seat == seat && e.kind == kind && e.from <= night && night <= e.until)
-}
-
-/// Neutral ground: the Big Empty and fallen home regions.
-pub fn capturable(world: &World, state: &GameState, node: u16) -> bool {
-    let n = &world.nodes[node as usize];
-    if matches!(n.kind, NodeKind::Lake | NodeKind::CrownJewel) {
-        return false;
-    }
-    match n.home {
-        None => true,
-        Some(f) => !is_seated(state, f),
+/// The first night a kind of site can be hit.
+pub fn opens_on(world: &World, k: SiteKind) -> u8 {
+    let r = world.rules();
+    match k {
+        SiteKind::Airfield => 1,
+        SiteKind::Factory => r.open_factories,
+        SiteKind::HQ | SiteKind::Jewel => r.open_hqs,
     }
 }
 
-/// Objective value (Bragging Rights per night held) of a node.
-pub fn objective(world: &World, state: &GameState, node: u16) -> i32 {
-    let n = &world.nodes[node as usize];
-    if n.objective > 0 {
-        return n.objective;
+impl GameState {
+    pub fn seat_of(&self, f: FactionId) -> Option<u8> {
+        self.seats
+            .iter()
+            .position(|s| s.faction == Some(f))
+            .map(|i| i as u8)
     }
-    match (n.kind, n.home) {
-        (NodeKind::Capital, Some(f)) if !is_seated(state, f) => 1,
-        _ => 0,
+    pub fn faction(&self, seat: u8) -> FactionId {
+        self.seats[seat as usize]
+            .faction
+            .expect("every seat has a faction")
+    }
+    pub fn squadron(&self, id: u32) -> Option<&Squadron> {
+        self.squadrons.iter().find(|s| s.id == id)
+    }
+    pub fn squadrons_of(&self, seat: u8) -> impl Iterator<Item = &Squadron> {
+        self.squadrons.iter().filter(move |s| s.seat == seat)
+    }
+    pub fn over(&self, world: &World) -> bool {
+        self.night > world.rules().nights
+    }
+    /// The seat that owns a site (None for factions not in the game).
+    pub fn site_owner(&self, world: &World, site: u16) -> Option<u8> {
+        self.seat_of(world.site(site).faction)
     }
 }
 
-pub fn owner_of(state: &GameState, node: u16) -> Option<u8> {
-    state.nodes[node as usize].owner
+/// A faction's perk works while its Crown Jewel stands.
+pub fn perk_on(world: &World, state: &GameState, seat: u8) -> bool {
+    let f = state.faction(seat);
+    state.sites[world.site_of(f, SiteKind::Jewel) as usize].health > 0
 }
 
-/// Can `seat` order an attack on `node` tonight?
-pub fn attack_check(
-    world: &World,
-    state: &GameState,
-    seat: u8,
-    node: u16,
-) -> Result<(), &'static str> {
-    let n = &world.nodes[node as usize];
-    let ns = &state.nodes[node as usize];
-    let st = stage(world, state.night);
-    match n.kind {
-        NodeKind::Lake => return Err("You can't bomb a lake. The floatplanes know it."),
-        NodeKind::Capital
-            if ns.owner.is_some() && n.home.map(|f| is_seated(state, f)).unwrap_or(false) =>
-        {
-            return Err("Capitals can't be destroyed.")
+pub fn has_perk(world: &World, state: &GameState, seat: u8, f: FactionId) -> bool {
+    world.rules().perks && state.faction(seat) == f && perk_on(world, state, seat)
+}
+
+pub fn site_up(world: &World, state: &GameState, seat: u8, k: SiteKind) -> bool {
+    state.sites[world.site_of(state.faction(seat), k) as usize].health > 0
+}
+
+pub fn patrol_radius(world: &World, state: &GameState, seat: u8) -> i32 {
+    let p = &world.rules().patrol;
+    if has_perk(world, state, seat, FactionId::FrontRange) {
+        p.mountain_radius
+    } else {
+        p.radius
+    }
+}
+
+pub fn max_planes(world: &World, state: &GameState, seat: u8, kind: UnitKind) -> i32 {
+    let r = world.rules();
+    if kind == UnitKind::Bomber && has_perk(world, state, seat, FactionId::Texas) {
+        r.big_bomber_planes
+    } else {
+        r.planes
+    }
+}
+
+pub fn build_cost(world: &World, state: &GameState, seat: u8, kind: UnitKind) -> i32 {
+    let c = &world.rules().costs;
+    let base = match kind {
+        UnitKind::Fighter => c.fighter,
+        UnitKind::Bomber => c.bomber,
+    };
+    if has_perk(world, state, seat, FactionId::Pacific) {
+        base.min(c.move_fast)
+    } else {
+        base
+    }
+}
+
+/// Can `seat` hit this site tonight? Err explains why not, in plain words.
+pub fn site_open(world: &World, state: &GameState, seat: u8, site: u16) -> Result<(), String> {
+    let s = world.site(site);
+    if !state.sites[site as usize].active {
+        return Err("Nobody lives there this game.".into());
+    }
+    if s.faction == state.faction(seat) {
+        return Err("That's yours.".into());
+    }
+    let opens = opens_on(world, s.kind);
+    if state.night < opens {
+        return Err(format!("Opens on Night {opens}."));
+    }
+    Ok(())
+}
+
+pub fn target_ok(world: &World, state: &GameState, seat: u8, t: Target) -> Result<(), String> {
+    match t {
+        Target::Site { site } => {
+            if site as usize >= world.content.map.sites.len() {
+                return Err("No such place.".into());
+            }
+            site_open(world, state, seat, site)
         }
-        _ => {}
+        Target::Prize { prize } => {
+            if prize as usize >= world.content.map.prizes.len() {
+                return Err("No such place.".into());
+            }
+            Ok(())
+        }
     }
-    if ns.owner == Some(seat) {
-        return Err("That's ours.");
-    }
-    if !ns.active {
-        return Err("Just a landmark now. Nobody's home.");
-    }
-    if n.kind == NodeKind::MassDriver && st < 2 {
-        return Err("The Mass Driver opens up at Gloves Off (Night 6).");
-    }
-    let home_seated = n.home.map(|f| is_seated(state, f)).unwrap_or(false);
-    if home_seated {
-        let ok = match n.kind {
-            k if k.is_military() => true,
-            NodeKind::CrownJewel => st >= 2,
-            _ => st >= 1,
-        };
-        if !ok {
-            return Err(if n.kind == NodeKind::CrownJewel {
-                "Crown jewels open up at Gloves Off (Night 6)."
+}
+
+/// Patrols fly over your own land or the Big Empty (which includes the land
+/// of factions not in this game), never over a rival's home.
+pub fn patrol_ok(world: &World, state: &GameState, seat: u8, at: P) -> Result<(), String> {
+    match world.region_at(at) {
+        None => Err("Patrols fly over land.".into()),
+        Some(Region::BigEmpty) => Ok(()),
+        Some(r) => {
+            let f = r.faction().expect("home regions belong to factions");
+            if f == state.faction(seat) || state.seat_of(f).is_none() {
+                Ok(())
             } else {
-                "Cities, factories, fuel and junctions open up at Open Season (Night 3)."
-            });
-        }
-    }
-    if faction(state, seat) == FactionId::Beehive && st < 2 {
-        if let Some(o) = ns.owner {
-            if !state.beehive_grudge.contains(&o) {
-                return Err("Oh my heck: Utah never throws the first punch.");
+                Err("Patrol over your own land or the Big Empty.".into())
             }
         }
     }
-    Ok(())
 }
 
-/// May `seat` spend tonight at Project Bark Park?
-pub fn retreat_check(world: &World, state: &GameState, seat: u8) -> Result<(), &'static str> {
-    let bp = &world.rules().bark_park;
-    let s = state.seats.get(seat as usize).ok_or("No such seat.")?;
-    if s.been_to_park {
-        return Err("Project Bark Park is once a game, and you've been.");
-    }
-    if state.night < bp.first_night || state.night > bp.last_night {
-        return Err("Project Bark Park is open from Night 3 to Night 7.");
-    }
-    if !s.doghouse {
-        return Err("Only a faction in the doghouse can go to the park.");
-    }
-    Ok(())
-}
-
-/// Can `seat` fire the Big Fetch at `node` tonight?
-pub fn fetch_check(
-    world: &World,
-    state: &GameState,
-    seat: u8,
-    node: u16,
-) -> Result<(), &'static str> {
-    if (node as usize) >= world.nodes.len() {
-        return Err("No such place.");
-    }
-    if !state.seats.get(seat as usize).is_some_and(|s| s.fetch) {
-        return Err("The Big Fetch isn't loaded.");
-    }
-    if state.nodes[node as usize].owner.is_none() {
-        return Err("Save the ball for somebody's land.");
-    }
-    attack_check(world, state, seat, node)
-}
-
-/// Can `seat` guard `node`?
-pub fn guard_check(
-    world: &World,
-    state: &GameState,
-    seat: u8,
-    node: u16,
-) -> Result<(), &'static str> {
-    let n = &world.nodes[node as usize];
-    if n.kind == NodeKind::Lake {
-        return Err("Guard a place on land.");
-    }
-    let ns = &state.nodes[node as usize];
-    if ns.owner == Some(seat) || capturable(world, state, node) {
-        return Ok(());
-    }
-    if faction(state, seat) == FactionId::Beehive {
-        return Ok(()); // Service Project: Utah guards anyone's nodes.
-    }
-    Err("You can only guard your own or neutral ground.")
-}
-
-pub fn guard_zone_check(
-    world: &World,
-    state: &GameState,
-    seat: u8,
-    zone: u16,
-) -> Result<(), &'static str> {
-    let z = &world.zones[zone as usize];
-    match z.region.faction() {
-        None => Ok(()),
-        Some(f) if f == faction(state, seat) || !is_seated(state, f) => Ok(()),
-        _ if faction(state, seat) == FactionId::Beehive => Ok(()),
-        _ => Err("Guard your own or neutral skies. Use Sweep to hunt elsewhere."),
-    }
-}
-
-/// How many squadrons a base can hold (0 when knocked out).
-pub fn base_capacity(world: &World, state: &GameState, node: u16, kind: UnitKind) -> i32 {
-    let n = &world.nodes[node as usize];
-    let ns = &state.nodes[node as usize];
-    let e = &world.rules().economy;
-    match n.kind {
-        NodeKind::Lake => {
-            if kind == UnitKind::Floatplane {
-                e.airbase_capacity
-            } else {
-                0
-            }
-        }
-        NodeKind::Capital => e.capital_capacity,
-        NodeKind::Airbase | NodeKind::Boneyard => match ns.health {
-            0 => 0,
-            1 => e.airbase_capacity / 2,
-            _ => e.airbase_capacity,
-        },
-        _ => 0,
-    }
-}
-
-pub fn base_occupancy(state: &GameState, node: u16, except: Option<u32>) -> i32 {
-    state
-        .squadrons
-        .iter()
-        .filter(|s| s.base == node && s.down_until == 0 && Some(s.id) != except)
-        .count() as i32
-}
-
-/// Can `seat` base `sq` at `node`?
-pub fn rebase_check(
-    world: &World,
-    state: &GameState,
-    sq: &Squadron,
-    node: u16,
-) -> Result<(), &'static str> {
-    let n = &world.nodes[node as usize];
-    let ns = &state.nodes[node as usize];
-    if node == sq.base {
-        return Err("Already based there.");
-    }
-    let lake_ok = n.kind == NodeKind::Lake && sq.kind == UnitKind::Floatplane;
-    if !lake_ok {
-        if !n.kind.is_base() {
-            return Err("Squadrons can only base at airbases (floatplanes: lakes too).");
-        }
-        if ns.owner != Some(sq.seat) {
-            return Err("Capture that airbase first.");
-        }
-    }
-    if base_occupancy(state, node, Some(sq.id)) >= base_capacity(world, state, node, sq.kind) {
-        return Err("No room at that base.");
-    }
-    Ok(())
-}
-
-pub fn can_order(world: &World, kind: UnitKind, ok: OrderKind) -> bool {
-    world.unit(kind).orders.contains(&ok)
-}
-
-/// Full legality check for a squadron's mission tonight.
 pub fn mission_check(
     world: &World,
     state: &GameState,
     sq: &Squadron,
     m: &Mission,
 ) -> Result<(), String> {
-    if !sq.active() {
-        return Err("That squadron is out of action.".into());
-    }
-    if !can_order(world, sq.kind, m.kind()) {
-        return Err(format!("{} can't do that.", world.unit(sq.kind).name));
-    }
-    if sq.kind == UnitKind::Drone
-        && *m != Mission::Rest
-        && effect_active(state, sq.seat, EffectKind::NoDrones, state.night)
-    {
-        return Err("Scheduled maintenance: the Server Farm is down.".into());
-    }
-    let nn = world.nodes.len() as u16;
-    let nz = world.zones.len() as u16;
-    let find = |id: u32| state.squadrons.iter().find(|s| s.id == id);
     match *m {
         Mission::Rest => Ok(()),
-        Mission::Attack { node } => {
-            if node >= nn {
-                return Err("No such target.".into());
+        Mission::Patrol { at } => {
+            if sq.kind != UnitKind::Fighter {
+                return Err("Only fighters patrol.".into());
             }
-            attack_check(world, state, sq.seat, node).map_err(String::from)
+            patrol_ok(world, state, sq.seat, at)
         }
-        Mission::Guard { node } => {
-            if node >= nn {
-                return Err("No such place.".into());
-            }
-            guard_check(world, state, sq.seat, node).map_err(String::from)
-        }
-        Mission::GuardZone { zone } => {
-            if zone >= nz {
-                return Err("No such zone.".into());
-            }
-            guard_zone_check(world, state, sq.seat, zone).map_err(String::from)
-        }
-        Mission::Sweep { zone } | Mission::Scout { zone } | Mission::JamZone { zone } => {
-            if zone >= nz {
-                Err("No such zone.".into())
-            } else {
-                Ok(())
-            }
-        }
-        Mission::Escort { sq: other } | Mission::JamEscort { sq: other } => match find(other) {
-            Some(o) if o.seat == sq.seat && o.id != sq.id && o.active() => Ok(()),
-            _ => Err("Pick one of your own squadrons to fly with.".into()),
-        },
-        Mission::Rebase { node } => {
-            if node >= nn {
-                return Err("No such base.".into());
-            }
-            rebase_check(world, state, sq, node).map_err(String::from)
-        }
+        Mission::Fly { target } => target_ok(world, state, sq.seat, target),
     }
 }
 
-/// Factory build capacity for a seat tonight.
-pub fn build_capacity(world: &World, state: &GameState, seat: u8) -> i32 {
-    let e = &world.rules().economy;
-    let mut cap = 0;
-    for n in &world.nodes {
-        if n.kind == NodeKind::Factory && state.nodes[n.idx as usize].owner == Some(seat) {
-            cap += match state.nodes[n.idx as usize].health {
-                2 => e.factory_builds,
-                1 => e.factory_builds / 2,
-                _ => 0,
-            };
-        }
+/// Can this seat go to Project Bark Park, given the scores now?
+pub fn doghouse_eligible(world: &World, state: &GameState, seat: u8, night: u8) -> bool {
+    let b = &world.rules().bark_park;
+    let me = &state.seats[seat as usize];
+    if me.been_to_park || night < b.first_night || night > b.last_night {
+        return false;
     }
-    if effect_active(state, seat, EffectKind::FactoriesHalf, state.night) {
-        cap /= 2;
-    }
-    cap
+    let best = state.seats.iter().map(|s| s.score).max().unwrap_or(0);
+    let worst = state.seats.iter().map(|s| s.score).min().unwrap_or(0);
+    let alive = state.squadrons_of(seat).count();
+    (me.score == worst && best - me.score >= b.gap) || alive <= b.low_squadrons
 }
 
-/// Can this seat build this unit at all?
-pub fn buildable(
-    world: &World,
-    state: &GameState,
-    seat: u8,
-    kind: UnitKind,
-) -> Result<(), &'static str> {
-    let u = world.unit(kind);
-    if !u.buildable {
-        return Err("Can't be built; it comes back on its own.");
-    }
-    if let Some(f) = u.faction {
-        if f != faction(state, seat) {
-            return Err("Another faction's unique unit.");
+/// Orders cleaned up the way the simulation will read them: unknown or
+/// illegal missions become Rest, unaffordable builds and repairs are dropped,
+/// and the park and the Big Fetch need to be available.
+pub fn normalize(world: &World, state: &GameState, orders: &Orders) -> Orders {
+    let seat = orders.seat;
+    let me = &state.seats[seat as usize];
+    let retreat = orders.retreat && me.doghouse;
+    let mut missions = Vec::new();
+    for sq in state.squadrons_of(seat) {
+        let m = if retreat {
+            Mission::Rest
+        } else {
+            orders.mission(sq.id)
+        };
+        let m = if mission_check(world, state, sq, &m).is_ok() {
+            m
+        } else {
+            Mission::Rest
+        };
+        if m != Mission::Rest {
+            missions.push(MissionOrder {
+                sq: sq.id,
+                mission: m,
+            });
         }
     }
-    if u.max_owned > 0 {
-        let owned = state
-            .squadrons
-            .iter()
-            .filter(|s| s.seat == seat && s.kind == kind)
-            .count() as i32
-            + state
-                .pending
-                .iter()
-                .filter(|p| p.seat == seat && p.kind == kind)
-                .count() as i32;
-        if owned >= u.max_owned {
-            return Err("You already have as many of those as you can keep.");
+    let mut supply = me.supply;
+    let mut repairs = Vec::new();
+    let mut fixed = vec![0; state.sites.len()];
+    let repair = world.rules().costs.repair;
+    for &site in &orders.repairs {
+        let i = site as usize;
+        if i >= state.sites.len() || world.site(site).faction != state.faction(seat) {
+            continue;
+        }
+        let s = &state.sites[i];
+        if s.health + fixed[i] < s.max && supply >= repair {
+            supply -= repair;
+            fixed[i] += 1;
+            repairs.push(site);
         }
     }
-    Ok(())
+    let mut builds = Vec::new();
+    let mut count = state.squadrons_of(seat).count();
+    if site_up(world, state, seat, SiteKind::Airfield) {
+        for &k in &orders.builds {
+            let cost = build_cost(world, state, seat, k);
+            if count < world.rules().max_squadrons && supply >= cost {
+                supply -= cost;
+                count += 1;
+                builds.push(k);
+            }
+        }
+    }
+    let fetch = if me.fetch && !retreat {
+        orders.fetch.filter(|&s| {
+            (s as usize) < state.sites.len() && site_open(world, state, seat, s).is_ok()
+        })
+    } else {
+        None
+    };
+    Orders {
+        seat,
+        missions,
+        builds,
+        repairs,
+        retreat,
+        fetch,
+    }
 }
 
-pub fn ace_name(world: &World, state: &GameState, seat: u8) -> String {
-    world.faction(faction(state, seat)).ace.clone()
+/// What normalized orders cost.
+pub fn spend(world: &World, state: &GameState, orders: &Orders) -> i32 {
+    let repairs = orders.repairs.len() as i32 * world.rules().costs.repair;
+    let builds: i32 = orders
+        .builds
+        .iter()
+        .map(|&k| build_cost(world, state, orders.seat, k))
+        .sum();
+    repairs + builds
 }

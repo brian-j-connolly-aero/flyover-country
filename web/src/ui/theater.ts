@@ -1,16 +1,23 @@
-// The Theater: a ten-foot interface for the TV across the room. It only ever
-// sees public information. Used full-screen in its own window (two-window
-// mode) or as an overlay in the planning window (single-screen mode).
+// The Theater: the screen everyone watches. Big type, few words. Used full
+// screen in its own window (laptop + TV) or as an overlay in the planning
+// window. It never sees tonight's orders, only what's public.
 
 import { MapView } from '../map/mapview';
 import { ShowPlayer } from '../show/player';
-import { summarize, finalHeadline, type NightSummary } from '../show/summary';
-import type { DawnData, FinalData, FromTheater, ShowData, ToTheater } from '../bus';
-import type { Content, FactionId, PublicSeat, PublicView, SeatKind } from '../types';
-import { any, esc, faction, leader, patchText, pick, stageBlurb, stageName, turns, effectText } from '../text';
+import type { Caption } from '../show/summary';
+import type { FinalData, FromTheater, MorningData, ShowData, ToTheater } from '../bus';
+import type { Content, FactionId, GameState, SeatKind } from '../types';
+import { faction, turns } from '../text';
 import { leaderSvg, emblemSvg } from '../art/dogs';
 import { h, clear, svg } from './dom';
 import { audio } from '../audio';
+
+const fcStyle = (f: FactionId) => ({ '--fc': faction(f).color }) as unknown as CSSStyleDeclaration;
+
+/** A dog line, with Griffin & Pan's two-dog lines split into turns. */
+export function spoken(line: string): HTMLElement[] {
+  return turns(line).map((t) => h('div.say', t.who ? h('b', `${t.who}: `) : null, t.text));
+}
 
 export class Theater {
   readonly root: HTMLElement;
@@ -19,23 +26,17 @@ export class Theater {
   private send: (m: FromTheater) => void;
   private board = h('div.th-board');
   private center = h('div.th-center');
-  private subs = h('div.th-subs');
-  private banner = h('div.th-banner');
+  private caption = h('div.th-caption');
   private hud = h('div.th-hud');
   private mapEl = h('div.th-map');
   private player: ShowPlayer | null = null;
   private factions: FactionId[] = [];
   private kinds: SeatKind[] = [];
   private scores: number[] = [];
-  private seatInfo: PublicSeat[] = [];
-  /** Seats at Project Bark Park during tonight's show. */
-  private atPark = new Set<number>();
+  private state: GameState | null = null;
   private phase = 'idle';
-  private chatterQueue: { who: string; color: string; text: string; pri: number; at: number }[] = [];
-  private lastLine = 0;
-  private fillerTimer: number | null = null;
-  private summary: NightSummary | null = null;
   private showData: ShowData | null = null;
+  private captionTimer: number | null = null;
   private ready: Promise<void>;
   private keyHandler = (e: KeyboardEvent) => this.onKey(e);
 
@@ -44,24 +45,11 @@ export class Theater {
     this.content = content;
     this.send = send;
     root.classList.add('theater');
-    root.append(this.mapEl, this.board, this.center, this.subs, this.banner, this.hud);
+    root.append(this.mapEl, this.board, this.center, this.caption, this.hud);
     this.map = new MapView(this.mapEl, content);
+    this.map.insets = { top: 66, bottom: 6 };
     this.ready = this.map.init().then(() => this.map!.fit());
     window.addEventListener('keydown', this.keyHandler);
-    setInterval(() => this.pumpChatter(), 250);
-    // A busy night can overflow a short screen: tighten the open card a step or two until it fits.
-    const fit = () => {
-      const card = this.center.querySelector<HTMLElement>('.th-dawn, .th-report, .th-final');
-      if (!card) return;
-      card.classList.remove('tight', 'tighter');
-      for (const step of ['tight', 'tighter']) {
-        if (card.scrollHeight <= card.clientHeight + 1) break;
-        card.classList.add(step);
-      }
-    };
-    new MutationObserver(() => requestAnimationFrame(fit)).observe(this.center, { childList: true });
-    window.addEventListener('resize', fit);
-    void document.fonts?.ready.then(fit);
   }
 
   /** Stop drawing while hidden behind the planning window. */
@@ -85,14 +73,11 @@ export class Theater {
     if (e.code === 'Space') {
       e.preventDefault();
       if (this.phase === 'show') this.control('pause');
-      else if (this.phase === 'report' || this.phase === 'dawn') this.send({ type: 'continue' });
+      else if (this.phase === 'morning') this.send({ type: 'continue' });
     } else if (this.phase === 'show') {
       if (e.key === '1') this.control('speed', 1);
       if (e.key === '2') this.control('speed', 2);
-      if (e.key === '4') this.control('speed', 4);
       if (e.key === 's' || e.key === 'S') this.control('skip');
-    } else if (this.phase === 'report' && (e.key === 'r' || e.key === 'R')) {
-      this.control('replay');
     }
   }
 
@@ -101,15 +86,13 @@ export class Theater {
     switch (m.type) {
       case 'idle':
         this.setPhase('idle');
-        this.factions = m.factions;
-        this.kinds = m.kinds;
-        if (m.pv) this.applyPublic(m.pv);
+        this.seat(m.factions, m.kinds, m.state);
         clear(this.center);
-        if (m.text) this.center.appendChild(h('div.th-card.th-idle', h('div.th-title', m.text)));
+        if (m.text) this.center.appendChild(h('div.card.th-idle', h('div.th-title', m.text)));
         audio.music('theme');
         break;
-      case 'dawn':
-        this.dawn(m.data);
+      case 'morning':
+        this.morning(m.data);
         break;
       case 'curtain':
         this.curtain(m);
@@ -132,15 +115,13 @@ export class Theater {
 
   private setPhase(p: string) {
     if (p !== 'show') {
-      this.chatterQueue = [];
-      clear(this.subs);
+      this.player?.destroy();
+      this.player = null;
+      this.setCaption(null);
+      clear(this.hud);
     }
     this.phase = p;
     this.root.dataset.phase = p;
-    if (this.fillerTimer !== null) {
-      clearInterval(this.fillerTimer);
-      this.fillerTimer = null;
-    }
     this.status();
   }
 
@@ -149,11 +130,11 @@ export class Theater {
   }
 
   control(action: string, value?: number) {
-    const p = this.player;
-    if (action === 'replay' && this.phase === 'report') {
-      this.playOfTheNight();
+    if (action === 'replay' && this.showData && this.phase !== 'show') {
+      this.show(this.showData);
       return;
     }
+    const p = this.player;
     if (!p || this.phase !== 'show') return;
     if (action === 'pause') p.togglePause();
     if (action === 'speed' && value) p.setSpeed(value);
@@ -162,233 +143,163 @@ export class Theater {
     this.status();
   }
 
-  // --- Shared pieces --------------------------------------------------------------------------
+  // --- Shared pieces ------------------------------------------------------------------------------
 
-  private applyPublic(pv: PublicView) {
+  private seat(factions: FactionId[], kinds: SeatKind[], state: GameState | null) {
+    this.factions = factions;
+    this.kinds = kinds;
     const map = this.map!;
-    if (map.seatFactions.join() !== this.factions.join()) map.setSeats(this.factions);
-    map.setNodes(pv.nodes.map((n) => ({ owner: n.owner, health: n.health, active: n.active })));
-    map.setFlows(null, null);
-    this.scores = pv.seats.map((s) => s.score);
-    this.seatInfo = pv.seats;
-    this.renderBoard();
-    this.labelCapitals();
-  }
-
-  private labelCapitals() {
-    const map = this.map!;
-    for (const n of this.content.nodes) {
-      if (n.kind === 'CrownJewel' || n.kind === 'Boneyard' || n.kind === 'MassDriver') {
-        map.label(`node-${n.idx}`, n.name, [n.pos[0], n.pos[1] + 12], 'label-node');
-      }
+    if (map.seatFactions.join() !== factions.join()) map.setSeats(factions);
+    if (state) {
+      this.state = state;
+      map.setState(state);
+      map.setMarks(state.last);
+      this.scores = state.seats.map((s) => s.score);
     }
+    this.renderBoard();
   }
 
   private renderBoard() {
     clear(this.board);
-    const order = this.factions.map((_, i) => i);
+    this.board.classList.toggle('many', this.factions.length > 5);
     const best = Math.max(...this.scores);
-    for (const i of order) {
-      const f = this.factions[i];
-      const fd = faction(f);
-      const leaderClass = this.scores[i] === best && best > 0 ? ' leader' : '';
+    this.factions.forEach((f, i) => {
+      const s = this.state?.seats[i];
+      const tag = s?.fetch ? h('span.tag', 'BIG FETCH') : s?.doghouse && this.phase !== 'show' ? h('span.tag', 'CAN GO TO THE PARK') : null;
       this.board.appendChild(
         h(
-          `div.th-score${leaderClass}`,
-          { style: { '--fc': fd.color } as unknown as CSSStyleDeclaration, 'data-seat': String(i) },
-          svg(emblemSvg(f, { size: 40 }), 'th-emblem'),
-          h('div.th-score-name', fd.short, this.kinds[i] && this.kinds[i] !== 'human' ? h('span.bot', 'BOT') : null),
-          h('div.th-score-num', String(this.scores[i] ?? 0)),
-          this.tags(i),
+          `div.score${this.scores[i] === best && best > 0 ? '.lead' : ''}`,
+          { style: fcStyle(f), 'data-seat': String(i) },
+          svg(emblemSvg(f, { size: 30 }), 'score-emblem'),
+          h('div.score-name', faction(f).short, this.kinds[i] && this.kinds[i] !== 'human' ? h('span.bot', 'bot') : null),
+          h('div.score-num', String(this.scores[i] ?? 0)),
+          tag,
         ),
       );
-    }
-  }
-
-  /** Little tags under a score: scrappy, in the doghouse, at the park, Big Fetch loaded. */
-  private tags(i: number): HTMLElement | null {
-    const s = this.seatInfo[i];
-    const out: HTMLElement[] = [];
-    if (this.atPark.has(i)) out.push(h('span.th-tag.park', 'AT THE PARK'));
-    else if (s?.doghouse && this.phase !== 'show') out.push(h('span.th-tag.dog', 'DOGHOUSE'));
-    if (s?.fetch) out.push(h('span.th-tag.fetch', 'BIG FETCH'));
-    if (s?.scrappy) out.push(h('span.th-tag', 'SCRAPPY'));
-    return out.length ? h('div.th-tags', ...out) : null;
+    });
   }
 
   private bumpScore(seat: number, delta: number) {
     this.scores[seat] = (this.scores[seat] ?? 0) + delta;
     const el = this.board.querySelector(`[data-seat="${seat}"]`);
     if (!el) return;
-    const num = el.querySelector('.th-score-num');
+    const num = el.querySelector('.score-num');
     if (num) num.textContent = String(this.scores[seat]);
-    const pop = h('div.th-pop', `+${delta}`);
-    el.appendChild(pop);
-    setTimeout(() => pop.remove(), 1600);
+    el.classList.remove('bump');
+    void (el as HTMLElement).offsetWidth;
+    el.classList.add('bump');
     const best = Math.max(...this.scores);
-    this.board.querySelectorAll('.th-score').forEach((s, i) => s.classList.toggle('leader', this.scores[i] === best && best > 0));
+    this.board.querySelectorAll('.score').forEach((s, i) => s.classList.toggle('lead', this.scores[i] === best && best > 0));
   }
 
-  private queueChatter(who: string, color: string, text: string, pri: number) {
-    this.chatterQueue.push({ who, color, text, pri, at: performance.now() });
-    if (this.chatterQueue.length > 6) {
-      this.chatterQueue.sort((a, b) => b.pri - a.pri || a.at - b.at);
-      this.chatterQueue.length = 6;
-    }
-  }
-
-  /** At most one radio line every four seconds, so the screen never becomes a chat log. */
-  private pumpChatter() {
-    const now = performance.now();
-    if (now - this.lastLine < 4000 || this.chatterQueue.length === 0) return;
-    this.chatterQueue = this.chatterQueue.filter((c) => now - c.at < 7000 || c.pri >= 4);
-    if (!this.chatterQueue.length) return;
-    this.chatterQueue.sort((a, b) => b.pri - a.pri || a.at - b.at);
-    const c = this.chatterQueue.shift()!;
-    this.lastLine = now;
-    this.subtitle(c.who, c.color, c.text);
-  }
-
-  private subtitle(who: string, color: string, text: string) {
-    clear(this.subs);
-    // Mini-dialogues ("Griffin: ... | Pan: ...") name each speaker in turn.
-    const parts = turns(text);
-    const line = parts.some((t) => t.who)
-      ? h('div.th-sub', ...parts.flatMap((t, i) => [i ? ' ' : '', h('span.th-sub-who', { style: { color } }, (t.who ?? who) + ':'), ' ', t.text]))
-      : h('div.th-sub', h('span.th-sub-who', { style: { color } }, who + ':'), ' ', text);
-    this.subs.appendChild(line);
-    audio.play('squelch');
-    setTimeout(() => line.classList.add('out'), 3600);
-  }
-
-  private flashBanner(title: string, sub: string, kind: string) {
-    clear(this.banner);
-    const b = h(`div.th-banner-box.${kind}`, h('div.th-banner-title', title), h('div.th-banner-sub', sub));
-    this.banner.appendChild(b);
-    setTimeout(() => b.classList.add('out'), 2600);
-    setTimeout(() => b.remove(), 3300);
+  private setCaption(c: Caption | null) {
+    if (this.captionTimer !== null) clearTimeout(this.captionTimer);
+    this.captionTimer = null;
+    clear(this.caption);
+    if (!c) return;
+    const box = h(
+      'div.cap',
+      { style: fcStyle(c.faction) },
+      h('div.cap-text', c.text),
+      c.radio ? h('div.cap-radio', `“${c.radio}”`) : null,
+    );
+    this.caption.appendChild(box);
+    if (c.radio) audio.play('squelch');
+    this.captionTimer = window.setTimeout(() => box.classList.add('out'), 4200);
   }
 
   private renderHud() {
     clear(this.hud);
     if (this.phase !== 'show' || !this.player) return;
     const p = this.player;
-    const btn = (label: string, on: () => void, active = false) => h(`button.th-btn${active ? '.on' : ''}`, { onclick: on }, label);
+    const btn = (label: string, on: () => void, active = false, title = '') => h(`button.th-btn${active ? '.on' : ''}`, { onclick: on, title }, label);
     this.hud.append(
-      btn(p.paused ? '▶ Play' : '❚❚ Pause', () => this.control('pause')),
-      btn('1×', () => this.control('speed', 1), p.speed === 1),
-      btn('2×', () => this.control('speed', 2), p.speed === 2),
-      btn('4×', () => this.control('speed', 4), p.speed === 4),
-      btn('Skip to report ⏭', () => this.control('skip')),
-      h('span.th-hint', 'Space pauses · 1/2/4 speed · S skips'),
+      btn(p.paused ? '▶' : '❚❚', () => this.control('pause'), false, 'Pause (Space)'),
+      btn('1×', () => this.control('speed', 1), p.speed === 1, 'Normal speed (1)'),
+      btn('2×', () => this.control('speed', 2), p.speed === 2, 'Double speed (2)'),
+      btn('Skip ⏭', () => this.control('skip'), false, 'Skip to the morning (S)'),
     );
   }
 
-  // --- Dawn briefing ----------------------------------------------------------------------------
+  // --- Morning -------------------------------------------------------------------------------------
 
-  private dawn(d: DawnData) {
-    this.setPhase('dawn');
-    this.factions = d.factions;
-    this.kinds = d.kinds;
-    this.atPark.clear();
-    this.applyPublic(d.pv);
-    this.map!.focus(this.content.width / 2 + 10, this.content.height / 2, 1);
+  private morning(d: MorningData) {
+    this.setPhase('morning');
+    this.seat(d.factions, d.kinds, d.state);
+    const home = this.map!.home();
+    this.map!.focus(home.x, home.y, home.zoom);
     clear(this.center);
-    const pv = d.pv;
-    const patch = patchText(pv.patch);
-    const effects = pv.effects.filter((e) => e.from <= d.night && d.night <= e.until);
-    const cards: HTMLElement[] = [];
-    if (patch && this.factions.includes('Pacific')) {
-      cards.push(h('div.th-mini', { style: { '--fc': faction('Pacific').color } as unknown as CSSStyleDeclaration }, h('div.th-mini-head', `PATCH NOTES ${patch.version}`), h('div', patch.text)));
-    }
-    if (pv.harvest > 0) {
-      cards.push(h('div.th-mini', { style: { '--fc': faction('GrainBelt').color } as unknown as CSSStyleDeclaration }, h('div.th-mini-head', 'HARVEST SHIPMENT'), h('div', `Worth ${pv.harvest} Supply. Bid in secret tonight.`)));
-    }
-    if (d.stage === 2 && pv.mass_driver_holder !== null && !pv.mass_driver_fired) {
-      cards.push(h('div.th-mini', h('div.th-mini-head', 'WHITE SANDS MASS DRIVER'), h('div', `${faction(this.factions[pv.mass_driver_holder]).short} holds it: one unstoppable shot, once per game.`)));
-    }
-    for (const e of effects) {
-      cards.push(h('div.th-mini.warn', h('div.th-mini-head', faction(this.factions[e.seat]).short.toUpperCase()), h('div', effectText(e.kind))));
-    }
-    const names = (seats: PublicSeat[]) => seats.map((s) => faction(s.faction).short).join(' and ');
-    const dog = pv.seats.filter((s) => s.doghouse);
-    if (dog.length) {
-      cards.push(h('div.th-mini.park', h('div.th-mini-head', 'PROJECT BARK PARK IS OPEN'), h('div', `${names(dog)} ${dog.length > 1 ? 'are' : 'is'} in the doghouse and may spend tonight at the park, untouchable.`)));
-    }
-    const balls = pv.seats.filter((s) => s.fetch);
-    if (balls.length) {
-      cards.push(h('div.th-mini.fetch', h('div.th-mini-head', 'BIG FETCH LOADED'), h('div', `${names(balls)} ${balls.length > 1 ? 'have' : 'has'} one stadium-sized tennis ball to throw.`)));
-    }
-    const story = d.intro ? null : pick(this.content.flavor.sidebar, d.night * 7919 + pv.seats.reduce((a, s) => a + s.score, 0));
-    if (story) {
-      const [tag, ...rest] = story.split(': ');
-      cards.push(h('div.th-mini.sidebar', h('div.th-mini-head', `ALSO IN THE SENTINEL · ${rest.length ? tag : 'NEWS'}`), h('div', rest.length ? rest.join(': ') : story)));
-    }
-    const quips = this.factions.map((f, i) => {
-      const L = leader(f);
-      const winning = this.scores[i] === Math.max(...this.scores) && this.scores[i] > 0;
-      const losing = this.scores[i] === Math.min(...this.scores) && Math.max(...this.scores) > 0;
-      const back = d.returned?.includes(i) && L.park_return?.length;
-      const list = d.intro ? L.pick : back ? L.park_return : winning ? L.winning : losing ? L.losing : L.dawn;
-      const line = any(list) ?? '';
-      return h(
-        'div.th-quip',
-        { style: { '--fc': faction(f).color } as unknown as CSSStyleDeclaration },
-        svg(leaderSvg(f, winning || back ? 'happy' : 'neutral', { size: 96, bg: true }), 'th-quip-dog'),
-        h('div.th-quip-text', h('div.th-quip-name', L.name), ...turns(line).map((t) => h('div', t.who ? h('b', t.who + ': ') : null, t.text))),
+    const rows: (HTMLElement | null)[] = [];
+    if (d.intro) {
+      rows.push(
+        h(
+          'ol.steps',
+          h('li', h('b', 'Plan'), h('span', 'Drag your squadrons onto the map, in secret.')),
+          h('li', h('b', 'Watch'), h('span', 'Every plan plays out at once, on this screen.')),
+          h('li', h('b', 'Score'), h('span', `Hits, shoot-downs and prizes. Most points after Night ${d.nights} wins.`)),
+        ),
       );
-    });
+    }
+    if (d.report) {
+      const r = d.report;
+      if (r.highlights.length) rows.push(h('ul.highlights', ...r.highlights.slice(0, 3).map((x) => h('li', x))));
+      const order = d.factions.map((_, i) => i).sort((a, b) => r.gained[b] - r.gained[a]);
+      rows.push(
+        h(
+          'div.gains',
+          ...order.map((i) => h(`div.gain${r.gained[i] > 0 ? '' : '.zero'}`, { style: fcStyle(d.factions[i]) }, h('span.gain-n', `+${r.gained[i]}`), h('span', faction(d.factions[i]).short))),
+        ),
+      );
+    }
+    if (d.news.length) rows.push(h('div.news', ...d.news.map((n) => h('div.news-item', n))));
+    if (d.speaker) {
+      const f = d.factions[d.speaker.seat];
+      rows.push(
+        h(
+          'div.speaker',
+          { style: fcStyle(f) },
+          svg(leaderSvg(f, d.speaker.mood, { size: 104, bg: true }), 'speaker-dog'),
+          h('div.bubble', h('div.bubble-who', faction(f).leader), ...spoken(d.speaker.line)),
+        ),
+      );
+    }
+    const headline = d.report?.headline ?? 'The West is up for grabs';
     this.center.appendChild(
       h(
-        'div.th-card.th-dawn',
-        h('div.th-paper', h('div.th-paper-mast', 'THE WESTERN SENTINEL'), h('div.th-paper-date', `Dawn before Night ${d.night} of ${d.nights}`), h('div.th-headline', d.headline)),
-        h('div.th-stage', h('span.th-stage-name', `NIGHT ${d.night}: ${stageName(d.stage).toUpperCase()}`), h('span.th-stage-blurb', stageBlurb(d.stage))),
-        d.highlights.length ? h('ul.th-highlights', ...d.highlights.map((x) => h('li', x))) : null,
-        cards.length ? h('div.th-minis', ...cards) : null,
-        h('div.th-quips', ...quips),
-        h('button.th-continue', { onclick: () => this.send({ type: 'continue' }) }, 'Start planning ▸'),
+        'div.card.morning',
+        h('div.stamp', `Night ${d.night} of ${d.nights}`),
+        h('h1.headline', headline),
+        ...rows,
+        h(
+          'div.card-actions',
+          this.showData && d.report ? h('button.th-btn', { onclick: () => this.control('replay') }, '↻ Watch again') : null,
+          h('button.go', { onclick: () => this.send({ type: 'continue' }) }, `Plan Night ${d.night} ▸`),
+        ),
       ),
     );
     audio.music('briefing');
   }
 
-  // --- Curtain ------------------------------------------------------------------------------------
+  // --- Curtain (hotseat) -------------------------------------------------------------------------------
 
   private curtain(m: Extract<ToTheater, { type: 'curtain' }>) {
     this.setPhase('curtain');
     audio.music('briefing');
-    this.factions = m.factions;
-    this.kinds = m.kinds;
-    this.applyPublic(m.pv);
-    this.map!.focus(this.content.width / 2 + 10, this.content.height / 2, 1);
+    this.seat(m.factions, m.kinds, m.state);
     clear(this.center);
     const fd = faction(m.faction);
-    const filler = h('div.th-filler');
-    const timer = h('div.th-timer');
-    const setFiller = () => {
-      const line = any(this.content.flavor.curtain[m.faction]) ?? `${fd.short} is planning...`;
-      filler.textContent = line;
-    };
-    setFiller();
+    const timer = h('div.timer');
     this.center.appendChild(
       h(
-        'div.th-card.th-curtain',
-        { style: { '--fc': fd.color } as unknown as CSSStyleDeclaration },
-        svg(leaderSvg(m.faction, 'neutral', { size: 160, bg: true }), 'th-curtain-dog'),
-        h('div.th-curtain-text', h('div.th-pass', `${fd.short.toUpperCase()} IS PLANNING`), h('div.th-eyes', 'Everyone else, eyes on the TV.'), filler, timer),
-        m.waiting.length ? h('div.th-waiting', 'Still to plan: ', m.waiting.map((f) => faction(f).short).join(', ')) : null,
+        'div.card.curtain',
+        { style: fcStyle(m.faction) },
+        svg(leaderSvg(m.faction, 'neutral', { size: 150, bg: true }), 'curtain-dog'),
+        h('div', h('div.stamp', `${fd.short} is planning`), m.waiting.length ? h('div.waiting', `Then: ${m.waiting.map((f) => faction(f).short).join(', ')}`) : null, timer),
       ),
     );
-    this.fillerTimer = window.setInterval(() => {
-      setFiller();
-      if (m.deadline) {
-        const left = Math.max(0, Math.ceil((m.deadline - Date.now()) / 1000));
-        timer.textContent = `${left}s`;
-      }
-    }, 5000);
     if (m.deadline) {
       const tick = () => {
-        if (this.phase !== 'curtain') return;
+        if (this.phase !== 'curtain' || !timer.isConnected) return;
         const left = Math.max(0, Math.ceil((m.deadline! - Date.now()) / 1000));
         timer.textContent = `${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}`;
         if (left > 0) setTimeout(tick, 500);
@@ -397,202 +308,117 @@ export class Theater {
     }
   }
 
-  // --- The show -------------------------------------------------------------------------------------
+  // --- The show -------------------------------------------------------------------------------------------
 
   private show(d: ShowData) {
     this.setPhase('show');
-    this.factions = d.factions;
-    this.kinds = d.kinds;
     this.showData = d;
-    this.atPark = new Set(d.events.flatMap((r) => (r.e.t === 'BarkPark' ? [r.e.seat] : [])));
-    this.applyPublic(d.before);
-    this.player?.destroy();
+    this.seat(d.factions, d.kinds, d.before);
+    this.renderBoard();
     clear(this.center);
-    this.chatterQueue = [];
-    const title = h(
-      'div.th-titlecard',
-      h('div.th-title-night', `NIGHT ${d.night}: ${stageName(d.before.stage).toUpperCase()}`),
-    );
-    const ns = d.events.find((e) => e.e.t === 'NightStart')?.e;
-    if (ns && ns.t === 'NightStart') {
-      const patch = patchText(ns.patch);
-      if (patch && this.factions.includes('Pacific')) title.appendChild(h('div.th-title-sub', `Patch Notes ${patch.version}: ${patch.text}`));
-      if (ns.harvest_winner !== null) title.appendChild(h('div.th-title-sub', `Harvest Shipment: ${faction(this.factions[ns.harvest_winner]).short} wins with ${ns.harvest_bid} Supply`));
-      if (d.night === d.before.nights) title.appendChild(h('div.th-title-sub', 'Final night: strike scores double.'));
-    }
+    const title = h('div.title-stamp', `Night ${d.night}`);
     this.center.appendChild(title);
     audio.play('sting');
-    audio.music(d.before.stage >= 2 ? 'glovesoff' : 'sortie');
-    setTimeout(() => title.classList.add('out'), 3400);
+    audio.music(d.night >= this.content.rules.open_hqs ? 'glovesoff' : 'sortie');
+    setTimeout(() => title.classList.add('out'), 1300);
     setTimeout(() => {
       title.remove();
-      this.startPlayer(d);
-    }, 3900);
+      if (this.phase === 'show' && this.showData === d) this.startPlayer(d);
+    }, 1700);
   }
 
   private startPlayer(d: ShowData) {
     const map = this.map!;
-    this.player = new ShowPlayer(map, this.content, d.factions, d.events, d.before, d.after, {
-      chatter: (who, color, text, pri) => this.queueChatter(who, color, text, pri),
-      banner: (t, s, k) => this.flashBanner(t, s, k),
+    this.player?.destroy();
+    this.player = new ShowPlayer(map, this.content, d.factions, d.events, d.before, d.after, d.captions, {
+      caption: (c) => this.setCaption(c),
       score: (seat, delta) => this.bumpScore(seat, delta),
       sound: (k) => audio.play(k),
-      ended: () => this.report(),
+      ended: () => this.afterShow(d),
     });
     this.renderHud();
     this.status();
   }
 
-  // --- Morning report -------------------------------------------------------------------------------
-
-  private report() {
-    const d = this.showData!;
-    this.setPhase('report');
-    this.chatterQueue = [];
-    clear(this.subs);
-    clear(this.hud);
-    this.atPark.clear();
-    this.applyPublic(d.after);
-    this.map!.focus(this.content.width / 2 + 10, this.content.height / 2, 1);
-    const s = summarize(this.content, d.events, d.factions, d.night, d.night * 977);
-    this.summary = s;
-    clear(this.center);
-    const order = d.factions.map((_, i) => i).sort((a, b) => s.gained[b] - s.gained[a]);
-    const cards = order.map((i) => {
-      const f = d.factions[i];
-      const fd = faction(f);
-      const mood = s.jewelHit[i] ? 'alarmed' : s.gained[i] === Math.max(...s.gained) && s.gained[i] > 0 ? 'happy' : 'neutral';
-      const L = leader(f);
-      const quip = s.jewelHit[i] ? any(L.our_jewel_hit) : null;
-      return h(
-        'div.th-rep',
-        { style: { '--fc': fd.color } as unknown as CSSStyleDeclaration },
-        svg(leaderSvg(f, mood, { size: 110, bg: true }), 'th-rep-dog'),
-        h('div.th-rep-name', fd.short),
-        h('div.th-rep-gain', `+${s.gained[i]}`, h('span', ' Bragging Rights')),
-        h(
-          'div.th-rep-stats',
-          h('div', `Squadrons lost: ${s.squadronsLost[i]}`),
-          h('div', `Shot down: ${s.kills[i]}`),
-          h('div', `Damage dealt / taken: ${s.stepsDealt[i]} / ${s.stepsTaken[i]}`),
-          s.park[i] ? h('div.th-rep-park', 'Spent the night at Project Bark Park') : null,
-        ),
-        quip ? h('div.th-rep-quip', ...turns(quip).map((t) => h('div', t.who ? h('b', t.who + ': ') : null, t.text))) : null,
-      );
-    });
-    const potn = s.play
-      ? h('button.th-btn', { onclick: () => this.playOfTheNight() }, `▶ Play of the Night: ${s.play.label}`)
-      : null;
-    this.center.appendChild(
-      h(
-        'div.th-card.th-report',
-        h('div.th-paper', h('div.th-paper-mast', 'MORNING REPORT'), h('div.th-paper-date', `After Night ${d.night}`), h('div.th-headline', s.headline)),
-        h('div.th-reps', ...cards),
-        s.highlights.length ? h('ul.th-highlights', ...s.highlights.map((x) => h('li', x))) : null,
-        h('div.th-report-actions', potn, h('button.th-btn', { onclick: () => this.show(d) }, '↻ Replay the night'), h('button.th-continue', { onclick: () => this.send({ type: 'continue' }) }, d.last ? 'Final results ▸' : `Dawn of Night ${d.night + 1} ▸`)),
-      ),
-    );
-    audio.play('report');
-    audio.music('briefing');
+  private afterShow(d: ShowData) {
+    const next = d.next;
+    if (next.type === 'morning') this.morning(next.data);
+    else if (next.type === 'final') this.final(next.data);
+    else {
+      this.setPhase('morning');
+      this.seat(d.factions, d.kinds, d.after);
+      clear(this.center);
+      this.center.appendChild(h('div.card.morning', h('div.stamp', `Night ${d.night}`), h('div.card-actions', h('button.th-btn', { onclick: () => this.control('replay') }, '↻ Watch again'), h('button.go', { onclick: () => this.send({ type: 'continue' }) }, 'Back ▸'))));
+      audio.play('report');
+    }
   }
 
-  private playOfTheNight() {
-    const s = this.summary;
-    if (!s?.play || !this.player) return;
-    const card = this.center.querySelector('.th-report') as HTMLElement | null;
-    card?.classList.add('dim');
-    this.flashBanner('PLAY OF THE NIGHT', s.play.label.toUpperCase(), 'title');
-    this.player.playRange(s.play, () => {
-      card?.classList.remove('dim');
-      this.map!.focus(this.content.width / 2 + 10, this.content.height / 2, 1);
-    });
-  }
-
-  // --- Final screen ----------------------------------------------------------------------------------
+  // --- Final results ----------------------------------------------------------------------------------------
 
   private final(d: FinalData) {
     this.setPhase('final');
     audio.music('theme');
-    this.factions = d.factions;
-    this.kinds = d.kinds;
-    this.applyPublic(d.pv);
+    this.seat(d.factions, d.kinds, d.state);
     clear(this.center);
-    const scores = d.pv.seats.map((s) => s.score);
+    const scores = d.state.seats.map((s) => s.score);
     const best = Math.max(...scores);
     const winners = d.factions.filter((_, i) => scores[i] === best);
     const w = winners[0];
-    const L = leader(w);
     const order = d.factions.map((_, i) => i).sort((a, b) => scores[b] - scores[a]);
     this.center.appendChild(
       h(
-        'div.th-card.th-final',
-        { style: { '--fc': faction(w).color } as unknown as CSSStyleDeclaration },
-        h('div.th-paper', h('div.th-paper-mast', 'THE WESTERN SENTINEL — FINAL EDITION'), h('div.th-headline', finalHeadline(d.factions, scores, 4242))),
+        'div.card.final',
+        { style: fcStyle(w) },
+        h('div.stamp', winners.length > 1 ? 'Shared Bragging Rights' : 'Bragging Rights'),
+        h('h1.headline', d.headline),
         h(
-          'div.th-winner',
-          svg(leaderSvg(w, 'happy', { size: 200, bg: true }), 'th-winner-dog'),
+          'div.winner',
+          svg(leaderSvg(w, 'happy', { size: 170, bg: true }), 'winner-dog'),
+          h('div', h('div.winner-name', winners.map((f) => faction(f).name).join(' & ')), d.line ? h('div.bubble', ...spoken(d.line)) : null),
+        ),
+        h(
+          'div.final-body',
           h(
-            'div',
-            h('div.th-winner-title', winners.length > 1 ? 'SHARED BRAGGING RIGHTS' : 'BRAGGING RIGHTS'),
-            h('div.th-winner-name', winners.map((f) => faction(f).name).join(' & ')),
-            h('div.th-winner-quip', ...turns(any(L.victory) ?? '').map((t) => h('div', t.who ? h('b', t.who + ': ') : null, t.text))),
+            'ol.standings',
+            ...order.map((i) => {
+              const s = d.state.seats[i];
+              return h('li', { style: fcStyle(s.faction) }, svg(emblemSvg(s.faction, { size: 26 }), 'chip-emblem'), h('span.st-name', faction(s.faction).short), h('span.st-score', String(s.score)));
+            }),
           ),
+          svg(raceChart(d), 'race'),
         ),
-        h(
-          'div.th-final-grid',
-          h(
-          'div.th-final-table',
-          h('div.th-final-row.head', h('span', 'Faction'), h('span', 'Bragging Rights'), h('span', 'Pride Lost'), h('span', 'Shot down'), h('span', 'Planes lost')),
-          ...order.map((i) => {
-            const s = d.pv.seats[i];
-            return h(
-              'div.th-final-row',
-              { style: { '--fc': faction(s.faction).color } as unknown as CSSStyleDeclaration },
-              h('span', faction(s.faction).short),
-              h('span.big', String(s.score)),
-              h('span', String(s.pride_lost)),
-              h('span', String(s.kills)),
-              h('span', String(s.planes_lost)),
-            );
-          }),
-        ),
-        h('div.th-race-box', h('div.th-mini-head', 'THE SCORE RACE'), svg(raceChart(d), 'th-race'))),
-        h('div.th-losers', ...order.slice(1).map((i) => {
-          const f = d.factions[i];
-          return h('div.th-quip', { style: { '--fc': faction(f).color } as unknown as CSSStyleDeclaration }, svg(leaderSvg(f, 'neutral', { size: 64, bg: true }), 'th-quip-dog'), h('div.th-quip-text', ...turns(any(leader(f).defeat) ?? '').map((t) => h('div', t.who ? h('b', t.who + ': ') : null, t.text))));
-        })),
+        h('div.card-actions', h('button.go', { onclick: () => this.send({ type: 'continue' }) }, 'Back to the menu')),
       ),
     );
     audio.play('fanfare');
   }
 }
 
-/** The night-by-night score race, DEFCON style. */
+/** The score after each night, one line per faction. */
 function raceChart(d: FinalData): string {
-  const hist = d.pv.history;
-  const W = 640;
-  const H = 220;
-  const pad = 30;
-  const padR = 70;
-  const max = Math.max(10, ...hist.flatMap((r) => r.scores));
+  const hist = [d.factions.map(() => 0), ...d.state.history];
+  const W = 520;
+  const H = 200;
+  const pad = 26;
+  const padR = 64;
+  const max = Math.max(10, ...hist.flat());
   const n = Math.max(1, hist.length - 1);
   const x = (i: number) => pad + (i / n) * (W - pad - padR);
   const y = (v: number) => H - pad - (v / max) * (H - pad * 2);
-  let out = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" class="race">`;
+  let out = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
   for (let i = 0; i <= n; i++) {
-    out += `<line x1="${x(i)}" y1="${pad}" x2="${x(i)}" y2="${H - pad}" stroke="#23365e" stroke-width="1"/>`;
-    out += `<text x="${x(i)}" y="${H - 8}" fill="#7f93bb" font-size="12" text-anchor="middle">${i === 0 ? 'Start' : `N${hist[i]?.night ?? i}`}</text>`;
+    out += `<line x1="${x(i)}" y1="${pad}" x2="${x(i)}" y2="${H - pad}" stroke="#231e1a" stroke-opacity="0.12" stroke-width="1"/>`;
+    out += `<text x="${x(i)}" y="${H - 8}" fill="#51463c" font-size="11" text-anchor="middle">${i === 0 ? '' : i}</text>`;
   }
-  const last = hist[hist.length - 1];
   d.factions.forEach((f, s) => {
-    const color = faction(f).color;
-    const pts = hist.map((r, i) => `${x(i).toFixed(1)},${y(r.scores[s] ?? 0).toFixed(1)}`).join(' ');
-    out += `<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="3" stroke-linejoin="round"/>`;
+    const pts = hist.map((r, i) => `${x(i).toFixed(1)},${y(r[s] ?? 0).toFixed(1)}`).join(' ');
+    out += `<polyline points="${pts}" fill="none" stroke="#231e1a" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>`;
+    out += `<polyline points="${pts}" fill="none" stroke="${faction(f).color}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>`;
   });
-  // End labels, nudged apart so tied scores don't print on top of each other.
-  const labels = d.factions.map((f, s) => ({ f, y: y(last.scores[s] ?? 0) + 4 })).sort((a, b) => a.y - b.y);
+  const last = hist[hist.length - 1];
+  const labels = d.factions.map((f, s) => ({ f, y: y(last[s] ?? 0) + 4 })).sort((a, b) => a.y - b.y);
   for (let i = 1; i < labels.length; i++) labels[i].y = Math.max(labels[i].y, labels[i - 1].y + 13);
-  for (const l of labels) out += `<text x="${W - padR + 6}" y="${l.y.toFixed(1)}" fill="${faction(l.f).color}" font-size="12">${esc(faction(l.f).short)}</text>`;
-  out += '</svg>';
-  return out;
+  for (const l of labels) out += `<text x="${W - padR + 6}" y="${l.y.toFixed(1)}" fill="#231e1a" font-size="12" font-weight="700">${faction(l.f).short.replace(/&/g, '&amp;')}</text>`;
+  return out + '</svg>';
 }
+

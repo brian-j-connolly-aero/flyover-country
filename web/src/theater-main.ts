@@ -1,9 +1,11 @@
-import '@fontsource/oswald/500.css';
-import '@fontsource/oswald/700.css';
-import '@fontsource/jetbrains-mono/400.css';
+import '@fontsource/alfa-slab-one/400.css';
+import '@fontsource/atkinson-hyperlegible/400.css';
+import '@fontsource/atkinson-hyperlegible/700.css';
+import '@fontsource/atkinson-hyperlegible/400-italic.css';
 import './style.css';
 import { Engine } from './engine';
 import { setContent } from './text';
+import { setFactionColors } from './theme';
 import { Theater } from './ui/theater';
 import { Bus, type FromTheater, type ToTheater } from './bus';
 import { audio } from './audio';
@@ -15,6 +17,7 @@ async function boot() {
   const root = document.getElementById('theater')!;
   const engine = await Engine.load();
   setContent(engine.content);
+  setFactionColors(engine.content);
   root.innerHTML = '';
   let theater: Theater | null = null;
   const bus = new Bus<ToTheater, FromTheater>((m) => void theater?.handle(m));

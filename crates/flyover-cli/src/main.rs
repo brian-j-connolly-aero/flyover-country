@@ -1,14 +1,14 @@
 //! `flyover`: headless bot-vs-bot games, the balance harness and replay
 //! verification.
 //!
-//!   flyover play [--seed N] [--factions Pacific,Texas,...] [--level easy|normal] [--log]
-//!   flyover balance [--games N] [--threads N] [--level easy|normal]
+//!   flyover play [--seed N] [--factions Pacific,Texas,...] [--level easy|normal]
+//!   flyover balance [--games N] [--players 2-7] [--threads N] [--level easy|normal]
 //!   flyover hashes --seed N --factions A,B,C,D      (per-night state hashes)
 //!   flyover replay <save.json[.gz]>                  (re-resolve and check every hash)
 
 use flyover_ai::{suggest, Level};
-use flyover_core::content::{Content, ContentFiles, FactionId, NodeKind, World};
-use flyover_core::state::{Event, GameState, Orders};
+use flyover_core::content::{ContentFiles, FactionId, World};
+use flyover_core::state::{Event, GameState, Orders, ScoreReason};
 use flyover_core::{new_game, resolve_night, state_hash, GameConfig};
 use serde::Deserialize;
 use std::io::Read;
@@ -24,22 +24,13 @@ fn load_world(dir: &str) -> World {
     let read = |f: &str| {
         std::fs::read_to_string(format!("{dir}/{f}")).unwrap_or_else(|e| panic!("{dir}/{f}: {e}"))
     };
-    let (map, units, factions, rules, patch) = (
-        read("map.ron"),
-        read("units.ron"),
-        read("factions.ron"),
-        read("rules.ron"),
-        read("patch_notes.ron"),
-    );
-    let files = ContentFiles {
+    let (map, factions, rules) = (read("map.ron"), read("factions.ron"), read("rules.ron"));
+    World::from_files(&ContentFiles {
         map: &map,
-        units: &units,
         factions: &factions,
         rules: &rules,
-        patch_notes: &patch,
-    };
-    World::new(Content::parse(&files).unwrap_or_else(|e| panic!("{e}")))
-        .unwrap_or_else(|e| panic!("{e}"))
+    })
+    .unwrap_or_else(|e| panic!("{e}"))
 }
 
 fn parse_faction(s: &str) -> FactionId {
@@ -56,29 +47,20 @@ fn parse_level(s: Option<String>) -> Level {
     }
 }
 
+#[derive(Default, Clone)]
 struct GameResult {
     factions: Vec<FactionId>,
     scores: Vec<i32>,
     hashes: Vec<String>,
-    /// fights, splashes, strikes, steps, captures, jewel hits, grounded
-    stats: [i64; 7],
-    /// Bragging Rights by reason: strike, jewel, splash, ace, ground, objective, casserole, fetch
-    by_reason: Vec<[i64; 8]>,
-    /// Per seat: spent a night at Project Bark Park; fired the Big Fetch.
-    park: Vec<bool>,
-    fetched: Vec<bool>,
-    /// Per seat: times on the receiving end of the Big Fetch (jewel hits separately).
-    fetched_on: Vec<(u32, u32)>,
+    parked: Vec<bool>,
+    /// Points by reason per seat: strike, downed, prize, fetch.
+    by_reason: Vec<[i32; 4]>,
+    intercepts: usize,
+    strikes: usize,
 }
 
-fn play(
-    world: &World,
-    seed: u64,
-    factions: &[FactionId],
-    levels: &[Level],
-    log: bool,
-) -> GameResult {
-    let mut st = new_game(
+fn play(world: &World, seed: u64, factions: &[FactionId], level: Level, log: bool) -> GameResult {
+    let mut st: GameState = new_game(
         world,
         &GameConfig {
             seed,
@@ -86,151 +68,76 @@ fn play(
         },
     )
     .expect("new game");
-    let mut hashes = Vec::new();
-    let mut stats = [0i64; 7];
-    let mut by_reason = vec![[0i64; 8]; factions.len()];
-    let mut park = vec![false; factions.len()];
-    let mut fetched = vec![false; factions.len()];
-    let mut fetched_on = vec![(0u32, 0u32); factions.len()];
-    while st.night <= world.rules().nights {
-        let orders: Vec<Orders> = (0..factions.len() as u8)
-            .map(|s| suggest(world, &st, s, levels[s as usize]))
+    let n = factions.len();
+    let mut r = GameResult {
+        factions: factions.to_vec(),
+        parked: vec![false; n],
+        by_reason: vec![[0; 4]; n],
+        ..Default::default()
+    };
+    while !st.over(world) {
+        let orders: Vec<Orders> = (0..n as u8)
+            .map(|seat| suggest(world, &st, seat, level))
             .collect();
-        let (next, ev) = resolve_night(world, &st, &orders);
-        for e in &ev {
-            use flyover_core::state::ScoreReason as R;
+        let (next, events) = resolve_night(world, &st, &orders);
+        for e in &events {
             match &e.e {
-                Event::Engage { .. } => stats[0] += 1,
-                Event::Splash { .. } => stats[1] += 1,
-                Event::Strike { steps, .. } => {
-                    stats[2] += 1;
-                    stats[3] += *steps as i64
-                }
-                Event::Capture { .. } => stats[4] += 1,
-                Event::JewelEffect { .. } => stats[5] += 1,
-                Event::Grounded { .. } => stats[6] += 1,
-                Event::BarkPark { seat } => park[*seat as usize] = true,
-                Event::Fetch {
-                    seat, node, victim, ..
-                } => {
-                    fetched[*seat as usize] = true;
-                    if let Some(v) = victim {
-                        let jewel = world.nodes[*node as usize].kind == NodeKind::CrownJewel;
-                        let f = &mut fetched_on[*v as usize];
-                        f.0 += 1;
-                        f.1 += jewel as u32;
-                    }
-                }
+                Event::BarkPark { seat } => r.parked[*seat as usize] = true,
+                Event::Intercept { .. } => r.intercepts += 1,
+                Event::Strike { .. } => r.strikes += 1,
                 Event::Score {
                     seat,
                     delta,
                     reason,
-                    ..
                 } => {
-                    let k = match reason {
-                        R::Strike | R::MassDriver | R::Revenge => 0,
-                        R::Jewel => 1,
-                        R::Splash => 2,
-                        R::Ace => 3,
-                        R::Ground => 4,
-                        R::Objective => 5,
-                        R::Casserole => 6,
-                        R::Fetch => 7,
+                    let i = match reason {
+                        ScoreReason::Strike => 0,
+                        ScoreReason::Downed => 1,
+                        ScoreReason::Prize => 2,
+                        ScoreReason::Fetch => 3,
                     };
-                    by_reason[*seat as usize][k] += *delta as i64;
+                    r.by_reason[*seat as usize][i] += delta;
                 }
                 _ => {}
             }
         }
         if log {
-            print_night(world, &st, &next, &ev);
+            let line: Vec<String> = next
+                .seats
+                .iter()
+                .map(|s| format!("{:?} {} ({} supply)", s.faction.unwrap(), s.score, s.supply))
+                .collect();
+            println!("night {}: {}", st.night, line.join(", "));
         }
         st = next;
-        hashes.push(state_hash(&st));
+        r.hashes.push(state_hash(&st));
     }
-    GameResult {
-        factions: factions.to_vec(),
-        scores: st.seats.iter().map(|s| s.score).collect(),
-        hashes,
-        stats,
-        by_reason,
-        park,
-        fetched,
-        fetched_on,
-    }
+    r.scores = st.seats.iter().map(|s| s.score).collect();
+    r
 }
 
-fn print_night(
-    world: &World,
-    before: &GameState,
-    after: &GameState,
-    ev: &[flyover_core::EventRec],
-) {
-    let mut fights = 0;
-    let mut splashes = 0;
-    let mut strikes = 0;
-    let mut steps = 0;
-    let mut flak = 0;
-    let mut grounded = 0;
-    for e in ev {
-        match &e.e {
-            Event::Engage { .. } => fights += 1,
-            Event::Splash { .. } => splashes += 1,
-            Event::Strike { steps: s, .. } => {
-                strikes += 1;
-                steps += s
-            }
-            Event::Flak { .. } => flak += 1,
-            Event::Grounded { .. } => grounded += 1,
-            _ => {}
-        }
-    }
-    println!(
-        "Night {}: {} dogfights, {} flak volleys, {} splashes, {} strikes ({} steps), {} grounded",
-        before.night, fights, flak, splashes, strikes, steps, grounded
-    );
-    for (i, s) in after.seats.iter().enumerate() {
-        let sq = after
-            .squadrons
-            .iter()
-            .filter(|q| q.seat == i as u8 && q.active())
-            .count();
-        println!(
-            "  {:<24} score {:>3}  supply {:>3} (+{:>2})  fuel {:>3} (+{:>2})  squadrons {:>2}",
-            world.faction(s.faction).name,
-            s.score,
-            s.supply,
-            s.income_supply,
-            s.fuel,
-            s.income_fuel,
-            sq
-        );
-    }
-}
-
-fn lineups() -> Vec<Vec<FactionId>> {
+/// Every way to pick `n` of the seven factions.
+fn lineups(n: usize) -> Vec<Vec<FactionId>> {
     let all = FactionId::ALL;
-    let mut out = Vec::new();
-    for a in 0..7 {
-        for b in a + 1..7 {
-            for c in b + 1..7 {
-                for d in c + 1..7 {
-                    out.push(vec![all[a], all[b], all[c], all[d]]);
-                }
-            }
-        }
-    }
-    out
+    (0u32..1 << 7)
+        .filter(|m| m.count_ones() as usize == n)
+        .map(|m| {
+            (0..7)
+                .filter(|i| m & (1 << i) != 0)
+                .map(|i| all[i])
+                .collect()
+        })
+        .collect()
 }
 
-fn balance(world: &World, games: usize, threads: usize, level: Level) {
-    let lineups = lineups();
+fn balance(world: &World, games: usize, threads: usize, level: Level, players: usize) {
+    let lineups = lineups(players);
     let start = Instant::now();
     let jobs: Vec<(u64, Vec<FactionId>)> = (0..games)
         .map(|g| {
             let mut l = lineups[g % lineups.len()].clone();
             // Rotate seat order so nobody always sits first.
-            l.rotate_left(g / lineups.len() % 4);
+            l.rotate_left(g / lineups.len() % players);
             (0xF1F0 + g as u64 * 7919, l)
         })
         .collect();
@@ -243,133 +150,106 @@ fn balance(world: &World, games: usize, threads: usize, level: Level) {
                 scope.spawn(move || {
                     chunk
                         .iter()
-                        .map(|(seed, l)| play(world, *seed, l, &[level; 4], false))
+                        .map(|(s, l)| play(world, *s, l, level, false))
                         .collect::<Vec<_>>()
                 })
             })
             .collect();
         handles
             .into_iter()
-            .flat_map(|h| h.join().expect("worker"))
+            .flat_map(|h| h.join().unwrap())
             .collect()
     });
-    let mut wins = [0f64; 7];
-    let mut played = [0u32; 7];
-    let mut score_sum = [0i64; 7];
+    let mut wins = [0.0f64; 7];
+    let mut played = [0usize; 7];
+    let mut total = [0i64; 7];
+    let mut reasons = [[0i64; 4]; 7];
+    let (mut park_visits, mut park_wins, mut park_not_last) = (0usize, 0.0f64, 0usize);
     let mut margin = 0i64;
-    let mut stats = [0i64; 7];
-    let mut reasons = [[0i64; 8]; 7];
-    let mut parks = [0u32; 7];
-    let mut fetches = [0u32; 7];
-    let mut fetched_on = [(0u32, 0u32); 7];
-    let (mut park_games, mut park_wins, mut park_from_last) = (0f64, 0f64, 0f64);
+    let (mut intercepts, mut strikes) = (0usize, 0usize);
     for r in &results {
-        for (total, v) in stats.iter_mut().zip(r.stats) {
-            *total += v;
-        }
-        for (i, f) in r.factions.iter().enumerate() {
-            for (total, v) in reasons[f.index()].iter_mut().zip(r.by_reason[i]) {
-                *total += v;
-            }
-        }
         let best = *r.scores.iter().max().unwrap();
-        let winners = r.scores.iter().filter(|&&s| s == best).count() as f64;
+        let winners: Vec<usize> = (0..r.scores.len())
+            .filter(|&i| r.scores[i] == best)
+            .collect();
         let mut sorted = r.scores.clone();
         sorted.sort();
-        margin += (sorted[3] - sorted[2]) as i64;
+        margin += (sorted[sorted.len() - 1] - sorted[sorted.len() - 2]) as i64;
+        let worst = sorted[0];
+        intercepts += r.intercepts;
+        strikes += r.strikes;
         for (i, f) in r.factions.iter().enumerate() {
-            played[f.index()] += 1;
-            score_sum[f.index()] += r.scores[i] as i64;
-            if r.scores[i] == best {
-                wins[f.index()] += 1.0 / winners;
+            let k = f.index();
+            played[k] += 1;
+            total[k] += r.scores[i] as i64;
+            for (slot, v) in reasons[k].iter_mut().zip(r.by_reason[i]) {
+                *slot += v as i64;
             }
-            if r.park[i] {
-                parks[f.index()] += 1;
-                park_games += 1.0;
-                if r.scores[i] == best {
-                    park_wins += 1.0 / winners;
+            if winners.contains(&i) {
+                wins[k] += 1.0 / winners.len() as f64;
+            }
+            if r.parked[i] {
+                park_visits += 1;
+                if winners.contains(&i) {
+                    park_wins += 1.0 / winners.len() as f64;
                 }
-                if r.scores[i] > sorted[0] {
-                    park_from_last += 1.0;
+                if r.scores[i] > worst {
+                    park_not_last += 1;
                 }
             }
-            if r.fetched[i] {
-                fetches[f.index()] += 1;
-            }
-            fetched_on[f.index()].0 += r.fetched_on[i].0;
-            fetched_on[f.index()].1 += r.fetched_on[i].1;
         }
     }
+    let n = results.len() as f64;
     println!(
-        "{} games in {:.1}s ({:?} bots)",
+        "{} games in {:.1} s",
         results.len(),
-        start.elapsed().as_secs_f64(),
-        level
+        start.elapsed().as_secs_f64()
     );
     println!(
-        "{:<26} {:>6} {:>8} {:>9}",
-        "faction", "games", "win %", "avg BR"
+        "{:<12} {:>7} {:>7} {:>7} {:>7} {:>7} {:>7}",
+        "faction", "win %", "avg BR", "strike", "downed", "prize", "fetch"
     );
-    let mut ok = true;
+    // A fair share of wins is 100/players percent; allow a fifth either way.
+    let fair = 100.0 / players as f64;
+    let band = (fair * 0.8)..=(fair * 1.2);
+    let mut bad = false;
     for f in FactionId::ALL {
-        let i = f.index();
-        let pct = 100.0 * wins[i] / played[i].max(1) as f64;
-        let flag = if (20.0..=30.0).contains(&pct) {
-            ""
-        } else {
-            "  <- outside 20-30%"
-        };
-        if !flag.is_empty() {
-            ok = false;
+        let k = f.index();
+        let p = played[k].max(1) as f64;
+        let rate = 100.0 * wins[k] / p;
+        if played[k] > 0 && !band.contains(&rate) {
+            bad = true;
         }
         println!(
-            "{:<26} {:>6} {:>7.1}% {:>9.1}{}",
-            world.faction(f).name,
-            played[i],
-            pct,
-            score_sum[i] as f64 / played[i].max(1) as f64,
-            flag
+            "{:<12} {:>6.1}% {:>7.1} {:>7.1} {:>7.1} {:>7.1} {:>7.1}",
+            format!("{f:?}"),
+            rate,
+            total[k] as f64 / p,
+            reasons[k][0] as f64 / p,
+            reasons[k][1] as f64 / p,
+            reasons[k][2] as f64 / p,
+            reasons[k][3] as f64 / p,
         );
     }
     println!(
-        "average winning margin: {:.1}",
-        margin as f64 / results.len().max(1) as f64
-    );
-    let n = results.len().max(1) as f64;
-    println!(
-        "per game: {:.1} dogfights, {:.1} splashes, {:.1} strikes, {:.1} steps, {:.1} captures, {:.2} jewel hits, {:.1} grounded",
-        stats[0] as f64 / n, stats[1] as f64 / n, stats[2] as f64 / n, stats[3] as f64 / n, stats[4] as f64 / n, stats[5] as f64 / n, stats[6] as f64 / n
+        "Bark Park: {:.2} visits a game; visitors win {:.0}% and finish above last {:.0}%",
+        park_visits as f64 / n,
+        100.0 * park_wins / park_visits.max(1) as f64,
+        100.0 * park_not_last as f64 / park_visits.max(1) as f64
     );
     println!(
-        "Project Bark Park: {:.2} visits a game; visitors win {:.1}% and finish above last {:.1}% of the time",
-        park_games / n,
-        100.0 * park_wins / park_games.max(1.0),
-        100.0 * park_from_last / park_games.max(1.0)
+        "average winning margin {:.1}; {:.1} interceptions and {:.1} strikes a game",
+        margin as f64 / n,
+        intercepts as f64 / n,
+        strikes as f64 / n
     );
-    println!("avg BR by source:          strike  jewel  splash   ace  ground  object  cass  fetch   park%  fetch%  hit-by-fetch (jewel)");
-    for f in FactionId::ALL {
-        let i = f.index();
-        let g = played[i].max(1) as f64;
-        let r = reasons[i];
-        println!(
-            "{:<26} {:>6.1} {:>6.1} {:>7.1} {:>5.1} {:>7.1} {:>7.1} {:>5.1} {:>6.1} {:>6.1}% {:>5.1}%  {:>5.2} ({:.2})",
-            world.faction(f).name,
-            r[0] as f64 / g,
-            r[1] as f64 / g,
-            r[2] as f64 / g,
-            r[3] as f64 / g,
-            r[4] as f64 / g,
-            r[5] as f64 / g,
-            r[6] as f64 / g,
-            r[7] as f64 / g,
-            100.0 * parks[i] as f64 / g,
-            100.0 * fetches[i] as f64 / g,
-            fetched_on[i].0 as f64 / g,
-            fetched_on[i].1 as f64 / g
+    if bad {
+        eprintln!(
+            "a faction is outside the {:.0}-{:.0}% win band",
+            band.start(),
+            band.end()
         );
-    }
-    if !ok {
-        std::process::exit(2);
+        std::process::exit(1);
     }
 }
 
@@ -447,13 +327,7 @@ fn main() {
                 });
             let level = parse_level(arg(&args, "--level"));
             let t = Instant::now();
-            let r = play(
-                &world,
-                seed,
-                &factions,
-                &vec![level; factions.len()],
-                cmd == "play",
-            );
+            let r = play(&world, seed, &factions, level, cmd == "play");
             if cmd == "hashes" {
                 for h in r.hashes {
                     println!("{h}");
@@ -467,7 +341,10 @@ fn main() {
             }
         }
         "balance" => {
-            let world = load_world(&dir);
+            let mut world = load_world(&dir);
+            if args.iter().any(|a| a == "--no-perks") {
+                world.content.rules.perks = false;
+            }
             let games = arg(&args, "--games")
                 .map(|s| s.parse().expect("games"))
                 .unwrap_or(350);
@@ -478,14 +355,24 @@ fn main() {
                         .map(|n| n.get())
                         .unwrap_or(4)
                 });
-            balance(&world, games, threads, parse_level(arg(&args, "--level")));
+            let players = arg(&args, "--players")
+                .map(|s| s.parse().expect("players"))
+                .unwrap_or(4);
+            assert!((2..=7).contains(&players), "--players takes 2 to 7");
+            balance(
+                &world,
+                games,
+                threads,
+                parse_level(arg(&args, "--level")),
+                players,
+            );
         }
         "replay" => {
             let world = load_world(&dir);
             replay(&world, args.get(2).expect("save path"));
         }
-        _ => {
-            println!("flyover play | balance | hashes | replay <save>   (--content DIR, default ./content)");
-        }
+        _ => println!(
+            "flyover play | balance | hashes | replay <save>   (--content DIR, default ./content)"
+        ),
     }
 }

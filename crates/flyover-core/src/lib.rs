@@ -1,18 +1,17 @@
 //! Flyover Country's deterministic simulation. Pure functions over plain data:
-//! no I/O, no clock, no floats. Same seed and orders, same night, everywhere.
+//! no I/O, no clock, no floats in the rules. Same seed and orders, same night,
+//! everywhere.
 
 pub mod content;
-pub mod economy;
+pub mod geom;
 pub mod rng;
-pub mod route;
 pub mod rules;
 pub mod setup;
 pub mod sim;
 pub mod state;
 pub mod testkit;
-pub mod vision;
 
-pub use content::{Content, ContentFiles, FactionId, UnitKind, World};
+pub use content::{Content, ContentFiles, FactionId, SiteKind, UnitKind, World};
 pub use setup::{new_game, GameConfig};
 pub use sim::{carry_over, resolve_night};
 pub use state::{EventRec, GameState, Orders};

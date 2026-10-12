@@ -37,7 +37,7 @@ export async function autosave(save: SaveFile): Promise<void> {
 
 export async function listSaves(): Promise<SaveFile[]> {
   try {
-    const all = (await tx('readonly', (s) => s.getAll())) as SaveFile[];
+    const all = ((await tx('readonly', (s) => s.getAll())) as SaveFile[]).filter((s) => s.version === 2);
     return all.sort((a, b) => b.updated - a.updated);
   } catch {
     return [];
@@ -80,6 +80,6 @@ export async function importSave(file: File): Promise<SaveFile> {
     text = new TextDecoder().decode(bytes);
   }
   const save = JSON.parse(text) as SaveFile;
-  if (save.version !== 1 || !Array.isArray(save.snapshots) || !save.factions) throw new Error('That file is not a Flyover Country save.');
+  if (save.version !== 2 || !Array.isArray(save.snapshots) || !save.factions) throw new Error((save as { version: number }).version === 1 ? 'That save is from the first version of the game and can’t be loaded.' : 'That file is not a Flyover Country save.');
   return save;
 }

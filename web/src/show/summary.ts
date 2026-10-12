@@ -1,269 +1,183 @@
-// Reads a night's public event log: important moments for the camera, the
-// morning report's scorecard, and the newspaper headline.
+// What a night means in words: the morning headline, up to four plain
+// highlights, a caption for each moment of the show, and which dog gets to
+// speak at dawn. Lines come from the save's Voice, so nothing repeats.
 
-import type { Content, EventRec, FactionId, GameEvent, P } from '../types';
-import { faction, headline, nodeName, zoneName } from '../text';
+import type { Content, EventRec, FactionId, GameState, Loss } from '../types';
+import { faction, fill, leaderLines, prizeName, radio, siteName, type Voice, KIND_NAME, plural } from '../text';
 
-export interface Moment {
+export interface Caption {
   tick: number;
-  pos: P;
-  importance: number;
-  /** Ticks the camera should hold on this. */
-  hold: number;
-  kind: string;
-  label: string;
+  /** Which event in the night's log this caption belongs to. */
+  index: number;
+  /** Plain words: who did what. */
+  text: string;
+  /** A short radio call from that side, sometimes. */
+  radio: string | null;
+  faction: FactionId;
 }
 
 export interface NightSummary {
-  night: number;
-  factions: FactionId[];
-  gained: number[];
-  squadronsLost: number[];
-  stepsDealt: number[];
-  stepsTaken: number[];
-  kills: number[];
   headline: string;
   highlights: string[];
-  play: Moment | null;
-  jewelHit: boolean[];
-  /** Project Bark Park: at the park tonight; back at dawn with the Big Fetch. */
-  park: boolean[];
+  captions: Caption[];
+  /** Bragging Rights gained tonight, per seat. */
+  gained: number[];
+  /** The dog who speaks next morning, and why. */
+  speaker: { seat: number; pool: 'hit' | 'landed' | 'ahead' | 'behind' | 'back' | 'dawn'; params: Record<string, string> } | null;
   returned: number[];
 }
 
-function short(factions: FactionId[], seat: number | null | undefined): string {
-  if (seat === null || seat === undefined) return 'Nobody';
-  return faction(factions[seat]).short;
+function lost(list: Loss[]): number {
+  return list.reduce((a, l) => a + l.planes, 0);
 }
 
-export function moments(content: Content, events: EventRec[], factions: FactionId[]): Moment[] {
-  const out: Moment[] = [];
-  const pos = (n: number): P => content.nodes[n].pos;
-  for (const r of events) {
-    const e = r.e;
-    const t = r.tick;
-    switch (e.t) {
-      case 'Strike': {
-        if (e.steps <= 0) {
-          out.push({ tick: t, pos: pos(e.node), importance: 25, hold: 6, kind: 'miss', label: `${short(factions, e.seat)} misses ${nodeName(e.node)}` });
-          break;
-        }
-        const kind = content.nodes[e.node].kind;
-        const imp = e.jewel ? 100 : kind === 'City' || kind === 'Factory' ? 60 : 45;
-        out.push({ tick: t, pos: pos(e.node), importance: imp, hold: e.jewel ? 22 : 10, kind: e.jewel ? 'jewel' : 'strike', label: `${short(factions, e.seat)} hits ${nodeName(e.node)}` });
+export function summarize(content: Content, events: EventRec[], factions: FactionId[], before: GameState, after: GameState, voice: Voice): NightSummary {
+  const short = (seat: number) => faction(factions[seat]).short;
+  const gained = factions.map(() => 0);
+  const captions: Caption[] = [];
+  const stories: { weight: number; key: string; params: Record<string, string>; line: string }[] = [];
+  let radioGap = -999;
+  const call = (tick: number, seat: number, pool: 'intercept' | 'jumped' | 'hit' | 'miss' | 'prize', params: Record<string, string>) => {
+    // Radio at most every so often, so the screen stays quiet.
+    if (tick - radioGap < 28) return null;
+    radioGap = tick;
+    const line = voice.take(`radio.${factions[seat]}.${pool}`, radio(factions[seat])[pool]);
+    return line ? fill(line, params) : null;
+  };
+  const raidSeat = new Map<number, number>();
+  const flak = new Map<number, number>();
+  const raidBombers = new Map<number, number>();
+  let hitSeat = null as { seat: number; site: number; dealt: number } | null;
+  let bestLanded = null as { seat: number; site: number; victim: number; dealt: number } | null;
+  const returned: number[] = [];
+  events.forEach((r, index) => {
+    switch (r.t) {
+      case 'Launch':
+        raidSeat.set(r.raid, r.seat);
+        raidBombers.set(r.raid, r.bombers);
+        break;
+      case 'BarkPark':
+        captions.push({ tick: r.tick, index, text: `${short(r.seat)} spends the night at Project Bark Park.`, radio: null, faction: factions[r.seat] });
+        stories.push({ weight: 30, key: 'park', params: { attacker: short(r.seat) }, line: `${short(r.seat)} rested at Project Bark Park.` });
+        break;
+      case 'Intercept': {
+        const down = lost(r.raid_lost);
+        const words = r.wiped ? 'the whole raid goes down' : down === 0 ? 'no losses' : `${plural(down, 'plane')} down`;
+        captions.push({
+          tick: r.tick,
+          index,
+          text: `${short(r.patrol_seat)} jumps the ${short(r.seat)} raid: ${words}.`,
+          radio: call(r.tick, r.patrol_seat, 'intercept', { rival: short(r.seat) }),
+          faction: factions[r.patrol_seat],
+        });
+        if (r.wiped) stories.push({ weight: 40, key: 'wiped', params: { attacker: short(r.seat), victim: short(r.patrol_seat) }, line: `${short(r.patrol_seat)} shot down a whole ${short(r.seat)} raid.` });
         break;
       }
-      case 'MassDriver':
-      case 'Revenge':
-        out.push({ tick: t, pos: pos(e.node), importance: 75, hold: 14, kind: 'massdriver', label: `${short(factions, e.seat)} ${e.t === 'MassDriver' ? 'fires the Mass Driver at' : 'takes revenge on'} ${nodeName(e.node)}` });
+      case 'Flak': {
+        const down = lost(r.raid_lost);
+        const strike = events.slice(index + 1).some((x) => x.t === 'Strike' && x.raid === r.raid);
+        if (down > 0 && !strike) {
+          const site = content.sites[r.site];
+          captions.push({ tick: r.tick, index, text: `Flak over ${site.name} downs ${plural(down, 'plane')}. No bombs land.`, radio: null, faction: factions[r.victim] });
+        }
+        if (down > 0) flak.set(r.raid, down);
         break;
-      case 'Engage': {
-        const splashes = e.after.filter((s) => s.strength === 0).length;
-        const imp = e.ace_duel ? 85 : 38 + 6 * splashes;
-        out.push({
-          tick: t, pos: [e.x, e.y], importance: imp, hold: e.ace_duel ? 18 : 8, kind: e.ace_duel ? 'duel' : 'dogfight',
-          label: e.ace_duel ? 'Ace duel' : `${short(factions, e.a_seat)} and ${short(factions, e.b_seat)} tangle`,
+      }
+      case 'Strike': {
+        const site = content.sites[r.site];
+        const shot = flak.get(r.raid) ?? 0;
+        const what = (r.hits > 0 ? `hit ${site.name} (−${r.hits})` : `miss ${site.name}`) + (shot ? `; flak got ${shot}` : '');
+        captions.push({
+          tick: r.tick,
+          index,
+          text: `${short(r.seat)} bombers ${what}.`,
+          radio: call(r.tick, r.seat, r.hits > 0 ? 'hit' : 'miss', { site: site.name }),
+          faction: factions[r.seat],
+        });
+        if (r.hits > 0) {
+          const big = site.kind === 'HQ' || site.kind === 'Jewel';
+          const key = site.kind === 'HQ' ? 'hq' : site.kind === 'Jewel' ? 'jewel' : 'strike';
+          stories.push({
+            weight: (big ? 30 : 15) + r.hits * 5 + (r.health === 0 ? 10 : 0),
+            key,
+            params: { attacker: short(r.seat), victim: short(r.victim), site: site.name },
+            line: `${short(r.seat)} hit ${short(r.victim)}'s ${KIND_NAME[site.kind]}, ${site.name}${r.health === 0 ? ', and knocked it out' : ''}.`,
+          });
+          if (!bestLanded || r.hits > bestLanded.dealt) bestLanded = { seat: r.seat, site: r.site, victim: r.victim, dealt: r.hits };
+          if (!hitSeat || r.hits > hitSeat.dealt) hitSeat = { seat: r.victim, site: r.site, dealt: r.hits };
+        }
+        break;
+      }
+      case 'Bounce':
+        captions.push({ tick: r.tick, index, text: `Boing! ${short(r.seat)}'s bombs bounce off the Bark Park fence.`, radio: null, faction: factions[r.seat] });
+        break;
+      case 'Hold':
+        captions.push({
+          tick: r.tick,
+          index,
+          text: `${short(r.seat)} takes ${prizeName(r.prize)}.`,
+          radio: call(r.tick, r.seat, 'prize', { prize: prizeName(r.prize) }),
+          faction: factions[r.seat],
+        });
+        break;
+      case 'PrizeFight': {
+        const name = prizeName(r.prize);
+        captions.push({
+          tick: r.tick,
+          index,
+          text: r.taken ? `${short(r.seat)} takes ${name} from ${short(r.holder)}.` : `${short(r.holder)} holds ${name} against ${short(r.seat)}.`,
+          radio: r.taken ? call(r.tick, r.seat, 'prize', { prize: name }) : null,
+          faction: factions[r.taken ? r.seat : r.holder],
         });
         break;
       }
-      case 'Splash':
-        if (e.ace) out.push({ tick: t, pos: [e.x, e.y], importance: 80, hold: 12, kind: 'acedown', label: `${content.factions.find((f) => f.id === factions[e.seat])?.ace} is down` });
-        break;
-      case 'Flak':
-        if (e.shots.some((s) => s.hit)) out.push({ tick: t, pos: [e.x, e.y], importance: 18, hold: 4, kind: 'flak', label: 'Flak' });
-        break;
-      case 'LostInStatic':
-      case 'Vanished':
-        out.push({ tick: t, pos: [e.x, e.y], importance: 50, hold: 10, kind: e.t, label: e.t === 'Vanished' ? 'The saucer is gone' : 'Lost in the Static' });
-        break;
-      case 'Pivot':
-        out.push({ tick: t, pos: pos(e.node), importance: 48, hold: 8, kind: 'pivot', label: 'PIVOT pivots' });
-        break;
-      case 'BetWin':
-        out.push({ tick: t, pos: e.node !== null ? pos(e.node) : [content.width / 2, content.height / 2], importance: 55, hold: 8, kind: 'bet', label: "Dreamland's bet pays off" });
-        break;
-      case 'Capture':
-        out.push({ tick: t, pos: pos(e.node), importance: 30, hold: 6, kind: 'capture', label: `${short(factions, e.seat)} takes ${nodeName(e.node)}` });
-        break;
-      case 'BarkPark':
-        out.push({ tick: t, pos: barkPark(content), importance: 40, hold: 10, kind: 'park', label: `${short(factions, e.seat)} heads to Project Bark Park` });
-        break;
-      case 'Bounce':
-        out.push({ tick: t, pos: pos(e.node), importance: 42, hold: 8, kind: 'bounce', label: `${short(factions, e.seat)} bounces off ${short(factions, e.victim)}'s fence` });
-        break;
       case 'Fetch': {
-        const jewel = content.nodes[e.node].kind === 'CrownJewel';
-        out.push({ tick: t, pos: pos(e.node), importance: jewel ? 100 : 85, hold: 16, kind: 'fetch', label: `${short(factions, e.seat)} fires the Big Fetch at ${nodeName(e.node)}` });
+        const site = content.sites[r.site];
+        const shout = r.bounced ? undefined : voice.take(`leader.${factions[r.seat]}.fetch`, leaderLines(factions[r.seat]).fetch);
+        captions.push({ tick: r.tick, index, text: r.bounced ? `The Big Fetch bounces off the Bark Park fence.` : `${short(r.seat)} throws the Big Fetch at ${site.name} (−${r.hits}).`, radio: shout ? fill(shout, { site: site.name }) : null, faction: factions[r.seat] });
+        if (!r.bounced) stories.push({ weight: 60, key: 'fetch', params: { attacker: short(r.seat), victim: short(r.victim), site: site.name }, line: `${short(r.seat)} threw the Big Fetch at ${site.name}.` });
         break;
       }
-    }
-  }
-  return out;
-}
-
-/** Where Project Bark Park is (Four Corners), for the camera and the ball. */
-export function barkPark(content: Content): P {
-  return content.landmarks?.find((l) => l.id === 'bark_park')?.pos ?? [content.width / 2, content.height / 2];
-}
-
-export function summarize(content: Content, events: EventRec[], factions: FactionId[], night: number, salt: number): NightSummary {
-  const n = factions.length;
-  const gained = new Array(n).fill(0);
-  const squadronsLost = new Array(n).fill(0);
-  const stepsDealt = new Array(n).fill(0);
-  const stepsTaken = new Array(n).fill(0);
-  const kills = new Array(n).fill(0);
-  const jewelHit = new Array(n).fill(false);
-  const park = new Array(n).fill(false);
-  const returned: number[] = [];
-  const highlights: string[] = [];
-  const pub = events.filter((r) => r.public);
-  let bigStrike: (GameEvent & { t: 'Strike' }) | null = null;
-  const splashByZone = new Map<number, number>();
-  const heads: { pri: number; text: string | null }[] = [];
-  const bounced = new Set<string>();
-  const h = (pri: number, key: string, params: Record<string, string>) => heads.push({ pri, text: headline(key, params, salt + pri) });
-  for (const r of pub) {
-    const e = r.e;
-    switch (e.t) {
       case 'Score':
-        gained[e.seat] += e.delta;
+        gained[r.seat] += r.delta;
         break;
-      case 'Splash':
-        squadronsLost[e.seat] += 1;
-        if (e.by_seat !== null) kills[e.by_seat] += 1;
-        {
-          let zi = 0;
-          let bd = Infinity;
-          for (const z of content.zones) {
-            const d = (z.center[0] - e.x) ** 2 + (z.center[1] - e.y) ** 2;
-            if (d < bd) {
-              bd = d;
-              zi = z.idx;
-            }
+      case 'Dawn':
+        returned.push(...r.returned);
+        r.prizes.forEach((owner, i) => {
+          if (owner !== null && before.prizes[i]?.owner !== owner) {
+            stories.push({ weight: 12, key: 'prize', params: { attacker: short(owner), prize: prizeName(i) }, line: `${short(owner)} now holds ${prizeName(i)}.` });
           }
-          splashByZone.set(zi, (splashByZone.get(zi) ?? 0) + 1);
-        }
-        if (e.ace) {
-          const ace = content.factions.find((f) => f.id === factions[e.seat])!.ace;
-          h(80, 'ace_down', { ace, attacker: short(factions, e.by_seat) });
-          highlights.push(`${ace} went down${e.by_seat !== null ? ` to ${short(factions, e.by_seat)}` : ''}. Good chute.`);
-        }
-        break;
-      case 'Strike':
-        if (e.victim !== null) {
-          stepsDealt[e.seat] += e.steps;
-          stepsTaken[e.victim] += e.steps;
-        }
-        if (e.jewel && e.steps > 0 && e.victim !== null) {
-          jewelHit[e.victim] = true;
-          h(100, `jewel_hit_${factions[e.victim]}`, { attacker: short(factions, e.seat) });
-          highlights.push(`${short(factions, e.seat)} hit ${nodeName(e.node)}!`);
-        } else if (e.steps > 0 && (!bigStrike || e.steps > bigStrike.steps)) {
-          bigStrike = e;
-        }
-        if (e.kinds.includes('Longhorn') && e.steps > 0) h(52, 'longhorn', {});
-        if (e.kinds.includes('Drone') && e.steps > 0) h(42, 'drones', {});
-        break;
-      case 'MassDriver':
-        h(70, 'mass_driver', { attacker: short(factions, e.seat), node: nodeName(e.node) });
-        highlights.push(`${short(factions, e.seat)} fired the White Sands Mass Driver at ${nodeName(e.node)}.`);
-        if (e.victim !== null) {
-          stepsDealt[e.seat] += e.steps;
-          stepsTaken[e.victim] += e.steps;
-        }
-        break;
-      case 'Revenge':
-        highlights.push(`The Grain Belt took its revenge on ${nodeName(e.node)}.`);
-        break;
-      case 'Capture':
-        h(35, 'capture', { attacker: short(factions, e.seat), node: nodeName(e.node) });
-        highlights.push(`${short(factions, e.seat)} took ${nodeName(e.node)}.`);
-        break;
-      case 'BetWin':
-        h(58, 'bet', {});
-        highlights.push(`Dreamland's bet paid ${e.payout} Supply.`);
-        break;
-      case 'NightStart':
-        if (e.harvest_winner !== null) {
-          h(30, 'harvest', { attacker: short(factions, e.harvest_winner) });
-          highlights.push(`${short(factions, e.harvest_winner)} won the Harvest Shipment for ${e.harvest_bid} Supply.`);
-        }
-        break;
-      case 'LostInStatic':
-        h(60, 'static', {});
-        highlights.push('A squadron flew into the Static. Its pilots refuse to talk about it.');
-        break;
-      case 'Vanished':
-        h(56, 'prototype', {});
-        highlights.push("Dreamland's Prototype simply didn't come back.");
-        break;
-      case 'JewelEffect':
-        break;
-      case 'AceReturns':
-        highlights.push(`${content.factions.find((f) => f.id === factions[e.seat])!.ace} is back.`);
-        break;
-      case 'Casserole':
-        highlights.push(`Utah earned a thank-you casserole${e.host !== null ? ` from ${short(factions, e.host)}` : ''}.`);
-        break;
-      case 'BarkPark':
-        park[e.seat] = true;
-        h(64, 'bark_park', { attacker: short(factions, e.seat) });
-        highlights.push(`${short(factions, e.seat)} spent the night at Project Bark Park. Nothing could touch them.`);
-        break;
-      case 'Bounce': {
-        const key = `${e.seat}-${e.victim}`;
-        if (!bounced.has(key)) {
-          bounced.add(key);
-          h(57, 'bounce', { attacker: short(factions, e.seat), victim: short(factions, e.victim), node: nodeName(e.node) });
-          highlights.push(`${short(factions, e.seat)}'s attack on ${nodeName(e.node)} bounced off the Bark Park fence.`);
-        }
-        break;
-      }
-      case 'Fetch': {
-        const jewel = content.nodes[e.node].kind === 'CrownJewel';
-        const params = { attacker: short(factions, e.seat), victim: short(factions, e.victim), node: nodeName(e.node) };
-        h(jewel ? 105 : 90, jewel ? 'fetch_jewel' : 'fetch', params);
-        highlights.push(`${short(factions, e.seat)} fired the Big Fetch at ${nodeName(e.node)}!`);
-        if (e.victim !== null) {
-          stepsDealt[e.seat] += e.steps;
-          stepsTaken[e.victim] += e.steps;
-          if (jewel && e.steps > 0) jewelHit[e.victim] = true;
-        }
-        break;
-      }
-      case 'ParkReturn':
-        returned.push(e.seat);
-        highlights.push(`${short(factions, e.seat)} is back from the park${e.built.length ? ` with ${e.built.length} fresh squadron${e.built.length > 1 ? 's' : ''}` : ''}, and the Big Fetch is loaded.`);
+        });
         break;
     }
+  });
+  stories.sort((a, b) => b.weight - a.weight);
+  const top = stories[0];
+  const pool = content.flavor.headlines[top?.key ?? 'quiet'] ?? content.flavor.headlines.quiet;
+  const headline = fill(voice.take(`headline.${top?.key ?? 'quiet'}`, pool) ?? 'Another night over the West', top?.params ?? {});
+  // The headline already tells the top story.
+  const highlights = stories.slice(1, 4).map((s) => s.line);
+
+  // Who speaks at dawn: whoever got hit hardest, else whoever landed the
+  // biggest strike, else the leader or the one at the back, in turn.
+  let speaker: NightSummary['speaker'] = null;
+  const night = after.night;
+  if (returned.length) speaker = { seat: returned[0], pool: 'back', params: {} };
+  else if (hitSeat && night % 2 === 0) speaker = { seat: hitSeat.seat, pool: 'hit', params: { site: siteName(hitSeat.site) } };
+  else if (bestLanded) speaker = { seat: bestLanded.seat, pool: 'landed', params: { site: siteName(bestLanded.site), rival: short(bestLanded.victim) } };
+  else if (hitSeat) speaker = { seat: hitSeat.seat, pool: 'hit', params: { site: siteName(hitSeat.site) } };
+  else {
+    const scores = after.seats.map((s) => s.score);
+    const best = scores.indexOf(Math.max(...scores));
+    const worst = scores.indexOf(Math.min(...scores));
+    speaker = night % 2 === 0 ? { seat: best, pool: 'ahead', params: {} } : { seat: worst, pool: 'behind', params: {} };
   }
-  if (bigStrike && bigStrike.victim !== null) {
-    h(50, 'big_strike', { attacker: short(factions, bigStrike.seat), victim: short(factions, bigStrike.victim), node: nodeName(bigStrike.node) });
-  }
-  let topZone: [number, number] | null = null;
-  for (const [z, c] of splashByZone) if (!topZone || c > topZone[1]) topZone = [z, c];
-  if (topZone && topZone[1] >= 3) h(45 + topZone[1], 'dogfight', { count: String(topZone[1]), zone: zoneName(topZone[0]) });
-  const scrappyBig = gained.indexOf(Math.max(...gained));
-  if (gained[scrappyBig] > 0 && pub.some((r) => r.e.t === 'Dawn')) {
-    const dawn = pub.find((r) => r.e.t === 'Dawn')!.e as GameEvent & { t: 'Dawn' };
-    void dawn;
-  }
-  if (heads.length === 0) h(1, 'quiet', {});
-  heads.sort((a, b) => b.pri - a.pri);
-  const hl = heads.find((x) => x.text)?.text ?? 'A QUIET NIGHT OVER THE WEST';
-  const ms = moments(content, pub, factions);
-  ms.sort((a, b) => b.importance - a.importance || a.tick - b.tick);
-  return { night, factions, gained, squadronsLost, stepsDealt, stepsTaken, kills, headline: hl, highlights: highlights.slice(0, 6), play: ms[0] ?? null, jewelHit, park, returned };
+  return { headline, highlights, captions, gained, speaker, returned };
 }
 
-export function finalHeadline(factions: FactionId[], scores: number[], salt: number): string {
-  const best = scores.indexOf(Math.max(...scores));
-  return headline('final', { attacker: faction(factions[best]).short }, salt) ?? `${faction(factions[best]).short.toUpperCase()} TAKES THE BRAGGING RIGHTS`;
-}
-
-export function leaderHeadline(factions: FactionId[], scores: number[], salt: number): string | null {
-  const best = scores.indexOf(Math.max(...scores));
-  if (scores[best] <= 0) return null;
-  return headline('leader', { attacker: faction(factions[best]).short }, salt);
+export function raidLabel(fighters: number, bombers: number): string {
+  const parts: string[] = [];
+  if (bombers) parts.push(plural(bombers, 'bomber'));
+  if (fighters) parts.push(plural(fighters, 'fighter'));
+  return parts.join(' + ');
 }
