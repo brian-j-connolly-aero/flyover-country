@@ -1,0 +1,13 @@
+name,optimum,bobilib_status,bobilib_value,nodes,seconds
+interKP-200-100-6-2,1855,feasible,1855,17415121,135.8
+interKP-200-100-7-2,1872,feasible,1872,171294,0.5
+interKP-200-100-7-3,2808,feasible,2808,2341175,20.1
+interKP-300-100-6-2,2868,feasible,2868,12302768,194.4
+interKP-300-100-7-2,2894,feasible,2894,345520,2.3
+interKP-300-100-7-3,4340,feasible,4340,12945073,134.7
+interKP-400-100-6-2,3832,feasible,3832,7217774,81.5
+interKP-400-100-7-2,3866,feasible,3866,608322,8.0
+interKP-400-100-7-3,5800,feasible,5800,20936645,270.9
+interKP-500-100-6-2,4651,feasible,4651,14290940,208.7
+interKP-500-100-7-2,4694,feasible,4694,528334,10.6
+interKP-500-100-7-3,7042,feasible,7042,25535535,426.9
