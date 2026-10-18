@@ -109,9 +109,9 @@ instances with 20 or more linking bits, and 123 MIPLIB-derived instances.
   | interKP-400-100-6-2 | 3,832 | 257 | 0.15 s | 7,217,774 / 75.29 s |
   | interKP-500-100-6-2 | 4,651 | 190 | 0.26 s | 14,290,940 / 174.28 s |
   | interKP-200-100-6-3 | 2,782 | 13,498 | 3.93 s | not finished in 2 h |
-  | interKP-300-100-6-3 | 4,302 | 19,405 | 8.06 s | open, not run |
-  | interKP-400-100-6-3 | 5,748 | 13,430 | 9.01 s | open, not run |
-  | interKP-500-100-6-3 | 6,976 | 10,079 | 10.04 s | open, not run |
+  | interKP-300-100-6-3 | 4,302 | 19,405 | 8.06 s | not finished in 3 h |
+  | interKP-400-100-6-3 | 5,748 | 13,430 | 9.01 s | not run to the end |
+  | interKP-500-100-6-3 | 6,976 | 10,079 | 10.04 s | not run |
   | interKP-200-100-7-2 | 1,872 | 22 | 0.06 s | 48,598 / 0.49 s |
   | interKP-300-100-7-2 | 2,894 | 27 | 0.04 s | 115,415 / 1.78 s |
   | interKP-400-100-7-2 | 3,866 | 18 | 0.05 s | 269,550 / 5.62 s |
@@ -122,10 +122,18 @@ instances with 20 or more linking bits, and 123 MIPLIB-derived instances.
   | interKP-500-100-7-3 | 7,042 | 256 | 0.15 s | 13,346,235 / 137.19 s |
 
   In every case BOBILib's value was already optimal; the proof is new.
-  All 16 lower bounds are confirmed by `scripts/ss_check.py`, an
-  independent prover (own parser, plain search, the per-node rule written
-  from its definition, no code shared with the Rust search), and every
-  solution file passes `bobi verify`. See `results/ss/`. One change at a
+  The evidence for the four index-3 proofs is independent several times
+  over: `scripts/ss_check.py` (the designer's prover: own parser, plain
+  search, the per-node rule written from its definition, no code shared
+  with the Rust search) and `scripts/ss_judge_check.py` (a reviewer's
+  prover written without reading either) confirm all 16 lower bounds; two
+  other redesigns of the search, built separately (witness reuse, and
+  block tables from a hitting-set view), prove 200-6-3 at 2,782 as well,
+  and the witness version all four; the reviewer compared every binary
+  with exhaustive enumeration on 2,990 random small instances (0
+  mismatches); and every solution file passes `bobi verify`. See
+  `results/ss/`. The threshold form and the per-node end set are proved
+  in the doc comments of `src/robust_ss.rs` but not yet in Lean. One change at a
   time on interKP-200-100-6-2 (nodes): previous search 3,926,223; same
   rules with threshold tables 3,926,223 (memory 478 to 229 MB); every band
   width 1..64 3,278,153; root tables played largest value first 1,128,566,
