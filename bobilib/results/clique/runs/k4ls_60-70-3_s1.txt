@@ -1,0 +1,21 @@
+k4 57290 start 310 unhit 0
+found 310 step 1 sec 0.0
+step 1000000 sec 58.0 size 309 unhit 98 min_unhit 34 best 310 mean_w 19.50
+step 2000000 sec 115.2 size 309 unhit 422 min_unhit 34 best 310 mean_w 6.37
+step 3000000 sec 175.7 size 309 unhit 431 min_unhit 34 best 310 mean_w 16.42
+step 4000000 sec 235.9 size 309 unhit 713 min_unhit 34 best 310 mean_w 7.07
+step 5000000 sec 299.9 size 309 unhit 171 min_unhit 34 best 310 mean_w 15.07
+step 6000000 sec 366.1 size 309 unhit 288 min_unhit 34 best 310 mean_w 8.55
+step 7000000 sec 434.1 size 309 unhit 210 min_unhit 34 best 310 mean_w 15.42
+step 8000000 sec 516.7 size 309 unhit 880 min_unhit 34 best 310 mean_w 10.36
+step 9000000 sec 586.7 size 309 unhit 383 min_unhit 34 best 310 mean_w 14.54
+step 10000000 sec 661.8 size 309 unhit 277 min_unhit 34 best 310 mean_w 16.77
+step 11000000 sec 733.1 size 309 unhit 429 min_unhit 34 best 310 mean_w 14.23
+step 12000000 sec 809.4 size 309 unhit 275 min_unhit 34 best 310 mean_w 16.08
+step 13000000 sec 872.9 size 309 unhit 219 min_unhit 34 best 310 mean_w 19.26
+step 14000000 sec 947.9 size 309 unhit 303 min_unhit 34 best 310 mean_w 11.31
+step 15000000 sec 1011.8 size 309 unhit 253 min_unhit 34 best 310 mean_w 15.12
+step 16000000 sec 1068.5 size 309 unhit 384 min_unhit 34 best 310 mean_w 19.79
+step 17000000 sec 1149.5 size 309 unhit 346 min_unhit 34 best 310 mean_w 18.85
+step 18000000 sec 1235.3 size 309 unhit 70 min_unhit 34 best 310 mean_w 14.67
+done best 310 steps 18000000 sec 1235.3

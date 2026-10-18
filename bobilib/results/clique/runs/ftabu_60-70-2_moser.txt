@@ -1,0 +1,9 @@
+run 0 bad 311 pattern vertices used 3
+run 1 bad 311 pattern vertices used 4
+run 2 bad 311 pattern vertices used 4
+run 3 bad 311 pattern vertices used 4
+run 4 bad 311 pattern vertices used 4
+run 5 bad 311 pattern vertices used 4
+run 6 bad 311 pattern vertices used 4
+run 7 bad 311 pattern vertices used 4
+best 311 0 2 0 2 2 2 1 0 0 0 0 2 2 0 0 1 0 1 1 2 0 0 1 2 2 2 2 1 0 0 2 2 2 1 0 0 1 1 1 2 0 1 1 2 0 1 0 2 0 0 1 2 2 1 1 1 0 2 1 1
