@@ -197,7 +197,7 @@ m − k = 930 edges need not be 3-partite, since Brouwer's threshold is 1182. So
 τ4 from above.
 
 Both directions were tried. None of it closes an instance, so all three stay **open with
-3 ≤ value ≤ 4**. The upper bound 4 is the 4-partition in the solution file (200, 200 and 202
+3 ≤ value ≤ 4**. The upper bound 4 is the 4-partition in the solution file (202, 200 and 202
 inside edges, remainder's maximum clique 4).
 
 **Looking for value 3 (a K4-transversal with at most 309 edges).**

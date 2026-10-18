@@ -1,89 +1,76 @@
 % Map from appendix results to Lean theorems and to the Rust code that relies
 % on them, and the list of what is not formalised.
-\section{Formal proofs: map and scope}\label{app:lean-map}
+\section{Formal verification map (Lean)}\label{app:lean-map}
 
-The Lean~4 project \texttt{bobilib/lean} (with Mathlib) proves the lemmas in
-the tables below. Lean file names are relative to \texttt{bobilib/lean}; Rust
+The project \texttt{bobilib/lean}, written in Lean\cite{moura2021lean}
+(version~4.35.0) with Mathlib\cite{mathlib2020} (tag v4.35.0), proves the lemmas in
+Table~\ref{tab:lean-map}. Lean file names are relative to \texttt{bobilib/lean}; Rust
 names are in \texttt{bobilib/src} (\texttt{Search}, \texttt{RobustTable} and
 \texttt{play\_order} are in \texttt{robust\_ss.rs}; \texttt{Kip} is in
 \texttt{kip.rs}). The Lean statements are about abstract models (items,
 weight classes, graphs); the Rust code is not verified, and the right-hand
-column says which code relies on each statement.
+column of the table says which code relies on each statement.
 
-\begin{center}
-\footnotesize
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{p{1.35in}p{2.65in}p{2.0in}}
-\hline
+{\footnotesize
+\setlength{\tabcolsep}{4pt}\setlength{\LTcapwidth}{\linewidth}
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{1.3in}>{\raggedright\arraybackslash}p{2.75in}>{\raggedright\arraybackslash}p{2.0in}@{}}
+\caption{Results of this supplement with machine-checked proofs: the Lean
+theorems that state them and the Rust code that relies on them.}\label{tab:lean-map}\tabularnewline
+\toprule
 Result & Lean theorems (file) & Rust code that relies on it\tabularnewline
-\hline
-\multicolumn{3}{l}{\emph{Knapsack interdiction (Section~\ref{app:kip})}}\tabularnewline[3pt]
-\raggedright Lemma~\ref{lem:kip-monotone} (monotonicity) &
-\raggedright \texttt{Bobi/Knapsack.lean}: \texttt{follower\_antitone}, \texttt{bestAvoiding\_antitone}, \texttt{bestAvoiding\_eq\_sup\_sdiff}, \texttt{packings\_downward\_closed}, \texttt{K\_eq\_bestAvoiding} &
-\raggedright \texttt{Kip::free\_items}, \texttt{Kip::greedy}, \texttt{Kip::subset\_sum\_classes}; guaranteed copies in \texttt{Search::node}\tabularnewline[3pt]
-\raggedright Lemma~\ref{lem:kip-cheapest} (count formulation) &
-\raggedright \texttt{Bobi/Knapsack.lean}: \texttt{K\_map\_equiv}, \texttt{swap\_block}, \texttt{cheapest\_first} &
-\raggedright \texttt{Kip::subset\_sum\_classes}, \texttt{Kip::x\_from\_deletions}; branching on counts in \texttt{Search::node}\tabularnewline[3pt]
-\raggedright Lemmas~\ref{lem:window-extend}, \ref{lem:window-survivors} (windows, stall test) &
-\raggedright \texttt{Bobi/SubsetSum.lean}: \texttt{window\_extend}, \texttt{window\_extend\_all}, \texttt{fits\_survivors}, \texttt{window\_survivors}, \texttt{SubsetSum.perm}, \texttt{Window.perm} &
-\raggedright \texttt{Search::window\_safe}\tabularnewline[3pt]
-\raggedright Theorem~\ref{thm:online} (online bound) &
-\raggedright \texttt{Bobi/Online.lean}: \texttt{online\_le\_K}, \texttt{online\_le\_K\_any}, \texttt{online\_lower\_bound}; example: \texttt{table1\_online}, \texttt{table1\_block}, \texttt{table1\_opt} &
-\raggedright \texttt{mkip::omega\_root}\tabularnewline[3pt]
-\raggedright Theorem~\ref{thm:tables-sound} (table soundness) &
-\raggedright \texttt{Bobi/RobustTable.lean}: \texttt{H\_sound}, \texttt{H\_sound\_any}, \texttt{take\_sum\_le}, \texttt{counts\_of\_deletion}; \texttt{Bobi/BandTable.lean}: \texttt{G\_sound}, \texttt{G\_sound\_any}, \texttt{G\_one}, \texttt{G\_sound\_one}; \texttt{Bobi/EndTable.lean}: \texttt{GA\_sound}, \texttt{GA\_sound\_any}, \texttt{G\_iff\_GA}, \texttt{H\_iff\_GA}, \texttt{G\_sound\_of\_GA}, \texttt{H\_sound\_of\_GA} &
-\raggedright \texttt{RobustTable::build}, \texttt{RobustTable::build\_band}\tabularnewline
-\hline
-\end{tabular}
-\end{center}
-
-\begin{center}
-\footnotesize
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{p{1.35in}p{2.65in}p{2.0in}}
-\hline
+\midrule
+\endfirsthead
+\multicolumn{3}{@{}l}{\emph{(continued)}}\tabularnewline
+\toprule
 Result & Lean theorems (file) & Rust code that relies on it\tabularnewline
-\hline
-\multicolumn{3}{l}{\emph{Knapsack interdiction, continued}}\tabularnewline[3pt]
-\raggedright Proposition~\ref{prop:play-order} (play orders) &
-\raggedright \texttt{Bobi/EndTable.lean}: \texttt{counts\_perm}, \texttt{remaining\_eq\_flatten}, \texttt{totalCost\_eq\_sum}, \texttt{remaining\_perm}, \texttt{totalCost\_perm}, \texttt{GA\_sound\_perm}, \texttt{GA\_sound\_perm\_any} &
-\raggedright \texttt{play\_order}, \texttt{RobustTable::build\_suffix}, \texttt{Search::node\_table\_threshold}\tabularnewline[3pt]
-\raggedright Corollary~\ref{cor:root-rules} (root-table rules) &
-\raggedright \texttt{Bobi/RobustTable.lean}: \texttt{covers\_sound}; \texttt{Bobi/BandTable.lean}: \texttt{band\_covers\_sound}, \texttt{covers\_sound\_of\_band}; \texttt{Bobi/Threshold.lean}: \texttt{covers\_threshold\_sound}, \texttt{covers\_threshold\_sound\_perm}, \texttt{band\_covers\_threshold\_sound}, \texttt{band\_covers\_threshold\_sound\_perm} &
-\raggedright \texttt{RobustTable::covers}, \texttt{RobustTable::covers\_run}, \texttt{Search::tables\_cover}\tabularnewline[3pt]
-\raggedright Lemma~\ref{lem:antitone} (antitone in the budget) &
-\raggedright \texttt{Bobi/EndTable.lean}: \texttt{GA\_antitone}, \texttt{G\_antitone}, \texttt{H\_antitone}, \texttt{GA\_mono} &
-\raggedright threshold storage in \texttt{RobustTable}; cache entries of \texttt{Search::remember}\tabularnewline[3pt]
-\raggedright Theorem~\ref{thm:thr} (threshold form) &
-\raggedright \texttt{Bobi/Threshold.lean}: \texttt{thr} (definition), \texttt{thr\_iff}, \texttt{GA\_iff\_thr}, \texttt{thr\_bounds}, \texttt{thr\_eq\_neg\_one\_iff}, \texttt{thr\_greatest}, \texttt{G\_iff\_thr}, \texttt{H\_iff\_thr}, \texttt{le\_minOver}, \texttt{le\_maxOver} &
-\raggedright \texttt{RobustTable::step}, \texttt{RobustTable::base}, \texttt{RobustTable::threshold}, \texttt{RobustTable::contains}, \texttt{RobustTable::step\_range}\tabularnewline[3pt]
-\raggedright Theorem~\ref{thm:node-rule} (per-node rule) &
-\raggedright \texttt{Bobi/EndTable.lean}: \texttt{nodeEnd} (definition), \texttt{node\_rule}, \texttt{node\_table\_sound}, \texttt{node\_table\_sound\_perm}, \texttt{node\_table\_sound\_any}; \texttt{Bobi/Threshold.lean}: \texttt{node\_table\_threshold\_sound}, \texttt{node\_table\_threshold\_sound\_counts} &
-\raggedright \texttt{Search::node\_table\_threshold}, the prune and cache entry in \texttt{Search::node}, \texttt{Search::remember}\tabularnewline[3pt]
-\raggedright Remark after Theorem~\ref{thm:node-rule} (strength) &
-\raggedright \texttt{Bobi/EndTable.lean}: \texttt{node\_table\_of\_H} &
-\raggedright none (strength, not soundness)\tabularnewline
-\hline
-\end{tabular}
-\end{center}
-
-\begin{center}
-\footnotesize
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{p{1.35in}p{2.65in}p{2.0in}}
-\hline
-Result & Lean theorems (file) & Rust code that relies on it\tabularnewline
-\hline
-\multicolumn{3}{l}{\emph{Edge clique interdiction (Section~\ref{app:clique})}}\tabularnewline[3pt]
-\raggedright Theorem~\ref{thm:mantel} (Mantel, deletion form) &
-\raggedright \texttt{Bobi/Clique.lean}: \texttt{mantel}, \texttt{mantel'}, \texttt{triangle\_survives}, \texttt{mantel\_40}, \texttt{mantel\_50}, \texttt{mantel\_60}, \texttt{clique40}, \texttt{clique50}, \texttt{clique60} &
-\raggedright none; the arithmetic is also checked by \texttt{scripts/clique/lb.py}\tabularnewline[3pt]
-\raggedright Proposition~\ref{prop:clique-partition} (partition bound) &
-\raggedright \texttt{Bobi/Clique.lean}: \texttt{cliqueFree\_of\_partition} &
-\raggedright none; the certificates are written by \texttt{scripts/clique/ub.py}\tabularnewline
-\hline
-\end{tabular}
-\end{center}
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\multicolumn{3}{@{}l}{\emph{Knapsack interdiction (Section~\ref{app:kip})}}\tabularnewline[3pt]
+Lemma~\ref{lem:kip-monotone} (monotonicity) &
+\texttt{Bobi/Knapsack.lean}: \texttt{follower\_antitone}, \texttt{bestAvoiding\_antitone}, \texttt{bestAvoiding\_eq\_sup\_sdiff}, \texttt{packings\_downward\_closed}, \texttt{K\_eq\_bestAvoiding} &
+\texttt{Kip::free\_items}, \texttt{Kip::greedy}, \texttt{Kip::subset\_sum\_classes}; guaranteed copies in \texttt{Search::node}\tabularnewline[3pt]
+Lemma~\ref{lem:kip-cheapest} (count formulation) &
+\texttt{Bobi/Knapsack.lean}: \texttt{K\_map\_equiv}, \texttt{swap\_block}, \texttt{cheapest\_first} &
+\texttt{Kip::subset\_sum\_classes}, \texttt{Kip::x\_from\_deletions}; branching on counts in \texttt{Search::node}\tabularnewline[3pt]
+Lemmas~\ref{lem:window-extend}, \ref{lem:window-survivors} (windows, stall test) &
+\texttt{Bobi/SubsetSum.lean}: \texttt{window\_extend}, \texttt{window\_extend\_all}, \texttt{fits\_survivors}, \texttt{window\_survivors}, \texttt{SubsetSum.perm}, \texttt{Window.perm} &
+\texttt{Search::window\_safe}\tabularnewline[3pt]
+Theorem~\ref{thm:online} (online bound) &
+\texttt{Bobi/Online.lean}: \texttt{online\_le\_K}, \texttt{online\_le\_K\_any}, \texttt{online\_lower\_bound}; example: \texttt{table1\_online}, \texttt{table1\_block}, \texttt{table1\_opt} &
+\texttt{mkip::omega\_root}\tabularnewline[3pt]
+Theorem~\ref{thm:tables-sound} (table soundness) &
+\texttt{Bobi/RobustTable.lean}: \texttt{H\_sound}, \texttt{H\_sound\_any}, \texttt{take\_sum\_le}, \texttt{counts\_of\_deletion}; \texttt{Bobi/BandTable.lean}: \texttt{G\_sound}, \texttt{G\_sound\_any}, \texttt{G\_one}, \texttt{G\_sound\_one}; \texttt{Bobi/EndTable.lean}: \texttt{GA\_sound}, \texttt{GA\_sound\_any}, \texttt{G\_iff\_GA}, \texttt{H\_iff\_GA}, \texttt{G\_sound\_of\_GA}, \texttt{H\_sound\_of\_GA} &
+\texttt{RobustTable::build}, \texttt{RobustTable::build\_band}\tabularnewline[3pt]
+Proposition~\ref{prop:play-order} (play orders) &
+\texttt{Bobi/EndTable.lean}: \texttt{counts\_perm}, \texttt{remaining\_eq\_flatten}, \texttt{totalCost\_eq\_sum}, \texttt{remaining\_perm}, \texttt{totalCost\_perm}, \texttt{GA\_sound\_perm}, \texttt{GA\_sound\_perm\_any} &
+\texttt{play\_order}, \texttt{RobustTable::build\_suffix}, \texttt{Search::node\_table\_threshold}\tabularnewline[3pt]
+Corollary~\ref{cor:root-rules} (root-table rules) &
+\texttt{Bobi/RobustTable.lean}: \texttt{covers\_sound}; \texttt{Bobi/BandTable.lean}: \texttt{band\_covers\_sound}, \texttt{covers\_sound\_of\_band}; \texttt{Bobi/Threshold.lean}: \texttt{covers\_threshold\_sound}, \texttt{covers\_threshold\_sound\_perm}, \texttt{band\_covers\_threshold\_sound}, \texttt{band\_covers\_threshold\_sound\_perm} &
+\texttt{RobustTable::covers}, \texttt{RobustTable::covers\_run}, \texttt{Search::tables\_cover}\tabularnewline[3pt]
+Lemma~\ref{lem:antitone} (antitone in the budget) &
+\texttt{Bobi/EndTable.lean}: \texttt{GA\_antitone}, \texttt{G\_antitone}, \texttt{H\_antitone}, \texttt{GA\_mono} &
+threshold storage in \texttt{RobustTable}; cache entries of \texttt{Search::remember}\tabularnewline[3pt]
+Theorem~\ref{thm:thr} (threshold form) &
+\texttt{Bobi/Threshold.lean}: \texttt{thr} (definition), \texttt{thr\_iff}, \texttt{GA\_iff\_thr}, \texttt{thr\_bounds}, \texttt{thr\_eq\_neg\_one\_iff}, \texttt{thr\_greatest}, \texttt{G\_iff\_thr}, \texttt{H\_iff\_thr}, \texttt{le\_minOver}, \texttt{le\_maxOver} &
+\texttt{RobustTable::step}, \texttt{RobustTable::base}, \texttt{RobustTable::threshold}, \texttt{RobustTable::contains}, \texttt{RobustTable::step\_range}\tabularnewline[3pt]
+Theorem~\ref{thm:node-rule} (per-node rule) &
+\texttt{Bobi/EndTable.lean}: \texttt{nodeEnd} (definition), \texttt{node\_rule}, \texttt{node\_table\_sound}, \texttt{node\_table\_sound\_perm}, \texttt{node\_table\_sound\_any}; \texttt{Bobi/Threshold.lean}: \texttt{node\_table\_threshold\_sound}, \texttt{node\_table\_threshold\_sound\_counts} &
+\texttt{Search::node\_table\_threshold}, the prune and cache entry in \texttt{Search::node}, \texttt{Search::remember}\tabularnewline[3pt]
+Remark after Theorem~\ref{thm:node-rule} (strength) &
+\texttt{Bobi/EndTable.lean}: \texttt{node\_table\_of\_H} &
+none (strength, not soundness)\tabularnewline[3pt]
+\addlinespace[4pt]
+\multicolumn{3}{@{}l}{\emph{Edge clique interdiction (Section~\ref{app:clique})}}\tabularnewline[3pt]
+Theorem~\ref{thm:mantel} (Mantel, deletion form) &
+\texttt{Bobi/Clique.lean}: \texttt{mantel}, \texttt{mantel'}, \texttt{triangle\_survives}, \texttt{mantel\_40}, \texttt{mantel\_50}, \texttt{mantel\_60}, \texttt{clique40}, \texttt{clique50}, \texttt{clique60} &
+none; the arithmetic is also checked by \texttt{scripts/clique/lb.py}\tabularnewline[3pt]
+Proposition~\ref{prop:clique-partition} (partition bound) &
+\texttt{Bobi/Clique.lean}: \texttt{cliqueFree\_of\_partition} &
+none; the certificates are written by \texttt{scripts/clique/ub.py}\tabularnewline[3pt]
+\end{longtable}
+}
 
 All names in the middle column are in namespace \texttt{Bobi}. There is no
 \texttt{sorry}; \texttt{lean/Check.lean} prints the axioms of 72 main

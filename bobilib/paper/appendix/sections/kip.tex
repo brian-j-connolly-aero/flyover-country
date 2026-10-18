@@ -1,6 +1,6 @@
 % Knapsack interdiction: monotonicity, count formulation, pruning rules,
 % online relaxation, robust tables, threshold form, per-node rule, exactness.
-\section{Knapsack interdiction: the exact subset-sum search}\label{app:kip}
+\section{Knapsack interdiction proofs}\label{app:kip}
 
 This section proves the rules behind the exact search for subset-sum
 knapsack interdiction (KIP with $p=w$, Section~\ref{app:notation}). The search
@@ -15,7 +15,7 @@ optimality (Corollary~\ref{cor:kip-loop}).
 \begin{lemma}[Monotonicity of interdiction]\label{lem:kip-monotone}
 Let $\mathcal{F}$ be any family of subsets of $N$ (the follower's feasible
 sets) and $\Phi_{\mathcal{F}}(X)=\max\{p(Y): Y\in\mathcal{F},\ Y\cap X=\emptyset\}$
-with $p\ge 0$. If $X\subseteq X'$ then $\Phi_{\mathcal{F}}(X')\le\Phi_{\mathcal{F}}(X)$. If
+with $p\ge 0$ (a maximum over no set is $0$). If $X\subseteq X'$ then $\Phi_{\mathcal{F}}(X')\le\Phi_{\mathcal{F}}(X)$. If
 $\mathcal{F}$ is closed under taking subsets, then
 $\Phi_{\mathcal{F}}(X)=\max\{p(Y\setminus X): Y\in\mathcal{F}\}$. The knapsack
 follower $\mathcal{F}=\{Y: \sum_{j\in Y}W_{\cdot j}\le c\}$ is closed under taking
@@ -113,8 +113,9 @@ $\mathrm{OPT}<\ell$.
 \noindent Not formalised as a whole; its two ingredients are
 Lemmas~\ref{lem:kip-monotone} and~\ref{lem:kip-cheapest}.
 
-If $\lceil\ell/g\rceil>hi$ then $\Phi\le c<\ell$ for every leader set, so the
-question is trivial. From now on we work with a class instance, a band
+If $\lceil\ell/g\rceil>hi$, the question is trivial: the leader set $F=X(0)$
+costs nothing and, by part~(1), $\Phi(F)\le g\cdot hi<\ell$, so
+$\mathrm{OPT}<\ell$ and the deletion $r=0$ is a witness. From now on we work with a class instance, a band
 $[lo,hi]$ with $lo\le hi$ and a budget~$\beta$. All results below hold for
 arbitrary nonnegative costs in the count formulation; where ascending costs
 are needed (deletions of arbitrary copies) we say so.
@@ -185,7 +186,8 @@ $\beta'$. A \emph{completion} is a count vector for the undecided classes of
 cost at most~$\beta'$.
 
 \begin{proposition}[Window rule with stall test]\label{prop:window-rule}
-Order the undecided classes by ascending value, $u_1,\dots,u_q$, and let
+Order the undecided classes by ascending value, $u_1,\dots,u_q$ (the proof
+works for any order; ascending value is the code's choice), and let
 $M_i=\sum_{i'<i}n_{u_{i'}}v_{u_{i'}}$ be the mass of the classes before $u_i$.
 Let $\Delta$ be the largest mass that a completion deletes and $\sigma_0$ the
 total undecided mass minus $\Delta$. Let $[a,b]\subseteq S$ be a run of
@@ -216,10 +218,8 @@ computed exactly by a bounded-knapsack recursion over the undecided classes.\par
 
 \subsection{The online relaxation}
 
-The online relaxation of Weninger and Fukasawa (N.~Weninger and R.~Fukasawa,
-\emph{A fast combinatorial algorithm for the bilevel knapsack problem with
-interdiction constraints}, Math.\ Program.\ 210 (2025) 847--879; Section~3,
-Theorem~2 of the preprint) applies to general KIP. Fix a list
+The online relaxation of Weninger and Fukasawa\cite{weninger2023fast,weninger2025fast}
+(Theorem~2 in Section~3 of their preprint) applies to general KIP. Fix a list
 $o=(j_1,\dots,j_L)$ of distinct items, any subset of $N$ in any order. The
 \emph{online game} on $o$ has $2L$ rounds: at item $j_h$ the leader first
 decides whether to block it (allowed if its cost fits the remaining budget);
@@ -267,7 +267,7 @@ Finally $K(o\setminus X)\le K(N\setminus X)=\Phi(X)$ because more items can only
 \begin{remark}
 The bound need not be tight. In Weninger and Fukasawa's Table~1 (profits
 $(1,1,2)$, leader costs $(1,1,2)$, follower weights $(1,1,3)$, $\beta=2$, $c=3$)
-the online game is worth $1$ and the bilevel optimum is $2$ (Lean:
+the online game in the play order $(1,2,3)$ is worth $1$ and the bilevel optimum is $2$ (Lean:
 \texttt{table1\_online}, \texttt{table1\_opt}, \texttt{table1\_block}, checked by
 evaluation).
 \end{remark}
@@ -533,12 +533,15 @@ $\beta^{*}=\mathrm{thr}(\pi(Q),hi)$.
 (1) The decided survivors are present in every completion. (2) Costs are
 nonnegative, so a completion within $\beta'$ has $P_i(r_i)\le\beta'$ and, $P_i$
 being nondecreasing, $r_i\le d_i$; at least $n_i-d_i$ copies of $v_i$ survive,
-and $\mathrm{SS}$ grows with the multiset (Lemma~\ref{lem:kip-monotone}). (3)--(5)
+and a subset sum of a sub-multiset is a subset sum of the multiset. (3)--(5)
 are Proposition~\ref{prop:window-rule}, Corollary~\ref{cor:root-rules} and
 Theorem~\ref{thm:node-rule}. (6) is Lemma~\ref{lem:node-state} together with
 Theorem~\ref{thm:node-rule}, which holds at every budget up to the stored
 threshold.
 \end{proof}
+\noindent Not formalised as a whole: rules~(3)--(5) are the results cited in
+the proof (rule~(3) only in part, see Proposition~\ref{prop:window-rule}), and
+rules~(1), (2) and~(6) and Lemma~\ref{lem:node-state} are argued here.
 
 \begin{theorem}[Exactness]\label{thm:kip-exact}
 The search visits the root; at a node it returns ``safe'' if a rule of
@@ -574,10 +577,12 @@ proof of optimality and an optimal leader set.
 \begin{proof}
 By Proposition~\ref{prop:kip-reduction}(3) and Theorem~\ref{thm:kip-exact},
 ``safe'' proves $\mathrm{OPT}\ge u_h=\Phi(X_h)\ge\mathrm{OPT}$, and ``blocking''
-yields $X(r)$ within budget with $\Phi(X(r))<u_h$. The values $u_h$ are
+yields $X(r)$ within budget with $\Phi(X(r))<u_h$. (If
+$\lceil u_h/g\rceil>hi$, no search is needed: $r=0$ is blocking, as noted
+after Proposition~\ref{prop:kip-reduction}.) The values $u_h$ are
 nonnegative integers that strictly decrease.
 \end{proof}
 
-For each of the 16 instances that were open in the literature the loop ended
+For each of the \NumNewKip{} instances that were open in the literature the loop ended
 with ``safe'' at BOBILib's own value, so BOBILib's point was already optimal
 and the proof of optimality is new.

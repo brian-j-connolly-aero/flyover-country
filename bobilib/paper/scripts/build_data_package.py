@@ -66,14 +66,15 @@ LIT_METHOD = {
 BOBILIB_KEY = "ThuraufEtAl2026"
 REFERENCES = [
     ("ThuraufEtAl2026", "J. Thürauf, T. Kleinert, I. Ljubić, T. Ralphs and M. Schmidt, BOBILib: Bilevel "
-     "Optimization (Benchmark) Instance Library, Mathematical Programming Computation (2026); "
-     "https://bobilib.org"),
+     "Optimization (Benchmark) Instance Library, Mathematical Programming Computation 18(3) (2026) "
+     "819-876, doi:10.1007/s12532-025-00294-y; https://bobilib.org"),
     ("BOBILibEarlierRelease", "an earlier release of the BOBILib metadata, which listed the instance as optimal"),
     ("WeningerFukasawa2025", "N. Weninger and R. Fukasawa, A fast combinatorial algorithm for the bilevel "
      "knapsack problem with interdiction constraints, Mathematical Programming 210 (2025) 847-879, "
      "doi:10.1007/s10107-024-02133-9"),
-    ("LozanoBergmanCire2026", "L. Lozano, D. Bergman and A. A. Cire, Network relaxations for discrete bilevel "
-     "optimization under linear interactions, Operations Research (2026), arXiv:2407.18193"),
+    ("LozanoBergmanCire2026", "L. Lozano, D. Bergman and A. A. Cire, Network relaxations for combinatorial bilevel "
+     "optimization under linear interactions, Operations Research (2026), Articles in Advance, "
+     "doi:10.1287/opre.2025.2457 (arXiv:2407.18193)"),
     ("FischettiEtAl2019", "M. Fischetti, I. Ljubić, M. Monaci and M. Sinnl, Interdiction games and "
      "monotonicity, with application to knapsack problems, INFORMS Journal on Computing 31(2) (2019) "
      "390-410, doi:10.1287/ijoc.2018.0831"),
@@ -81,7 +82,8 @@ REFERENCES = [
      "for mixed-integer bilevel linear programs, Operations Research 65(6) (2017) 1615-1637, "
      "doi:10.1287/opre.2017.1650"),
     ("VasquezLozanoVanHoeve2025", "S. Vásquez, L. Lozano and W.-J. van Hoeve, A single-level reformulation of "
-     "binary bilevel programs using decision diagrams (2025), preprint"),
+     "binary bilevel programs using decision diagrams, Mathematical Programming (2025), online first, "
+     "doi:10.1007/s10107-025-02294-1"),
 ]
 
 # Hand-written notes that come from the text of REPORT.md or a results README

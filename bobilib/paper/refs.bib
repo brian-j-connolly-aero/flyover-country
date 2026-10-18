@@ -1,0 +1,736 @@
+% refs.bib -- bibliography for the BOBILib paper (main.tex) and its appendix.
+%
+% Every entry was checked against the publisher's metadata (Crossref record for
+% the DOI, or the publisher / repository landing page), and against the full text
+% or reference lists kept for this project. One line per key in refs_notes.md says
+% what the entry supports and how it was checked.
+%
+% Conventions
+%   * ASCII only; accents as LaTeX commands, so the file works with any inputenc.
+%   * doi = bare DOI (no "https://doi.org/" prefix); url only where there is no
+%     DOI, or for software and web resources.
+%   * Proper nouns and acronyms in titles are braced so that styles which
+%     lowercase titles (unsrt does for articles) keep them.
+%   * Plain unsrt prints neither doi nor url. Use a style that does (for example
+%     unsrtnat, or a custom SPIE-format style) if the reference list must show them.
+%   * Entries that could not be verified would carry note = {unverified}; there are
+%     none at present (see refs_notes.md for entries checked only against secondary
+%     sources).
+
+% ---------------------------------------------------------------------------
+% The library
+% ---------------------------------------------------------------------------
+
+@article{thurauf2026bobilib,
+  author    = {Th{\"u}rauf, Johannes and Kleinert, Thomas and Ljubi{\'c}, Ivana and Ralphs, Ted K. and Schmidt, Martin},
+  title     = {{BOBILib}: {Bilevel Optimization (Benchmark) Instance Library}},
+  journal   = {Mathematical Programming Computation},
+  volume    = {18},
+  number    = {3},
+  pages     = {819--876},
+  year      = {2026},
+  doi       = {10.1007/s12532-025-00294-y}
+}
+
+@misc{bobilib_website,
+  author       = {Th{\"u}rauf, Johannes and Kleinert, Thomas and Ljubi{\'c}, Ivana and Ralphs, Ted K. and Schmidt, Martin},
+  title        = {{BOBILib}: {Bilevel Optimization (Benchmark) Instance Library}},
+  howpublished = {Website with instances, solution files, statuses and feasibility checker},
+  year         = {2026},
+  url          = {https://bobilib.org},
+  note         = {Accessed 18 October 2026}
+}
+
+% ---------------------------------------------------------------------------
+% General-purpose bilevel solvers used for BOBILib's statuses
+% ---------------------------------------------------------------------------
+
+@article{tahernejad2020mibs,
+  author    = {Tahernejad, Sahar and Ralphs, Ted K. and DeNegre, Scott T.},
+  title     = {A branch-and-cut algorithm for mixed integer bilevel linear optimization problems and its implementation},
+  journal   = {Mathematical Programming Computation},
+  volume    = {12},
+  number    = {4},
+  pages     = {529--568},
+  year      = {2020},
+  doi       = {10.1007/s12532-020-00183-6}
+}
+
+@misc{mibs_software,
+  author       = {DeNegre, Scott T. and Ralphs, Ted K. and Tahernejad, Sahar and Xie, Yu},
+  title        = {{MibS}},
+  howpublished = {Open-source solver for mixed integer bilevel linear optimization, COIN-OR; BOBILib's statuses use version 1.2.2},
+  year         = {2024},
+  url          = {https://github.com/coin-or/MibS}
+}
+
+@inproceedings{denegre2009branch,
+  author    = {DeNegre, Scott T. and Ralphs, Ted K.},
+  title     = {A branch-and-cut algorithm for integer bilevel linear programs},
+  booktitle = {Operations Research and Cyber-Infrastructure},
+  editor    = {Chinneck, John W. and Kristjansson, Bjarni and Saltzman, Matthew J.},
+  series    = {Operations Research/Computer Science Interfaces},
+  volume    = {47},
+  pages     = {65--78},
+  publisher = {Springer},
+  address   = {Boston, MA},
+  year      = {2009},
+  doi       = {10.1007/978-0-387-88843-9_4}
+}
+
+@phdthesis{denegre2011thesis,
+  author    = {DeNegre, Scott},
+  title     = {Interdiction and Discrete Bilevel Linear Programming},
+  school    = {Lehigh University},
+  address   = {Bethlehem, PA},
+  year      = {2011},
+  url       = {https://coral.ise.lehigh.edu/~ted/files/papers/ScottDeNegreDissertation11.pdf}
+}
+
+@article{fischetti2017new,
+  author    = {Fischetti, Matteo and Ljubi{\'c}, Ivana and Monaci, Michele and Sinnl, Markus},
+  title     = {A new general-purpose algorithm for mixed-integer bilevel linear programs},
+  journal   = {Operations Research},
+  volume    = {65},
+  number    = {6},
+  pages     = {1615--1637},
+  year      = {2017},
+  doi       = {10.1287/opre.2017.1650}
+}
+
+@misc{mixpp_software,
+  author       = {Fischetti, Matteo and Ljubi{\'c}, Ivana and Monaci, Michele and Sinnl, Markus},
+  title        = {Bilevel Integer Programming and Interdiction Problems},
+  howpublished = {Web page with the intersection-cut solver for mixed-integer bilevel linear problems (MIX++ setting) and instance sets},
+  year         = {2024},
+  url          = {https://msinnl.github.io/pages/bilevel.html},
+  note         = {Accessed 18 October 2026}
+}
+
+@inproceedings{fischetti2016intersection,
+  author    = {Fischetti, Matteo and Ljubi{\'c}, Ivana and Monaci, Michele and Sinnl, Markus},
+  title     = {Intersection cuts for bilevel optimization},
+  booktitle = {Integer Programming and Combinatorial Optimization (IPCO 2016)},
+  editor    = {Louveaux, Quentin and Skutella, Martin},
+  series    = {Lecture Notes in Computer Science},
+  volume    = {9682},
+  pages     = {77--88},
+  publisher = {Springer},
+  address   = {Cham},
+  year      = {2016},
+  doi       = {10.1007/978-3-319-33461-5_7}
+}
+
+@article{fischetti2018intersection,
+  author    = {Fischetti, Matteo and Ljubi{\'c}, Ivana and Monaci, Michele and Sinnl, Markus},
+  title     = {On the use of intersection cuts for bilevel optimization},
+  journal   = {Mathematical Programming},
+  volume    = {172},
+  number    = {1--2},
+  pages     = {77--103},
+  year      = {2018},
+  doi       = {10.1007/s10107-017-1189-5}
+}
+
+% ---------------------------------------------------------------------------
+% Interdiction: knapsack, multidimensional knapsack, generalized
+% ---------------------------------------------------------------------------
+
+@article{fischetti2019interdiction,
+  author    = {Fischetti, Matteo and Ljubi{\'c}, Ivana and Monaci, Michele and Sinnl, Markus},
+  title     = {Interdiction games and monotonicity, with application to knapsack problems},
+  journal   = {INFORMS Journal on Computing},
+  volume    = {31},
+  number    = {2},
+  pages     = {390--410},
+  year      = {2019},
+  doi       = {10.1287/ijoc.2018.0831}
+}
+
+@article{fischetti2018dynamic,
+  author    = {Fischetti, Matteo and Monaci, Michele and Sinnl, Markus},
+  title     = {A dynamic reformulation heuristic for {Generalized Interdiction Problems}},
+  journal   = {European Journal of Operational Research},
+  volume    = {267},
+  number    = {1},
+  pages     = {40--51},
+  year      = {2018},
+  doi       = {10.1016/j.ejor.2017.11.043}
+}
+
+@article{caprara2014complexity,
+  author    = {Caprara, Alberto and Carvalho, Margarida and Lodi, Andrea and Woeginger, Gerhard J.},
+  title     = {A study on the computational complexity of the bilevel knapsack problem},
+  journal   = {SIAM Journal on Optimization},
+  volume    = {24},
+  number    = {2},
+  pages     = {823--838},
+  year      = {2014},
+  doi       = {10.1137/130906593}
+}
+
+@article{caprara2016bilevel,
+  author    = {Caprara, Alberto and Carvalho, Margarida and Lodi, Andrea and Woeginger, Gerhard J.},
+  title     = {Bilevel knapsack with interdiction constraints},
+  journal   = {INFORMS Journal on Computing},
+  volume    = {28},
+  number    = {2},
+  pages     = {319--333},
+  year      = {2016},
+  doi       = {10.1287/ijoc.2015.0676}
+}
+
+@article{dellacroce2020exact,
+  author    = {Della Croce, Federico and Scatamacchia, Rosario},
+  title     = {An exact approach for the bilevel knapsack problem with interdiction constraints and extensions},
+  journal   = {Mathematical Programming},
+  volume    = {183},
+  number    = {1--2},
+  pages     = {249--281},
+  year      = {2020},
+  doi       = {10.1007/s10107-020-01482-5}
+}
+
+@inproceedings{weninger2023fast,
+  author    = {Weninger, Noah and Fukasawa, Ricardo},
+  title     = {A fast combinatorial algorithm for the bilevel knapsack problem with interdiction constraints},
+  booktitle = {Integer Programming and Combinatorial Optimization (IPCO 2023)},
+  editor    = {Del Pia, Alberto and Kaibel, Volker},
+  series    = {Lecture Notes in Computer Science},
+  volume    = {13904},
+  pages     = {438--452},
+  publisher = {Springer},
+  address   = {Cham},
+  year      = {2023},
+  doi       = {10.1007/978-3-031-32726-1_31}
+}
+
+@article{weninger2025fast,
+  author    = {Weninger, Noah and Fukasawa, Ricardo},
+  title     = {A fast combinatorial algorithm for the bilevel knapsack problem with interdiction constraints},
+  journal   = {Mathematical Programming},
+  volume    = {210},
+  number    = {1--2},
+  pages     = {847--879},
+  year      = {2025},
+  doi       = {10.1007/s10107-024-02133-9}
+}
+
+@misc{weninger_bkpsolver,
+  author       = {Weninger, Noah and Fukasawa, Ricardo},
+  title        = {bkpsolver: code accompanying ``{A} fast combinatorial algorithm for the bilevel knapsack problem with interdiction constraints''},
+  howpublished = {Source code, instances and answer files (MIT license)},
+  year         = {2026},
+  url          = {https://github.com/nwoeanhinnogaehr/bkpsolver}
+}
+
+@article{lozano2026network,
+  author    = {Lozano, Leonardo and Bergman, David and Cire, Andre A.},
+  title     = {Network relaxations for combinatorial bilevel optimization under linear interactions},
+  journal   = {Operations Research},
+  year      = {2026},
+  doi       = {10.1287/opre.2025.2457},
+  note      = {Articles in Advance, published online 26 August 2026}
+}
+
+@misc{lozano_dbo_repo,
+  author       = {Lozano, Leonardo and Bergman, David and Cire, Andre A.},
+  title        = {{DiscreteBilevelOptimization}: code, computational results and {BOBILib} solution files for ``Network relaxations for combinatorial bilevel optimization under linear interactions''},
+  howpublished = {Source code and data},
+  year         = {2026},
+  url          = {https://github.com/andrecire/DiscreteBilevelOptimization}
+}
+
+@article{vasquez2025single,
+  author    = {V{\'a}squez, Sebasti{\'a}n and Lozano, Leonardo and van Hoeve, Willem-Jan},
+  title     = {A single-level reformulation of binary bilevel programs using decision diagrams},
+  journal   = {Mathematical Programming},
+  year      = {2025},
+  doi       = {10.1007/s10107-025-02294-1},
+  note      = {Published online 16 December 2025}
+}
+
+@article{martello1999dynamic,
+  author    = {Martello, Silvano and Pisinger, David and Toth, Paolo},
+  title     = {Dynamic programming and strong bounds for the 0-1 knapsack problem},
+  journal   = {Management Science},
+  volume    = {45},
+  number    = {3},
+  pages     = {414--424},
+  year      = {1999},
+  doi       = {10.1287/mnsc.45.3.414}
+}
+
+@article{dantzig1957discrete,
+  author    = {Dantzig, George B.},
+  title     = {Discrete-variable extremum problems},
+  journal   = {Operations Research},
+  volume    = {5},
+  number    = {2},
+  pages     = {266--288},
+  year      = {1957},
+  doi       = {10.1287/opre.5.2.266}
+}
+
+@book{martello1990knapsack,
+  author    = {Martello, Silvano and Toth, Paolo},
+  title     = {Knapsack Problems: Algorithms and Computer Implementations},
+  publisher = {John Wiley \& Sons},
+  address   = {Chichester},
+  series    = {Wiley-Interscience Series in Discrete Mathematics and Optimization},
+  year      = {1990},
+  isbn      = {0-471-92420-2}
+}
+
+@article{chu1998genetic,
+  author    = {Chu, P. C. and Beasley, J. E.},
+  title     = {A genetic algorithm for the multidimensional knapsack problem},
+  journal   = {Journal of Heuristics},
+  volume    = {4},
+  number    = {1},
+  pages     = {63--86},
+  year      = {1998},
+  doi       = {10.1023/A:1009642405419}
+}
+
+@article{beasley1990orlibrary,
+  author    = {Beasley, J. E.},
+  title     = {{OR-Library}: distributing test problems by electronic mail},
+  journal   = {Journal of the Operational Research Society},
+  volume    = {41},
+  number    = {11},
+  pages     = {1069--1072},
+  year      = {1990},
+  doi       = {10.1057/jors.1990.166}
+}
+
+@inproceedings{khuri1994zero,
+  author    = {Khuri, Sami and B{\"a}ck, Thomas and Heitk{\"o}tter, J{\"o}rg},
+  title     = {The zero/one multiple knapsack problem and genetic algorithms},
+  booktitle = {Proceedings of the 1994 ACM Symposium on Applied Computing (SAC '94)},
+  pages     = {188--193},
+  publisher = {ACM},
+  address   = {New York, NY},
+  year      = {1994},
+  doi       = {10.1145/326619.326694}
+}
+
+% ---------------------------------------------------------------------------
+% Interdiction: clique and network
+% ---------------------------------------------------------------------------
+
+@article{tang2016class,
+  author    = {Tang, Yen and Richard, Jean-Philippe P. and Smith, J. Cole},
+  title     = {A class of algorithms for mixed-integer bilevel min-max optimization},
+  journal   = {Journal of Global Optimization},
+  volume    = {66},
+  number    = {2},
+  pages     = {225--262},
+  year      = {2016},
+  doi       = {10.1007/s10898-015-0274-7}
+}
+
+@article{furini2019maximum,
+  author    = {Furini, Fabio and Ljubi{\'c}, Ivana and Martin, S{\'e}bastien and San Segundo, Pablo},
+  title     = {The maximum clique interdiction problem},
+  journal   = {European Journal of Operational Research},
+  volume    = {277},
+  number    = {1},
+  pages     = {112--127},
+  year      = {2019},
+  doi       = {10.1016/j.ejor.2019.02.028}
+}
+
+@article{furini2021branch,
+  author    = {Furini, Fabio and Ljubi{\'c}, Ivana and San Segundo, Pablo and Zhao, Yanlu},
+  title     = {A branch-and-cut algorithm for the {Edge Interdiction Clique Problem}},
+  journal   = {European Journal of Operational Research},
+  volume    = {294},
+  number    = {1},
+  pages     = {54--69},
+  year      = {2021},
+  doi       = {10.1016/j.ejor.2021.01.030}
+}
+
+@article{baggio2021multilevel,
+  author    = {Baggio, Andrea and Carvalho, Margarida and Lodi, Andrea and Tramontani, Andrea},
+  title     = {Multilevel approaches for the critical node problem},
+  journal   = {Operations Research},
+  volume    = {69},
+  number    = {2},
+  pages     = {486--508},
+  year      = {2021},
+  doi       = {10.1287/opre.2020.2014}
+}
+
+@article{smith2020survey,
+  author    = {Smith, J. Cole and Song, Yongjia},
+  title     = {A survey of network interdiction models and algorithms},
+  journal   = {European Journal of Operational Research},
+  volume    = {283},
+  number    = {3},
+  pages     = {797--811},
+  year      = {2020},
+  doi       = {10.1016/j.ejor.2019.06.024}
+}
+
+@article{brown2006defending,
+  author    = {Brown, Gerald and Carlyle, Matthew and Salmer{\'o}n, Javier and Wood, Kevin},
+  title     = {Defending critical infrastructure},
+  journal   = {Interfaces},
+  volume    = {36},
+  number    = {6},
+  pages     = {530--544},
+  year      = {2006},
+  doi       = {10.1287/inte.1060.0252}
+}
+
+% ---------------------------------------------------------------------------
+% Bilevel optimization: background, surveys, other methods
+% ---------------------------------------------------------------------------
+
+@book{stackelberg1934marktform,
+  author    = {von Stackelberg, Heinrich},
+  title     = {Marktform und Gleichgewicht},
+  publisher = {Julius Springer},
+  address   = {Vienna},
+  year      = {1934},
+  note      = {English translation by D.~Bazin et al.: \emph{Market Structure and Equilibrium}, Springer, Berlin, 2011, doi:10.1007/978-3-642-12586-7}
+}
+
+@article{moore1990mixed,
+  author    = {Moore, James T. and Bard, Jonathan F.},
+  title     = {The mixed integer linear bilevel programming problem},
+  journal   = {Operations Research},
+  volume    = {38},
+  number    = {5},
+  pages     = {911--921},
+  year      = {1990},
+  doi       = {10.1287/opre.38.5.911}
+}
+
+@article{jeroslow1985polynomial,
+  author    = {Jeroslow, Robert G.},
+  title     = {The polynomial hierarchy and a simple model for competitive analysis},
+  journal   = {Mathematical Programming},
+  volume    = {32},
+  number    = {2},
+  pages     = {146--164},
+  year      = {1985},
+  doi       = {10.1007/BF01586088}
+}
+
+@book{dempe2002foundations,
+  author    = {Dempe, Stephan},
+  title     = {Foundations of Bilevel Programming},
+  series    = {Nonconvex Optimization and Its Applications},
+  publisher = {Kluwer Academic Publishers},
+  year      = {2002},
+  doi       = {10.1007/b101970}
+}
+
+@article{kleinert2021survey,
+  author    = {Kleinert, Thomas and Labb{\'e}, Martine and Ljubi{\'c}, Ivana and Schmidt, Martin},
+  title     = {A survey on mixed-integer programming techniques in bilevel optimization},
+  journal   = {EURO Journal on Computational Optimization},
+  volume    = {9},
+  pages     = {100007},
+  year      = {2021},
+  doi       = {10.1016/j.ejco.2021.100007}
+}
+
+@article{kleinert2021computing,
+  author    = {Kleinert, Thomas and Schmidt, Martin},
+  title     = {Computing feasible points of bilevel problems with a penalty alternating direction method},
+  journal   = {INFORMS Journal on Computing},
+  volume    = {33},
+  number    = {1},
+  pages     = {198--215},
+  year      = {2021},
+  doi       = {10.1287/ijoc.2019.0945}
+}
+
+@article{mitsos2010global,
+  author    = {Mitsos, Alexander},
+  title     = {Global solution of nonlinear mixed-integer bilevel programs},
+  journal   = {Journal of Global Optimization},
+  volume    = {47},
+  number    = {4},
+  pages     = {557--582},
+  year      = {2010},
+  doi       = {10.1007/s10898-009-9479-y}
+}
+
+@article{lozano2017value,
+  author    = {Lozano, Leonardo and Smith, J. Cole},
+  title     = {A value-function-based exact approach for the bilevel mixed-integer programming problem},
+  journal   = {Operations Research},
+  volume    = {65},
+  number    = {3},
+  pages     = {768--786},
+  year      = {2017},
+  doi       = {10.1287/opre.2017.1589}
+}
+
+@article{xu2014exact,
+  author    = {Xu, Pan and Wang, Lizhi},
+  title     = {An exact algorithm for the bilevel mixed integer linear programming problem under three simplifying assumptions},
+  journal   = {Computers \& Operations Research},
+  volume    = {41},
+  pages     = {309--318},
+  year      = {2014},
+  doi       = {10.1016/j.cor.2013.07.016}
+}
+
+@techreport{ozaltin2017branch,
+  author      = {Ozaltin, Osman Y. and Zhang, Junlong},
+  title       = {A Branch-and-Cut Algorithm for Discrete Bilevel Linear Programs},
+  institution = {Optimization Online},
+  year        = {2017},
+  url         = {https://optimization-online.org/?p=14558}
+}
+
+@article{meyer1974existence,
+  author    = {Meyer, R. R.},
+  title     = {On the existence of optimal solutions to integer and mixed-integer programming problems},
+  journal   = {Mathematical Programming},
+  volume    = {7},
+  number    = {1},
+  pages     = {223--235},
+  year      = {1974},
+  doi       = {10.1007/BF01585518}
+}
+
+% ---------------------------------------------------------------------------
+% Extremal graph theory (clique interdiction lower bounds)
+% ---------------------------------------------------------------------------
+
+@article{mantel1907problem,
+  author    = {Mantel, W.},
+  title     = {Problem 28 (Solution by {H. Gouwentak, W. Mantel, J. Teixeira de Mattes, F. Schuh and W. A. Wythoff})},
+  journal   = {Wiskundige Opgaven},
+  volume    = {10},
+  pages     = {60--61},
+  year      = {1907}
+}
+
+@article{turan1941extremal,
+  author    = {Tur{\'a}n, Paul},
+  title     = {Egy gr{\'a}felm{\'e}leti sz{\'e}ls{\H{o}}{\'e}rt{\'e}kfeladatr{\'o}l [{On} an extremal problem in graph theory]},
+  journal   = {Matematikai {\'e}s Fizikai Lapok},
+  volume    = {48},
+  pages     = {436--452},
+  year      = {1941},
+  note      = {In Hungarian}
+}
+
+@techreport{brouwer1981lotto,
+  author      = {Brouwer, A. E.},
+  title       = {Some lotto numbers from an extension of {Tur{\'a}n's} theorem},
+  type        = {Afdeling Zuivere Wiskunde report},
+  number      = {ZW 152/81},
+  institution = {Mathematisch Centrum},
+  address     = {Amsterdam},
+  month       = mar,
+  year        = {1981},
+  url         = {https://ir.cwi.nl/pub/6791}
+}
+
+@article{tyomkyn2015strong,
+  author    = {Tyomkyn, Mykhaylo and Uzzell, Andrew J.},
+  title     = {Strong {Tur{\'a}n} stability},
+  journal   = {The Electronic Journal of Combinatorics},
+  volume    = {22},
+  number    = {3},
+  pages     = {P3.9},
+  year      = {2015},
+  doi       = {10.37236/4717}
+}
+
+@article{korandi2021exact,
+  author    = {Kor{\'a}ndi, D{\'a}niel and Roberts, Alexander and Scott, Alex},
+  title     = {Exact stability for {Tur{\'a}n's} theorem},
+  journal   = {Advances in Combinatorics},
+  volume    = {2021},
+  number    = {9},
+  pages     = {1--17},
+  year      = {2021},
+  doi       = {10.19086/aic.31079}
+}
+
+@article{amin2013non,
+  author    = {Amin, Kinnari and Faudree, Jill and Gould, Ronald J. and Sidorowicz, El{\.z}bieta},
+  title     = {On the non-$(p-1)$-partite {$K_p$}-free graphs},
+  journal   = {Discussiones Mathematicae Graph Theory},
+  volume    = {33},
+  number    = {1},
+  pages     = {9--23},
+  year      = {2013},
+  doi       = {10.7151/dmgt.1654}
+}
+
+@article{babai1990extremal,
+  author    = {Babai, L{\'a}szl{\'o} and Simonovits, Mikl{\'o}s and Spencer, Joel},
+  title     = {Extremal subgraphs of random graphs},
+  journal   = {Journal of Graph Theory},
+  volume    = {14},
+  number    = {5},
+  pages     = {599--622},
+  year      = {1990},
+  doi       = {10.1002/jgt.3190140511}
+}
+
+@article{brightwell2012extremal,
+  author    = {Brightwell, Graham and Panagiotou, Konstantinos and Steger, Angelika},
+  title     = {Extremal subgraphs of random graphs},
+  journal   = {Random Structures \& Algorithms},
+  volume    = {41},
+  number    = {2},
+  pages     = {147--178},
+  year      = {2012},
+  doi       = {10.1002/rsa.20413}
+}
+
+% ---------------------------------------------------------------------------
+% Maximum clique algorithms (used in the solution checks)
+% ---------------------------------------------------------------------------
+
+@article{bron1973algorithm,
+  author    = {Bron, Coen and Kerbosch, Joep},
+  title     = {Algorithm 457: finding all cliques of an undirected graph},
+  journal   = {Communications of the ACM},
+  volume    = {16},
+  number    = {9},
+  pages     = {575--577},
+  year      = {1973},
+  doi       = {10.1145/362342.362367}
+}
+
+@article{tomita2006worst,
+  author    = {Tomita, Etsuji and Tanaka, Akira and Takahashi, Haruhisa},
+  title     = {The worst-case time complexity for generating all maximal cliques and computational experiments},
+  journal   = {Theoretical Computer Science},
+  volume    = {363},
+  number    = {1},
+  pages     = {28--42},
+  year      = {2006},
+  doi       = {10.1016/j.tcs.2006.06.015}
+}
+
+@article{carraghan1990exact,
+  author    = {Carraghan, Randy and Pardalos, Panos M.},
+  title     = {An exact algorithm for the maximum clique problem},
+  journal   = {Operations Research Letters},
+  volume    = {9},
+  number    = {6},
+  pages     = {375--382},
+  year      = {1990},
+  doi       = {10.1016/0167-6377(90)90057-C}
+}
+
+% ---------------------------------------------------------------------------
+% MIPLIB (source of the MIPLIB-derived bilevel instances and their bounds)
+% ---------------------------------------------------------------------------
+
+@article{gleixner2021miplib,
+  author    = {Gleixner, Ambros and Hendel, Gregor and Gamrath, Gerald and Achterberg, Tobias and Bastubbe, Michael and Berthold, Timo and Christophel, Philipp and Jarck, Kati and Koch, Thorsten and Linderoth, Jeff and L{\"u}bbecke, Marco and Mittelmann, Hans D. and Ozyurt, Derya and Ralphs, Ted K. and Salvagnin, Domenico and Shinano, Yuji},
+  title     = {{MIPLIB} 2017: data-driven compilation of the 6th mixed-integer programming library},
+  journal   = {Mathematical Programming Computation},
+  volume    = {13},
+  number    = {3},
+  pages     = {443--490},
+  year      = {2021},
+  doi       = {10.1007/s12532-020-00194-3}
+}
+
+@article{koch2011miplib,
+  author    = {Koch, Thorsten and Achterberg, Tobias and Andersen, Erling and Bastert, Oliver and Berthold, Timo and Bixby, Robert E. and Danna, Emilie and Gamrath, Gerald and Gleixner, Ambros M. and Heinz, Stefan and Lodi, Andrea and Mittelmann, Hans and Ralphs, Ted and Salvagnin, Domenico and Steffy, Daniel E. and Wolter, Kati},
+  title     = {{MIPLIB} 2010},
+  journal   = {Mathematical Programming Computation},
+  volume    = {3},
+  number    = {2},
+  pages     = {103--163},
+  year      = {2011},
+  doi       = {10.1007/s12532-011-0025-9}
+}
+
+@article{bixby1998miplib,
+  author    = {Bixby, Robert E. and Ceria, Sebastian and McZeal, Cassandra M. and Savelsbergh, Martin W. P.},
+  title     = {An updated mixed integer programming library: {MIPLIB} 3.0},
+  journal   = {Optima},
+  volume    = {58},
+  pages     = {12--15},
+  year      = {1998},
+  url       = {https://miplib2010.zib.de/miplib3/miplib.html}
+}
+
+% ---------------------------------------------------------------------------
+% Software used in this work
+% ---------------------------------------------------------------------------
+
+@article{huangfu2018parallelizing,
+  author    = {Huangfu, Q. and Hall, J. A. J.},
+  title     = {Parallelizing the dual revised simplex method},
+  journal   = {Mathematical Programming Computation},
+  volume    = {10},
+  number    = {1},
+  pages     = {119--142},
+  year      = {2018},
+  doi       = {10.1007/s12532-017-0130-5}
+}
+
+@techreport{hojny2025scip,
+  author      = {Hojny, Christopher and Besan{\c{c}}on, Mathieu and Bestuzheva, Ksenia and Borst, Sander and Chmiela, Antonia and Dion{\'{\i}}sio, Jo{\~{a}}o and Eifler, Leon and Ghannam, Mohammed and Gleixner, Ambros and G{\"o}{\ss}, Adrian and Hoen, Alexander and van der Hulst, Rolf and Kamp, Dominik and Koch, Thorsten and Kofler, Kevin and Lentz, Jurgen and Maher, Stephen J. and Mexi, Gioni and M{\"u}hmer, Erik and Pfetsch, Marc E. and Pokutta, Sebastian and Serrano, Felipe and Shinano, Yuji and Turner, Mark and Vigerske, Stefan and Walter, Matthias and Weninger, Dieter and Xu, Liding},
+  title       = {The {SCIP} {Optimization} {Suite} 10.0},
+  type        = {Technical Report},
+  institution = {Optimization Online},
+  month       = nov,
+  year        = {2025},
+  url         = {https://optimization-online.org/2025/11/the-scip-optimization-suite-10-0/}
+}
+
+@inproceedings{maher2016pyscipopt,
+  author    = {Maher, Stephen and Miltenberger, Matthias and Pedroso, Jo{\~{a}}o Pedro and Rehfeldt, Daniel and Schwarz, Robert and Serrano, Felipe},
+  title     = {{PySCIPOpt}: mathematical programming in {Python} with the {SCIP} {Optimization} {Suite}},
+  booktitle = {Mathematical Software -- ICMS 2016},
+  series    = {Lecture Notes in Computer Science},
+  volume    = {9725},
+  pages     = {301--307},
+  publisher = {Springer},
+  address   = {Cham},
+  year      = {2016},
+  doi       = {10.1007/978-3-319-42432-3_37}
+}
+
+@misc{perron2026cpsat,
+  author       = {Perron, Laurent and Didier, Fr{\'e}d{\'e}ric},
+  title        = {{CP-SAT}, version 9.15},
+  howpublished = {Google OR-Tools},
+  year         = {2026},
+  url          = {https://developers.google.com/optimization/cp/cp_solver/}
+}
+
+@inproceedings{moura2021lean,
+  author    = {de Moura, Leonardo and Ullrich, Sebastian},
+  title     = {The {Lean} 4 theorem prover and programming language},
+  booktitle = {Automated Deduction -- CADE 28},
+  editor    = {Platzer, Andr{\'e} and Sutcliffe, Geoff},
+  series    = {Lecture Notes in Computer Science},
+  volume    = {12699},
+  pages     = {625--635},
+  publisher = {Springer},
+  address   = {Cham},
+  year      = {2021},
+  doi       = {10.1007/978-3-030-79876-5_37}
+}
+
+@inproceedings{mathlib2020,
+  author    = {{The mathlib Community}},
+  title     = {The {Lean} mathematical library},
+  booktitle = {Proceedings of the 9th ACM SIGPLAN International Conference on Certified Programs and Proofs (CPP 2020)},
+  pages     = {367--381},
+  publisher = {ACM},
+  address   = {New York, NY},
+  year      = {2020},
+  doi       = {10.1145/3372885.3373824}
+}

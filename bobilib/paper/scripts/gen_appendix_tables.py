@@ -273,7 +273,9 @@ def main():
         "@{}l l l r r l@{}",
         "Five MIPLIB-derived instances whose high point relaxation is exactly the MIPLIB model they were built "
         "from (checked in exact arithmetic by \\texttt{scripts/compare\\_hpr.py}), so the published MIPLIB "
-        "optimum is a lower bound; a verified bilevel feasible point at that value is optimal. Status: BOBILib's "
+        "optimum (MIPLIB 2017's solution file) is a lower bound; a verified bilevel feasible point at that value "
+        "is optimal. The objective of noswot takes integer values only, so its bound rounds up to $-41$. "
+        "Status: BOBILib's "
         "before this work. (neos-950242\\_0\\_100 meets its bound too, but was already listed as optimal in an "
         "earlier BOBILib release and is counted as published.)",
         "tab:hpr",
@@ -339,9 +341,9 @@ def main():
     put("tab_or.tex", longtable(
         "@{}l S[table-format=2.0] S[table-format=2.0] S[table-format=6.0] S[table-format=6.0] S[table-format=6.0] "
         "S[table-format=6.0] S[table-format=6.0] S[table-format=3.2]@{}",
-        "All 810 multidimensional knapsack interdiction instances of the OR set "
-        "(\\texttt{OR}\\emph{rows}\\texttt{x}\\emph{items}\\texttt{-}\\emph{budget}\\texttt{\\_}\\emph{i}"
-        "\\texttt{.dat-}\\emph{variant}). Budget: leader budget in percent of the item weights; follower rows: "
+        "All 810 multidimensional knapsack interdiction instances of the OR set; names have the form "
+        "\\texttt{OR}\\emph{rows}\\texttt{x}\\emph{items}\\texttt{-}\\allowbreak\\emph{budget}"
+        "\\texttt{\\_}\\emph{i}\\texttt{.dat-}\\allowbreak\\emph{variant}. Budget: leader budget in percent of the item weights; follower rows: "
         "knapsack rows of the follower (variant -100: one; -0 and -50: several). Published LB: Lozano, Bergman "
         "and Cire (2026); published UB: best published point; BOBILib: BOBILib's best known value; our LB: "
         "dualised follower LP bracket or merged-row online bound (one follower knapsack only); our point: "

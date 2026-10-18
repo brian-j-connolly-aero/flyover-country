@@ -16,8 +16,8 @@
 PY          ?= python3 -I
 LATEXMK     ?= latexmk -pdf -interaction=nonstopmode -halt-on-error
 META        ?=
-MKIP_LIT    ?=
-MIBLP_LIT   ?=
+MKIP_LIT    ?= ../results/literature/mkip_literature_status.csv
+MIBLP_LIT   ?= ../results/literature/miblp_literature_status.csv
 LBC_OPTIMAL ?=
 
 DATA_ARGS = $(if $(META),--meta $(META)) $(if $(MKIP_LIT),--mkip-lit $(MKIP_LIT)) \

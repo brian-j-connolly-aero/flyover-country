@@ -3,7 +3,7 @@
 
 {\footnotesize\sisetup{group-separator={,},group-minimum-digits=4,group-digits=integer}\setlength{\tabcolsep}{4pt}\setlength{\LTcapwidth}{\linewidth}
 \begin{longtable}{@{}l l l r r l@{}}
-\caption{Five MIPLIB-derived instances whose high point relaxation is exactly the MIPLIB model they were built from (checked in exact arithmetic by \texttt{scripts/compare\_hpr.py}), so the published MIPLIB optimum is a lower bound; a verified bilevel feasible point at that value is optimal. Status: BOBILib's before this work. (neos-950242\_0\_100 meets its bound too, but was already listed as optimal in an earlier BOBILib release and is counted as published.)}\label{tab:hpr}\\
+\caption{Five MIPLIB-derived instances whose high point relaxation is exactly the MIPLIB model they were built from (checked in exact arithmetic by \texttt{scripts/compare\_hpr.py}), so the published MIPLIB optimum (MIPLIB 2017's solution file) is a lower bound; a verified bilevel feasible point at that value is optimal. The objective of noswot takes integer values only, so its bound rounds up to $-41$. Status: BOBILib's before this work. (neos-950242\_0\_100 meets its bound too, but was already listed as optimal in an earlier BOBILib release and is counted as published.)}\label{tab:hpr}\\
 \toprule
 Instance & BOBILib & MIPLIB instance & MIPLIB optimum & Bilevel optimum & Point from \\
 \midrule

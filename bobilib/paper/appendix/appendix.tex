@@ -1,0 +1,96 @@
+% Supplementary material for the BOBILib paper (separate document).
+% Build from bobilib/paper:  make appendix   (latexmk -pdf -cd appendix/appendix.tex)
+% Needs: generated/facts.tex and appendix/generated/*.tex (make data), ../refs.bib.
+\newcommand{\authoremail}{EMAIL}
+% Title of the main paper; keep it identical to the title in main.tex.
+\newcommand{\papertitle}{Exploiting structure to settle the bilevel benchmark: new
+  optimality proofs, infeasibility certificates and solutions for BOBILib}
+
+\documentclass[11pt,letterpaper]{article}
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{mathptmx}
+\renewcommand{\ttdefault}{lmtt}
+\usepackage{amsmath,amsthm}
+\usepackage{array,booktabs,longtable,multicol}
+\usepackage{siunitx}
+\usepackage[super]{cite}
+\usepackage{titlesec}
+\usepackage[labelsep=period,font=small,skip=4pt]{caption}
+\usepackage[hidelinks,bookmarksnumbered]{hyperref}
+
+% SPIE-like headings: "A. NOTATION ..." centred, bold, upper case; bold
+% subsection headings; run-in bold paragraph headings (LaTeX default).
+\titleformat{\section}{\normalfont\bfseries\centering}{\thesection.}{0.5em}{\MakeUppercase}
+\titlespacing*{\section}{0pt}{16pt plus 4pt minus 2pt}{8pt plus 2pt}
+\titleformat{\subsection}{\normalfont\bfseries}{\thesubsection}{0.6em}{}
+\titlespacing*{\subsection}{0pt}{12pt plus 3pt minus 2pt}{5pt plus 1pt}
+\renewcommand{\thesection}{\Alph{section}}
+\numberwithin{equation}{section}
+% Tables of the supplement are S1, S2, ... so that they cannot be confused
+% with the tables of the paper.
+\renewcommand{\thetable}{S\arabic{table}}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\setcounter{tocdepth}{1}
+\makeatletter
+% Tighter table of contents (one line per section).
+\renewcommand*\l@section[2]{\addpenalty{\@secpenalty}\addvspace{2pt plus 1pt}%
+  \@dottedtocline{1}{0pt}{1.6em}{\bfseries #1}{\bfseries #2}}
+\makeatother
+\setlength{\parskip}{0pt}
+\setlength{\emergencystretch}{2em}
+
+\input{../generated/facts.tex}
+
+\hypersetup{pdftitle={Supplementary material for: \papertitle},pdfauthor={Brian J. Connolly}}
+
+\begin{document}
+
+\begin{center}
+{\Large\bfseries Supplementary material for:\\[2pt] \papertitle\par}
+\vspace{14pt}
+{\large Brian J. Connolly\textsuperscript{*}\par}
+\vspace{4pt}
+Independent Researcher\par
+\end{center}
+{\renewcommand{\thefootnote}{\fnsymbol{footnote}}%
+\footnotetext[1]{E-mail: \authoremail}}
+\vspace{6pt}
+
+\noindent This document supplements the paper. It contains the proofs behind
+the paper's methods, the verification protocol, a map from each result to its
+machine-checked (Lean) proof, a description of the data package, and the
+per-instance tables. Notation follows the paper. Theorems, lemmas and
+equations are numbered by section (Theorem~B.3, equation~(A.1)); tables are
+numbered S1, S2, \dots{} The counts quoted in the text are macros
+generated from the data package (\texttt{bobilib/results/}), and so are the
+tables of Section~\ref{app:tables}. Sections~\ref{app:kip} to~\ref{app:network} say for
+each result whether it is formalised in Lean (``Formalised:'') or proved in
+prose only (``Not formalised'').
+
+{\small\tableofcontents}
+
+\input{sections/notation.tex}
+\input{sections/verification.tex}
+\input{sections/kip.tex}
+\input{sections/mkip.tex}
+\input{sections/clique.tex}
+\input{sections/general.tex}
+\input{sections/network.tex}
+\input{sections/lean_map.tex}
+\input{sections/data.tex}
+\input{sections/tables.tex}
+
+\bibliographystyle{unsrt}
+\bibliography{../refs}
+
+\end{document}

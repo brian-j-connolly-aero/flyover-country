@@ -1,6 +1,6 @@
 % Edge clique interdiction: the model, Mantel, partitions, Brouwer, the
 % part-size reduction, and the three open instances.
-\section{Edge clique interdiction}\label{app:clique}
+\section{Clique interdiction proofs}\label{app:clique}
 
 \subsection{The model}
 
@@ -46,7 +46,8 @@ triangle for every set $D$ of at most $k$ edges, and the bilevel optimum is
 at least~$3$.
 \end{theorem}
 \begin{proof}
-Mantel's theorem is Tur\'an's theorem for $K_3$. After deleting at most $k$
+Mantel's theorem\cite{mantel1907problem} is Tur\'an's theorem\cite{turan1941extremal}
+for $K_3$. After deleting at most $k$
 edges at least $m-k$ edges remain, and $m-k>\lfloor n^2/4\rfloor$.
 \end{proof}
 {\raggedright\noindent Formalised: \texttt{Bobi/Clique.lean}, theorems \texttt{mantel},
@@ -77,8 +78,9 @@ For a partition $\mathcal{P}$ of $V$ into $r$ parts (parts may be empty) let
 $\mathrm{in}_G(\mathcal{P})$ be the number of edges of $G$ inside parts, and let
 $w_r(G)=\min_{\mathcal{P}}\mathrm{in}_G(\mathcal{P})$. Each solution file deletes the inside edges
 of a 3- or 4-partition found by tabu search and states a maximum clique of the
-remaining graph, computed exactly; the files pass the checks of
-Section~\ref{app:verification}.
+remaining graph, computed exactly (the review re-checks it with two exact
+clique searches\cite{bron1973algorithm,tomita2006worst,carraghan1990exact});
+the files pass the checks of Section~\ref{app:verification}.
 
 \subsection{Lower bound 4: Brouwer's theorem}
 
@@ -87,21 +89,19 @@ on $n$ vertices (Tur\'an's number), and
 $T(n,r)=\binom n2-t_r(n)$, the number of edges of the disjoint union of $r$
 cliques of balanced sizes.
 
-\begin{theorem}[Brouwer 1981, Theorem~2]\label{thm:brouwer}
-\emph{(A.~E.~Brouwer, Some lotto numbers from an extension of Tur\'an's
-theorem, Afdeling Zuivere Wiskunde report ZW~152/81, Mathematisch Centrum,
-Amsterdam, 1981, Theorem~2.)} Let $H$ be a graph on $n$ points such that
+\begin{theorem}[Brouwer 1981, Theorem~2\cite{brouwer1981lotto}; quoted, with his $G$ renamed $H$ and his $m:=\lfloor n/t\rfloor$ written out]\label{thm:brouwer}
+Let $H$ be a graph on $n$ points such that
 $\alpha(H)\le t$, and $n>2t$. If $H$ has no more than $T(n,t)+\lfloor n/t\rfloor-2$
 edges, then $V(H)$ can be written as a union of $t$ cliques. Moreover, this
 bound is best possible.
 \end{theorem}
 
-The theorem is restated by M.~Tyomkyn and A.~J.~Uzzell (Strong Tur\'an
-stability, Electron.\ J.\ Combin.\ 22(3) (2015) \#P3.9, equation~(1) and
+Here $\alpha(H)$ is the independence number. The theorem is restated by
+Tyomkyn and Uzzell\cite{tyomkyn2015strong} (their equation~(1) and
 Theorem~1.1), who credit Brouwer with the first explicit proof, and, in the
-complemented form below for $t\ge 2$, by D.~Kor\'andi, A.~Roberts and
-A.~Scott (Exact stability for Tur\'an's theorem, Advances in Combinatorics
-2021:9, Theorem~1.1). We use it in complemented form.
+complemented form below for $t\ge 2$, by Kor\'andi, Roberts and
+Scott\cite{korandi2021exact} (their Theorem~1.1). We use it in complemented
+form.
 
 \begin{corollary}[Complement form]\label{cor:brouwer}
 Let $t\ge 1$ and $n\ge 2t+1$. Every $K_{t+1}$-free graph $F$ on $n$ vertices with
@@ -186,7 +186,8 @@ $n$ & $|\overline E|$ & size vectors $s$ with $b(s)$ in brackets\\
 That is $10\cdot 6+10\cdot 6+10\cdot 5=170$ cases (instance, size vector), each
 asking for a partition of $V$ with prescribed part sizes and at most $b(s)\le 6$
 edges of the sparse complement between parts. All 170 were decided
-infeasible by five methods: CP-SAT and SCIP on two different models, an exact
+infeasible by five methods: CP-SAT\cite{perron2026cpsat} and
+SCIP\cite{hojny2025scip} on two different models, an exact
 solver-free depth-first search (tested against brute force), and, by an
 independent reviewer, HiGHS on a third model with an explicit budget row and
 a separate exact branch and bound written in C (tested against brute force

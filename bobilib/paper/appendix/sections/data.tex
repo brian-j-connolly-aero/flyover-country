@@ -1,0 +1,203 @@
+% The data package bobilib/results/: layout, instances.csv, the .solu file,
+% solution and certificate formats, checksums. Source: results/README.md.
+\section{Data package and formats}\label{app:data}
+
+Every result in the paper is backed by a file in the data package, the
+folder \texttt{bobilib/results/}. The package's index,
+\texttt{results/README.md}, follows the repository style of the INFORMS
+Journal on Computing (cite, description, data, file formats, verification,
+replication). The index, \texttt{instances.csv},
+\texttt{bobilib\_update.solu} and \texttt{SHA256SUMS} are written by
+\texttt{paper/scripts/build\_data\_package.py}; \texttt{make data} in
+\texttt{bobilib/paper/} regenerates them, together with the macros of every
+number quoted in the paper and the tables of Section~\ref{app:tables}. BOBILib's
+statuses are those of its metadata snapshot of 18~October~2026.
+
+\subsection{Layout}
+
+\begin{center}
+\small
+\begin{tabular}{@{}p{1.5in}p{4.8in}@{}}
+\toprule
+Path & Contents\\
+\midrule
+\texttt{instances.csv} & one row per BOBILib instance (\NumInstances{} rows); Section~\ref{app:data-csv}\\
+\texttt{bobilib\_update.solu} & status changes and improved values in the MIPLIB/SCIP \texttt{.solu} format; Section~\ref{app:data-solu}\\
+\texttt{SHA256SUMS} & SHA-256 checksum of every other file of the package\\
+\texttt{summary.json} & per-instance outcome and per-family counts\\
+\texttt{kip/} & \NumKipFiles{} knapsack interdiction solution files at the published optima of Weninger and Fukasawa\cite{weninger2025fast}\\
+\texttt{ss/} & the \NumNewKip{} subset-sum optima proven here; \texttt{proofs.csv} (optimum, nodes, CPU seconds, nodes of the independent prover)\\
+\texttt{or/} & \NumOrPoints{} verified points for the \NumOr{} OR instances; the bounds of each instance; \texttt{compare.csv} (published bounds, BOBILib's value, ours, gaps)\\
+\texttt{clique/} & \NumCliqueSet{} partition certificates, solver logs of the part-size proofs, the independent review\\
+\texttt{network/} & \NumVerifyNetwork{} attack-protect trees certified by enumeration; \texttt{summary.csv}; the review\\
+\texttt{rays/} & \NumRayFiles{} recession directions (the \NumNoFeasible{} open instances and one that BOBILib lists as infeasible); \texttt{ray\_verify.jsonl} (exact checks)\\
+\texttt{general/} & \NumGeneralFiles{} points for MIPLIB-derived instances without coupling rows (nine files over 1\,MB in \texttt{large\_points.tar.gz}); \texttt{hpr\_optimal.csv}\\
+\texttt{general-coupled/} & \NumCoupledFiles{} points for MIPLIB-derived instances with coupling rows; \texttt{summary.csv}\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Each folder has its own \texttt{README.md} with the method, the
+columns of its tables, the commands that produced it and, where one was done,
+its independent review.
+
+\subsection{The instance table \texttt{instances.csv}}\label{app:data-csv}
+
+The file is UTF-8, comma separated, with one header row and one row per
+BOBILib instance. Its columns:
+
+\begin{center}
+\small
+\begin{tabular}{@{}p{1.5in}p{4.8in}@{}}
+\toprule
+Column & Meaning\\
+\midrule
+\texttt{instance} & BOBILib instance name\\
+\texttt{collection} & BOBILib sub-collection (last directory of the instance path), e.g.\ \texttt{kp}, \texttt{or}, \texttt{miplib2017}\\
+\texttt{family} & \texttt{knapsack}, \texttt{multidim-knapsack}, \texttt{clique}, \texttt{network}, \texttt{generalized}, \texttt{assignment} (interdiction), \texttt{general-pure}, \texttt{general-mixed}\\
+\texttt{bobilib\_status}, \texttt{bobilib\_value} & BOBILib's status and best known objective value (empty: none)\\
+\texttt{new\_status} & \texttt{optimal} (proven, in published work or here), \texttt{infeasible\_bilevel} (no bilevel feasible point), \texttt{feasible} (first verified point; BOBILib had none), \texttt{unchanged}, \texttt{bobilib\_optimal}, \texttt{bobilib\_infeasible}\\
+\texttt{primal\_value} & best upper-level value backed by a verified solution file (of this package or of BOBILib) or by a published optimum\\
+\texttt{dual\_bound} & best proven lower bound (the leader minimises), if any\\
+\texttt{source} & citation key of the published result (Table~\ref{tab:source-keys}), \texttt{this work}, or \texttt{ThuraufEtAl2026} (BOBILib's own value)\\
+\texttt{method} & how the status or value was obtained\\
+\texttt{certificate} & path, relative to \texttt{results/}, of the solution or certificate file; \texttt{ARCHIVE.tar.gz:FILE} names a member of an archive\\
+\texttt{verified} & \texttt{yes}: the certificate passed its check (\texttt{bobi verify}, or the exact ray check); \texttt{no}: checked in floating point only (the two \texttt{supportcase42} directions); \texttt{na}: no certificate in this package\\
+\texttt{notes} & free text, separated by semicolons\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Rows per \texttt{new\_status}: \NumBobiOptimal{} \texttt{bobilib\_optimal},
+\NumBobiInfeasible{} \texttt{bobilib\_infeasible}, \NumOptimalNow{} \texttt{optimal},
+\NumNoFeasible{} \texttt{infeasible\_bilevel}, \NumFirstPoint{} \texttt{feasible}
+and \NumUnchanged{} \texttt{unchanged}. The \NumOptimalNow{} optimal rows are the
+\NumLitOptimal{} published optima and the \NumNewOptimal{} proven here; together
+with the \NumNoFeasible{} rows without a bilevel feasible point they are the
+\NumSettled{} settled instances. The keys of the \texttt{source} column map to
+the references as follows.
+
+\begin{table}[ht]
+\centering
+\small
+\caption{Citation keys of the \texttt{source} column of \texttt{instances.csv}.}\label{tab:source-keys}
+\begin{tabular}{@{}lll@{}}
+\toprule
+Key in \texttt{source} & Reference & Optima\\
+\midrule
+\texttt{ThuraufEtAl2026} & BOBILib's own value\cite{thurauf2026bobilib} & \\
+\texttt{WeningerFukasawa2025} & Weninger and Fukasawa\cite{weninger2025fast} & \NumLitKip{}\\
+\texttt{LozanoBergmanCire2026} & Lozano, Bergman and Cire\cite{lozano2026network} & \NumLitLozano{}\\
+\texttt{FischettiEtAl2019} & Fischetti, Ljubi\'c, Monaci and Sinnl\cite{fischetti2019interdiction} & \NumLitImkp{}\\
+\texttt{FischettiEtAl2017} & Fischetti, Ljubi\'c, Monaci and Sinnl\cite{fischetti2017new} & \NumLitFischettiSeventeen{}\\
+\texttt{VasquezLozanoVanHoeve2025} & V\'asquez, Lozano and van Hoeve\cite{vasquez2025single} & \NumLitVasquez{}\\
+\texttt{BOBILibEarlierRelease} & an earlier release of BOBILib's metadata\cite{bobilib_website} & \NumLitEarlierRelease{}\\
+\texttt{this work} & a certificate in this package & \NumNewOptimal{}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{The status file \texttt{bobilib\_update.solu}}\label{app:data-solu}
+
+The file follows the MIPLIB/SCIP convention, one line per instance whose
+status differs from BOBILib's metadata or whose best value improves:
+\begin{center}
+\small
+\begin{tabular}{@{}lll@{}}
+\texttt{=opt=} & \emph{name value} & proven optimal value (published, or proven here)\\
+\texttt{=inf=} & \emph{name} & no bilevel feasible point (the follower is unbounded for every leader choice)\\
+\texttt{=best=} & \emph{name value} & best verified bilevel feasible point (a solution file here), not proven optimal\\
+\texttt{=bestdual=} & \emph{name value} & best proven lower bound, where this work proves a better one than any published\\
+\end{tabular}
+\end{center}
+It has \NumSoluOpt{} \texttt{=opt=} lines (\NumLitOptimal{} published,
+\NumNewOptimal{} from this work), \NumSoluInf{} \texttt{=inf=}, \NumSoluBest{}
+\texttt{=best=} and \NumSoluBestDual{} \texttt{=bestdual=} lines. The
+\texttt{=bestdual=} lines are the \NumOrBetterLb{} OR instances with one
+follower knapsack and the \NumCliqueOpen{} open clique instances; an instance
+can have both a \texttt{=best=} and a \texttt{=bestdual=} line. Every value is
+the upper-level objective $c^{\top}x+d^{\top}y$ of the minimising leader under
+the optimistic convention, printed at full precision (integers without a
+decimal point, other values as the shortest decimal that reads back as the
+same double). Comment lines start with \texttt{\#}.
+
+\subsection{Solution files}
+
+Solution files (\texttt{*.res.json}) are in BOBILib's own format, so BOBILib's
+checker and \texttt{bobi verify} read them unchanged. Each is a JSON object
+with the fields \texttt{name}, \texttt{bilevel\_type} (always
+\texttt{optimistic}), \texttt{status} (\texttt{optimal} or \texttt{feasible}),
+\texttt{difficulty}, \texttt{objective\_value} (the upper-level objective,
+which BOBILib minimises), and \texttt{upper\_level\_decisions} and
+\texttt{lower\_level\_decisions}, which map every variable name of the
+instance to its value. A file states \texttt{optimal} only when the instance's
+row in \texttt{instances.csv} has \texttt{new\_status} \texttt{optimal}.
+
+\subsection{Certificates}
+
+\paragraph{Recession directions.} \texttt{rays/*.ray.json} maps follower
+variable names to the entries of a direction $d$ (its support only), as
+decimal numbers; \texttt{*.exact.ray.json} holds exact rationals written as
+\texttt{"p/q"}. The certificate is valid if $d$ satisfies the conditions of
+Theorem~\ref{thm:ray}: for every follower row, with the leader terms and
+right-hand side dropped, $a^{\top}d\le 0$ for a row $a^{\top}y\le\cdot$,
+$a^{\top}d\ge 0$ for a row $a^{\top}y\ge\cdot$ and $a^{\top}d=0$ for an
+equation; $d_j\ge 0$ for a finite lower bound and $d_j\le 0$ for a finite upper
+bound; and $f^{\top}d<0$. \texttt{scripts/verify\_ray.py} checks this in rational
+arithmetic and writes \texttt{rays/ray\_verify.jsonl}.
+
+\paragraph{Partitions.} The clique solution files are the certificates: the
+leader deletes exactly the edges inside the parts of an $r$-partition (at most
+$k$ of them), so the remainder is $r$-partite
+(Proposition~\ref{prop:clique-partition}), and the follower part is a maximum
+clique of the remainder. \texttt{clique/summary.csv} gives per instance $n$, the
+density, $m$, $k$, BOBILib's value, the lower bound with its argument (Mantel,
+or Brouwer's theorem with the part-size proofs) and the upper bound with its
+partition. The logs of the solver runs behind the \NumCliquePartCases{}
+part-size proofs are in \texttt{clique/logs/lb\_solver\_logs.tar.gz}.
+
+\paragraph{Subset-sum proofs.} A proof of $\mathrm{OPT}\ge\ell$ is a
+computation, not a file. \texttt{ss/proofs.csv} records, per instance, the
+optimum, the nodes and CPU seconds of the search and the nodes of the
+independent prover \texttt{scripts/ss\_check.py}, which re-proves the bound
+from the instance files (Section~\ref{app:verification}).
+
+\paragraph{Enumerations and HPR bounds.} \texttt{network/summary.csv} gives
+per tree the attacks enumerated, the optimum, the number of optimal attacks
+and the cross-checks (Theorem~\ref{thm:fire-cert}).
+\texttt{general/hpr\_optimal.csv} lists the points that meet the MIPLIB
+optimum of the HPR; \texttt{scripts/compare\_hpr.py} re-checks that the HPR is
+the MIPLIB model (Lemma~\ref{lem:hpr}).
+
+\paragraph{OR bounds.} \texttt{or/bounds\_one\_knapsack.jsonl} gives, per
+instance with one follower knapsack, the lower bound with its two parts (merged-row
+online bound, Theorem~\ref{thm:mkip-omega}, and LP bracket,
+Theorem~\ref{thm:mkip-bracket}) and the upper bound;
+\texttt{or/points\_several\_knapsacks.jsonl} gives, per instance with several
+follower knapsacks, the bracket minimiser's LP bound and the certified
+follower value.
+
+\subsection{Checksums and how to check the package}
+
+\texttt{SHA256SUMS} has one line per file of the package other than itself,
+sorted by path, in the format of \texttt{sha256sum}. With BOBILib's instance
+files in \texttt{data/collection} (from \texttt{bobilib.org}) and the
+\texttt{bobi} crate built, the following commands, run from \texttt{bobilib/},
+repeat the checks of Section~\ref{app:verification}:
+\begin{center}
+\begin{minipage}{0.96\linewidth}
+\footnotesize
+\begin{verbatim}
+(cd results && sha256sum -c SHA256SUMS)
+D=data/collection
+./target/release/bobi verify --instances $D results/kip results/ss results/network results/or
+./target/release/bobi verify --instances $D --generic results/clique results/general \
+    results/general-coupled
+python3 -I scripts/verify_ray.py INSTANCE.mps.gz INSTANCE.aux results/rays/INSTANCE.ray.json
+python3 -I scripts/ss_check.py INSTANCE.mps.gz INSTANCE.aux - OPTIMUM
+python3 -I scripts/compare_hpr.py INSTANCE.mps.gz INSTANCE.aux MIPLIB.mps.gz
+\end{verbatim}
+\end{minipage}
+\end{center}
+The nine large general points are checked after unpacking
+\texttt{general/large\_points.tar.gz}.

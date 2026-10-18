@@ -1,0 +1,3 @@
+name	result	feasible	max_violation	violation_at	objective	file_objective	objective_match	follower_optimal	phi_sol	phi_check	phi_bound	oracle	seconds	note
+general20-30-20-20-20-2	FAIL	no	3.3e-4	row followerCons11 (<=)	100056.20726252468	100056	no	yes	106899984.1383618	106899952.99999999	106899953	milp	0.04	-
+1 files: 0 pass, 1 fail (1 infeasible, 1 objective mismatch, 0 follower not optimal, 0 follower unproven), 0 without a solution, 0 errors

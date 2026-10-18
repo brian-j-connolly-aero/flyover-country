@@ -1,6 +1,6 @@
 % General MIPLIB-derived instances: recession directions, the HPR bound,
 % the HPR -> follower -> tie-break pipeline, coupling rows, tolerances.
-\section{General instances}\label{app:general}
+\section{General instances: rays, HPR bound and pipelines}\label{app:general}
 
 Notation is that of~\eqref{eq:bl}. In this section a follower row is written
 $\ell_i\le C_ix+D_iy\le h_i$ with $\ell_i\in\mathbf{R}\cup\{-\infty\}$ and
@@ -31,9 +31,7 @@ optimal solution whenever it is feasible.
 
 \begin{remark}[Meyer's theorem]
 The theorem only needs an explicit rational direction. It is the case we
-need of a classical result of R.~R.~Meyer (On the existence of optimal
-solutions to integer and mixed-integer programming problems, Math.\ Program.\
-7 (1974) 223--235): with rational data, the convex hull of the feasible set
+need of a classical result of Meyer:\cite{meyer1974existence} with rational data, the convex hull of the feasible set
 of a mixed-integer program is a rational polyhedron with the same recession
 cone as the LP relaxation, so a feasible mixed-integer program whose LP
 relaxation is unbounded is itself unbounded. Rationality matters: without it,
@@ -48,7 +46,7 @@ to an exact rational and checks the conditions of Theorem~\ref{thm:ray} in
 rational arithmetic, counting only follower variables in each follower row
 (leader variables enter those rows as constants). When rounding leaves tiny
 residuals, the direction is first projected onto the exact null space of its
-tight rows. This succeeds for 38 of the 40 open instances; for
+tight rows. This succeeds for \NumRayExact{} of the \NumNoFeasible{} open instances; for
 \texttt{supportcase42\_0\_100} and \texttt{supportcase42\_50\_50} residuals of
 about $10^{-12}$ (relative) remain, so those two certificates rest on floating
 point.
@@ -71,18 +69,23 @@ BOBILib builds its general instances from a MIPLIB problem by assigning
 variables and rows to the two levels and keeping the problem's objective as
 the leader's. If nothing else changes, dropping the condition $y\in S(x)$
 gives back the MIPLIB problem: the HPR \emph{is} the MIPLIB model, and its
-published optimum $z^{*}$ is a lower bound on $\mathrm{OPT}$ by
+published optimum\cite{gleixner2021miplib} $z^{*}$ is a lower bound on $\mathrm{OPT}$ by
 Lemma~\ref{lem:hpr}. This is not assumed: a script reads the bilevel
 instance and the MIPLIB~2017 model and checks in exact rational arithmetic
 that they have the same variables, rows, coefficients, sides, bounds,
 integrality requirements and objective (up to the objective's sense). For
-the five instances where it holds and a verified bilevel feasible point has
-value $z^{*}$ (\texttt{pigeon-10\_0\_100}, \texttt{pigeon-10\_50\_50},
+the five instances where it holds and a verified bilevel feasible point
+attains the bound (\texttt{pigeon-10\_0\_100}, \texttt{pigeon-10\_50\_50},
 \texttt{timtab1\_0\_100}, \texttt{noswot\_0\_100}, \texttt{noswot\_50\_50}),
-the point is optimal. The values $z^{*}$ are MIPLIB's published optima. The
-point for \texttt{timtab1\_0\_100} has value $764{,}771.99999978$, below
-$z^{*}=764{,}772$ by $2.2\times10^{-7}$: it is feasible within the row
-tolerance $10^{-6}$, and ``optimal'' holds in that sense.
+the point is optimal. The values $z^{*}$ are the optima in MIPLIB~2017's
+solution file: $-9{,}000$ for \texttt{pigeon-10}, which both points attain;
+$764{,}771.99999978$ for \texttt{timtab1} (printed as $764{,}772$ on the MIPLIB
+web pages), which the point attains with row violations below $10^{-12}$; and
+$-41.00000885$ for \texttt{noswot}, whose objective has integer coefficients
+on integer variables only, so that $\lceil z^{*}\rceil=-41$ is also a lower
+bound, attained by BOBILib's own points. The published optima were computed
+in floating point, so ``optimal'' means equal to the published optimum to its
+printed precision (after rounding up for \texttt{noswot}).
 
 \subsection{Feasible points without coupling rows}
 
@@ -142,7 +145,7 @@ linking values.
 \end{proof}
 \noindent Not formalised.
 
-\begin{lemma}[Value-function cuts]\label{lem:vcut}
+\begin{lemma}[Value-function cuts\cite{mitsos2010global,lozano2017value}]\label{lem:vcut}
 Let $\hat y$ be feasible for $P(\hat x_L)$ with $f^{\top}\hat y=\hat f$. Every bilevel
 feasible $(x,y)$ satisfies: $\hat y$ is infeasible for $P(x_L)$, or
 $f^{\top}y\le\hat f$.
@@ -156,7 +159,7 @@ $f^{\top}y=\varphi(x_L)$.
 The search for an unblocked linking choice tries, in turn within a time
 budget: the HPR's own $x_L$; best-response dynamics; the HPR with objective
 $c^{\top}x+d^{\top}y+\rho f^{\top}y$ for increasing $\rho$; a penalty alternating
-direction method after Kleinert and Schmidt; moves of continuous linking
+direction method after Kleinert and Schmidt;\cite{kleinert2021computing} moves of continuous linking
 variables towards the interior; the HPR with the cuts of
 Lemma~\ref{lem:vcut} (modelled with binary indicators, exact when every
 follower row's linking part takes integer values); and no-good cuts on
@@ -170,7 +173,7 @@ the optimum; and the optimistic tie-break at the point's leader values within
 relative $10^{-5}$ by a proven bound. Each file then passes \texttt{bobi
 verify}.
 
-In 9 of the 29 files with coupling rows the follower's value lies about
+In \NumCoupledTolerance{} of the \NumCoupledFiles{} files with coupling rows the follower's value lies about
 $10^{-7}$ (relative) above its optimum, which BOBILib's
 test~\eqref{eq:bobilib-tol} accepts. For seven of them a point with the
 follower at its optimum (within $10^{-9}$ relative) exists at the same leader
@@ -184,9 +187,9 @@ tolerance.
 \paragraph{Few binary linking variables.} If the linking variables are
 binary and few, Proposition~\ref{prop:coupled} gives the exact optimum by
 enumerating all $\bar x_L$, solving $P(\bar x_L)$ and $\mathrm{BR}(\bar x_L)$ for
-each. This reproduces the published optimum $299{,}577$ of
-\texttt{general30-30-10-20-20-8} (10 linking bits); with 20 bits it is too
-slow.
+each. This reproduces the published optimum $299{,}577$ of Lozano, Bergman
+and Cire\cite{lozano2026network} for \texttt{general30-30-10-20-20-8} (10
+linking bits); with 20 bits it is too slow.
 
 \subsection{A tolerance observation}
 
@@ -194,8 +197,11 @@ slow.
 Test~\eqref{eq:bobilib-tol} is relative. In the generalized interdiction
 instance \texttt{general20-30-20-20-20-2} the follower's objective values are
 near $10^8$, so a response up to about $10^4$ units from the follower's optimum
-passes. BOBILib's value for this instance rests on a follower response that
-is 19 units suboptimal (relative error about $2\times10^{-7}$). Such a point is
+passes. In BOBILib's solution file for this instance the follower's value is
+$106{,}899{,}984.14$ against the follower's optimum $106{,}899{,}953$ at the same
+leader choice, $31$ units above it (relative error about $2.9\times10^{-7}$), and
+rows are violated by up to $3.3\times10^{-4}$ (our verifier's record is in
+\texttt{results/notes/}). Such a point is
 not bilevel feasible in the sense of Definition~\ref{def:bilevel-feasible}:
 with an exactly optimal follower response the leader's value at the same
 leader choice can differ. A value accepted only under a relative tolerance

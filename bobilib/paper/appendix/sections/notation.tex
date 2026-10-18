@@ -1,9 +1,13 @@
-% Notation and conventions used throughout the appendix.
-\section{Notation and conventions}\label{app:notation}
+% Notation and conventions used throughout the appendix; the tolerances of
+% the checkers. The verification protocol (verification.tex) follows as the
+% last subsections of this section.
+\section{Notation and verification protocol}\label{app:notation}
+
+\subsection{Notation and conventions}\label{app:conventions}
 
 \paragraph{Bilevel problems in BOBILib form.}
 The leader controls $x\in\mathbf{R}^{n_x}$ and the follower controls
-$y\in\mathbf{R}^{n_y}$. As in BOBILib, the leader minimises:
+$y\in\mathbf{R}^{n_y}$. As in BOBILib,\cite{thurauf2026bobilib} the leader minimises:
 \begin{align}
   \min_{x,y}\quad & c^{\top}x+d^{\top}y \label{eq:bl}\\
   \text{s.t.}\quad & Ax+By\ge a,\qquad x_i\in\mathbf{Z}\ (i\in I_u),\qquad y\in S(x),\notag\\
@@ -76,9 +80,7 @@ satisfy $\gamma(X)\le\beta$. MKIP (multidimensional KIP) allows $m_u\ge1$ and
 $m\ge1$. In BOBILib's OR set, variant~$-100$ has one follower row ($m=1$) and
 several leader rows; variants $-0$ and $-50$ have several follower rows. The
 \emph{subset-sum class} of KIP is $p=w$; then $\Phi(X)$ is the largest subset
-sum of $\{w_j: j\notin X\}$ that does not exceed $c$. (The letter $c$ is the
-leader's cost vector in~\eqref{eq:bl} and the follower's capacity in packing
-interdiction; the context always says which.)
+sum of $\{w_j: j\notin X\}$ that does not exceed $c$.
 
 \paragraph{Clique and network interdiction.}
 For edge clique interdiction, $G=(V,E)$ is a simple graph with $n=|V|$ and
@@ -88,12 +90,30 @@ attack-protect network game the leader attacks at most $\Phi$ nodes and the
 follower then protects at most $\Lambda$ nodes (Section~\ref{app:network}; there
 $\Phi$ is the attack budget, as in BOBILib's row name, not a value function).
 
-\paragraph{Tolerances.}
+\paragraph{Letters with two meanings.} Following the paper, a few letters
+are reused; the second meaning is local to one section, and the context
+always says which is meant: $c$ is the leader's cost vector
+in~\eqref{eq:bl} and the follower's capacity in packing interdiction; $D$ is
+the follower's matrix in~\eqref{eq:bl} and the deleted edges in
+Section~\ref{app:clique}; $G$ is the leader's budget matrix and the graph of
+Section~\ref{app:clique}; $m$ is the number of follower rows in
+Section~\ref{app:mkip} and the number of edges in Section~\ref{app:clique};
+$k$ is an index or a count elsewhere (the depth of a search node in
+Section~\ref{app:kip}, a row in Section~\ref{app:mkip}) and the deletion
+budget in Section~\ref{app:clique}; $w$ denotes follower weights, the width of a
+band table (Section~\ref{app:kip}) and node weights
+(Section~\ref{app:network}); $\omega$ is the value of the online game
+(Sections~\ref{app:kip} and~\ref{app:mkip}) and the clique number
+(Section~\ref{app:clique}); $\Phi$ is the follower's value in packing
+interdiction and the attack budget in Section~\ref{app:network}.
+
+\subsection{Tolerances of the two checkers}\label{app:tolerances}
+
 BOBILib's feasibility checker (described in Section~5.2 of the BOBILib
-paper by Th\"urauf, Kleinert, Ljubi\'c, Ralphs and Schmidt, and distributed
-with the library as a script) accepts a
+paper by Th\"urauf, Kleinert, Ljubi\'c, Ralphs and Schmidt,\cite{thurauf2026bobilib}
+and distributed with the library as a script) accepts a
 solution file in three steps: (i)~the HPR is feasible; (ii)~the file's point
-passes the MIPLIB~2017 solution checker (version~1.0.3) on the HPR with
+passes the MIPLIB~2017 solution checker\cite{gleixner2021miplib} (version~1.0.3) on the HPR with
 tolerance $10^{-4}$ for the linear rows and $10^{-4}$ for integrality, and the
 stated leader objective matches; (iii)~the follower's problem with the
 leader's variables fixed to the file's values is solved to optimality (by
@@ -109,7 +129,7 @@ Our verifier \texttt{bobi verify} checks (a)~every row, bound and integrality
 requirement of the HPR at the file's point with absolute tolerance $10^{-6}$;
 (b)~the stated leader objective; (c)~the follower's problem with the leader
 fixed, re-solved by an exact knapsack oracle when there is one follower row
-and by a HiGHS MILP otherwise, against test~\eqref{eq:bobilib-tol}, where
+and by a HiGHS\cite{huangfu2018parallelizing} MILP otherwise, against test~\eqref{eq:bobilib-tol}, where
 differences of at most $10^{-9}$ count as equal. A MILP stopped at a time
 limit gives a verdict only when its incumbent is strictly better than the
 file's value by more than~\eqref{eq:bobilib-tol} allows (``not optimal'') or

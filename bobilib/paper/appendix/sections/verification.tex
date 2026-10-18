@@ -1,43 +1,43 @@
-% Verification protocol and threats to validity.
-\section{Verification protocol and threats to validity}\label{app:verification}
-
-\subsection{Protocol}
+% Verification protocol and threats to validity: the last two subsections of
+% Section A (input after notation.tex).
+\subsection{Verification protocol}\label{app:verification}
 
 Every claim in the paper rests on one or more of the following checks.
 
 \begin{enumerate}
 \item \textbf{Solution files.} Every solution file in the data package is
 written in BOBILib's format and passes \texttt{bobi verify}
-(Section~\ref{app:notation}): all rows, bounds and integrality requirements of
+(Section~\ref{app:tolerances}): all rows, bounds and integrality requirements of
 the HPR within $10^{-6}$; the stated leader objective; and the follower's
 problem with the leader fixed, re-solved by the exact knapsack oracle (one
 follower row) or by a HiGHS MILP built from the model (otherwise), accepted
-by BOBILib's relative test~\eqref{eq:bobilib-tol}. This covers the 583
-imported KIP files, the 16 subset-sum files, the 690 OR files (270 with one
-follower knapsack, 420 with several), the 64 general files, the 29 files with
-coupling rows, the 60 clique files and the 36 network files. The points with
+by BOBILib's relative test~\eqref{eq:bobilib-tol}. This covers the \NumKipFiles{}
+imported KIP files, the \NumNewKip{} subset-sum files, the \NumOrPoints{} OR files (\NumVerifyOrOne{} with one
+follower knapsack, \NumVerifyOrSeveral{} with several), the \NumGeneralFiles{} general files, the \NumCoupledFiles{} files with
+coupling rows, the \NumVerifyClique{} clique files and the \NumVerifyNetwork{} network files; all of
+them passed again when this supplement was assembled. The points with
 coupling rows also pass \texttt{bobi certify} (proven dual bounds, relative
 $10^{-5}$, optimistic tie-break).
 
 \item \textbf{Optimality proofs.} Each ``optimal'' status rests on a lower
-bound of one of these kinds: a published proof (cited, with the published
-value matched by a verified solution file); the exact subset-sum search
+bound of one of these kinds: a published proof or published lower bound
+(cited, with the value matched by a verified solution file); the exact subset-sum search
 (Section~\ref{app:kip}), whose pruning rules are proved in Lean; a theorem
 with a checkable certificate (Mantel, Brouwer and partitions for clique
 interdiction, Section~\ref{app:clique}; the HPR bound with an exact
 model comparison, Section~\ref{app:general}); or exhaustive enumeration with
 checked witnesses (Section~\ref{app:network}). ``No bilevel feasible point''
-rests on Theorem~\ref{thm:ray} with an exact rational check (38 instances)
-or a floating-point check (2 instances).
+rests on Theorem~\ref{thm:ray} with an exact rational check (\NumRayExact{} instances)
+or a floating-point check (\NumRayFloat{} instances).
 
 \item \textbf{Independent provers for the subset-sum proofs.} Two Python
 provers that share no code with the Rust search, one written by the
 designer and one by a reviewer who read neither, parse the instance files
-themselves and re-prove all 16 lower bounds with only the direct rule and the
+themselves and re-prove all \NumNewKip{} lower bounds with only the direct rule and the
 per-node rule (Theorem~\ref{thm:node-rule}), in integer arithmetic; both
 compare themselves with brute force on random small instances. Two other
 designs of the search, built separately, prove
-\texttt{interKP-200-100-6-3}, and one of them all four subset-sum instances
+\texttt{interKP-200-100-6-3}, and one of them all four instances of class~6
 with budget index~3.
 The reviewer compared every search binary with exhaustive enumeration on
 2,990 random small instances (no mismatch).
@@ -67,19 +67,19 @@ Proposition~\ref{prop:clique-sizes}), the recession directions and the
 comparison of each HPR with its MIPLIB model are checked with integers or
 exact rationals.
 
-\item \textbf{Machine-checked lemmas.} The Lean~4 project (with Mathlib)
+\item \textbf{Machine-checked lemmas.} The Lean project (Lean~4,\cite{moura2021lean} with Mathlib\cite{mathlib2020})
 proves the lemmas listed in Section~\ref{app:lean-map}. It contains no
 \texttt{sorry}, and \texttt{\#print axioms} shows only Lean's standard axioms
 (\texttt{propext}, \texttt{Classical.choice}, \texttt{Quot.sound}) for each
 main theorem.
 \end{enumerate}
 
-\subsection{Threats to validity}
+\subsection{Threats to validity}\label{app:threats}
 
 \begin{enumerate}
 \item \textbf{Trusted solvers.} Several verdicts come from MILP or CP solvers:
 follower optimality for followers with several rows and for general
-instances (HiGHS), the 170 infeasibility verdicts behind $w_3(G)>k$ (each
+instances (HiGHS), the \NumCliquePartCases{} infeasibility verdicts behind $w_3(G)>k$ (each
 reproduced by five methods, two of them solver-free), the follower optimum
 at the minimising attack in the network proof (HiGHS), and the dual bounds
 in the OR bracket (Theorem~\ref{thm:mkip-bracket}). A solver bug that all
@@ -87,9 +87,10 @@ methods share would go unnoticed.
 
 \item \textbf{Floating point and tolerances.} Points are feasible within
 $10^{-6}$ and follower-optimal within BOBILib's relative $10^{-4}$, not
-exactly. Nine coupled points use that slack, and two coupled files are
-feasible only within it. The timtab1 point lies $2.2\times10^{-7}$ below its
-bound. Two of the 40 ray certificates are checked only in floating point.
+exactly. \NumCoupledTolerance{} coupled points use that slack (marked $^{*}$ in
+Table~\ref{tab:general-points}), and two coupled files are feasible only
+within it (Section~\ref{app:general}). The MIPLIB optima behind the five HPR-bound optima are
+published floating-point values (Section~\ref{app:general}). Two of the \NumNoFeasible{} ray certificates are checked only in floating point.
 The merged-row online bound (Theorem~\ref{thm:mkip-omega}) and the LP
 bracket are evaluated in double precision, so their rounding steps are in
 the safe direction only up to floating-point error. The window rule of the
@@ -105,11 +106,14 @@ formalised. That the instance files have the stated parameters ($n$, $m$, $k$,
 budgets) is checked by scripts, not by Lean. Section~\ref{app:lean-map} lists
 what is not formalised.
 
-\item \textbf{Results taken from the literature.} Brouwer's theorem was read
-in the scanned 1981 report and agrees with later restatements, but it is
+\item \textbf{Results taken from the literature.} Brouwer's
+theorem\cite{brouwer1981lotto} was read in the scanned 1981 report and agrees
+with later restatements,\cite{tyomkyn2015strong,korandi2021exact} but it is
 neither formalised nor reproved here. Published optima (Weninger and
-Fukasawa for KIP, Fischetti et al.\ for imkp, Lozano, Bergman and Cire for
-OR, MIPLIB optima for the HPR bounds) and the published lower bounds of the
+Fukasawa\cite{weninger2025fast} for KIP, Fischetti et
+al.\cite{fischetti2019interdiction} for imkp, Lozano, Bergman and
+Cire\cite{lozano2026network} for OR, MIPLIB~2017 optima\cite{gleixner2021miplib}
+for the HPR bounds) and the published lower bounds of the
 OR instances with several follower knapsacks are used as reported; for
 them only the points are verified here.
 

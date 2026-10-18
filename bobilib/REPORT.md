@@ -246,9 +246,13 @@ BOBILib's 70 optimal values are re-derived (`results/network/`).
 
 ### Generalized interdiction (90; 12 not optimal)
 
-Lozano et al. prove 4. BOBILib's value for general20-30-20-20-20-2 rests on
-a follower response that is 19 units suboptimal, accepted only because its
-relative tolerance of 1e-4 is large next to follower objectives near 1e8.
+Lozano et al. prove 4. BOBILib's solution file for general20-30-20-20-20-2
+does not pass a check at tight tolerances: its follower value is
+106,899,984.14 against the follower's optimum 106,899,953 at the same leader
+choice (31 units, relative 2.9e-7), and its rows are violated by up to
+3.3e-4 (`results/notes/general20-30-20-20-20-2.verify.tsv`). A relative
+follower tolerance of 1e-4 accepts this, because follower objectives are
+near 1e8.
 Enumerating the linking bits reproduces the published optimum 299,577 for
 general30-30-10-20-20-8 (10 bits); with 20 bits the same takes about 58 CPU
 hours per instance, so the other 8 need a pruned search.
@@ -298,7 +302,7 @@ hours per instance, so the other 8 need a pruned search.
   MILP otherwise) and found optimal within BOBILib's relative 1e-4. The
   batch outputs behind this report: 270 of 270 (OR, one follower
   knapsack), 420 of 420 (OR, several), 64 of 64 (MIPLIB-derived), and all
-  of the 12 subset-sum, 60 clique, 36 network and 29 coupled files.
+  of the 16 subset-sum, 60 clique, 36 network and 29 coupled files.
 * **Independent reviews.** The clique, network and coupled results were
   each re-derived by a separate reviewer, with its own instance reader and
   different solvers or code (its own maximum-clique searches, HiGHS and a
