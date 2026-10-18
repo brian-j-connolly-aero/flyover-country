@@ -138,7 +138,9 @@ impl Sums {
 /// table of single targets. Reacting only helps the leader, so `G_w` is a
 /// subset of what the follower can guarantee in the real game, for *any*
 /// play order (`Bobi.G_sound` in `lean/Bobi/BandTable.lean`: the induction
-/// never uses which class comes first).
+/// never uses which class comes first; `Bobi.GA_sound_perm` in
+/// `lean/Bobi/EndTable.lean` states it for a play order that permutes the
+/// search order).
 ///
 /// **Threshold form.** `G_w(B)` is antitone in `B`: by induction, for
 /// `B' <= B` every deletion affordable with `B'` is affordable with `B` and
@@ -158,7 +160,10 @@ impl Sums {
 /// `(hi + 1)` numbers per row instead of `(cap + 1)` bitsets of `hi + 1`
 /// bits, and builds in `O(hi * n_p^2)` per class instead of
 /// `O(cap * hi / 64 * n_p^2)`; `tests::threshold_matches_bitset` checks it
-/// against the bitset recursion.
+/// against the bitset recursion. In Lean: `Bobi.G_antitone` and
+/// `Bobi.GA_antitone` (`lean/Bobi/EndTable.lean`); `Bobi.thr` is this
+/// recursion and `Bobi.thr_iff`, `Bobi.G_iff_thr` the equivalence
+/// (`lean/Bobi/Threshold.lean`).
 #[derive(Clone)]
 pub struct RobustTable {
     /// Band width `w` (1 for `H`).
@@ -926,7 +931,8 @@ impl<'a> Search<'a> {
     /// give `s'` with `t - j v_p - s' in A`; take `s = j v_p + s'`.) With
     /// `A = S`, the sums the decided survivors reach, `target in G_S(B)`
     /// means the follower hits `target` exactly: `s` from the undecided
-    /// survivors plus `target - s` from the decided ones.
+    /// survivors plus `target - s` from the decided ones. (`Bobi.GA_sound` in
+    /// `lean/Bobi/EndTable.lean`.)
     ///
     /// **A band of targets.** The follower wins with any total in `[lo, hi]`,
     /// so it need not fix the target in advance: take
@@ -938,7 +944,9 @@ impl<'a> Search<'a> {
     /// the follower's strategy up by `hi - t` keeps every `j` feasible and
     /// ends in `S + (hi - t) ⊆ A`.) In threshold form this returns
     /// `thr_A(hi)` (capped at the root budget): the node is safe for every
-    /// budget up to it.
+    /// budget up to it (`Bobi.node_table_sound` and
+    /// `Bobi.node_table_threshold_sound` in `lean/`; the range shortcuts and
+    /// the early exit below are not formalised).
     ///
     /// `G_A` contains what the run rules of the tables of the same play
     /// order certify: `H` checks `target - s in G_{{0}}` for one `s in S`,

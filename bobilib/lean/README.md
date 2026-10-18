@@ -161,8 +161,8 @@ the next classes, with the budget reduced by what was spent.
   undecided, the follower reaches `s + t` against every deletion within
   budget.
 
-The Rust bitsets hold `H(k, b) ∩ [0, hi]` for every `b ≤ budget`. Truncating
-at `hi` only drops elements, so it keeps the bitsets sound.
+The Rust tables store `H` in threshold form for the residuals `0..=hi`
+(section 4e): `t ∈ H(k, b)` iff `b ≤ cap` and `threshold(k, t) ≥ b`.
 
 ### 4c. Band tables (`Bobi/BandTable.lean`)
 
@@ -190,24 +190,107 @@ contribute a sum in `[t - w + 1, t]`, not exactly `t`.
   `covers_sound_of_band` get `H_sound` and `covers_sound` back from the band
   theorems (a one-point run `[s, s]` and `w = 1`).
 
-As for `H`, truncating the bitsets at `hi` only drops elements. The
-recursion is monotone in the next table, so it stays sound.
+As for `H`, the code stores `G_w` in threshold form for the residuals
+`0..=hi` (section 4e, `G_iff_thr`).
 
-### 4d. Threshold form, play orders and per-node tables (not formalised)
+### 4d. Tables with an end set and the per-node rule (`Bobi/EndTable.lean`)
 
-`robust_ss.rs` now stores each table as one number per `(k, t)`: the
-largest budget `B` with `t ∈ G_w(k, B)`. This relies on `G_w` being antitone
-in `B` (induction on the classes; written out, with the min-max recursion it
-gives, in the doc comment of `RobustTable`), and the test
-`threshold_matches_bitset` compares it with the bitset recursion. Tables may
-play the undecided classes in any order: `G_sound` is stated for any list
-`cs`, so it covers every order. The per-node tables
-(`Search::node_table_threshold`) replace the base case `[0, w - 1]` by an
-arbitrary set `A` (the node's decided sums, widened by `hi - lo` for a band
-of targets); the statement and proof are those of `G_sound` with `t < w`
-replaced by `t ∈ A`. None of this is in Lean yet; the randomized tests
-`tables_sound_by_enumeration`, `node_table_matches_definition_and_is_sound`
-and `matches_brute_force` check it against exhaustive enumeration.
+`GA A cs B t` is the recursion of `H` and `G_w` with an arbitrary *end set*
+`A : ℕ → Prop` as base case: `G_A(m, B) = A`, that is, the residual left once
+every class has been played must lie in `A`. The list `cs` is the play order
+(first played first) and may be any order of the classes.
+
+* `GA_sound` (the analogue of `G_sound`, same induction): if
+  `t ∈ G_A(cs, B)`, then for every deletion of `rs[k] ≤ n_k` copies per class
+  that costs at most `B`, there are `s` and `a` with `s` a subset sum of the
+  remaining copies, `a ∈ A` and `s + a = t`. `GA_sound_any`: the same for
+  deletions of arbitrary copies.
+* Special cases: `G_iff_GA` (`G_w` is the end set `[0, w - 1]`, written
+  `(· < w)`) and `H_iff_GA` (`H` is `{0}`, written `(· = 0)`).
+  `G_sound_of_GA` and `H_sound_of_GA` get `G_sound` and `H_sound` back from
+  `GA_sound`.
+* `GA_antitone`: `B' ≤ B` and `t ∈ G_A(cs, B)` give `t ∈ G_A(cs, B')`
+  (every deletion affordable with `B'` is affordable with `B`, and the
+  smaller remainder `B' - c` keeps the next table larger, by induction).
+  `G_antitone` and `H_antitone` are the existing tables. `GA_mono`: a larger
+  end set gives a larger table.
+* Play orders: `counts_perm` carries deletion counts through a permutation
+  of the classes, `remaining_perm` and `totalCost_perm` show that reordering
+  the (class, count) pairs permutes the survivors and keeps the cost
+  (`remaining_eq_flatten`, `totalCost_eq_sum`). So `GA_sound_perm` and
+  `GA_sound_perm_any`: a table built for any permutation `play` of the
+  undecided classes `cs` is sound for deletions given in the search order.
+* `nodeEnd S lo hi a` is `a ≤ hi ∧ ∃ s, S s ∧ s ≤ a ∧ a ≤ s + (hi - lo)`,
+  the base array of `Search::node_table_threshold` (`a[t] = cap` for
+  `t ∈ 0..=hi` exactly when the largest `l ≤ t` with `sums.get(l)` has
+  `l + (hi - lo) ≥ t`). It is decidable when `S` is.
+* `node_rule`: let every `s ∈ S` be a subset sum of the decided survivors,
+  `lo ≤ hi`, and `A` any end set whose members `a` have some `s ∈ S` with
+  `s ≤ a ≤ s + (hi - lo)`. If `hi ∈ G_A(cs, B)`, then every deletion within
+  `B` leaves a subset of `decided ++ survivors` with sum in `[lo, hi]` (the
+  undecided survivors give `x` with `x + a = hi`; take `s + x`).
+  `node_table_sound` is this for `A = nodeEnd S lo hi`, and
+  `node_table_sound_any` for a table in any play order and a deletion of
+  arbitrary copies. The hypothesis `lo ≤ hi` matters: with `lo > hi` the
+  natural-number `hi - lo` is 0 and the conclusion would be false; the code
+  returns `-1` in that case.
+* `node_table_of_H`: the node rule contains the rule of `H` in the same play
+  order. If `s ∈ S`, `s ≤ target`, `target ∈ [lo, hi]` and
+  `target - s ∈ H(cs, B)`, then `hi ∈ G_A(cs, B)` for `A = nodeEnd S lo hi`
+  (the follower's strategy shifted up by `hi - target + s`). This is about
+  strength, not soundness.
+
+Rust: `Search::node_table_threshold` and the `node_order` branch of
+`Search::node` (prune when the node table's threshold at `hi` is at least the
+budget); `play_order` and `RobustTable::build_suffix` for the play orders.
+`S` is the bitset `sums` (decided sums up to `hi`), which satisfies the
+hypothesis on `S`.
+
+### 4e. Threshold form (`Bobi/Threshold.lean`)
+
+Because the tables are antitone in the budget, `robust_ss.rs` stores each as
+one number per `(k, t)`. `thr A cap cs t : ℤ` is that number, defined by the
+min-max recursion of `RobustTable::step`: with `P(r) = c.delCost r` for the
+first class `c` (value `v`, `n` copies) and `thr'` the thresholds of the
+classes after it,
+
+```
+thr(t) = min(cap, min over r ≤ n with P(r) ≤ cap of
+                    P(r) + max over j ≤ n - r with j v ≤ t of thr'(t - j v))
+```
+
+and the base is `cap` on `A` and `-1` off it. (`minOver` and `maxOver` are the
+`min`/`max` folds; `le_minOver`, `le_maxOver` describe them.)
+
+* `thr_iff`: for every budget `B`, `B ≤ thr(t)` iff `B ≤ cap` and
+  `t ∈ G_A(cs, B)`. `GA_iff_thr` is the form for `B ≤ cap`:
+  `t ∈ G_A(cs, B) ↔ B ≤ thr(t)`.
+* `thr_bounds`: `-1 ≤ thr(t) ≤ cap`. `thr_eq_neg_one_iff`: `thr(t) = -1` iff
+  `t` is not in the table at budget 0 (so at no budget). `thr_greatest`:
+  otherwise `thr(t)` is the largest budget `B ≤ cap` with `t ∈ G_A(B)`.
+* `G_iff_thr`, `H_iff_thr`: the same for the band tables (`A = (· < w)`,
+  the code's `RobustTable::base(hi, w, cap)`) and for `H`.
+* `covers_threshold_sound` and `band_covers_threshold_sound`: `covers_sound`
+  and `band_covers_sound` with the test on the stored threshold
+  (`row[t] ≥ b` with `b ≤ cap`), as `RobustTable::covers` and
+  `RobustTable::covers_run` now do it.
+* `node_table_threshold_sound`: the per-node rule as the search uses it. With
+  `S` the decided sums, `lo ≤ hi`, `play` any permutation of the undecided
+  classes `cs`, sorted costs, and `B ≤ thr(nodeEnd S lo hi, cap, play, hi)`,
+  every deletion of undecided copies of cost at most `B` leaves a subset of
+  `decided ++ survivors` with sum in `[lo, hi]`. This covers both the prune
+  (`thr ≥ budget`) and the cache entry `remember(k, sums, thr)` (safe for
+  every budget up to `thr`).
+* Two `example`s evaluate `thr` by `decide` on small inputs.
+
+Rust: `RobustTable::step` is one level of `thr` (`mx` holds the inner max for
+`j = 0..=n`, `prefix` stops at the first `P(r) > cap`, which with
+nonnegative costs is the filter `P(r) ≤ cap`); `RobustTable::base`,
+`build_band`, `build_suffix`, `threshold` and `contains` (`b ≤ cap` and
+`threshold ≥ b`, i.e. `thr_iff`); `RobustTable::step_range` and
+`Search::node_table_threshold` for the node tables (`cap` is the root
+budget). The recursion at `t` reads only residuals `≤ t`, so arrays indexed
+`0..=hi` hold the exact thresholds of those residuals.
 
 ### 5. Clique interdiction bounds (`Bobi/Clique.lean`)
 
@@ -243,9 +326,24 @@ triangle".
 
 These parts have no Lean proof:
 
-* the search itself: caching, node limits and the bitset code;
-* the threshold form of the tables and the per-node tables with an
-  arbitrary base set (section 4d);
+* the search itself: caching, node limits and the bitset code (that
+  `sums.get(s)` holds exactly for the decided subset sums `s ≤ hi`, and
+  `guaranteed`);
+* that the Rust loops compute `thr` (sections 4d, 4e): `RobustTable::step`
+  is checked against the recursion by reading it and by the tests
+  `threshold_matches_bitset` and `node_table_matches_definition_and_is_sound`,
+  not in Lean. The same holds for the shortcuts that are argued only in doc
+  comments: in `Search::node_table_threshold`, `step_range` computes only
+  the residuals in `[hi - Mb_i, min(hi, max A + Ma_i)]` and leaves stale
+  values outside that range, the pass stops early once the largest computed
+  threshold is below the budget (it then returns that value, which the
+  caller treats as a failure), and classes with more than 63 copies fall back
+  to `step`; the `row_max` and `blockmax` skips in `tables_cover` and
+  `covers`; and the `i32` arithmetic (the budget is converted to `i32` for
+  the cap, and `P(r) + thr'` is assumed not to overflow);
+* that the per-node tables are at least as strong as the root band tables
+  (the shift argument in the doc comment of `node_table_threshold`); only
+  the `H` half is proved (`node_table_of_H`). Soundness does not need it;
 * `restrict_copies`;
 * the LP bracket in `mkip::lp_follower_bound`;
 * the scaling, rounding and fractional relaxations noted above;
@@ -268,5 +366,7 @@ These parts have no Lean proof:
 | `Bobi/Online.lean` | ω and theorem 4, Table 1 example |
 | `Bobi/RobustTable.lean` | robust table `H` and its soundness |
 | `Bobi/BandTable.lean` | band tables `G_w`, their soundness, `G 1 = H` |
+| `Bobi/EndTable.lean` | tables `G_A` with an end set, antitonicity, play orders, the per-node rule |
+| `Bobi/Threshold.lean` | threshold form `thr` of every table, the node rule in threshold form |
 | `Bobi/Clique.lean` | Mantel, triangle after deletions, partition bound |
 | `Check.lean` | `#print axioms` for the main theorems |

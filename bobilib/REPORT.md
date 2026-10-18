@@ -133,7 +133,9 @@ instances with 20 or more linking bits, and 123 MIPLIB-derived instances.
   with exhaustive enumeration on 2,990 random small instances (0
   mismatches); and every solution file passes `bobi verify`. See
   `results/ss/`. The threshold form and the per-node end set are proved
-  in the doc comments of `src/robust_ss.rs` but not yet in Lean. One change at a
+  in Lean (`lean/Bobi/Threshold.lean`, `lean/Bobi/EndTable.lean`); the range
+  shortcuts and early exit inside the node-table pass are argued in the doc
+  comments of `src/robust_ss.rs`. One change at a
   time on interKP-200-100-6-2 (nodes): previous search 3,926,223; same
   rules with threshold tables 3,926,223 (memory 478 to 229 MB); every band
   width 1..64 3,278,153; root tables played largest value first 1,128,566,
@@ -317,9 +319,12 @@ hours per instance, so the other 8 need a pruned search.
 * window extension and the stall test;
 * Weninger and Fukasawa's online lower bound, for any item order;
 * soundness of the robust online table, of the band tables and of both
-  pruning rules (the per-node tables of the subset-sum search use the same
-  induction with an arbitrary base set; that step and the threshold form
-  are argued in the code and tested against brute force, not formalised);
+  pruning rules; the tables with an arbitrary end set and the per-node rule
+  of the subset-sum search, for any play order; antitonicity in the budget
+  and the threshold (min-max) form the code stores (the range shortcuts
+  inside the node-table pass and the match between the Rust loops and the
+  recursion are argued in the code and tested against brute force, not
+  formalised);
 * for clique interdiction, Mantel's theorem in deletion form (more than
   n^2/4 edges left after deleting k means a triangle survives, checked for
   the three density-0.7 sizes) and the partition upper bound (deleting the

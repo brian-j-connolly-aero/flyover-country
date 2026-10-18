@@ -1,7 +1,8 @@
 import Bobi
 
 /-! Lists the axioms each main theorem depends on (run `lake env lean Check.lean`).
-Every line should show only `propext`, `Classical.choice` and `Quot.sound`. -/
+Every line should show only (some or all of) `propext`, `Classical.choice` and
+`Quot.sound`. -/
 
 #print axioms Bobi.follower_antitone
 #print axioms Bobi.bestAvoiding_antitone
@@ -28,6 +29,39 @@ Every line should show only `propext`, `Classical.choice` and `Quot.sound`. -/
 #print axioms Bobi.G_one
 #print axioms Bobi.G_sound_one
 #print axioms Bobi.covers_sound_of_band
+#print axioms Bobi.GA_sound
+#print axioms Bobi.GA_sound_any
+#print axioms Bobi.GA_antitone
+#print axioms Bobi.GA_mono
+#print axioms Bobi.G_iff_GA
+#print axioms Bobi.H_iff_GA
+#print axioms Bobi.G_antitone
+#print axioms Bobi.H_antitone
+#print axioms Bobi.G_sound_of_GA
+#print axioms Bobi.H_sound_of_GA
+#print axioms Bobi.counts_perm
+#print axioms Bobi.remaining_eq_flatten
+#print axioms Bobi.totalCost_eq_sum
+#print axioms Bobi.remaining_perm
+#print axioms Bobi.totalCost_perm
+#print axioms Bobi.GA_sound_perm
+#print axioms Bobi.GA_sound_perm_any
+#print axioms Bobi.node_rule
+#print axioms Bobi.node_table_sound
+#print axioms Bobi.node_table_sound_any
+#print axioms Bobi.node_table_of_H
+#print axioms Bobi.le_minOver
+#print axioms Bobi.le_maxOver
+#print axioms Bobi.thr_iff
+#print axioms Bobi.GA_iff_thr
+#print axioms Bobi.thr_bounds
+#print axioms Bobi.thr_eq_neg_one_iff
+#print axioms Bobi.thr_greatest
+#print axioms Bobi.G_iff_thr
+#print axioms Bobi.H_iff_thr
+#print axioms Bobi.covers_threshold_sound
+#print axioms Bobi.band_covers_threshold_sound
+#print axioms Bobi.node_table_threshold_sound
 #print axioms Bobi.mantel
 #print axioms Bobi.mantel'
 #print axioms Bobi.triangle_survives

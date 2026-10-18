@@ -94,5 +94,6 @@ ln -s /path/to/bobilib-data data   # collection/ and collection-solutions/ from 
 `lean/` is a Lean 4 project (with Mathlib) that proves the lemmas these
 methods rely on. It covers monotonicity of interdiction, the count
 formulation, window extension and the stall test, Weninger and Fukasawa's
-online lower bound, and the soundness of the robust online table. See
+online lower bound, the soundness of the robust online table and of its
+threshold form, and the per-node tables with an arbitrary end set. See
 `lean/README.md` for how each theorem maps to the code and how to build it.
