@@ -17,7 +17,8 @@ The toolchain is Lean 4.35.0 (`lean-toolchain`, installed with elan) and Mathlib
 is pinned to its `v4.35.0` tag (`lake-manifest.json`). With Mathlib in place, a
 clean `lake build` takes about 40 s and under 2 GB of memory. There is no
 `sorry`: `Check.lean` shows only Lean's standard axioms (`propext`,
-`Classical.choice`, `Quot.sound`).
+`Classical.choice`, `Quot.sound`) for each theorem it lists; the helper
+lemmas are checked through the theorems that use them.
 
 ## The model
 
@@ -48,10 +49,11 @@ Blocking more items never helps the follower.
   `packings_downward_closed` and `K_eq_bestAvoiding` show that the knapsack
   follower is such a follower.
 
-Rust: `Kip::free_items` blocks items that cost the leader nothing and
-`Kip::greedy` blocks them too. In `robust_ss::Search::node`, the copies the
-leader cannot afford to delete survive whatever it does, and so do their sums
-(the `guaranteed` test).
+Rust: `Kip::free_items` lists the items that cost the leader nothing;
+`Kip::greedy` blocks them, and `Kip::subset_sum_classes` drops them as always
+blocked. In `robust_ss::Search::node`, the copies the leader cannot afford to
+delete survive whatever it does, and so do their sums (the `guaranteed`
+test).
 
 ### 2. Count formulation (`Bobi/Knapsack.lean`)
 
@@ -107,22 +109,29 @@ LP fact and is not formalised here.
 
 ### 4. Online relaxation lower bound (`Bobi/Online.lean`)
 
-This is Weninger and Fukasawa's Theorem 2. `online p wU wL order cU cL` is
-their recursive ω. Items are taken in the order `order`. At each item the
-leader may block it if the budget `cU` allows. If the leader does not, the
-follower may take it if the capacity `cL` allows. A branch that cannot be
-afforded is not offered, which is the paper's `±∞` convention.
+This is Theorem 2 of N. Weninger and R. Fukasawa, "A Fast Combinatorial
+Algorithm for the Bilevel Knapsack Problem with Interdiction Constraints"
+(Section 3; theorem, lemma and table numbers as in their preprint).
+`online p wU wL order cU cL` is their recursive ω. Items are taken in the
+order `order`. At each item the leader may block it if the budget `cU`
+allows. If the leader does not, the follower may take it if the capacity `cL`
+allows. A branch that cannot be afforded is not offered, which is the paper's
+`±∞` convention.
 
-* `online_le_K`: suppose `X` is drawn from `order`, its items are distinct,
-  and `wU(X) ≤ cU`. Then `ω ≤ K(order \ X, cL)`. The proof is induction on
-  the order, the paper's four cases folded into two.
-* `online_lower_bound`: for any order of distinct items, possibly only some
-  of the items, `ω(order, C^U, C^L) ≤ K(univ \ X, C^L)` for every `X` with
-  `wU(X) ≤ C^U`. So ω is at most the minimum over leader sets, a lower bound
-  on the bilevel optimum. With `order = [i, …, n]` this is the paper's
-  statement at index `i`.
-* The paper's Table 1 is checked by `decide`. There ω = 1, while every leader
-  choice within budget leaves the follower at least 2.
+* `online_le_K`: suppose the items of `order` are distinct, `X` is drawn
+  from them and `wU(X) ≤ cU`. Then `ω ≤ K(order \ X, cL)`. The proof is
+  induction on the order, the paper's four cases folded into two.
+* `online_le_K_any`: the same for any `X` with `wU(X) ≤ cU`, since blocked
+  items outside the order do not matter to ω. With `order = [i, …, n]` this
+  is the paper's statement at index `i`, where `K(X ∪ {1, …, i - 1}, cL)` is
+  the knapsack over `{i, …, n} \ X`.
+* `online_lower_bound`: the root form. For any order of distinct items,
+  possibly only some of the items, `ω(order, C^U, C^L) ≤ K(univ \ X, C^L)`
+  for every `X` with `wU(X) ≤ C^U`. So ω is at most the minimum over leader
+  sets, a lower bound on the bilevel optimum.
+* The paper's Table 1 is checked by `decide`: `table1_online` (ω = 1),
+  `table1_opt` (every leader choice within budget leaves the follower at
+  least 2) and `table1_block` (blocking item 3 achieves 2).
 
 Rust: `mkip::omega_root` computes this recursion in its loop over `order`
 (items with positive profit, in decreasing efficiency). The formal statement
