@@ -6,14 +6,20 @@ graphs. BOBILib lists 70 as optimal; `tree-50_1-5-5_006` and
 `tree-50_1-5-5_010` are only `feasible`, with value 26.
 
 **Result.** Both open instances have optimum **26**: BOBILib's feasible
-value is optimal. All 34 tree instances BOBILib lists as optimal are
-reproduced exactly, with no disagreement.
+value is optimal. Of BOBILib's 70 optimal values, 46 are re-derived here
+from the model files with no disagreement: all 34 trees (tree DP) and the
+12 `rndgraph-25` random graphs (HiGHS as the follower at every attack). The
+other 24 (`rndgraph-50`, `rndgraph-80`) were not enumerated; BOBILib's
+solution files for them pass `bobi verify`, which shows their values are
+attained but does not re-prove optimality.
 
-| Instances | BOBILib | `bobi fire` |
+| Instances | BOBILib | This work |
 | --- | --- | --- |
-| 34 trees listed optimal | optimal | the same value on all 34, certified |
+| 34 trees | optimal | the same value on all 34, certified (DP; 16 of them also with HiGHS at every attack) |
 | `tree-50_1-5-5_006` | feasible, 26 | **optimal, 26**: 4 of the 2,138,410 attacks reach it |
 | `tree-50_1-5-5_010` | feasible, 26 | **optimal, 26**: 28 of the 2,138,410 attacks reach it |
+| 12 `rndgraph-25` | optimal | the same value on all 12, certified (HiGHS at every attack) |
+| 24 `rndgraph-50`, `rndgraph-80` | optimal | not enumerated; BOBILib's points verified feasible with the stated value |
 
 The two open instances have 49 nodes (one of 50 already vaccinated) and
 42 and 44 edges (forests of 7 and 5 trees), with Phi = Lambda = 5. The
@@ -21,7 +27,10 @@ search covers every attack of 0 to 5 nodes, 2,138,410 per instance. The
 least saved count by attack size k = 0, ..., 5 is 49, 48, 44, 38, 32, 26 for
 `_006` and 49, 48, 42, 34, 30, 26 for `_010`. BOBILib's own attacks are
 among the optimal ones (the follower's optimum there is 26), so BOBILib had
-the optimum and only lacked the proof. The certified solutions:
+the optimum and only lacked the proof. (An earlier, unreviewed claim from
+C code that enumerated the 1,906,884 five-node attacks reached the same
+value; none of its code or parsed data is used here.) The certified
+solutions:
 
 | Instance | Attack (`y_v = 1`) | Protection (`x_v = 1`) | Saved |
 | --- | --- | --- | --- |
@@ -38,13 +47,21 @@ cross-checks.
 **Checks**, over all 36 trees: 0 follower points that fail the model, 0
 disagreements between the DP and HiGHS in 18,072 follower solves (502 per
 instance), and every solution file has max violation 0 and a follower
-objective equal to HiGHS's optimum. With HiGHS as the follower for every
-attack (`highs_crosscheck.csv`), the 12 `tree-25` instances, the 4
-`tree-80_2-2-2` instances and the 12 `rndgraph-25` random graphs (which have
-cycles, so the DP does not apply) all give BOBILib's optimal values too.
-That also checks the reading of the model on graphs with cycles. The larger
-random graphs were left out: after 20 minutes HiGHS had not finished the
-3,082 attacks of one `rndgraph-80_2-2-2` instance on this machine.
+objective equal to HiGHS's optimum.
+
+* **HiGHS at every attack** (`highs_crosscheck.csv`, 28 instances, 47,496
+  attacks, 807 s): the 12 `tree-25` and 4 `tree-80_2-2-2` trees give the
+  same optimum and the same number of optimal attacks as the DP, and the 12
+  `rndgraph-25` random graphs (8 of which have cycles, where the DP does
+  not apply) give BOBILib's optimal values. That also checks the reading of the model
+  on graphs with cycles. The 24 larger random graphs were left out: one
+  HiGHS follower solve takes 1 to 16 s on them here (the `seconds` column
+  of `verify_bobilib.tsv`), and they have 3,082 to 2,138,410 attacks each.
+* **Independent verifier** (`bobi verify`, modelled on BOBILib's
+  feasibility checker: rows, bounds and integrality within 1e-6, the stated
+  objective, and follower optimality re-solved with the leader fixed): all
+  36 solution files written here pass (`verify_ours.tsv`), and so do all 72
+  of BOBILib's own `inter-fire` solution files (`verify_bobilib.tsv`).
 
 ## The model, as read from the MPS/AUX files
 
@@ -114,6 +131,8 @@ Solutions are written as `<name>.res.json` in BOBILib's format, with status
 * `highs_crosscheck.csv`: the same columns, the follower solved by HiGHS
   for every attack: `rndgraph-25`, `tree-25` and `tree-80_2-2-2` (at most
   5,000 attacks each; trees with `--force-highs`).
+* `verify_ours.tsv`, `verify_bobilib.tsv`: `bobi verify` on the 36
+  solution files here and on BOBILib's 72 `inter-fire` solution files.
 * `<name>.res.json`: certified solutions for the 36 tree instances.
 
 ## Reproduce
@@ -128,8 +147,11 @@ S=data/collection-solutions/interdiction-solutions/network-interdiction-solution
 # DP certification of all 36 trees (1 thread)
 ./target/release/bobi fire $D --only tree- --threads 1 --sample 500 \
     --bobilib $S --out results/network --csv results/network/summary.csv
-# HiGHS for every attack (about 35 minutes here)
+# HiGHS for every attack (about 14 minutes here)
 ./target/release/bobi fire $D --only rndgraph-25,tree-25,tree-80_2-2-2 \
     --force-highs --highs-max 5000 --threads 1 --sample 0 \
     --bobilib $S --csv results/network/highs_crosscheck.csv
+# BOBILib-style verification of these files and of BOBILib's
+./target/release/bobi verify --instances $D results/network > results/network/verify_ours.tsv
+./target/release/bobi verify --instances $D --time-limit 300 $S > results/network/verify_bobilib.tsv
 ```
