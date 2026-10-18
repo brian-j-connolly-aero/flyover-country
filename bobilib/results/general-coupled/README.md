@@ -120,6 +120,39 @@ Every point is certified inside the search and again from the file:
 * `bobi verify` (an independent check written like BOBILib's feasibility
   checker): 29 of 29 pass.
 
+An independent review re-checked all 29 files twice more. The first check
+was `bobi verify --generic --time-limit 600`. The second read the MPS files
+with HiGHS 1.15 (highspy) instead of `mps.rs`, parsed the AUX files itself,
+and solved each follower again. All 29 pass both checks. Every follower
+problem solves to proven optimality within a second.
+
+**Tolerance note.** The best response allows the follower's value to sit up
+to 1e-7 (1 + |phi|) above its optimum, which is well inside BOBILib's
+relative 1e-4. The leader's objective uses that slack. In 9 files the
+follower's value is about 1e-7 (relative) above the optimum: ic97_potential,
+seymour1, uct-subprob, n4-3, n5-3, n9-3, neos17, pg and neos-2978193-inde.
+
+With the follower held to its optimum (within 1e-9 relative) at the same
+leader values, the tie-break gives a slightly worse leader objective:
+
+| instance | leader objective |
+| --- | --- |
+| ic97_potential | 4197 |
+| seymour1 | 960.63317 |
+| uct-subprob | 848 |
+| n4-3 | 50621410 |
+| n5-3 | 30001774.97 |
+| n9-3 | 74423854.94 |
+| neos17 | 0.6872 |
+
+For pg_50_50 and neos-2978193-inde_50_50, no such point exists at the files'
+own leader values: the coupling rows force the follower 1.0e-7 (relative)
+above its optimum there. Fixing only the linking variables gives the same
+follower problem. With the other leader variables free, the coupling rows
+allow a follower response at its exact optimum, so both instances do have
+bilevel feasible points. The two files themselves are feasible only within
+the tolerance.
+
 ## Files
 
 * `<instance>.res.json`: the point in BOBILib's solution format (status

@@ -1079,10 +1079,13 @@ impl<'a> Search<'a> {
             Ok(x) => x,
             Err(e) => return e,
         };
+        let blocked = self.current.blocked;
         let e = self.evaluate(&x, "hpr");
         match self.handle(e) {
             (Some(s), _) => s,
-            (None, Some(_)) => "HPR leader blocked".into(),
+            // `handle` also passes on the response of an unresolved leader
+            // (a best response that hit its time limit), so ask the counter.
+            (None, Some(_)) if self.current.blocked > blocked => "HPR leader blocked".into(),
             _ => "HPR leader unresolved".into(),
         }
     }
