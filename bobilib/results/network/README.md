@@ -11,7 +11,10 @@ from the model files with no disagreement: all 34 trees (tree DP) and the
 12 `rndgraph-25` random graphs (HiGHS as the follower at every attack). The
 other 24 (`rndgraph-50`, `rndgraph-80`) were not enumerated; BOBILib's
 solution files for them pass `bobi verify`, which shows their values are
-attained but does not re-prove optimality.
+attained but does not re-prove optimality. An independent review (last
+section) confirms all of this with separate code and also re-derives 8 of
+those 24 by brute force (`rndgraph-50_1-3-3`, `rndgraph-80_2-2-2`), so 54
+of the 70 are re-derived in all.
 
 | Instances | BOBILib | This work |
 | --- | --- | --- |
@@ -19,7 +22,7 @@ attained but does not re-prove optimality.
 | `tree-50_1-5-5_006` | feasible, 26 | **optimal, 26**: 4 of the 2,138,410 attacks reach it |
 | `tree-50_1-5-5_010` | feasible, 26 | **optimal, 26**: 28 of the 2,138,410 attacks reach it |
 | 12 `rndgraph-25` | optimal | the same value on all 12, certified (HiGHS at every attack) |
-| 24 `rndgraph-50`, `rndgraph-80` | optimal | not enumerated; BOBILib's points verified feasible with the stated value |
+| 24 `rndgraph-50`, `rndgraph-80` | optimal | not enumerated by `bobi fire`; BOBILib's points verified feasible with the stated value; the review's brute force re-derives the 8 `rndgraph-50_1-3-3` and `rndgraph-80_2-2-2` values |
 
 The two open instances have 49 nodes (one of 50 already vaccinated) and
 42 and 44 edges (forests of 7 and 5 trees), with Phi = Lambda = 5. The
@@ -40,7 +43,9 @@ solutions:
 **Runtime** (one thread, on a 4-core machine already running other jobs at
 a load of about 17; under 20 MB of memory): 80 s and 70 s for the full
 enumeration of `_006` and `_010`, every follower point checked against the
-model, then 8 s for the 502 HiGHS follower solves each. All 36 trees, 9.34
+model, then 8 s for the 502 HiGHS follower solves each. These are wall
+times on a loaded machine: a review re-run of `_006` with `--sample 0`
+used 32 s of CPU time (75 s wall) and 11 MB peak memory. All 36 trees, 9.34
 million attacks in all, took 637 s: 317 s of enumeration and the rest HiGHS
 cross-checks.
 
@@ -55,7 +60,7 @@ objective equal to HiGHS's optimum.
   `rndgraph-25` random graphs (8 of which have cycles, where the DP does
   not apply) give BOBILib's optimal values. That also checks the reading of the model
   on graphs with cycles. The 24 larger random graphs were left out: one
-  HiGHS follower solve takes 1 to 16 s on them here (the `seconds` column
+  HiGHS follower solve takes 0.7 to 16 s on them here (the `seconds` column
   of `verify_bobilib.tsv`), and they have 3,082 to 2,138,410 attacks each.
 * **Independent verifier** (`bobi verify`, modelled on BOBILib's
   feasibility checker: rows, bounds and integrality within 1e-6, the stated
@@ -134,6 +139,11 @@ Solutions are written as `<name>.res.json` in BOBILib's format, with status
 * `verify_ours.tsv`, `verify_bobilib.tsv`: `bobi verify` on the 36
   solution files here and on BOBILib's 72 `inter-fire` solution files.
 * `<name>.res.json`: certified solutions for the 36 tree instances.
+* `review.tsv`: the independent review, one row per instance (method
+  `enum` = reviewer's DP with witnesses, `brute` = brute force over
+  protection sets at every attack; `dp_equals_treedp` = DP value equal to
+  `TreeDp::solve` at every attack; checks of BOBILib's and these solution
+  files).
 
 ## Reproduce
 
@@ -154,4 +164,58 @@ S=data/collection-solutions/interdiction-solutions/network-interdiction-solution
 # BOBILib-style verification of these files and of BOBILib's
 ./target/release/bobi verify --instances $D results/network > results/network/verify_ours.tsv
 ./target/release/bobi verify --instances $D --time-limit 300 $S > results/network/verify_bobilib.tsv
+```
+
+## Independent review
+
+A reviewer re-derived the model from the MPS/AUX files and re-solved the
+instances with separate code, `scripts/fire_review/` (C and Python, written
+before reading `src/fire.rs`); per-instance results are in `review.tsv`.
+
+* `parse_fire_model.py` asserts the pattern above on all 72 MPS/AUX pairs
+  (every column, coefficient, right-hand side, bound and the AUX level
+  split) and writes each graph. All 36 `tree-*` graphs are forests, and so
+  are 4 of the 12 `rndgraph-25`.
+* The follower's optimum at an attack Y is max over protection sets X
+  (|X| <= Lambda) of n - |B(Y, X)|, where B is the closure of Y under
+  spreading to unprotected neighbours: for fixed X the feasible `a` are
+  closed under taking maxima, and the largest one is 0 exactly on B. (Also
+  checked against brute force over every (a, x) on 400 random graphs of up
+  to 6 nodes.) `fire_check brute` uses only this, with no DP.
+* `fire_check enum` (its own tree DP, each traced point checked against
+  every row and its X by the closure) gives, on all 36 trees, the same
+  optimum, attack count and number of optimal attacks as `summary.csv`;
+  at every optimal attack, brute force over all X with |X| <= Lambda gives
+  the same value. For `tree-50_1-5-5_006` and `_010`: 2,138,410 attacks
+  each, minimum 26, reached by 4 and 28 attacks (BOBILib's attack among
+  them), per-size minima as stated above; 86 s and 90 s wall on one thread.
+  So both are optimal at 26 by a second, independent computation.
+* `fire_check hash`: the DP value at every attack equals `TreeDp::solve`'s
+  on all 40 forests (9,344,902 attacks; compared by a hash of the value
+  sequence).
+* `fire_check brute` agrees with the reviewer's DP at every attack on 32
+  forests (the 28 trees other than `tree-50_1-5-5` and `tree-80_3-3-3`,
+  where 150 random full-budget attacks each agree, and the 4 forest
+  `rndgraph-25`), and re-derives BOBILib's optimal values without any DP
+  on 20 random graphs: the 12 `rndgraph-25`, the 4 `rndgraph-50_1-3-3` (7,
+  5, 11, 7; 130 to 160 s each) and the 4 `rndgraph-80_2-2-2` (2, 6, 2, 2;
+  6 s each). With the 34 trees that makes 54 of BOBILib's 70 optimal values
+  re-derived. The other 16 (`rndgraph-50_1-5-3`, `rndgraph-50_3-5-5`,
+  `rndgraph-80_1-3-3`, `rndgraph-80_3-3-3`) are only shown to be attained.
+* `check_solution.py` with `fire_check eval`: all 36 solution files here
+  and all 72 of BOBILib's are feasible, state their sum of `a`, and their
+  follower part is optimal by brute force over all X at their attack.
+  `bobi verify --generic --time-limit 300` (HiGHS for every follower) also
+  passes all 36 and all 72.
+
+```sh
+cd bobilib/scripts/fire_review
+cc -O2 -o /tmp/fire_check fire_check.c
+D=../../data/collection/interdiction/network-interdiction/inter-fire
+mkdir -p /tmp/fire_g
+for f in $D/*.mps.gz; do b=$(basename $f .mps.gz); python3 -I parse_fire_model.py $f $D/$b.aux /tmp/fire_g; done
+/tmp/fire_check enum /tmp/fire_g/tree-50_1-5-5_006.g     # forests: DP + witnesses
+/tmp/fire_check brute /tmp/fire_g/rndgraph-50_1-3-3_002.g # any graph: brute force
+python3 -I check_solution.py /tmp/fire_g/tree-50_1-5-5_006.g ../../results/network/tree-50_1-5-5_006.res.json
+/tmp/fire_check eval /tmp/fire_g/tree-50_1-5-5_006.g 4,6,12,17,29
 ```
