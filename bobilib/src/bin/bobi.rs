@@ -1,4 +1,5 @@
 use bobi::{
+    coupled::{Method, Search, SearchOpts},
     kip::{Kip, SsOrder},
     mps,
     robust_ss::Outcome,
@@ -139,6 +140,43 @@ enum Cmd {
         threads: usize,
         #[arg(long)]
         out: Option<PathBuf>,
+    },
+    /// Verified feasible points for general instances with coupling rows.
+    Coupled {
+        files: Vec<PathBuf>,
+        /// Wall-clock budget per instance, in seconds.
+        #[arg(long, default_value_t = 600.0)]
+        time: f64,
+        /// Cap on one follower or best-response solve.
+        #[arg(long, default_value_t = 120.0)]
+        follower_time: f64,
+        /// Cap on one HPR-type master solve, as a fraction of the budget.
+        #[arg(long, default_value_t = 0.3)]
+        master_frac: f64,
+        /// Methods in order: hpr, follow, penalty, padm, perturb, vcut, nogood.
+        #[arg(long, default_value = "hpr,follow,penalty,padm,perturb,vcut,nogood")]
+        methods: String,
+        /// Keep searching after the first point for a better one.
+        #[arg(long)]
+        improve: bool,
+        /// Write verified points here (BOBILib solution format).
+        #[arg(long)]
+        out: Option<PathBuf>,
+        #[arg(long)]
+        log: bool,
+    },
+    /// Why the HPR's leader choice fails the coupling rows.
+    CoupledDiag {
+        files: Vec<PathBuf>,
+        #[arg(long, default_value_t = 60.0)]
+        time: f64,
+    },
+    /// Re-check a solution file: rows, bounds and follower optimality.
+    Certify {
+        mps: PathBuf,
+        solution: PathBuf,
+        #[arg(long, default_value_t = 600.0)]
+        follower_time: f64,
     },
     /// Certify that the follower is unbounded for every leader choice.
     Ray {
@@ -567,6 +605,73 @@ fn main() {
                     }
                 }
             }
+        }
+        Cmd::Coupled {
+            files,
+            time,
+            follower_time,
+            master_frac,
+            methods,
+            improve,
+            out,
+            log,
+        } => {
+            let methods: Vec<Method> = methods
+                .split(',')
+                .map(|s| Method::parse(s.trim()).unwrap_or_else(|| panic!("unknown method {s}")))
+                .collect();
+            let opts = SearchOpts {
+                time,
+                follower_time,
+                master_frac,
+                methods,
+                log,
+                improve,
+            };
+            for path in files {
+                run_coupled(&path, &opts, out.as_deref());
+            }
+        }
+        Cmd::CoupledDiag { files, time } => {
+            for path in files {
+                let m = mps::read_instance(&path).unwrap_or_else(|e| panic!("{e}"));
+                let opts = SearchOpts {
+                    time,
+                    follower_time: time,
+                    master_frac: 1.0,
+                    methods: vec![],
+                    log: false,
+                    improve: false,
+                };
+                let mut s = Search::new(&m, opts);
+                println!("{}: {} coupling rows", m.name, s.split.coupling.len());
+                for line in s.diagnose() {
+                    println!("  {line}");
+                }
+            }
+        }
+        Cmd::Certify {
+            mps: path,
+            solution,
+            follower_time,
+        } => {
+            let m = mps::read_instance(&path).unwrap_or_else(|e| panic!("{e}"));
+            let s = SolutionFile::read(&solution).unwrap_or_else(|e| panic!("{e}"));
+            let c = bobi::coupled::certify(&m, &s.values(&m), follower_time);
+            println!(
+                "{}\t{}\tupper={}\tlower={}\tphi_bound={}\tphi_value={}\trel_error={:.2e}\ttie_bound={}\ttie_rel_error={:.2e}\tmax_violation={:.2e} {}",
+                m.name,
+                if c.ok { "VERIFIED" } else { "REJECTED" },
+                c.upper_obj,
+                c.lower_obj,
+                c.phi_bound,
+                c.phi_value,
+                c.rel_error,
+                c.tie_bound,
+                c.tie_rel_error,
+                c.max_violation,
+                c.worst
+            );
         }
         Cmd::Ray { files, out } => {
             for path in files {
@@ -1053,4 +1158,83 @@ fn run_general(files: Vec<PathBuf>, hpr_time: f64, follower_time: f64, out: Opti
             ),
         }
     }
+}
+
+/// One JSON line per instance: the verified point (if any), the method that
+/// found it and what every method did.
+fn run_coupled(path: &Path, opts: &SearchOpts, out: Option<&Path>) {
+    use serde_json::{json, Value};
+    let t = Instant::now();
+    let m = match mps::read_instance(path) {
+        Ok(m) => m,
+        Err(e) => {
+            println!(
+                "{}",
+                json!({"file": path.display().to_string(), "error": e})
+            );
+            return;
+        }
+    };
+    let mut s = Search::new(&m, opts.clone());
+    let nlink = s.split.linking.iter().filter(|&&l| l).count();
+    let nlink_int = (0..m.vars.len())
+        .filter(|&j| s.split.linking[j] && m.vars[j].integer)
+        .count();
+    let ncoup = s.split.coupling.len();
+    s.run();
+    let tenth = |x: f64| (x * 10.0).round() / 10.0;
+    let reports: Vec<Value> = s
+        .reports
+        .iter()
+        .map(|r| {
+            json!({"method": r.name, "masters": r.masters, "leaders": r.leaders,
+                   "blocked": r.blocked, "secs": tenth(r.secs), "end": r.end, "found": r.found})
+        })
+        .collect();
+    let mut line = json!({
+        "name": m.name,
+        "vars": m.vars.len(),
+        "follower_vars": m.vars.iter().filter(|v| v.lower).count(),
+        "rows": m.rows.len(),
+        "coupling_rows": ncoup,
+        "linking_vars": nlink,
+        "integer_linking_vars": nlink_int,
+        "hpr": s.hpr_status.map(|st| format!("{st:?}")),
+        "secs": tenth(t.elapsed().as_secs_f64()),
+        "time_limit": opts.time,
+        "reports": reports,
+    });
+    let obj = line.as_object_mut().unwrap();
+    match &s.best {
+        Some(f) => {
+            obj.insert("status".into(), json!("point"));
+            obj.insert("method".into(), json!(f.method));
+            obj.insert("secs_to_point".into(), json!(tenth(f.secs)));
+            obj.insert("upper_obj".into(), json!(f.cert.upper_obj));
+            obj.insert("lower_obj".into(), json!(f.cert.lower_obj));
+            obj.insert("phi_bound".into(), json!(f.cert.phi_bound));
+            obj.insert("rel_error".into(), json!(f.cert.rel_error));
+            obj.insert("tie_bound".into(), json!(f.cert.tie_bound));
+            obj.insert("tie_rel_error".into(), json!(f.cert.tie_rel_error));
+            obj.insert("max_violation".into(), json!(f.cert.max_violation));
+            obj.insert("free_leader".into(), json!(f.free_leader));
+            obj.insert("verified".into(), json!(f.cert.ok));
+            if let Some(dir) = out {
+                SolutionFile::from_values(&m, "feasible", &f.values)
+                    .write(&dir.join(format!("{}.res.json", m.name)))
+                    .unwrap();
+            }
+        }
+        None => {
+            let status = if s.hpr_status == Some(bobi::milp::MilpStatus::Infeasible) {
+                "hpr_infeasible"
+            } else if s.proven_infeasible {
+                "no_bilevel_point"
+            } else {
+                "none"
+            };
+            obj.insert("status".into(), json!(status));
+        }
+    }
+    println!("{line}");
 }

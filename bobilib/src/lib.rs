@@ -2,6 +2,7 @@
 //! instances, built around problem structure the general-purpose bilevel
 //! solvers do not exploit.
 
+pub mod coupled;
 pub mod general;
 pub mod kip;
 pub mod kp;
