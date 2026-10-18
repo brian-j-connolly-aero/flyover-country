@@ -14,14 +14,19 @@ pub struct SolutionFile {
     #[serde(default)]
     pub difficulty: Option<String>,
     pub objective_value: Option<f64>,
-    #[serde(default)]
+    #[serde(default, deserialize_with = "null_as_empty")]
     pub upper_level_decisions: Map<String, Value>,
-    #[serde(default)]
+    #[serde(default, deserialize_with = "null_as_empty")]
     pub lower_level_decisions: Map<String, Value>,
 }
 
 fn optimistic() -> String {
     "optimistic".into()
+}
+
+/// BOBILib writes `null` decisions for instances without a known solution.
+fn null_as_empty<'de, D: serde::Deserializer<'de>>(d: D) -> Result<Map<String, Value>, D::Error> {
+    Ok(Option::<Map<String, Value>>::deserialize(d)?.unwrap_or_default())
 }
 
 impl SolutionFile {

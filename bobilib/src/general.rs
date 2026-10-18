@@ -110,7 +110,9 @@ pub fn feasible_point(m: &Bilevel, hpr_time: f64, follower_time: f64) -> General
     match h.status {
         MilpStatus::Infeasible => return GeneralOutcome::Infeasible,
         MilpStatus::Optimal | MilpStatus::Feasible => {}
-        MilpStatus::Unbounded => return GeneralOutcome::Failed("HPR unbounded".into()),
+        MilpStatus::Unbounded | MilpStatus::InfeasibleOrUnbounded => {
+            return GeneralOutcome::Failed("HPR unbounded (or infeasible)".into())
+        }
         MilpStatus::Unknown => {
             return GeneralOutcome::Failed(format!("HPR found no point in {hpr_time}s"))
         }
@@ -120,7 +122,11 @@ pub fn feasible_point(m: &Bilevel, hpr_time: f64, follower_time: f64) -> General
     // Follower optimum at the HPR's leader values.
     let (fp, col) = follower_problem(m, &val, false, false);
     let f = fp.solve(follower_time, 1);
-    if f.status == MilpStatus::Unbounded {
+    // The HPR's own y is feasible here, so "infeasible or unbounded" means unbounded.
+    if matches!(
+        f.status,
+        MilpStatus::Unbounded | MilpStatus::InfeasibleOrUnbounded
+    ) {
         // The follower can drive its objective to minus infinity here, so
         // this leader choice admits no optimal follower response.
         return GeneralOutcome::Failed("follower unbounded at the HPR's leader values".into());
