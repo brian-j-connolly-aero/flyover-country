@@ -12,7 +12,7 @@ deletes. The recursion is that of `H`; only the base case changes, to
 `G_w(m, B) = [0, w - 1]`.
 
 * `G_sound`: the band version of `H_sound`.
-* `band_covers_sound`: the pruning rule `BandTables::covers`. A run `[a, b]`
+* `band_covers_sound`: the pruning rule `RobustTable::covers_run`. A run `[a, b]`
   of decided sums absorbs whatever the undecided classes contribute inside
   the band, so the target is hit exactly.
 * `G_one`, `G_sound_one`, `covers_sound_of_band`: with `w = 1` the band
@@ -55,7 +55,7 @@ theorem G_sound_any (w : ℕ) (cs : List Class) (hsorted : ∀ c ∈ cs, c.costs
   obtain ⟨h1, h2⟩ := counts_of_deletion hsorted hds
   exact G_sound w cs _ h1 B t h (Nat.le_trans h2 hB)
 
-/-- **The pruning rule `BandTables::covers`.** Say every sum in `[a, b]` is
+/-- **The pruning rule `RobustTable::covers_run`.** Say every sum in `[a, b]` is
 reachable from the decided survivors, and `t ∈ G_w` for the undecided classes
 with `[target - t, target - t + w - 1]` inside `[a, b]` (written without
 subtraction: `a + t ≤ target` and `target + w ≤ b + t + 1`; these imply the

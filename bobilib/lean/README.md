@@ -176,7 +176,7 @@ contribute a sum in `[t - w + 1, t]`, not exactly `t`.
   sum `s` with `s ≤ t < s + w`. The proof is the induction of `H_sound`.
 * `G_sound_any`: the same for deletions of arbitrary copies, as in
   `H_sound_any`.
-* `band_covers_sound`: the pruning rule `BandTables::covers`. Suppose the
+* `band_covers_sound`: the pruning rule `RobustTable::covers_run`. Suppose the
   decided survivors reach every sum in a run `[a, b]`, and `t ∈ G_w` for the
   undecided classes with `[target - t, target - t + w - 1]` inside `[a, b]`
   (stated as `a + t ≤ target` and `target + w ≤ b + t + 1`, which are the
@@ -229,9 +229,11 @@ every class has been played must lie in `A`. The list `cs` is the play order
   `s ≤ a ≤ s + (hi - lo)`. If `hi ∈ G_A(cs, B)`, then every deletion within
   `B` leaves a subset of `decided ++ survivors` with sum in `[lo, hi]` (the
   undecided survivors give `x` with `x + a = hi`; take `s + x`).
-  `node_table_sound` is this for `A = nodeEnd S lo hi`, and
-  `node_table_sound_any` for a table in any play order and a deletion of
-  arbitrary copies. The hypothesis `lo ≤ hi` matters: with `lo > hi` the
+  `node_table_sound` is this for `A = nodeEnd S lo hi`,
+  `node_table_sound_perm` for a table in any play order in the count
+  formulation (no order on the costs needed), and `node_table_sound_any`
+  for a table in any play order and a deletion of arbitrary copies (costs
+  ascending). The hypothesis `lo ≤ hi` matters: with `lo > hi` the
   natural-number `hi - lo` is 0 and the conclusion would be false; the code
   returns `-1` in that case.
 * `node_table_of_H`: the node rule contains the rule of `H` in the same play
@@ -273,15 +275,26 @@ and the base is `cap` on `A` and `-1` off it. (`minOver` and `maxOver` are the
 * `covers_threshold_sound` and `band_covers_threshold_sound`: `covers_sound`
   and `band_covers_sound` with the test on the stored threshold
   (`row[t] ≥ b` with `b ≤ cap`), as `RobustTable::covers` and
-  `RobustTable::covers_run` now do it.
-* `node_table_threshold_sound`: the per-node rule as the search uses it. With
-  `S` the decided sums, `lo ≤ hi`, `play` any permutation of the undecided
-  classes `cs`, sorted costs, and `B ≤ thr(nodeEnd S lo hi, cap, play, hi)`,
-  every deletion of undecided copies of cost at most `B` leaves a subset of
-  `decided ++ survivors` with sum in `[lo, hi]`. This covers both the prune
-  (`thr ≥ budget`) and the cache entry `remember(k, sums, thr)` (safe for
-  every budget up to `thr`).
-* Two `example`s evaluate `thr` by `decide` on small inputs.
+  `RobustTable::covers_run` now do it, for the tables of `build_band` (play
+  order = search order). `covers_threshold_sound_perm` and
+  `band_covers_threshold_sound_perm` are the same for a row that plays the
+  undecided classes in another order (`build_suffix`, the `--extra-kind`
+  tables).
+* `node_table_threshold_sound_counts`: the per-node rule as the search uses
+  it. With `S` the decided sums, `lo ≤ hi`, `play` any permutation of the
+  undecided classes `cs` and `B ≤ thr(nodeEnd S lo hi, cap, play, hi)`,
+  every choice of counts `rs[k] ≤ n_k` with `totalCost cs rs ≤ B` (the sum
+  of the code's `prefix[r]`) leaves a subset of `decided ++ survivors` with
+  sum in `[lo, hi]`. This covers both the prune (`thr ≥ budget`) and the
+  cache entry `remember(k, sums, thr)` (safe for every budget up to `thr`;
+  the theorem holds for every `decided` whose sums include `S`, so the entry
+  is valid for any node with the same `(k, sums)`). It assumes nothing about
+  the order of the costs, so it also covers classes after `restrict_copies`
+  (whose merged first cost can exceed the later ones).
+  `node_table_threshold_sound` is the form for deletions of arbitrary
+  copies, with costs ascending.
+* Three `example`s evaluate `thr` by `decide` on small inputs, one of them
+  with the node end set `nodeEnd`.
 
 Rust: `RobustTable::step` is one level of `thr` (`mx` holds the inner max for
 `j = 0..=n`, `prefix` stops at the first `P(r) > cap`, which with
@@ -331,11 +344,14 @@ These parts have no Lean proof:
   `guaranteed`);
 * that the Rust loops compute `thr` (sections 4d, 4e): `RobustTable::step`
   is checked against the recursion by reading it and by the tests
-  `threshold_matches_bitset` and `node_table_matches_definition_and_is_sound`,
-  not in Lean. The same holds for the shortcuts that are argued only in doc
-  comments: in `Search::node_table_threshold`, `step_range` computes only
-  the residuals in `[hi - Mb_i, min(hi, max A + Ma_i)]` and leaves stale
-  values outside that range, the pass stops early once the largest computed
+  `threshold_matches_bitset`, `node_table_matches_definition_and_is_sound`
+  and `tables_equal_lean_thr` (a direct transcription of `thr`, with costs
+  not ascending and classes of more than 63 copies), not in Lean. The same
+  holds for the shortcuts that are argued in doc comments (and exercised by
+  `tables_equal_lean_thr`): in `Search::node_table_threshold`, `step_range`
+  computes only the residuals in `[hi - Mb_i, min(hi, max A + Ma_i)]` and
+  leaves stale values outside that range, the pass stops early once the
+  largest computed
   threshold is below the budget (it then returns that value, which the
   caller treats as a failure), and classes with more than 63 copies fall back
   to `step`; the `row_max` and `blockmax` skips in `tables_cover` and

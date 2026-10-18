@@ -49,6 +49,7 @@ Every line should show only (some or all of) `propext`, `Classical.choice` and
 #print axioms Bobi.node_rule
 #print axioms Bobi.node_table_sound
 #print axioms Bobi.node_table_sound_any
+#print axioms Bobi.node_table_sound_perm
 #print axioms Bobi.node_table_of_H
 #print axioms Bobi.le_minOver
 #print axioms Bobi.le_maxOver
@@ -61,7 +62,10 @@ Every line should show only (some or all of) `propext`, `Classical.choice` and
 #print axioms Bobi.H_iff_thr
 #print axioms Bobi.covers_threshold_sound
 #print axioms Bobi.band_covers_threshold_sound
+#print axioms Bobi.covers_threshold_sound_perm
+#print axioms Bobi.band_covers_threshold_sound_perm
 #print axioms Bobi.node_table_threshold_sound
+#print axioms Bobi.node_table_threshold_sound_counts
 #print axioms Bobi.mantel
 #print axioms Bobi.mantel'
 #print axioms Bobi.triangle_survives

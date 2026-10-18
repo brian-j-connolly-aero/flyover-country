@@ -944,9 +944,10 @@ impl<'a> Search<'a> {
     /// the follower's strategy up by `hi - t` keeps every `j` feasible and
     /// ends in `S + (hi - t) ⊆ A`.) In threshold form this returns
     /// `thr_A(hi)` (capped at the root budget): the node is safe for every
-    /// budget up to it (`Bobi.node_table_sound` and
-    /// `Bobi.node_table_threshold_sound` in `lean/`; the range shortcuts and
-    /// the early exit below are not formalised).
+    /// budget up to it (`Bobi.node_table_sound_perm` and
+    /// `Bobi.node_table_threshold_sound_counts` in `lean/`; the range
+    /// shortcuts and the early exit below are not formalised, but
+    /// `tests::tables_equal_lean_thr` compares the result with `Bobi.thr`).
     ///
     /// `G_A` contains what the run rules of the tables of the same play
     /// order certify: `H` checks `target - s in G_{{0}}` for one `s in S`,
@@ -1544,5 +1545,117 @@ mod tests {
             }
         }
         assert!(promises > 1000);
+    }
+
+    /// `Bobi.thr` of `lean/Bobi/Threshold.lean` transcribed directly: the
+    /// base is `cap` on `a` and -1 off it, and
+    /// `thr(c :: cs, t) = min(cap, min over r <= n with P(r) <= cap of
+    /// P(r) + max(-1, max over j <= n - r with j v <= t of thr(cs, t - j v)))`,
+    /// with `P(r)` the sum of the first `r` costs in list order.
+    fn lean_thr(play: &[Class], a: &[bool], cap: i64, t: usize, memo: &mut HashMap<(usize, usize), i64>) -> i64 {
+        let Some((c, rest)) = play.split_first() else {
+            return if a[t] { cap } else { -1 };
+        };
+        if let Some(&x) = memo.get(&(play.len(), t)) {
+            return x;
+        }
+        let n = c.costs.len();
+        let mut res = cap;
+        for r in 0..=n {
+            let p: i64 = c.costs[..r].iter().sum();
+            if p > cap {
+                continue;
+            }
+            let mut mx = -1;
+            for j in 0..=n - r {
+                if j * c.value <= t {
+                    mx = mx.max(lean_thr(rest, a, cap, t - j * c.value, memo));
+                }
+            }
+            res = res.min(p + mx);
+        }
+        memo.insert((play.len(), t), res);
+        res
+    }
+
+    /// The Rust loops compute `Bobi.thr`: the node table (with the range
+    /// shortcuts of `step_range`, its fallback to `step` for more than 63
+    /// copies, and the early exit) gives `thr(nodeEnd S lo hi, cap, play, hi)`,
+    /// and `build_band` / `build_suffix` give `thr` with end set `[0, w - 1]`.
+    /// Unlike the tests above, costs need not be ascending (as after
+    /// `restrict_copies`), which the Lean recursion and the count form of
+    /// `Bobi.node_table_threshold_sound_counts` allow.
+    #[test]
+    fn tables_equal_lean_thr() {
+        let mut rnd = lcg(4242);
+        let (mut nodes, mut big, mut unsorted) = (0, 0, 0);
+        for round in 0..3000 {
+            let nclass = 1 + rnd(4) as usize;
+            let mut cl: Vec<Class> = (0..nclass)
+                .map(|i| {
+                    let n = if round % 5 == 0 && i == 0 { 60 + rnd(15) as usize } else { 1 + rnd(5) as usize };
+                    let mut costs: Vec<i64> = (0..n).map(|_| rnd(6) as i64).collect();
+                    costs.sort();
+                    Class { value: 1 + rnd(9) as usize, costs }
+                })
+                .collect();
+            cl.sort_by_key(|c| c.value);
+            cl.dedup_by_key(|c| c.value);
+            if rnd(2) == 0 {
+                restrict_copies(&mut cl, 1 + rnd(3) as usize);
+            } else {
+                for c in cl.iter_mut() {
+                    for i in (1..c.costs.len()).rev() {
+                        let j = rnd(i as u64 + 1) as usize;
+                        c.costs.swap(i, j);
+                    }
+                }
+            }
+            big += cl.iter().any(|c| c.costs.len() > 63) as usize;
+            unsorted += cl.iter().any(|c| c.costs.windows(2).any(|w| w[0] > w[1])) as usize;
+            let total: usize = cl.iter().map(|c| c.value * c.costs.len()).sum();
+            let hi = rnd((total as u64).min(150) + 6) as usize;
+            let lo = hi.saturating_sub(rnd(5) as usize);
+            let root = rnd(25) as i64;
+            let name = ["ratioasc", "desc", "ascv", "costasc", "costdesc", "ratiodesc"][round % 6];
+            let mut s = Search::new(&cl, lo, hi);
+            s.node_order = Some(name.into());
+            s.root_budget = root;
+            s.node_play = (0..cl.len()).map(|k| play_order(&cl, k, name)).collect();
+            for k in 0..cl.len() {
+                let mut sums = Sums::new(hi);
+                for x in 1..=hi {
+                    if rnd(4) == 0 {
+                        sums.0[x / 64] |= 1 << (x % 64);
+                    }
+                }
+                // `nodeEnd S lo hi`: some decided s with s <= t <= s + (hi - lo).
+                let a: Vec<bool> = (0..=hi).map(|t| (0..=t).any(|x| sums.get(x) && t <= x + (hi - lo))).collect();
+                let play: Vec<Class> = s.node_play[k].iter().map(|&i| cl[i].clone()).collect();
+                let want = lean_thr(&play, &a, root, hi, &mut HashMap::new());
+                assert_eq!(s.node_table_threshold(k, &sums, 0), want, "round {round} k={k}");
+                for b in 0..=root {
+                    let got = s.node_table_threshold(k, &sums, b);
+                    assert_eq!(got >= b, want >= b, "round {round} k={k} b={b}: early exit");
+                    if got >= b {
+                        assert_eq!(got, want, "round {round} k={k} b={b}");
+                    }
+                }
+                nodes += 1;
+            }
+            let w = 1 + rnd(3) as usize;
+            let band = RobustTable::build_band(&cl, hi, root, w);
+            let suffix = RobustTable::build_suffix(&cl, hi, root, w, name, |k| play_order(&cl, k, name));
+            let base: Vec<bool> = (0..=hi).map(|t| t < w).collect();
+            for k in 0..=cl.len() {
+                let ps: Vec<Class> = play_order(&cl, k, name).iter().map(|&i| cl[i].clone()).collect();
+                let (mut m1, mut m2) = (HashMap::new(), HashMap::new());
+                for t in 0..=hi {
+                    assert_eq!(band.threshold(k, t) as i64, lean_thr(&cl[k..], &base, root, t, &mut m1), "asc k={k} t={t}");
+                    assert_eq!(suffix.threshold(k, t) as i64, lean_thr(&ps, &base, root, t, &mut m2), "{name} k={k} t={t}");
+                }
+            }
+        }
+        assert!(nodes > 5000 && big > 100 && unsorted > 1000, "nodes {nodes}, big {big}, unsorted {unsorted}");
     }
 }

@@ -22,7 +22,8 @@ safe when `hi` is in the table.
 * `GA_sound_perm`: the classes may be played in any order; a table built
   for a permutation `play` of the undecided classes is sound for deletions
   given in the search order.
-* `node_rule`, `node_table_sound`: the per-node pruning rule.
+* `node_rule`, `node_table_sound`, `node_table_sound_perm`,
+  `node_table_sound_any`: the per-node pruning rule.
 -/
 
 @[expose] public section
@@ -263,6 +264,20 @@ theorem node_table_sound_any {decided : List ℕ} {S : ℕ → Prop}
     {B : ℕ} (h : GA (nodeEnd S lo hi) play B hi) (hB : (ds.map List.sum).sum ≤ B) :
     ∃ u, SubsetSum (decided ++ remaining cs (ds.map List.length)) u ∧ lo ≤ u ∧ u ≤ hi := by
   obtain ⟨x, a, hx, ⟨_, s, hs, hsa, has⟩, hxa⟩ := GA_sound_perm_any _ hplay hsorted ds hds h hB
+  exact ⟨s + x, (hS s hs).append hx, by omega, by omega⟩
+
+/-- The node rule for a table in any play order, in the count formulation
+the search branches on (`rs[k]` first copies of `cs[k]` deleted, at cost
+`delCost`). Unlike `node_table_sound_any` it needs no order on the costs, so
+it also covers classes after `restrict_copies`, whose merged first cost can
+exceed the later ones. -/
+theorem node_table_sound_perm {decided : List ℕ} {S : ℕ → Prop}
+    (hS : ∀ s, S s → SubsetSum decided s) {lo hi : ℕ} (hlh : lo ≤ hi)
+    {cs play : List Class} (hplay : play.Perm cs)
+    (rs : List ℕ) (hrs : List.Forall₂ (fun c r => r ≤ c.copies) cs rs)
+    {B : ℕ} (h : GA (nodeEnd S lo hi) play B hi) (hB : totalCost cs rs ≤ B) :
+    ∃ u, SubsetSum (decided ++ remaining cs rs) u ∧ lo ≤ u ∧ u ≤ hi := by
+  obtain ⟨x, a, hx, ⟨_, s, hs, hsa, has⟩, hxa⟩ := GA_sound_perm _ hplay rs hrs h hB
   exact ⟨s + x, (hS s hs).append hx, by omega, by omega⟩
 
 /-- The node rule contains the rule of `H` (`RobustTable::covers`, in the

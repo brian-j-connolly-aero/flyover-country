@@ -25,8 +25,12 @@ with `P(r)` the cost of the `r` cheapest copies of the first class played and
 * `thr_bounds`, `thr_eq_neg_one_iff`, `thr_greatest`: `thr(t) ∈ [-1, cap]`;
   `-1` means `t` is in the table at no budget, and otherwise `thr(t)` is the
   largest budget at which it is.
-* `G_iff_thr`, `H_iff_thr`: the same for the band tables and `H`.
-* `node_table_threshold_sound`: the node rule in the form the search uses.
+* `G_iff_thr`, `H_iff_thr`: the same for the band tables and `H`;
+  `covers_threshold_sound(_perm)`, `band_covers_threshold_sound(_perm)`: the
+  root rules on stored thresholds, in the search order or another play order.
+* `node_table_threshold_sound_counts`: the node rule in the form the search
+  uses (count formulation, any play order, any cost order);
+  `node_table_threshold_sound` for deletions of arbitrary copies.
 -/
 
 @[expose] public section
@@ -193,6 +197,35 @@ theorem band_covers_threshold_sound {decided : List ℕ} {a b : ℕ} (hdec : Win
     SubsetSum (decided ++ remaining cs rs) target :=
   band_covers_sound hdec cs rs hrs ((G_iff_thr w cap cs B t).1 h).2 hB hlo hhi
 
+/-- `covers_threshold_sound` for a table whose row plays the undecided classes
+`cs` in another order `play` (the width-1 tables of
+`RobustTable::build_suffix`, which `RobustTable::covers` also checks). -/
+theorem covers_threshold_sound_perm {decided : List ℕ} {s : ℕ} (hs : SubsetSum decided s)
+    (cap : ℕ) {cs play : List Class} (hplay : play.Perm cs) (rs : List ℕ)
+    (hrs : List.Forall₂ (fun c r => r ≤ c.copies) cs rs) {B t : ℕ}
+    (h : (B : ℤ) ≤ thr (· = 0) cap play t) (hB : totalCost cs rs ≤ B) :
+    SubsetSum (decided ++ remaining cs rs) (s + t) := by
+  obtain ⟨x, a, hx, ha, hxa⟩ :=
+    GA_sound_perm _ hplay rs hrs ((thr_iff _ cap play B t).1 h).2 hB
+  have ha' : a = 0 := ha
+  rw [show t = x by omega]
+  exact hs.append hx
+
+/-- `band_covers_threshold_sound` for a table in another play order `play`
+(`RobustTable::build_suffix` with `w > 1`, checked by
+`RobustTable::covers_run`). -/
+theorem band_covers_threshold_sound_perm {decided : List ℕ} {a b : ℕ}
+    (hdec : Window decided a b) {w : ℕ} (cap : ℕ) {cs play : List Class} (hplay : play.Perm cs)
+    (rs : List ℕ) (hrs : List.Forall₂ (fun c r => r ≤ c.copies) cs rs) {B t target : ℕ}
+    (h : (B : ℤ) ≤ thr (· < w) cap play t) (hB : totalCost cs rs ≤ B)
+    (hlo : a + t ≤ target) (hhi : target + w ≤ b + t + 1) :
+    SubsetSum (decided ++ remaining cs rs) target := by
+  obtain ⟨s, e, hs, he, hse⟩ :=
+    GA_sound_perm _ hplay rs hrs ((thr_iff _ cap play B t).1 h).2 hB
+  have he' : e < w := he
+  have := (hdec (target - s) (by omega) (by omega)).append hs
+  rwa [Nat.sub_add_cancel (by omega)] at this
+
 /-! ## The per-node rule in threshold form -/
 
 /-- **`Search::node_table_threshold`.** Let `S` be sums the decided survivors
@@ -212,6 +245,21 @@ theorem node_table_threshold_sound {decided : List ℕ} {S : ℕ → Prop} [Deci
     ∃ u, SubsetSum (decided ++ remaining cs (ds.map List.length)) u ∧ lo ≤ u ∧ u ≤ hi :=
   node_table_sound_any hS hlh hplay hsorted ds hds ((thr_iff _ cap play B hi).1 hthr).2 hB
 
+/-- `node_table_threshold_sound` in the count formulation the search branches
+on: `rs[k]` first copies of `cs[k]` deleted, `totalCost cs rs ≤ B` (the sum
+of the code's `prefix[r]`). No order on the costs is needed, so this also
+holds after `restrict_copies`. This is the statement the prune
+`thr ≥ budget` in `Search::node` and the cache entry
+`remember(k, sums, thr)` use. -/
+theorem node_table_threshold_sound_counts {decided : List ℕ} {S : ℕ → Prop} [DecidablePred S]
+    (hS : ∀ s, S s → SubsetSum decided s) {lo hi : ℕ} (hlh : lo ≤ hi) (cap : ℕ)
+    {cs play : List Class} (hplay : play.Perm cs)
+    (rs : List ℕ) (hrs : List.Forall₂ (fun c r => r ≤ c.copies) cs rs)
+    {B : ℕ} (hthr : (B : ℤ) ≤ thr (nodeEnd S lo hi) cap play hi)
+    (hB : totalCost cs rs ≤ B) :
+    ∃ u, SubsetSum (decided ++ remaining cs rs) u ∧ lo ≤ u ∧ u ≤ hi :=
+  node_table_sound_perm hS hlh hplay rs hrs ((thr_iff _ cap play B hi).1 hthr).2 hB
+
 /-! ## A check by evaluation
 
 One class of value 2 with deletion costs `[1, 2]`, end set `{0}` (the table
@@ -222,5 +270,11 @@ leader deletes the 1). -/
 
 example : thr (· = 0) 3 [⟨2, [1, 2]⟩] 2 = 2 := by decide
 example : thr (· = 0) 3 [⟨2, [1, 2]⟩, ⟨1, [1]⟩] 3 = 0 := by decide
+
+/-- The node end set on a small node: decided sums `{0, 3}`, band `[4, 5]`,
+one undecided copy of value 2 that costs 1. The end set is `{0, 1, 3, 4}`;
+the node is safe at budget 0 (`3 + 2 = 5`) but not at budget 1 (deleting the
+2 leaves `{0, 3}`), so `thr(hi) = 0`. -/
+example : thr (nodeEnd (· ∈ [0, 3]) 4 5) 1 [⟨2, [1]⟩] 5 = 0 := by decide
 
 end Bobi
