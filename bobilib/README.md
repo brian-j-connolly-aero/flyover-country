@@ -30,6 +30,11 @@ ln -s /path/to/bobilib-data data   # collection/ and collection-solutions/ from 
 | `bobi ss-solve MPS...` | Exact solver for subset-sum knapsack interdiction (profit = follower weight). |
 | `bobi lp-bound MPS...` | Bracket min over leader choices of the follower's LP value: a lower and an upper bound on the bilevel optimum. |
 | `bobi mkip MPS...` | Interdiction-cut loop with a HiGHS master (baseline). |
+| `bobi fire DIR\|MPS... [--only tree-]` | Attack-protect games (`inter-fire`): every attack, the follower solved exactly by a tree DP (HiGHS on graphs with cycles), certified optimum and solution file. See [results/network](results/network/README.md). |
+| `bobi general MPS...` | Feasible points for general instances without coupling rows: HPR, follower, tie-break. |
+| `bobi coupled MPS...` | Verified feasible points for general instances *with* coupling rows (time-limited portfolio, see below). |
+| `bobi coupled-diag MPS...` | Why the HPR's leader choice fails: least coupling violation over the follower's optima, and the rows that stay violated. |
+| `bobi certify MPS SOL` | Re-check a solution file the way BOBILib's checker does (rows, follower optimality, optimistic tie-break) with proven dual bounds. |
 
 ## Methods
 
@@ -61,6 +66,28 @@ ln -s /path/to/bobilib-data data   # collection/ and collection-solutions/ from 
   variables linearises exactly). Since a knapsack's integer optimum is within
   one item's profit of its LP value per knapsack row, this brackets the
   bilevel optimum.
+* `fire`: BOBILib's attack-protect set (`inter-fire`, Baggio et al. 2021).
+  The leader attacks at most Phi nodes and the follower protects at most
+  Lambda; an unprotected node is saved only if all its neighbours are. On a
+  forest the follower's MILP is a dynamic program over the four values of
+  (protect, saved) per node, with the budget as a knapsack dimension. Every
+  attack is enumerated and every DP follower point is checked against the
+  raw model, so the minimum over attacks is a proven lower bound; HiGHS
+  re-solves the follower at the minimiser.
+* `coupled`: feasible points when leader rows contain follower variables.
+  The follower depends on the leader only through the linking variables
+  x_L, so for fixed x_L one MILP (all rows, follower value at most its
+  optimum, leader objective, the other leader variables free) gives the
+  leader's best point or proves x_L *blocked*. The portfolio searches for an
+  unblocked x_L: the HPR's (`hpr`); best-response dynamics (`follow`); the
+  HPR with F + rho f (`penalty`); a penalty alternating direction method
+  with follower LP duals after Kleinert and Schmidt (`padm`); steps of the
+  continuous linking variables into the HPR's slice (`perturb`);
+  value-function cuts "the follower's last response is cut off at x_L, or
+  f(y) <= its value" (`vcut`, exact when the linking rows are integral); and
+  no-good cuts on integer linking variables (`nogood`). Every point is
+  re-certified from scratch; `vcut` and `nogood` can also prove that no
+  bilevel feasible point exists. Results: `results/general-coupled/`.
 
 ## Proofs
 

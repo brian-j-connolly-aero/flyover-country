@@ -1,0 +1,61 @@
+name,n,density,m,k,bobilib_value,lower_bound,upper_bound,status,lb_argument,ub_certificate
+normalClique40-70-1,40,0.7,546,136,6,3,3,optimal,Mantel: m-k=410 > floor(n^2/4)=400,3-partition with 125 inside edges <= k; residual max clique 3
+normalClique40-70-2,40,0.7,546,136,6,3,3,optimal,Mantel: m-k=410 > floor(n^2/4)=400,3-partition with 125 inside edges <= k; residual max clique 3
+normalClique40-70-3,40,0.7,546,136,6,3,3,optimal,Mantel: m-k=410 > floor(n^2/4)=400,3-partition with 126 inside edges <= k; residual max clique 3
+normalClique40-70-4,40,0.7,546,136,5,3,3,optimal,Mantel: m-k=410 > floor(n^2/4)=400,3-partition with 125 inside edges <= k; residual max clique 3
+normalClique40-70-5,40,0.7,546,136,7,3,3,optimal,Mantel: m-k=410 > floor(n^2/4)=400,3-partition with 128 inside edges <= k; residual max clique 3
+normalClique40-70-6,40,0.7,546,136,6,3,3,optimal,Mantel: m-k=410 > floor(n^2/4)=400,3-partition with 126 inside edges <= k; residual max clique 3
+normalClique40-70-7,40,0.7,546,136,5,3,3,optimal,Mantel: m-k=410 > floor(n^2/4)=400,3-partition with 123 inside edges <= k; residual max clique 3
+normalClique40-70-8,40,0.7,546,136,6,3,3,optimal,Mantel: m-k=410 > floor(n^2/4)=400,3-partition with 126 inside edges <= k; residual max clique 3
+normalClique40-70-9,40,0.7,546,136,6,3,3,optimal,Mantel: m-k=410 > floor(n^2/4)=400,3-partition with 125 inside edges <= k; residual max clique 3
+normalClique40-70-10,40,0.7,546,136,6,3,3,optimal,Mantel: m-k=410 > floor(n^2/4)=400,3-partition with 125 inside edges <= k; residual max clique 3
+normalClique40-90-1,40,0.9,702,175,10,4,4,optimal,"Brouwer 1981 Thm 2: m-k=527 >= t3(n)-floor(n/3)+2=522; w3(G) > k proved by CP-SAT, SCIP and split_bnb over 6 part-size vectors",4-partition with 131 inside edges <= k; residual max clique 4
+normalClique40-90-2,40,0.9,702,175,10,4,4,optimal,"Brouwer 1981 Thm 2: m-k=527 >= t3(n)-floor(n/3)+2=522; w3(G) > k proved by CP-SAT, SCIP and split_bnb over 6 part-size vectors",4-partition with 129 inside edges <= k; residual max clique 4
+normalClique40-90-3,40,0.9,702,175,9,4,4,optimal,"Brouwer 1981 Thm 2: m-k=527 >= t3(n)-floor(n/3)+2=522; w3(G) > k proved by CP-SAT, SCIP and split_bnb over 6 part-size vectors",4-partition with 128 inside edges <= k; residual max clique 4
+normalClique40-90-4,40,0.9,702,175,9,4,4,optimal,"Brouwer 1981 Thm 2: m-k=527 >= t3(n)-floor(n/3)+2=522; w3(G) > k proved by CP-SAT, SCIP and split_bnb over 6 part-size vectors",4-partition with 127 inside edges <= k; residual max clique 4
+normalClique40-90-5,40,0.9,702,175,10,4,4,optimal,"Brouwer 1981 Thm 2: m-k=527 >= t3(n)-floor(n/3)+2=522; w3(G) > k proved by CP-SAT, SCIP and split_bnb over 6 part-size vectors",4-partition with 128 inside edges <= k; residual max clique 4
+normalClique40-90-6,40,0.9,702,175,10,4,4,optimal,"Brouwer 1981 Thm 2: m-k=527 >= t3(n)-floor(n/3)+2=522; w3(G) > k proved by CP-SAT, SCIP and split_bnb over 6 part-size vectors",4-partition with 127 inside edges <= k; residual max clique 4
+normalClique40-90-7,40,0.9,702,175,9,4,4,optimal,"Brouwer 1981 Thm 2: m-k=527 >= t3(n)-floor(n/3)+2=522; w3(G) > k proved by CP-SAT, SCIP and split_bnb over 6 part-size vectors",4-partition with 127 inside edges <= k; residual max clique 4
+normalClique40-90-8,40,0.9,702,175,11,4,4,optimal,"Brouwer 1981 Thm 2: m-k=527 >= t3(n)-floor(n/3)+2=522; w3(G) > k proved by CP-SAT, SCIP and split_bnb over 6 part-size vectors",4-partition with 129 inside edges <= k; residual max clique 4
+normalClique40-90-9,40,0.9,702,175,10,4,4,optimal,"Brouwer 1981 Thm 2: m-k=527 >= t3(n)-floor(n/3)+2=522; w3(G) > k proved by CP-SAT, SCIP and split_bnb over 6 part-size vectors",4-partition with 130 inside edges <= k; residual max clique 4
+normalClique40-90-10,40,0.9,702,175,10,4,4,optimal,"Brouwer 1981 Thm 2: m-k=527 >= t3(n)-floor(n/3)+2=522; w3(G) > k proved by CP-SAT, SCIP and split_bnb over 6 part-size vectors",4-partition with 130 inside edges <= k; residual max clique 4
+normalClique50-70-1,50,0.7,857,214,7,3,3,optimal,Mantel: m-k=643 > floor(n^2/4)=625,3-partition with 205 inside edges <= k; residual max clique 3
+normalClique50-70-2,50,0.7,857,214,7,3,3,optimal,Mantel: m-k=643 > floor(n^2/4)=625,3-partition with 205 inside edges <= k; residual max clique 3
+normalClique50-70-3,50,0.7,857,214,7,3,3,optimal,Mantel: m-k=643 > floor(n^2/4)=625,3-partition with 208 inside edges <= k; residual max clique 3
+normalClique50-70-4,50,0.7,857,214,7,3,3,optimal,Mantel: m-k=643 > floor(n^2/4)=625,3-partition with 203 inside edges <= k; residual max clique 3
+normalClique50-70-5,50,0.7,857,214,7,3,3,optimal,Mantel: m-k=643 > floor(n^2/4)=625,3-partition with 205 inside edges <= k; residual max clique 3
+normalClique50-70-6,50,0.7,857,214,8,3,3,optimal,Mantel: m-k=643 > floor(n^2/4)=625,3-partition with 209 inside edges <= k; residual max clique 3
+normalClique50-70-7,50,0.7,857,214,8,3,3,optimal,Mantel: m-k=643 > floor(n^2/4)=625,3-partition with 205 inside edges <= k; residual max clique 3
+normalClique50-70-8,50,0.7,857,214,7,3,3,optimal,Mantel: m-k=643 > floor(n^2/4)=625,3-partition with 204 inside edges <= k; residual max clique 3
+normalClique50-70-9,50,0.7,857,214,7,3,3,optimal,Mantel: m-k=643 > floor(n^2/4)=625,3-partition with 210 inside edges <= k; residual max clique 3
+normalClique50-70-10,50,0.7,857,214,8,3,3,optimal,Mantel: m-k=643 > floor(n^2/4)=625,3-partition with 208 inside edges <= k; residual max clique 3
+normalClique50-90-1,50,0.9,1102,275,11,4,4,optimal,"Brouwer 1981 Thm 2: m-k=827 >= t3(n)-floor(n/3)+2=819; w3(G) > k proved by CP-SAT, SCIP and split_bnb over 6 part-size vectors",4-partition with 210 inside edges <= k; residual max clique 4
+normalClique50-90-2,50,0.9,1102,275,11,4,4,optimal,"Brouwer 1981 Thm 2: m-k=827 >= t3(n)-floor(n/3)+2=819; w3(G) > k proved by CP-SAT, SCIP and split_bnb over 6 part-size vectors",4-partition with 212 inside edges <= k; residual max clique 4
+normalClique50-90-3,50,0.9,1102,275,12,4,4,optimal,"Brouwer 1981 Thm 2: m-k=827 >= t3(n)-floor(n/3)+2=819; w3(G) > k proved by CP-SAT, SCIP and split_bnb over 6 part-size vectors",4-partition with 210 inside edges <= k; residual max clique 4
+normalClique50-90-4,50,0.9,1102,275,11,4,4,optimal,"Brouwer 1981 Thm 2: m-k=827 >= t3(n)-floor(n/3)+2=819; w3(G) > k proved by CP-SAT, SCIP and split_bnb over 6 part-size vectors",4-partition with 210 inside edges <= k; residual max clique 4
+normalClique50-90-5,50,0.9,1102,275,12,4,4,optimal,"Brouwer 1981 Thm 2: m-k=827 >= t3(n)-floor(n/3)+2=819; w3(G) > k proved by CP-SAT, SCIP and split_bnb over 6 part-size vectors",4-partition with 212 inside edges <= k; residual max clique 4
+normalClique50-90-6,50,0.9,1102,275,12,4,4,optimal,"Brouwer 1981 Thm 2: m-k=827 >= t3(n)-floor(n/3)+2=819; w3(G) > k proved by CP-SAT, SCIP and split_bnb over 6 part-size vectors",4-partition with 212 inside edges <= k; residual max clique 4
+normalClique50-90-7,50,0.9,1102,275,11,4,4,optimal,"Brouwer 1981 Thm 2: m-k=827 >= t3(n)-floor(n/3)+2=819; w3(G) > k proved by CP-SAT, SCIP and split_bnb over 6 part-size vectors",4-partition with 210 inside edges <= k; residual max clique 4
+normalClique50-90-8,50,0.9,1102,275,13,4,4,optimal,"Brouwer 1981 Thm 2: m-k=827 >= t3(n)-floor(n/3)+2=819; w3(G) > k proved by CP-SAT, SCIP and split_bnb over 6 part-size vectors",4-partition with 211 inside edges <= k; residual max clique 4
+normalClique50-90-9,50,0.9,1102,275,12,4,4,optimal,"Brouwer 1981 Thm 2: m-k=827 >= t3(n)-floor(n/3)+2=819; w3(G) > k proved by CP-SAT, SCIP and split_bnb over 6 part-size vectors",4-partition with 209 inside edges <= k; residual max clique 4
+normalClique50-90-10,50,0.9,1102,275,12,4,4,optimal,"Brouwer 1981 Thm 2: m-k=827 >= t3(n)-floor(n/3)+2=819; w3(G) > k proved by CP-SAT, SCIP and split_bnb over 6 part-size vectors",4-partition with 209 inside edges <= k; residual max clique 4
+normalClique60-70-1,60,0.7,1239,309,8,3,3,optimal,Mantel: m-k=930 > floor(n^2/4)=900,3-partition with 306 inside edges <= k; residual max clique 3
+normalClique60-70-2,60,0.7,1239,309,9,3,4,open,Mantel: m-k=930 > floor(n^2/4)=900,4-partition with 202 inside edges <= k; residual max clique 4
+normalClique60-70-3,60,0.7,1239,309,9,3,4,open,Mantel: m-k=930 > floor(n^2/4)=900,4-partition with 200 inside edges <= k; residual max clique 4
+normalClique60-70-4,60,0.7,1239,309,9,3,3,optimal,Mantel: m-k=930 > floor(n^2/4)=900,3-partition with 309 inside edges <= k; residual max clique 3
+normalClique60-70-5,60,0.7,1239,309,8,3,4,open,Mantel: m-k=930 > floor(n^2/4)=900,4-partition with 202 inside edges <= k; residual max clique 4
+normalClique60-70-6,60,0.7,1239,309,9,3,3,optimal,Mantel: m-k=930 > floor(n^2/4)=900,3-partition with 306 inside edges <= k; residual max clique 3
+normalClique60-70-7,60,0.7,1239,309,8,3,3,optimal,Mantel: m-k=930 > floor(n^2/4)=900,3-partition with 307 inside edges <= k; residual max clique 3
+normalClique60-70-8,60,0.7,1239,309,8,3,3,optimal,Mantel: m-k=930 > floor(n^2/4)=900,3-partition with 308 inside edges <= k; residual max clique 3
+normalClique60-70-9,60,0.7,1239,309,8,3,3,optimal,Mantel: m-k=930 > floor(n^2/4)=900,3-partition with 307 inside edges <= k; residual max clique 3
+normalClique60-70-10,60,0.7,1239,309,8,3,3,optimal,Mantel: m-k=930 > floor(n^2/4)=900,3-partition with 308 inside edges <= k; residual max clique 3
+normalClique60-90-1,60,0.9,1593,398,13,4,4,optimal,"Brouwer 1981 Thm 2: m-k=1195 >= t3(n)-floor(n/3)+2=1182; w3(G) > k proved by CP-SAT, SCIP and split_bnb over 5 part-size vectors",4-partition with 314 inside edges <= k; residual max clique 4
+normalClique60-90-2,60,0.9,1593,398,13,4,4,optimal,"Brouwer 1981 Thm 2: m-k=1195 >= t3(n)-floor(n/3)+2=1182; w3(G) > k proved by CP-SAT, SCIP and split_bnb over 5 part-size vectors",4-partition with 312 inside edges <= k; residual max clique 4
+normalClique60-90-3,60,0.9,1593,398,13,4,4,optimal,"Brouwer 1981 Thm 2: m-k=1195 >= t3(n)-floor(n/3)+2=1182; w3(G) > k proved by CP-SAT, SCIP and split_bnb over 5 part-size vectors",4-partition with 311 inside edges <= k; residual max clique 4
+normalClique60-90-4,60,0.9,1593,398,12,4,4,optimal,"Brouwer 1981 Thm 2: m-k=1195 >= t3(n)-floor(n/3)+2=1182; w3(G) > k proved by CP-SAT, SCIP and split_bnb over 5 part-size vectors",4-partition with 313 inside edges <= k; residual max clique 4
+normalClique60-90-5,60,0.9,1593,398,12,4,4,optimal,"Brouwer 1981 Thm 2: m-k=1195 >= t3(n)-floor(n/3)+2=1182; w3(G) > k proved by CP-SAT, SCIP and split_bnb over 5 part-size vectors",4-partition with 311 inside edges <= k; residual max clique 4
+normalClique60-90-6,60,0.9,1593,398,13,4,4,optimal,"Brouwer 1981 Thm 2: m-k=1195 >= t3(n)-floor(n/3)+2=1182; w3(G) > k proved by CP-SAT, SCIP and split_bnb over 5 part-size vectors",4-partition with 314 inside edges <= k; residual max clique 4
+normalClique60-90-7,60,0.9,1593,398,13,4,4,optimal,"Brouwer 1981 Thm 2: m-k=1195 >= t3(n)-floor(n/3)+2=1182; w3(G) > k proved by CP-SAT, SCIP and split_bnb over 5 part-size vectors",4-partition with 313 inside edges <= k; residual max clique 4
+normalClique60-90-8,60,0.9,1593,398,12,4,4,optimal,"Brouwer 1981 Thm 2: m-k=1195 >= t3(n)-floor(n/3)+2=1182; w3(G) > k proved by CP-SAT, SCIP and split_bnb over 5 part-size vectors",4-partition with 310 inside edges <= k; residual max clique 4
+normalClique60-90-9,60,0.9,1593,398,12,4,4,optimal,"Brouwer 1981 Thm 2: m-k=1195 >= t3(n)-floor(n/3)+2=1182; w3(G) > k proved by CP-SAT, SCIP and split_bnb over 5 part-size vectors",4-partition with 312 inside edges <= k; residual max clique 4
+normalClique60-90-10,60,0.9,1593,398,12,4,4,optimal,"Brouwer 1981 Thm 2: m-k=1195 >= t3(n)-floor(n/3)+2=1182; w3(G) > k proved by CP-SAT, SCIP and split_bnb over 5 part-size vectors",4-partition with 317 inside edges <= k; residual max clique 4

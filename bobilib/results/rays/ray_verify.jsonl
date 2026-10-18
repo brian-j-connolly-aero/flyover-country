@@ -1,0 +1,43 @@
+{"instance": "biella1_50_50.mps.gz", "verified": true, "objective_along_d": -444178600.0, "support": 621, "problems": []}
+{"instance": "binkar10_1_50_50.mps.gz", "verified": true, "objective_along_d": -90000000.0, "support": 208, "problems": []}
+{"instance": "core2536-691_50_50.mps.gz", "verified": true, "objective_along_d": -200.9, "support": 9, "problems": []}
+{"instance": "neos-1396125_0_100.mps.gz", "verified": true, "objective_along_d": -240.0, "support": 3, "problems": []}
+{"instance": "neos-1396125_50_50.mps.gz", "verified": true, "objective_along_d": -240.0, "support": 3, "problems": []}
+{"instance": "neos-476283_0_100.mps.gz", "verified": true, "objective_along_d": -369.0, "support": 369, "problems": []}
+{"instance": "neos-476283_50_50.mps.gz", "verified": true, "objective_along_d": -369.0, "support": 369, "problems": []}
+{"instance": "rail507_0_100.mps.gz", "verified": true, "objective_along_d": -201.0, "support": 10, "problems": []}
+{"instance": "rail507_50_50.mps.gz", "verified": true, "objective_along_d": -201.0, "support": 10, "problems": []}
+{"instance": "rmatr100-p10_0_100.mps.gz", "verified": true, "objective_along_d": -61179.0, "support": 3679, "problems": []}
+{"instance": "rmatr100-p10_50_50.mps.gz", "verified": true, "objective_along_d": -61179.0, "support": 3679, "problems": []}
+{"instance": "rmatr100-p5_0_100.mps.gz", "verified": true, "objective_along_d": -117792.0, "support": 4392, "problems": []}
+{"instance": "rmatr100-p5_50_50.mps.gz", "verified": true, "objective_along_d": -117792.0, "support": 4392, "problems": []}
+{"instance": "buildingenergy_0_100.mps.gz", "verified": true, "objective_along_d": -10766.212, "support": 17, "problems": []}
+{"instance": "buildingenergy_50_50.mps.gz", "verified": true, "objective_along_d": -11236.372, "support": 8777, "problems": []}
+{"instance": "cost266-UUE_50_50.mps.gz", "verified": true, "objective_along_d": -13041.23, "support": 2024, "problems": []}
+{"instance": "irish-electricity_0_100.mps.gz", "verified": true, "objective_along_d": -5206.0, "support": 5206, "problems": []}
+{"instance": "irish-electricity_50_50.mps.gz", "verified": true, "objective_along_d": -5206.0, "support": 5206, "problems": []}
+{"instance": "lotsize_50_50.mps.gz", "verified": true, "objective_along_d": -871.0, "support": 297, "problems": []}
+{"instance": "mad_0_100.mps.gz", "verified": true, "objective_along_d": -20.0, "support": 20, "problems": []}
+{"instance": "mad_50_50.mps.gz", "verified": true, "objective_along_d": -20.0, "support": 20, "problems": []}
+{"instance": "neos-3627168-kasai_50_50.mps.gz", "verified": true, "objective_along_d": -3.0, "support": 3, "problems": []}
+{"instance": "neos-5093327-huahum_0_100.mps.gz", "verified": true, "objective_along_d": -3968.0, "support": 3968, "problems": []}
+{"instance": "neos-5093327-huahum_50_50.mps.gz", "verified": true, "objective_along_d": -3968.0, "support": 3968, "problems": []}
+{"instance": "rmatr200-p5_0_100.mps.gz", "verified": true, "objective_along_d": -988708.0, "support": 18908, "problems": []}
+{"instance": "rmatr200-p5_50_50.mps.gz", "verified": true, "objective_along_d": -988708.0, "support": 18908, "problems": []}
+{"instance": "snp-02-004-104_0_100.mps.gz", "verified": true, "objective_along_d": -10400000.0, "support": 104, "problems": []}
+{"instance": "snp-02-004-104_50_50.mps.gz", "verified": true, "objective_along_d": -10400000.0, "support": 104, "problems": []}
+{"instance": "supportcase40_0_100.mps.gz", "verified": true, "objective_along_d": -338410.0838, "support": 3360, "problems": []}
+{"instance": "supportcase40_50_50.mps.gz", "verified": true, "objective_along_d": -338410.0838, "support": 3360, "problems": []}
+{"instance": "supportcase42_0_100.mps.gz", "verified": false, "objective_along_d": -8706.0, "support": 9733, "problems": ["row c8645 (L): a.d = 6643587411493410548633195253770806154281237409055321333841468526492517128008466366697777947976400277703961055543/27995557481604455939146676692618582076084368629155114889907465874034598690164555446715214852442527667198099531250000000000000 > 0", "row c6566 (L): a.d = 4197805454732972092898982300500272093764770137053921212185827901358348226092773794819806984577144558007954448304494104963906318775783047249193/7827600798836629505503928846575239824576014353228867594187972506936743470023663128667766406321855168256770878229676491953415316937829664000000000000000000 > 0", "row c9228 (L): a.d = 107078715551665544065088230497063913763788830441883021701428058478859264180092072378471/353301725628783957119357898922606482933772794572970505561049787489420907960664998300000000000000000 > 0", "row c4411 (L): a.d = 400229717062600491426203903899929472576488430592717828712259718318195305353518125439930664565504543239736651123696313621383891/2781503957678584442079641955359288784670152898797890417951761097518239775115266993761538714085807705734573194061976068170000000000000000000 > 0", "row c8519 (L): a.d = 11090987683934238276839066677388481011186111547431809863854910992477830882126478306200854779704680505056635546442947724942276029/20409489580665942520022607394372939944668693916756573942395515892934786422430812157048433906661423616889436619580377603480000000000000000000 > 0"]}
+{"instance": "supportcase42_50_50.mps.gz", "verified": false, "objective_along_d": -8706.0, "support": 9733, "problems": ["row c9661 (L): a.d = 193731911913/129561500000000000000000 > 0", "row c9637 (L): a.d = 193731911913/129561500000000000000000 > 0", "row c9673 (L): a.d = 193731911913/129561500000000000000000 > 0", "row c9665 (L): a.d = 193731911913/129561500000000000000000 > 0", "row c9641 (L): a.d = 193731911913/129561500000000000000000 > 0"]}
+{"instance": "tr12-30_50_50.mps.gz", "verified": true, "objective_along_d": -405.0, "support": 180, "problems": []}
+{"instance": "trento1_50_50.mps.gz", "verified": true, "objective_along_d": -33097000.0, "support": 655, "problems": []}
+{"instance": "brazil3_0_100.mps.gz", "verified": true, "objective_along_d": -1.0, "support": 3, "problems": []}
+{"instance": "brazil3_50_50.mps.gz", "verified": true, "objective_along_d": -1.0, "support": 11, "problems": []}
+{"instance": "gen-ip054_0_100.mps.gz", "verified": false, "objective_along_d": -1475.2477026222284, "support": 9, "problems": ["row R0000025 (L): a.d = 169/1580756000000000 > 0"]}
+{"instance": "gen-ip054_50_50.mps.gz", "verified": false, "objective_along_d": -2718.0650455812283, "support": 13, "problems": ["row R0000025 (L): a.d = 169/1580756000000000 > 0"]}
+{"instance": "highschool1-aigio_0_100.mps.gz", "verified": true, "objective_along_d": -1.0, "support": 3, "problems": []}
+{"instance": "nu25-pr12_0_100.mps.gz", "verified": true, "objective_along_d": -9000.0, "support": 36, "problems": []}
+{"instance": "nu25-pr12_50_50.mps.gz", "verified": true, "objective_along_d": -9000.0, "support": 36, "problems": []}
+{"instance": "gen-ip054_0_100.mps.gz", "verified": true, "objective_along_d": -1475.2477026237293, "support": 9, "problems": []}
+{"instance": "gen-ip054_50_50.mps.gz", "verified": true, "objective_along_d": -2718.0650455811133, "support": 13, "problems": []}

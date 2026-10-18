@@ -12,8 +12,10 @@ Inputs (all optional except --meta; missing ones are skipped):
   runs/ss_*.tsv                    further local subset-sum runs (bobi ss-solve)
   runs/or_compare.csv              OR bounds vs literature (scripts/compare_or.py)
   results/clique/summary.csv      clique interdiction certificates
+  results/network/summary.csv     attack-protect certificates (bobi fire)
   results/general/hpr_optimal.csv general points meeting the HPR bound
   runs/general.jsonl               general feasible points (bobi general)
+  results/general-coupled/summary.csv  feasible points with coupling rows (bobi coupled)
   runs/ray_verify.jsonl            exact unbounded-follower certificates
 """
 import argparse
@@ -98,6 +100,10 @@ def main():
     for r in load_csv(f"{a.results}/clique/summary.csv"):
         if r.get("status") == "optimal" and r["name"] in status and status[r["name"]]["outcome"] is None:
             status[r["name"]].update(outcome="optimal", source="this work (Mantel/Brouwer + partitions)")
+    # This work: attack-protect trees certified by enumeration and a tree dynamic program.
+    for r in load_csv(f"{a.results}/network/summary.csv"):
+        if r.get("certified") == "true" and r["name"] in status and status[r["name"]]["outcome"] is None:
+            status[r["name"]].update(outcome="optimal", source="this work (every attack, follower by tree DP)")
     # This work: unbounded followers (no bilevel feasible point).
     p = f"{a.runs}/ray_verify.jsonl"
     if os.path.exists(p):
@@ -124,6 +130,11 @@ def main():
             n = d.get("name")
             if n in status and status[n]["outcome"] is None and d.get("verified") and status[n]["bobilib"] == "open":
                 status[n].update(outcome="feasible", source="this work (HPR, follower, tie-break)")
+    # This work: general feasible points with coupling rows (verified files).
+    for r in load_csv(f"{a.results}/general-coupled/summary.csv"):
+        n = r["name"]
+        if n in status and status[n]["outcome"] is None and r["status"] == "point" and status[n]["bobilib"] == "open":
+            status[n].update(outcome="feasible", source="this work (bobi coupled)")
 
     rows = collections.defaultdict(collections.Counter)
     for n, s in status.items():

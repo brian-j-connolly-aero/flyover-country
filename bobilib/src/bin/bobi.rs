@@ -1,4 +1,5 @@
 use bobi::{
+    coupled::{Method, Search, SearchOpts},
     kip::{Kip, SsConfig, SsOrder},
     mps,
     robust_ss::Outcome,
@@ -140,12 +141,86 @@ enum Cmd {
         #[arg(long)]
         out: Option<PathBuf>,
     },
+    /// Verified feasible points for general instances with coupling rows.
+    Coupled {
+        files: Vec<PathBuf>,
+        /// Wall-clock budget per instance, in seconds.
+        #[arg(long, default_value_t = 600.0)]
+        time: f64,
+        /// Cap on one follower or best-response solve.
+        #[arg(long, default_value_t = 120.0)]
+        follower_time: f64,
+        /// Cap on one HPR-type master solve, as a fraction of the budget.
+        #[arg(long, default_value_t = 0.3)]
+        master_frac: f64,
+        /// Methods in order: hpr, follow, penalty, padm, perturb, vcut, nogood.
+        #[arg(long, default_value = "hpr,follow,penalty,padm,perturb,vcut,nogood")]
+        methods: String,
+        /// Keep searching after the first point for a better one.
+        #[arg(long)]
+        improve: bool,
+        /// Write verified points here (BOBILib solution format).
+        #[arg(long)]
+        out: Option<PathBuf>,
+        #[arg(long)]
+        log: bool,
+    },
+    /// Why the HPR's leader choice fails the coupling rows.
+    CoupledDiag {
+        files: Vec<PathBuf>,
+        #[arg(long, default_value_t = 60.0)]
+        time: f64,
+    },
+    /// Re-check a solution file: rows, bounds and follower optimality.
+    Certify {
+        mps: PathBuf,
+        solution: PathBuf,
+        #[arg(long, default_value_t = 600.0)]
+        follower_time: f64,
+    },
     /// Certify that the follower is unbounded for every leader choice.
     Ray {
         files: Vec<PathBuf>,
         /// Write each direction as JSON {variable: value} into this directory.
         #[arg(long)]
         out: Option<PathBuf>,
+    },
+    /// Attack-protect games (BOBILib inter-fire): every attack, the follower
+    /// solved exactly by a tree DP, each DP point checked against the model.
+    Fire {
+        /// Instance files, or directories to search for them.
+        files: Vec<PathBuf>,
+        /// Only instances whose name starts with one of these (comma-separated).
+        #[arg(long)]
+        only: Option<String>,
+        /// Worker threads for the attack enumeration.
+        #[arg(long, default_value_t = 1)]
+        threads: usize,
+        /// Random full-budget attacks per instance re-solved by HiGHS.
+        #[arg(long, default_value_t = 100)]
+        sample: usize,
+        /// Skip checking each attack's DP follower point against the model.
+        #[arg(long)]
+        no_witness: bool,
+        /// BOBILib solution files (<name>.res.json) to compare against.
+        #[arg(long)]
+        bobilib: Option<PathBuf>,
+        /// Write certified solutions (<name>.res.json) here.
+        #[arg(long)]
+        out: Option<PathBuf>,
+        /// Write a CSV summary here.
+        #[arg(long)]
+        csv: Option<PathBuf>,
+        /// Seconds per HiGHS follower solve.
+        #[arg(long, default_value_t = 60.0)]
+        follower_time: f64,
+        /// For graphs with cycles, solve every attack's follower by HiGHS
+        /// when there are at most this many attacks (otherwise skip).
+        #[arg(long, default_value_t = 0)]
+        highs_max: u64,
+        /// Use HiGHS for every attack even on forests (a cross-check of the DP).
+        #[arg(long)]
+        force_highs: bool,
     },
     /// Root online-relaxation bound with merged leader rows and scaling.
     Omega {
@@ -601,6 +676,52 @@ fn kip_import(
 fn main() {
     let cli = Cli::parse();
     match cli.cmd {
+        Cmd::Fire {
+            files,
+            only,
+            threads,
+            sample,
+            no_witness,
+            bobilib,
+            out,
+            csv,
+            follower_time,
+            highs_max,
+            force_highs,
+        } => {
+            let pool = rayon::ThreadPoolBuilder::new()
+                .num_threads(threads)
+                .build()
+                .unwrap();
+            let prefixes: Vec<String> = only
+                .map(|s| s.split(',').map(str::to_string).collect())
+                .unwrap_or_default();
+            let files: Vec<PathBuf> = files
+                .iter()
+                .flat_map(|p| {
+                    if p.is_dir() {
+                        instances(p)
+                    } else {
+                        vec![p.clone()]
+                    }
+                })
+                .filter(|p| {
+                    let name = p.file_name().unwrap_or_default().to_string_lossy();
+                    prefixes.is_empty() || prefixes.iter().any(|q| name.starts_with(q.as_str()))
+                })
+                .collect();
+            let opts = FireOpts {
+                sample,
+                witness: !no_witness,
+                highs_max,
+                force_highs,
+                bobilib: bobilib.as_deref(),
+                out: out.as_deref(),
+                csv: csv.as_deref(),
+                follower_time,
+            };
+            pool.install(|| run_fire(files, &opts));
+        }
         Cmd::Enumerate {
             mps: path,
             follower_time,
@@ -624,6 +745,73 @@ fn main() {
                     }
                 }
             }
+        }
+        Cmd::Coupled {
+            files,
+            time,
+            follower_time,
+            master_frac,
+            methods,
+            improve,
+            out,
+            log,
+        } => {
+            let methods: Vec<Method> = methods
+                .split(',')
+                .map(|s| Method::parse(s.trim()).unwrap_or_else(|| panic!("unknown method {s}")))
+                .collect();
+            let opts = SearchOpts {
+                time,
+                follower_time,
+                master_frac,
+                methods,
+                log,
+                improve,
+            };
+            for path in files {
+                run_coupled(&path, &opts, out.as_deref());
+            }
+        }
+        Cmd::CoupledDiag { files, time } => {
+            for path in files {
+                let m = mps::read_instance(&path).unwrap_or_else(|e| panic!("{e}"));
+                let opts = SearchOpts {
+                    time,
+                    follower_time: time,
+                    master_frac: 1.0,
+                    methods: vec![],
+                    log: false,
+                    improve: false,
+                };
+                let mut s = Search::new(&m, opts);
+                println!("{}: {} coupling rows", m.name, s.split.coupling.len());
+                for line in s.diagnose() {
+                    println!("  {line}");
+                }
+            }
+        }
+        Cmd::Certify {
+            mps: path,
+            solution,
+            follower_time,
+        } => {
+            let m = mps::read_instance(&path).unwrap_or_else(|e| panic!("{e}"));
+            let s = SolutionFile::read(&solution).unwrap_or_else(|e| panic!("{e}"));
+            let c = bobi::coupled::certify(&m, &s.values(&m), follower_time);
+            println!(
+                "{}\t{}\tupper={}\tlower={}\tphi_bound={}\tphi_value={}\trel_error={:.2e}\ttie_bound={}\ttie_rel_error={:.2e}\tmax_violation={:.2e} {}",
+                m.name,
+                if c.ok { "VERIFIED" } else { "REJECTED" },
+                c.upper_obj,
+                c.lower_obj,
+                c.phi_bound,
+                c.phi_value,
+                c.rel_error,
+                c.tie_bound,
+                c.tie_rel_error,
+                c.max_violation,
+                c.worst
+            );
         }
         Cmd::Ray { files, out } => {
             for path in files {
@@ -1127,4 +1315,273 @@ fn run_general(files: Vec<PathBuf>, hpr_time: f64, follower_time: f64, out: Opti
             ),
         }
     }
+}
+
+/// The node count and budgets (Omega, Phi, Lambda) encoded in a BOBILib
+/// inter-fire name such as `tree-50_1-5-5_006`.
+fn fire_name_budgets(name: &str) -> Option<(usize, usize, usize, usize)> {
+    let (_, rest) = name.split_once('-')?;
+    let mut parts = rest.split('_');
+    let n = parts.next()?.parse().ok()?;
+    let b: Vec<usize> = parts
+        .next()?
+        .split('-')
+        .map(|t| t.parse().ok())
+        .collect::<Option<_>>()?;
+    (b.len() == 3).then(|| (n, b[0], b[1], b[2]))
+}
+
+/// Options of `bobi fire`.
+struct FireOpts<'a> {
+    sample: usize,
+    witness: bool,
+    highs_max: u64,
+    force_highs: bool,
+    bobilib: Option<&'a Path>,
+    out: Option<&'a Path>,
+    csv: Option<&'a Path>,
+    follower_time: f64,
+}
+
+fn run_fire(files: Vec<PathBuf>, o: &FireOpts) {
+    use bobi::fire::{
+        enumerate, enumerate_highs, follower_at, follower_highs, random_attack, Fire, TreeDp,
+    };
+    use bobi::general::{check_point, optimal_response};
+    let header = "name,engine,nodes,edges,forest,phi,lambda,name_budgets_ok,attacks,value,optimal_attacks,witness_failures,unsolved,bobilib_status,bobilib_value,follower_at_bobilib_attack,agrees,highs_checks,highs_mismatches,max_violation,recheck_follower,certified,secs_enum,secs_total";
+    let mut rows = vec![header.to_string()];
+    let fmt_opt = |x: Option<f64>| x.map_or("null".to_string(), |v| v.to_string());
+    for path in files {
+        let t = Instant::now();
+        let m = mps::read_instance(&path).unwrap_or_else(|e| panic!("{e}"));
+        let f = match Fire::from_model(&m) {
+            Ok(f) => f,
+            Err(e) => {
+                println!("{{\"name\":\"{}\",\"skip\":{:?}}}", m.name, e);
+                continue;
+            }
+        };
+        let n = f.n();
+        let dp = if o.force_highs { None } else { TreeDp::new(&f) };
+        let attacks_total: u64 = (0..=f.phi.min(n))
+            .map(|k| (0..k).fold(1u128, |r, i| r * (n - i) as u128 / (i + 1) as u128) as u64)
+            .sum();
+        if dp.is_none() && attacks_total > o.highs_max {
+            println!(
+                "{{\"name\":\"{}\",\"skip\":\"HiGHS follower (cycle or --force-highs) and {attacks_total} attacks exceed --highs-max\"}}",
+                m.name
+            );
+            continue;
+        }
+        let name_ok = fire_name_budgets(&m.name)
+            .is_some_and(|(nn, om, ph, la)| nn == n + om && ph == f.phi && la == f.lambda);
+        // The follower's optimum and an optimal follower point at an attack.
+        let follower = |attack: &[usize]| -> Option<(i64, Vec<f64>)> {
+            match &dp {
+                Some(dp) => follower_at(&f, dp, attack),
+                None => {
+                    let mut val = vec![0.0; m.vars.len()];
+                    for &v in attack {
+                        val[f.y[v]] = 1.0;
+                    }
+                    let val = optimal_response(&m, &val, o.follower_time).ok()?;
+                    Some((m.upper_obj(&val).round() as i64, val))
+                }
+            }
+        };
+        let e = match &dp {
+            Some(dp) => enumerate(&m, &f, dp, o.witness),
+            None => enumerate_highs(&m, &f, o.follower_time),
+        };
+        let secs_enum = t.elapsed().as_secs_f64();
+        let value = e.min().expect("no attack has a follower response");
+        let best = e.argmin().unwrap();
+        let (v_best, val) = follower(&best).expect("no follower point at the best attack");
+        assert_eq!(v_best, value);
+        // The BOBILib criterion: the point's follower objective against a fresh optimum.
+        let (viol, phi, ll) = check_point(&m, &val, o.follower_time);
+        let recheck_ok =
+            phi.is_some_and(|p| (p - ll).abs() <= 1e-6 && (p + value as f64).abs() <= 1e-6);
+
+        // BOBILib's point: its status, value and the follower's optimum at its attack.
+        let mut bob = (String::from("none"), None::<f64>, None::<i64>);
+        let mut attacks = vec![best.clone()];
+        if let Some(dir) = o.bobilib {
+            let p = dir.join(format!("{}.res.json", m.name));
+            if let Ok(s) = SolutionFile::read(&p) {
+                let attack = f.attack_of(&s.values(&m));
+                let at = (attack.len() <= f.phi)
+                    .then(|| follower(&attack).map(|r| r.0))
+                    .flatten();
+                bob = (s.status.unwrap_or_default(), s.objective_value, at);
+                attacks.push(attack);
+            }
+        }
+        // DP against HiGHS on the optimum's attack, BOBILib's and a sample.
+        let mut mismatches = 0;
+        let mut checks = 0;
+        if let Some(dp) = &dp {
+            let mut seed = 0x5eed_f12e_u64;
+            for _ in 0..o.sample {
+                attacks.push(random_attack(n, f.phi.min(n), &mut seed));
+            }
+            let ok: Vec<bool> = attacks
+                .par_iter()
+                .map(|a| {
+                    let d = follower_at(&f, dp, a).map(|r| r.0 as f64);
+                    let h = follower_highs(&m, &f, a, o.follower_time);
+                    matches!((d, h), (Some(d), Some(h)) if (d - h).abs() <= 1e-6)
+                })
+                .collect();
+            checks = ok.len();
+            mismatches = ok.iter().filter(|&&b| !b).count();
+        }
+        // Optimal when every attack's value is a proven follower optimum (HiGHS)
+        // or a checked follower point (DP), and the minimiser's is re-proven.
+        let every_attack_ok = e.unsolved() == 0
+            && match e.engine {
+                "tree-dp" => e.witnessed && e.witness_failures() == 0,
+                _ => true,
+            };
+        let certified = every_attack_ok && viol == 0.0 && recheck_ok && mismatches == 0;
+        let agrees = bob.1.is_some_and(|b| (b - value as f64).abs() <= 1e-6);
+        let secs = t.elapsed().as_secs_f64();
+        let per_size: Vec<String> = e
+            .by_size
+            .iter()
+            .enumerate()
+            .map(|(k, s)| {
+                format!(
+                    "{{\"k\":{k},\"attacks\":{},\"min\":{},\"count_min\":{}}}",
+                    s.attacks,
+                    s.min.map_or("null".into(), |v| v.to_string()),
+                    s.count_min
+                )
+            })
+            .collect();
+        let labels: Vec<&str> = best.iter().map(|&v| f.labels[v].as_str()).collect();
+        println!(
+            "{{\"name\":\"{}\",\"engine\":\"{}\",\"nodes\":{n},\"edges\":{},\"phi\":{},\"lambda\":{},\"attacks\":{},\"value\":{value},\"optimal_attacks\":{},\"attack\":{:?},\"witness_failures\":{},\"unsolved\":{},\"bobilib_status\":{:?},\"bobilib_value\":{},\"follower_at_bobilib_attack\":{},\"highs_checks\":{checks},\"highs_mismatches\":{mismatches},\"max_violation\":{viol:e},\"recheck_follower\":{},\"certified\":{certified},\"by_size\":[{}],\"secs_enum\":{secs_enum:.2},\"secs\":{secs:.2}}}",
+            m.name,
+            e.engine,
+            f.edges.len(),
+            f.phi,
+            f.lambda,
+            e.attacks(),
+            e.count_min(),
+            labels,
+            e.witness_failures(),
+            e.unsolved(),
+            bob.0,
+            fmt_opt(bob.1),
+            bob.2.map_or("null".into(), |v| v.to_string()),
+            fmt_opt(phi.map(|p| -p)),
+            per_size.join(",")
+        );
+        rows.push(format!(
+            "{},{},{n},{},{},{},{},{name_ok},{},{value},{},{},{},{},{},{},{agrees},{checks},{mismatches},{viol:e},{},{certified},{secs_enum:.2},{secs:.2}",
+            m.name,
+            e.engine,
+            f.edges.len(),
+            f.is_forest(),
+            f.phi,
+            f.lambda,
+            e.attacks(),
+            e.count_min(),
+            e.witness_failures(),
+            e.unsolved(),
+            bob.0,
+            fmt_opt(bob.1),
+            bob.2.map_or(String::new(), |v| v.to_string()),
+            fmt_opt(phi.map(|p| -p)),
+        ));
+        if let Some(dir) = o.out {
+            let status = if certified { "optimal" } else { "feasible" };
+            SolutionFile::from_values(&m, status, &val)
+                .write(&dir.join(format!("{}.res.json", m.name)))
+                .unwrap();
+        }
+        if let Some(p) = o.csv {
+            std::fs::write(p, rows.join("\n") + "\n").unwrap();
+        }
+    }
+}
+
+/// One JSON line per instance: the verified point (if any), the method that
+/// found it and what every method did.
+fn run_coupled(path: &Path, opts: &SearchOpts, out: Option<&Path>) {
+    use serde_json::{json, Value};
+    let t = Instant::now();
+    let m = match mps::read_instance(path) {
+        Ok(m) => m,
+        Err(e) => {
+            println!(
+                "{}",
+                json!({"file": path.display().to_string(), "error": e})
+            );
+            return;
+        }
+    };
+    let mut s = Search::new(&m, opts.clone());
+    let nlink = s.split.linking.iter().filter(|&&l| l).count();
+    let nlink_int = (0..m.vars.len())
+        .filter(|&j| s.split.linking[j] && m.vars[j].integer)
+        .count();
+    let ncoup = s.split.coupling.len();
+    s.run();
+    let tenth = |x: f64| (x * 10.0).round() / 10.0;
+    let reports: Vec<Value> = s
+        .reports
+        .iter()
+        .map(|r| {
+            json!({"method": r.name, "masters": r.masters, "leaders": r.leaders,
+                   "blocked": r.blocked, "secs": tenth(r.secs), "end": r.end, "found": r.found})
+        })
+        .collect();
+    let mut line = json!({
+        "name": m.name,
+        "vars": m.vars.len(),
+        "follower_vars": m.vars.iter().filter(|v| v.lower).count(),
+        "rows": m.rows.len(),
+        "coupling_rows": ncoup,
+        "linking_vars": nlink,
+        "integer_linking_vars": nlink_int,
+        "hpr": s.hpr_status.map(|st| format!("{st:?}")),
+        "secs": tenth(t.elapsed().as_secs_f64()),
+        "time_limit": opts.time,
+        "reports": reports,
+    });
+    let obj = line.as_object_mut().unwrap();
+    match &s.best {
+        Some(f) => {
+            obj.insert("status".into(), json!("point"));
+            obj.insert("method".into(), json!(f.method));
+            obj.insert("secs_to_point".into(), json!(tenth(f.secs)));
+            obj.insert("upper_obj".into(), json!(f.cert.upper_obj));
+            obj.insert("lower_obj".into(), json!(f.cert.lower_obj));
+            obj.insert("phi_bound".into(), json!(f.cert.phi_bound));
+            obj.insert("rel_error".into(), json!(f.cert.rel_error));
+            obj.insert("tie_bound".into(), json!(f.cert.tie_bound));
+            obj.insert("tie_rel_error".into(), json!(f.cert.tie_rel_error));
+            obj.insert("max_violation".into(), json!(f.cert.max_violation));
+            obj.insert("free_leader".into(), json!(f.free_leader));
+            obj.insert("verified".into(), json!(f.cert.ok));
+            if let Some(dir) = out {
+                SolutionFile::from_values(&m, "feasible", &f.values)
+                    .write(&dir.join(format!("{}.res.json", m.name)))
+                    .unwrap();
+            }
+        }
+        None => {
+            let status = if s.hpr_status == Some(bobi::milp::MilpStatus::Infeasible) {
+                "hpr_infeasible"
+            } else if s.proven_infeasible {
+                "no_bilevel_point"
+            } else {
+                "none"
+            };
+            obj.insert("status".into(), json!(status));
+        }
+    }
+    println!("{line}");
 }

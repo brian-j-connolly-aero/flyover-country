@@ -18,6 +18,9 @@ is new is the proof that nothing better exists. `proofs.csv` lists:
 | `nodes`, `cpu_seconds` | `bobi ss-solve` on one thread (CPU time; the machine was shared, so wall times were 2-3 times longer) |
 | `independent_check_nodes` | nodes of `scripts/ss_check.py`, which proves the same lower bound independently |
 
+`summary.csv` is kept from the previous version of the search (before
+per-node tables): its nodes and seconds for the 12 instances it proved.
+
 ## How each value is established
 
 * **Upper bound.** The file's leader choice is within budget and the
