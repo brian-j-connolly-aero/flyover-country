@@ -124,6 +124,12 @@ impl Kip {
                 t.elapsed().as_secs_f64()
             );
             s.table = Some(table);
+            s.bands = Some(robust_ss::BandTables::build(
+                &classes,
+                hi,
+                self.cu,
+                &[2, 4, 8, 16, 32, 64],
+            ));
         }
         let out = if lo_s > hi {
             robust_ss::Outcome::Safe
