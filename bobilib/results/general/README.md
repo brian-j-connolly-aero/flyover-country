@@ -23,4 +23,6 @@ python3 -I scripts/compare_hpr.py INSTANCE.mps.gz INSTANCE.aux noswot.mps.gz
 `pigeon-10_0_100` and `timtab1_0_100` were open (no point known); the
 points here come from `bobi general` (HPR, then the follower, then an
 optimistic tie-break). For `noswot_*` and `neos-950242_0_100`, BOBILib's
-own solution files already had the optimal value; only the proof is new.
+own solution files already had the optimal value. For `noswot_*` the
+proof is new; `neos-950242_0_100` was already listed as optimal in an
+earlier BOBILib release, and the current one lists it as feasible.

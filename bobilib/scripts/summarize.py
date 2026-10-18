@@ -4,6 +4,7 @@ and what remains open. Writes results/summary.json and prints a table.
 
 usage: python3 -I summarize.py --meta collection.json --mkip-lit mkip_literature_status.csv
            --runs runs --results results [--miblp-lit miblp_literature_status.csv]
+           [--lbc-optimal optimal.csv]
 
 Inputs (all optional except --meta; missing ones are skipped):
   results/kip/summary.csv         KIP optima from Weninger and Fukasawa (verified files)
@@ -20,6 +21,7 @@ import csv
 import glob
 import json
 import os
+import re
 
 
 def load_csv(path):
@@ -31,6 +33,7 @@ def main():
     ap.add_argument("--meta", required=True)
     ap.add_argument("--mkip-lit")
     ap.add_argument("--miblp-lit")
+    ap.add_argument("--lbc-optimal", help="solution_files/optimal.csv from Lozano et al.'s repository")
     ap.add_argument("--runs", default="runs")
     ap.add_argument("--results", default="results")
     a = ap.parse_args()
@@ -56,6 +59,19 @@ def main():
             if n in status and status[n]["bobilib"] != "optimal" and r.get("proven_optimal_in_literature") == "True":
                 src = "literature (Fischetti et al. 2019)" if r.get("set") == "imkp" else "literature (Lozano et al. 2026)"
                 status[n].update(outcome="optimal", source=src)
+    if a.lbc_optimal:
+        # Lozano, Bergman and Cire's optimal solution files (decision diagrams), any family.
+        for r in load_csv(a.lbc_optimal):
+            n = re.sub(r"(\.dd_\d+)?[-.]res\.json$", "", re.sub(r"^dd_", "", r["name"]))
+            if n in status and status[n]["bobilib"] != "optimal" and status[n]["outcome"] is None:
+                status[n].update(outcome="optimal", source="literature (Lozano et al. 2026)")
+    if a.miblp_lit:
+        for r in load_csv(a.miblp_lit):
+            n = r["instance"]
+            if n in status and status[n]["bobilib"] != "optimal" and status[n]["outcome"] is None and r["closed_in_literature"] == "True":
+                src = r["lit_best_lb_src"].split("-")[0]
+                src = {"F17": "Fischetti et al. 2017", "LBC": "Lozano et al. 2026", "VLH": "Vasquez et al. 2025", "BOBILib": "an earlier BOBILib release"}.get(src, src)
+                status[n].update(outcome="optimal", source=f"literature ({src})")
     # This work: subset-sum optima.
     for p in glob.glob(f"{a.runs}/ss_*.tsv"):
         for line in open(p):
