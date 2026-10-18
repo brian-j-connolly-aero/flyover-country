@@ -42,3 +42,11 @@ ln -s /path/to/bobilib-data data   # collection/ and collection-solutions/ from 
   variables linearises exactly). Since a knapsack's integer optimum is within
   one item's profit of its LP value per knapsack row, this brackets the
   bilevel optimum.
+
+## Proofs
+
+`lean/` is a Lean 4 project (with Mathlib) that proves the lemmas these
+methods rely on. It covers monotonicity of interdiction, the count
+formulation, window extension and the stall test, Weninger and Fukasawa's
+online lower bound, and the soundness of the robust online table. See
+`lean/README.md` for how each theorem maps to the code and how to build it.
