@@ -20,6 +20,10 @@ pub enum MilpStatus {
     /// Stopped by the time limit with a feasible point.
     Feasible,
     Infeasible,
+    /// Feasible with an unbounded objective.
+    Unbounded,
+    /// HiGHS proved one of infeasible or unbounded without saying which.
+    InfeasibleOrUnbounded,
     /// Stopped without a feasible point, or another failure.
     Unknown,
 }
@@ -84,7 +88,16 @@ impl Milp {
         model.set_option("threads", threads);
         model.set_option("mip_rel_gap", 0.0);
         model.set_option("mip_abs_gap", 1e-6);
-        let solved = model.solve();
+        // An error (an inconsistent model, say) is reported, not a panic:
+        // the verifier runs this on whatever the instance files contain.
+        let Ok(solved) = model.try_solve() else {
+            return MilpResult {
+                status: MilpStatus::Unknown,
+                obj: f64::NAN,
+                bound: f64::NAN,
+                x: vec![],
+            };
+        };
         let status = solved.status();
         let mut bound = f64::NAN;
         let key = CString::new("mip_dual_bound").unwrap();
@@ -101,6 +114,8 @@ impl Milp {
         let status = match status {
             HighsModelStatus::Optimal => MilpStatus::Optimal,
             HighsModelStatus::Infeasible => MilpStatus::Infeasible,
+            HighsModelStatus::Unbounded => MilpStatus::Unbounded,
+            HighsModelStatus::UnboundedOrInfeasible => MilpStatus::InfeasibleOrUnbounded,
             _ if has_x && self.feasible(&x) => MilpStatus::Feasible,
             _ => MilpStatus::Unknown,
         };
