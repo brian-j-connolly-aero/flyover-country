@@ -34,7 +34,7 @@ whole family rather than single instances:
 
 | Approach | Family | Effect |
 | --- | --- | --- |
-| Robust subset-sum search (count formulation, window and stall pruning, online band tables) | knapsack interdiction, subset-sum classes | 10 of the 16 instances unsolved anywhere proven optimal (all 8 even-odd, 2 of 8 subset-sum) |
+| Robust subset-sum search (count formulation, online tables in threshold form, rebuilt at every node from its decided sums) | knapsack interdiction, subset-sum classes | all 16 instances unsolved anywhere proven optimal (8 even-odd, 8 subset-sum), each in about 10 s of CPU time or less on one thread, and checked by an independent prover |
 | LP-follower bracket and merged-row online bound | multidimensional knapsack interdiction (OR set), one follower knapsack | median gap 17% → ~1.6% (budget 25%), 31% → ~3.5% (budget 50%); better certified points on most instances |
 | Certified points via the follower LP | OR set, several follower knapsacks | every budget-75% instance certified (180/180); first certified points for 72 instances with none anywhere (running) |
 | Extremal graph theory (Mantel/Turán, Brouwer's stability theorem) | edge clique interdiction | 57 of 60 proven optimal (all 60 unsolved in the literature); optimum 3 or 4 where BOBILib lists 5 to 13 |
@@ -43,7 +43,7 @@ whole family rather than single instances:
 | HPR bound = MIPLIB optimum | general MIPLIB-derived instances | 4 proven optimal (2 of them open, with no point known before) |
 | Exhaustive enumeration with exact follower solves | network interdiction trees, generalized interdiction with few linking bits | the 2 non-optimal tree instances certified optimal; a published optimum reproduced |
 
-What stays hard: 6 subset-sum knapsack interdiction instances, most OR
+What stays hard: most OR
 instances with several follower knapsacks and budget 25-50% (certified
 points, but the best lower bounds are still 30-40% away), 3 clique
 instances, generalized interdiction with 20 or more linking bits, and
@@ -68,26 +68,54 @@ general instances with coupling rows.
 * **New.** `robust_ss` decides "can the leader keep the follower below the
   capacity?" by search over *how many copies of each weight survive*
   (identical items are interchangeable for the follower, and the leader
-  should remove the cheapest copies first). It prunes when decided items
-  already contain a contiguous window of reachable sums that later items
-  can only extend unless the leader pays to stall it, and when a
-  precomputed table says the undecided classes can land in a band the
-  window absorbs. Proven optimal so far:
+  should remove the cheapest copies first). Its strongest rule is an online
+  relaxation: the leader deletes one weight class at a time and may react
+  to what the follower took from earlier classes, which only helps the
+  leader, so whatever the follower can still guarantee holds in the real
+  game. The guarantee is antitone in the budget, so it is stored as one
+  budget threshold per (class, residual sum), and a single backward pass
+  computes it for the undecided classes with the node's own decided sums as
+  the set the game must end in. That is cheap enough to do at every node
+  that would branch. The order of play matters a great deal: classes that
+  are cheapest to delete per unit of mass go first, so the follower sees
+  the leader's likely deletions before it commits, and the expensive
+  classes are kept for fine adjustment. Contiguous windows of reachable
+  sums and the stall analysis remain as cheaper rules. All 16 are now
+  proven optimal (one thread, CPU seconds on a shared machine, where wall
+  times were 2-3 times longer; "before" is the previous version of the same
+  search on the same machine):
 
-  | Instance | Optimum | Time |
-  | --- | ---: | ---: |
-  | interKP-200-100-6-2 | 1,855 | 136 s |
-  | interKP-200-100-7-2 | 1,872 | 0.5 s |
-  | interKP-200-100-7-3 | 2,808 | 20 s |
-  | interKP-300-100-6-2 | 2,868 | 194 s |
-  | interKP-300-100-7-2 | 2,894 | 5 s |
-  | interKP-300-100-7-3 | 4,340 | 121 s |
-  | interKP-400-100-7-2 | 3,866 | 8 s |
-  | interKP-400-100-7-3 | 5,800 | 271 s |
-  | interKP-500-100-7-2 | 4,694 | 11 s |
-  | interKP-500-100-7-3 | 7,042 | 427 s |
+  | Instance | Optimum | Nodes | Time | Before (nodes / time) |
+  | --- | ---: | ---: | ---: | ---: |
+  | interKP-200-100-6-2 | 1,855 | 303 | 0.10 s | 3,926,223 / 22.77 s |
+  | interKP-300-100-6-2 | 2,868 | 366 | 0.16 s | 12,302,768 / 102.59 s |
+  | interKP-400-100-6-2 | 3,832 | 257 | 0.15 s | 7,217,774 / 75.29 s |
+  | interKP-500-100-6-2 | 4,651 | 190 | 0.26 s | 14,290,940 / 174.28 s |
+  | interKP-200-100-6-3 | 2,782 | 13,498 | 3.93 s | not finished in 2 h |
+  | interKP-300-100-6-3 | 4,302 | 19,405 | 8.06 s | open, not run |
+  | interKP-400-100-6-3 | 5,748 | 13,430 | 9.01 s | open, not run |
+  | interKP-500-100-6-3 | 6,976 | 10,079 | 10.04 s | open, not run |
+  | interKP-200-100-7-2 | 1,872 | 22 | 0.06 s | 48,598 / 0.49 s |
+  | interKP-300-100-7-2 | 2,894 | 27 | 0.04 s | 115,415 / 1.78 s |
+  | interKP-400-100-7-2 | 3,866 | 18 | 0.05 s | 269,550 / 5.62 s |
+  | interKP-500-100-7-2 | 4,694 | 1 | 0.05 s | 357,279 / 10.26 s |
+  | interKP-200-100-7-3 | 2,808 | 651 | 0.10 s | 2,341,175 / 9.61 s |
+  | interKP-300-100-7-3 | 4,340 | 470 | 0.20 s | 3,256,897 / 20.35 s |
+  | interKP-400-100-7-3 | 5,800 | 378 | 0.17 s | 10,710,774 / 86.43 s |
+  | interKP-500-100-7-3 | 7,042 | 256 | 0.15 s | 13,346,235 / 137.19 s |
 
   In every case BOBILib's value was already optimal; the proof is new.
+  All 16 lower bounds are confirmed by `scripts/ss_check.py`, an
+  independent prover (own parser, plain search, the per-node rule written
+  from its definition, no code shared with the Rust search), and every
+  solution file passes `bobi verify`. See `results/ss/`. One change at a
+  time on interKP-200-100-6-2 (nodes): previous search 3,926,223; same
+  rules with threshold tables 3,926,223 (memory 478 to 229 MB); every band
+  width 1..64 3,278,153; root tables played largest value first 1,128,566,
+  or cheapest per unit of mass first 513,834; per-node tables 303. With
+  100 items, the class 6 and 7 instances with budget index 4-10, which the
+  previous version did not finish in two minutes, now close at the root,
+  and all 20 match Weninger and Fukasawa's optima.
 
 ### Multidimensional knapsack interdiction (954; 862 not optimal)
 
@@ -192,7 +220,9 @@ the arguments.
 * window extension and the stall test;
 * Weninger and Fukasawa's online lower bound, for any item order;
 * soundness of the robust online table, of the band tables and of both
-  pruning rules;
+  pruning rules (the per-node tables of the subset-sum search use the same
+  induction with an arbitrary base set; that step and the threshold form
+  are argued in the code and tested against brute force, not formalised);
 * for clique interdiction, Mantel's theorem in deletion form (more than
   n^2/4 edges left after deleting k means a triangle survives, checked for
   the three density-0.7 sizes) and the partition upper bound (deleting the
@@ -209,7 +239,8 @@ stability theorem and the solver runs behind the density-0.9 bounds.
 cd bobilib
 cargo build --release
 # subset-sum knapsack interdiction
-./target/release/bobi ss-solve data/collection/interdiction/knapsack-interdiction/kp/interKP-300-100-6-2.mps.gz --out runs/ss_sol
+./target/release/bobi ss-solve data/collection/interdiction/knapsack-interdiction/kp/interKP-200-100-6-3.mps.gz --out runs/ss_sol
+python3 -I scripts/ss_check.py data/collection/interdiction/knapsack-interdiction/kp/interKP-200-100-6-3.{mps.gz,aux}
 # OR set: bounds and certified points
 ./target/release/bobi bounds  data/.../or/OR10x100-0.25_1.dat-100.mps.gz --out runs/or100
 ./target/release/bobi upper-multi data/.../or/OR10x250-0.75_1.dat-0.mps.gz --out runs/ormulti

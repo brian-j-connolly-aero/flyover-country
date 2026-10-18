@@ -1240,6 +1240,37 @@ mod tests {
         assert!(hits > 500, "node tables decided only {hits} nodes");
     }
 
+    /// Larger instances than brute force can enumerate: the search with
+    /// per-node tables must agree with the search that uses only the
+    /// original rules (direct, guaranteed copies, windows, cache).
+    #[test]
+    fn node_tables_agree_with_plain_search() {
+        let mut rnd = lcg(31337);
+        let (mut safe, mut blocked) = (0, 0);
+        // SS_TEST_ROUNDS=N runs a longer version.
+        let rounds: usize = std::env::var("SS_TEST_ROUNDS").ok().and_then(|v| v.parse().ok()).unwrap_or(2000);
+        for round in 0..rounds {
+            let nclass = 6 + rnd(10) as usize;
+            let classes = random_classes(&mut rnd, nclass, 5, 15, 40);
+            let total: usize = classes.iter().map(|c| c.value * c.costs.len()).sum();
+            let hi = total / 3 + rnd(total as u64 / 3 + 1) as usize;
+            let lo = if round % 2 == 0 { hi } else { hi.saturating_sub(rnd(hi as u64 / 4 + 1) as usize) };
+            let budget = rnd(60) as i64;
+            let mut plain = Search::new(&classes, lo, hi);
+            let expect = plain.run(budget);
+            let mut s = Search::new(&classes, lo, hi);
+            s.node_order = Some("ratioasc".into());
+            let got = s.run(budget);
+            match (&expect, &got) {
+                (Outcome::Safe, Outcome::Safe) => safe += 1,
+                (Outcome::Blocking(_), Outcome::Blocking(_)) => blocked += 1,
+                _ => panic!("round {round}: plain {expect:?}, with node tables {got:?}"),
+            }
+        }
+        eprintln!("node_tables_agree_with_plain_search: {safe} safe, {blocked} blocked");
+        assert!(safe > rounds / 10 && blocked > rounds / 10, "safe {safe}, blocked {blocked}");
+    }
+
     /// The online game with base set `a`, straight from its definition: the
     /// classes `cl` are played in order; can the follower force the final
     /// residual into `a` from residual `t` with the leader's budget `b`?
