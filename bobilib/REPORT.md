@@ -164,7 +164,7 @@ instances with 20 or more linking bits, and 123 MIPLIB-derived instances.
 
 * Over all 810: 690 verified points, 469 strictly better than every
   published value (BOBILib's included), 88 the first anywhere
-  (`runs/or_compare.csv` per instance; files in `results/or/`).
+  (`results/or/compare.csv` per instance, next to the solution files).
 * One closure: for OR10x100-0.75_4.dat-0 the published lower bound 8,814
   comes from runs its authors marked numerically inconsistent; our point
   8,813 (verified with SCIP) meets their branch-and-cut bound of 8,813.
@@ -266,8 +266,8 @@ hours per instance, so the other 8 need a pruned search.
   the leader fixed (exact knapsack oracle for one follower row, a HiGHS
   MILP otherwise) and found optimal within BOBILib's relative 1e-4. The
   batch outputs behind this report: 270 of 270 (OR, one follower
-  knapsack), 64 of 64 (MIPLIB-derived), all of the 12 subset-sum, 60
-  clique, 36 network and 29 coupled files.
+  knapsack), 420 of 420 (OR, several), 64 of 64 (MIPLIB-derived), and all
+  of the 12 subset-sum, 60 clique, 36 network and 29 coupled files.
 * **Independent reviews.** The clique, network and coupled results were
   each re-derived by a separate reviewer, with its own instance reader and
   different solvers or code (its own maximum-clique searches, HiGHS and a
@@ -319,7 +319,7 @@ python3 -I scripts/verify_ray.py INSTANCE.mps.gz INSTANCE.aux results/rays/gen-i
 ./target/release/bobi coupled $D/general-bilevel/.../pigeon-10_50_50.mps.gz --out runs/coupled
 python3 -I scripts/compare_hpr.py INSTANCE.mps.gz INSTANCE.aux pigeon-10.mps.gz
 # check any solution file the way BOBILib does
-./target/release/bobi verify --instances $D results/kip results/ss results/network
+./target/release/bobi verify --instances $D results/kip results/ss results/network results/or
 ./target/release/bobi verify --instances $D --generic results/general results/general-coupled results/clique
 ```
 
