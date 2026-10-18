@@ -1,0 +1,125 @@
+% Notation and conventions used throughout the appendix.
+\section{Notation and conventions}\label{app:notation}
+
+\paragraph{Bilevel problems in BOBILib form.}
+The leader controls $x\in\mathbf{R}^{n_x}$ and the follower controls
+$y\in\mathbf{R}^{n_y}$. As in BOBILib, the leader minimises:
+\begin{align}
+  \min_{x,y}\quad & c^{\top}x+d^{\top}y \label{eq:bl}\\
+  \text{s.t.}\quad & Ax+By\ge a,\qquad x_i\in\mathbf{Z}\ (i\in I_u),\qquad y\in S(x),\notag\\
+  S(x)={}&\operatorname*{arg\,min}_{y'}\bigl\{f^{\top}y' : Cx+Dy'\ge b,\ y'_i\in\mathbf{Z}\ (i\in I_l)\bigr\}. \notag
+\end{align}
+All data are rational. Variable bounds, equality rows and ranged rows of
+the instance files are written as pairs of rows of the form ``$\ge$''; when
+an argument depends on the side of a row we say so. For a leader choice $x$
+the follower's problem is
+$P(x)=\min\{f^{\top}y : Cx+Dy\ge b,\ y_i\in\mathbf{Z}\ (i\in I_l)\}$ and its value
+is $\varphi(x)\in\mathbf{R}\cup\{-\infty,+\infty\}$ ($+\infty$ when $P(x)$ is
+infeasible). So $S(x)\neq\emptyset$ exactly when $\varphi(x)$ is finite and
+attained.
+
+An upper-level row is a \emph{coupling row} if it has a nonzero coefficient
+on a follower variable. A leader variable is a \emph{linking variable} if its
+column in $C$ is nonzero; $x_L$ denotes the linking variables and $C_L$ their
+columns, so $Cx=C_Lx_L$, and $P(x)$, $\varphi(x)$ and $S(x)$ depend on $x$ only
+through $x_L$.
+
+\begin{definition}[Bilevel feasible point, optimistic convention]\label{def:bilevel-feasible}
+A point $(x,y)$ is \emph{bilevel feasible} if $Ax+By\ge a$, $x_i\in\mathbf{Z}$ for
+$i\in I_u$, and $y\in S(x)$. The bilevel optimum $\mathrm{OPT}$ is the infimum
+of $c^{\top}x+d^{\top}y$ over bilevel feasible points ($+\infty$ if there is
+none).
+\end{definition}
+
+Problem~\eqref{eq:bl} minimises over the pair $(x,y)$, so when $S(x)$ has
+several elements the follower is assumed to pick the one that is best for the
+leader. This is the optimistic convention, which BOBILib uses for all of its
+reported values. For a fixed $x$ the optimistic choice solves the
+\emph{tie-break problem}
+\[
+  \min\bigl\{c^{\top}x+d^{\top}y : Ax+By\ge a,\ y\ \text{feasible for}\ P(x),\ f^{\top}y\le\varphi(x)\bigr\}.
+\]
+
+\paragraph{High point relaxation.}
+The \emph{high point relaxation} (HPR) of~\eqref{eq:bl} drops the condition
+$y\in S(x)$ and keeps every row, bound and integrality requirement of both
+levels and the leader's objective:
+\[
+  \mathrm{HPR}=\min\bigl\{c^{\top}x+d^{\top}y : Ax+By\ge a,\ Cx+Dy\ge b,\
+  x_i\in\mathbf{Z}\ (i\in I_u),\ y_i\in\mathbf{Z}\ (i\in I_l)\bigr\}.
+\]
+
+\paragraph{Packing interdiction.}
+Items are $N=\{1,\dots,n\}$. The leader chooses $x\in\{0,1\}^n$ subject to
+budget rows $Gx\le g$ with $G\in\mathbf{Z}_{\ge 0}^{m_u\times n}$ and
+$g\in\mathbf{Z}_{\ge 0}^{m_u}$. The follower then solves
+\[
+  \Phi(x)=\max\bigl\{p^{\top}y : Wy\le c,\ y\le \mathbf{1}-x,\ y\in\{0,1\}^n\bigr\}
+\]
+with profits $p\in\mathbf{Z}_{\ge 0}^n$, weights $W\in\mathbf{Z}_{\ge 0}^{m\times n}$
+and capacities $c\in\mathbf{Z}_{\ge 0}^m$, and the leader solves
+$\mathrm{OPT}=\min\{\Phi(x) : Gx\le g,\ x\in\{0,1\}^n\}$. In BOBILib form the
+leader's objective is $p^{\top}y$ and the follower's is $-p^{\top}y$, so the
+game is zero-sum: every $y\in S(x)$ gives the leader the same value $\Phi(x)$,
+and the optimistic and pessimistic readings coincide. We identify $x$ with the
+set $X=\{j : x_j=1\}$ of interdicted items and write $q(Y)=\sum_{j\in Y}q_j$ for
+a vector $q$ and a set $Y\subseteq N$. With
+$K(T)=\max\{p(Y): Y\subseteq T,\ \sum_{j\in Y}W_{\cdot j}\le c\}$ the best packing
+of the items in $T$, we have $\Phi(X)=K(N\setminus X)$.
+
+KIP (the knapsack interdiction problem) is the case $m_u=m=1$. There we write
+$\gamma_j=G_{1j}$ for the cost of interdicting item $j$, $\beta=g_1$ for the
+leader's budget, $w_j=W_{1j}$ for the follower's weights and $c=c_1$ for its
+capacity, so
+$\Phi(X)=\max\{p(Y): Y\subseteq N\setminus X,\ w(Y)\le c\}$ and the leader's sets
+satisfy $\gamma(X)\le\beta$. MKIP (multidimensional KIP) allows $m_u\ge1$ and
+$m\ge1$. In BOBILib's OR set, variant~$-100$ has one follower row ($m=1$) and
+several leader rows; variants $-0$ and $-50$ have several follower rows. The
+\emph{subset-sum class} of KIP is $p=w$; then $\Phi(X)$ is the largest subset
+sum of $\{w_j: j\notin X\}$ that does not exceed $c$. (The letter $c$ is the
+leader's cost vector in~\eqref{eq:bl} and the follower's capacity in packing
+interdiction; the context always says which.)
+
+\paragraph{Clique and network interdiction.}
+For edge clique interdiction, $G=(V,E)$ is a simple graph with $n=|V|$ and
+$m=|E|$; the leader deletes $D\subseteq E$ with $|D|\le k$, and the follower
+takes a maximum clique of $G-D=(V,E\setminus D)$, of size $\omega(G-D)$. In the
+attack-protect network game the leader attacks at most $\Phi$ nodes and the
+follower then protects at most $\Lambda$ nodes (Section~\ref{app:network}; there
+$\Phi$ is the attack budget, as in BOBILib's row name, not a value function).
+
+\paragraph{Tolerances.}
+BOBILib's feasibility checker (Section~5.2 of the BOBILib paper by Th\"urauf,
+Kleinert, Ljubi\'c, Ralphs and Schmidt, and the script
+\texttt{feasibility\_checker.py} distributed with the library) accepts a
+solution file in three steps: (i)~the HPR is feasible; (ii)~the file's point
+passes the MIPLIB~2017 solution checker (version~1.0.3) on the HPR with
+tolerance $10^{-4}$ for the linear rows and $10^{-4}$ for integrality, and the
+stated leader objective matches; (iii)~the follower's problem with the
+leader's variables fixed to the file's values is solved to optimality (by
+Gurobi with feasibility tolerance $10^{-6}$), giving $\varphi_{\mathrm{check}}$,
+and the file's follower value $\varphi_{\mathrm{sol}}$ must satisfy
+\begin{equation}\label{eq:bobilib-tol}
+  \frac{|\varphi_{\mathrm{sol}}-\varphi_{\mathrm{check}}|}{10^{-10}+|\varphi_{\mathrm{check}}|}\le 10^{-4}.
+\end{equation}
+(The paper prints the denominator without the absolute value; the script uses
+$|\varphi_{\mathrm{check}}|$. The script also contains an optimistic tie-break
+test, which its driver does not call.)
+Our verifier \texttt{bobi verify} checks (a)~every row, bound and integrality
+requirement of the HPR at the file's point with absolute tolerance $10^{-6}$;
+(b)~the stated leader objective; (c)~the follower's problem with the leader
+fixed, re-solved by an exact knapsack oracle when there is one follower row
+and by a HiGHS MILP otherwise, against test~\eqref{eq:bobilib-tol}, where
+differences of at most $10^{-9}$ count as equal. A MILP stopped at a time
+limit gives a verdict only when its incumbent is strictly better than the
+file's value by more than~\eqref{eq:bobilib-tol} allows (``not optimal'') or
+its proven bound passes~\eqref{eq:bobilib-tol} (``optimal''); otherwise the
+verdict is ``unproven''. The follower problem contains only the follower's
+rows, as in BOBILib's checker; coupling rows constrain the leader. Our
+re-certification \texttt{bobi certify} (used for the points with coupling
+rows) adds the optimistic tie-break test, and both of its optimality tests
+use proven dual bounds and the relative tolerance $10^{-5}$.
+
+``Optimal'' in this appendix means: a bilevel feasible point in the sense of
+Definition~\ref{def:bilevel-feasible} (checked within the tolerances above)
+whose value equals a proven lower bound.

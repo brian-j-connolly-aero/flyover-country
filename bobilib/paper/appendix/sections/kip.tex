@@ -1,0 +1,584 @@
+% Knapsack interdiction: monotonicity, count formulation, pruning rules,
+% online relaxation, robust tables, threshold form, per-node rule, exactness.
+\section{Knapsack interdiction: the exact subset-sum search}\label{app:kip}
+
+This section proves the rules behind the exact search for subset-sum
+knapsack interdiction (KIP with $p=w$, Section~\ref{app:notation}). The search
+answers a yes/no question: given an integer $\ell$, does every leader set
+within budget leave the follower at least $\ell$? A ``yes'' proves
+$\mathrm{OPT}\ge\ell$; a ``no'' comes with a leader set whose follower value is
+below~$\ell$. Repeating with $\ell$ equal to the incumbent value proves
+optimality (Corollary~\ref{cor:kip-loop}).
+
+\subsection{Monotonicity and the count formulation}
+
+\begin{lemma}[Monotonicity of interdiction]\label{lem:kip-monotone}
+Let $\mathcal{F}$ be any family of subsets of $N$ (the follower's feasible
+sets) and $\Phi_{\mathcal{F}}(X)=\max\{p(Y): Y\in\mathcal{F},\ Y\cap X=\emptyset\}$
+with $p\ge 0$. If $X\subseteq X'$ then $\Phi_{\mathcal{F}}(X')\le\Phi_{\mathcal{F}}(X)$. If
+$\mathcal{F}$ is closed under taking subsets, then
+$\Phi_{\mathcal{F}}(X)=\max\{p(Y\setminus X): Y\in\mathcal{F}\}$. The knapsack
+follower $\mathcal{F}=\{Y: \sum_{j\in Y}W_{\cdot j}\le c\}$ is closed under taking
+subsets because $W\ge 0$; in particular $\Phi(X')\le\Phi(X)$ for $X\subseteq X'$.
+\end{lemma}
+\begin{proof}
+Every $Y\in\mathcal{F}$ that avoids $X'$ also avoids $X$, so the maximum for $X'$
+is over a subfamily. For the second claim, a set $Y\in\mathcal{F}$ avoiding $X$
+has $p(Y)=p(Y\setminus X)$, which gives ``$\le$''; conversely, for
+$Y\in\mathcal{F}$ the set $Y\setminus X$ lies in $\mathcal{F}$ and avoids $X$, which
+gives ``$\ge$''. A subset of a packing has no larger weight in any row
+because $W\ge 0$.
+\end{proof}
+\noindent Formalised: \texttt{Bobi/Knapsack.lean}, theorems
+\texttt{follower\_antitone}, \texttt{bestAvoiding\_antitone},
+\texttt{bestAvoiding\_eq\_sup\_sdiff}, \texttt{packings\_downward\_closed} and
+\texttt{K\_eq\_bestAvoiding}.
+
+\begin{lemma}[Cheapest copies first]\label{lem:kip-cheapest}
+Consider KIP and a class $Q\subseteq N$ of identical items ($p_i=p_j$ and
+$w_i=w_j$ for $i,j\in Q$). For every leader set $X$ there is a leader set $X'$
+with $X'\setminus Q=X\setminus Q$, $|X'\cap Q|=|X\cap Q|$,
+$\gamma_a\le\gamma_b$ for all $a\in X'\cap Q$ and $b\in Q\setminus X'$,
+$\gamma(X')\le\gamma(X)$ and $\Phi(X')=\Phi(X)$.
+\end{lemma}
+\begin{proof}
+First a single swap: if $i\in X\cap Q$, $j\in Q\setminus X$ and
+$\gamma_j\le\gamma_i$, let $X^{s}=(X\setminus\{i\})\cup\{j\}$. The transposition of
+$i$ and $j$ preserves $p$ and $w$ and maps $N\setminus X$ onto $N\setminus X^{s}$,
+so it maps the packings avoiding $X$ bijectively onto those avoiding $X^{s}$
+with the same profits; hence $\Phi(X^{s})=\Phi(X)$, and
+$\gamma(X^{s})=\gamma(X)-\gamma_i+\gamma_j\le\gamma(X)$. Now induct on the integer
+$\gamma(X)$. If some $i\in X\cap Q$ and $j\in Q\setminus X$ have $\gamma_j<\gamma_i$,
+the swap lowers the cost strictly, keeps $X\setminus Q$, $|X\cap Q|$ and
+$\Phi$, and the induction hypothesis applies to $X^{s}$. Otherwise $X'=X$
+works.
+\end{proof}
+\noindent Formalised: \texttt{Bobi/Knapsack.lean}, theorems
+\texttt{K\_map\_equiv}, \texttt{swap\_block} and \texttt{cheapest\_first}.
+
+\begin{definition}[Class instance]\label{def:class-instance}
+A \emph{class instance} is a list of classes $1,\dots,L$; class $i$ has a
+value $v_i\in\mathbf{Z}_{\ge 1}$ and $n_i$ copies with deletion costs
+$\gamma_{i,1},\dots,\gamma_{i,n_i}\in\mathbf{Z}_{\ge 0}$ (in a fixed order, not
+necessarily ascending). Let $P_i(r)=\sum_{h\le r}\gamma_{i,h}$ for
+$0\le r\le n_i$. A \emph{deletion} is a count vector $r=(r_1,\dots,r_L)$ with
+$0\le r_i\le n_i$; its cost is $P(r)=\sum_i P_i(r_i)$ and its survivors form
+the multiset $R(r)$ with $n_i-r_i$ copies of $v_i$ for each $i$. For a finite
+multiset $M$ of nonnegative integers, $\mathrm{SS}(M)$ is the set of sums of its
+sub-multisets ($0\in\mathrm{SS}(M)$). Given integers $0\le lo\le hi$ and a
+budget $\beta\ge 0$, the instance is \emph{safe} if every deletion with
+$P(r)\le\beta$ has $\mathrm{SS}(R(r))\cap[lo,hi]\neq\emptyset$; a deletion within
+budget with $\mathrm{SS}(R(r))\cap[lo,hi]=\emptyset$ is \emph{blocking}.
+\end{definition}
+
+\begin{proposition}[Reduction of subset-sum KIP]\label{prop:kip-reduction}
+Consider subset-sum KIP with data $\gamma,\beta,w,c$ (all nonnegative
+integers). Let $F=\{j:\gamma_j=0\}$, $\mathcal{L}=\{j\notin F: 1\le w_j\le c\}$ and
+$g=\gcd\{w_j: j\in\mathcal{L}\}$ ($g=1$ if $\mathcal{L}=\emptyset$). Group
+$\mathcal{L}$ into classes by the value $w_j/g$, with each class's costs sorted
+ascending, and let $hi=\lfloor c/g\rfloor$. For a deletion $r$ let $X(r)$ be $F$
+together with the $r_i$ cheapest items of each class. Then
+\begin{enumerate}
+\item $\gamma(X(r))=P(r)$ and $\Phi(X(r))=g\cdot\max\bigl(\mathrm{SS}(R(r))\cap[0,hi]\bigr)$;
+\item for every leader set $X$ with $\gamma(X)\le\beta$ there is a deletion $r$
+with $P(r)\le\gamma(X)$ and $\Phi(X(r))\le\Phi(X)$;
+\item for every integer $\ell\ge 0$ with $lo=\lceil\ell/g\rceil\le hi$:
+$\mathrm{OPT}\ge\ell$ if and only if the class instance is safe for the band
+$[lo,hi]$ and budget $\beta$; and $r$ is blocking if and only if
+$P(r)\le\beta$ and $\Phi(X(r))<\ell$.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(1) Items of $F$ cost nothing. A packing avoiding $X(r)$ contains no item of
+$F$; an item outside $F\cup\mathcal{L}$ has $w_j=0$ (then $p_j=0$) or $w_j>c$ (then
+it is in no packing), so dropping such items changes neither weight nor
+profit. Every weight in $\mathcal{L}$ is $g$ times its class value, so a set
+$Y\subseteq\mathcal{L}$ has $w(Y)\le c$ iff its value sum is at most
+$\lfloor c/g\rfloor=hi$, and the value sums of packings of $\mathcal{L}\setminus X(r)$
+are exactly $\mathrm{SS}(R(r))$.
+(2) Let $X_1=X\cup F$: $\gamma(X_1)=\gamma(X)$ and $\Phi(X_1)\le\Phi(X)$ by
+Lemma~\ref{lem:kip-monotone}. Items outside $F\cup\mathcal{L}$ do not affect $\Phi$
+(as in~(1)) and blocking them costs something, so remove them from $X_1$
+(cost does not increase, $\Phi$ unchanged). Apply Lemma~\ref{lem:kip-cheapest}
+to each class in turn. The result blocks in each class $i$ some $r_i$ copies,
+each no costlier than every unblocked copy, so its cost in class $i$ is the
+sum of the $r_i$ smallest costs, $P_i(r_i)$, and its follower value is that
+of $X(r)$.
+(3) Since $g s\ge\ell$ iff $s\ge lo$ for integers $s$, (1) gives:
+$\Phi(X(r))\ge\ell$ iff $\mathrm{SS}(R(r))\cap[lo,hi]\neq\emptyset$. If the instance is
+safe, (2) gives $\Phi(X)\ge\Phi(X(r))\ge\ell$ for every $X$ within budget. If a
+deletion $r$ is blocking, $X(r)$ is within budget with $\Phi(X(r))<\ell$, so
+$\mathrm{OPT}<\ell$.
+\end{proof}
+\noindent Not formalised as a whole; its two ingredients are
+Lemmas~\ref{lem:kip-monotone} and~\ref{lem:kip-cheapest}.
+
+If $\lceil\ell/g\rceil>hi$ then $\Phi\le c<\ell$ for every leader set, so the
+question is trivial. From now on we work with a class instance, a band
+$[lo,hi]$ with $lo\le hi$ and a budget~$\beta$. All results below hold for
+arbitrary nonnegative costs in the count formulation; where ascending costs
+are needed (deletions of arbitrary copies) we say so.
+
+\subsection{Windows of reachable sums and the stall test}
+
+\begin{lemma}[Window extension]\label{lem:window-extend}
+Let $M$ be a multiset with $[a,b]\subseteq\mathrm{SS}(M)$, $a\le b$. If a value $v$
+satisfies $v\le b-a+1$ then $[a,b+v]\subseteq\mathrm{SS}(M\uplus\{v\})$. More
+generally, if values $v_1,\dots,v_q$ satisfy
+$v_h\le (b-a+1)+v_1+\dots+v_{h-1}$ for every $h$, then
+$[a,\,b+\sum_h v_h]\subseteq\mathrm{SS}(M\uplus\{v_1,\dots,v_q\})$.
+\end{lemma}
+\begin{proof}
+A target $t\in[a,b]$ is a sum of $M$. A target $t\in(b,b+v]$ has
+$a\le t-v\le b$, because $t>b$ and $v\le b-a+1$; so $t$ is $v$ plus a sum of
+$M$. The
+general statement follows by induction on $q$: after adding $v_1,\dots,v_{h-1}$
+the window is $[a,b+v_1+\dots+v_{h-1}]$, of width
+$(b-a+1)+v_1+\dots+v_{h-1}\ge v_h$.
+\end{proof}
+\noindent Formalised: \texttt{Bobi/SubsetSum.lean}, theorems
+\texttt{window\_extend} and \texttt{window\_extend\_all}.
+
+\begin{lemma}[Survivors that fit]\label{lem:window-survivors}
+Let $[a,b]\subseteq\mathrm{SS}(M)$ with $a\le b$ and $\omega=b-a+1$. Let
+$(v_1,\kappa_1),\dots,(v_q,\kappa_q)$ be a list of copies with values $v_h$ and
+flags $\kappa_h\in\{\text{kept},\text{deleted}\}$. Write $\mu_h=\sum_{h'<h}v_{h'}$
+for the mass before copy $h$ and $\delta_h$ for the deleted mass before copy
+$h$. If $\delta_h+v_h\le\omega+\mu_h$ for every $h$, then
+$[a,\,b+\sigma]\subseteq\mathrm{SS}(M\uplus K)$, where $K$ is the multiset of kept
+copies and $\sigma$ its total.
+\end{lemma}
+\begin{proof}
+Let $h$ be a kept copy. The kept mass before it is $\mu_h-\delta_h$, and the
+hypothesis says $v_h\le\omega+(\mu_h-\delta_h)$. So the kept copies, in list
+order, satisfy the hypothesis of Lemma~\ref{lem:window-extend}.
+\end{proof}
+\noindent Formalised: \texttt{Bobi/SubsetSum.lean}, theorems
+\texttt{fits\_survivors} and \texttt{window\_survivors}
+(\texttt{SubsetSum.perm}: subset sums do not depend on the order).
+
+\begin{lemma}[Fractional deletion bound]\label{lem:fractional}
+Let copies $h$ have values $v_h>0$ and costs $\gamma_h\ge 0$, sorted so that
+$\gamma_1/v_1\le\gamma_2/v_2\le\cdots$. For $d>0$ let
+$\Lambda(d)=\min\{\sum_h\gamma_h z_h:\sum_h v_hz_h\ge d,\ 0\le z\le 1\}$ ($+\infty$
+if $\sum_h v_h<d$). The greedy solution, which fills copies in this order
+until mass $d$ is reached, is optimal, and every set $H$ of copies with
+$\sum_{h\in H}v_h\ge d$ has $\sum_{h\in H}\gamma_h\ge\Lambda(d)$.
+\end{lemma}
+\begin{proof}
+The indicator vector of $H$ is feasible, which proves the last claim. Let
+$m_h=v_hz_h$ and $\rho_h=\gamma_h/v_h$, so the cost is $\sum_h\rho_hm_h$ with
+$0\le m_h\le v_h$ and $\sum_h m_h\ge d$. Let $m^{*}$ be the greedy allocation,
+$\lambda$ the ratio of the copy where it stops, and $m$ any feasible
+allocation. Then
+$\sum_h\rho_h(m_h-m^{*}_h)=\sum_h(\rho_h-\lambda)(m_h-m^{*}_h)+\lambda\sum_h(m_h-m^{*}_h)$.
+Each term of the first sum is nonnegative ($m^{*}_h=v_h\ge m_h$ when
+$\rho_h<\lambda$, $m^{*}_h=0\le m_h$ when $\rho_h>\lambda$), and the last term is
+nonnegative because $\sum_hm^{*}_h=d\le\sum_hm_h$ and $\lambda\ge 0$.
+\end{proof}
+\noindent Not formalised (a standard linear programming fact).
+
+The next rule is stated for a search node (Section~\ref{app:kip-exact}): the
+decided classes have left a multiset $M$ of survivors, $S=\mathrm{SS}(M)\cap[0,hi]$,
+and the remaining (undecided) classes may be deleted with residual budget
+$\beta'$. A \emph{completion} is a count vector for the undecided classes of
+cost at most~$\beta'$.
+
+\begin{proposition}[Window rule with stall test]\label{prop:window-rule}
+Order the undecided classes by ascending value, $u_1,\dots,u_q$, and let
+$M_i=\sum_{i'<i}n_{u_{i'}}v_{u_{i'}}$ be the mass of the classes before $u_i$.
+Let $\Delta$ be the largest mass that a completion deletes and $\sigma_0$ the
+total undecided mass minus $\Delta$. Let $[a,b]\subseteq S$ be a run of
+consecutive integers with $b<lo\le b+\sigma_0$ and width $\omega=b-a+1$, and
+put $D_i=M_i-v_{u_i}+\omega+1$. Suppose that for every $i$: $D_i>0$, and either
+$i=1$ or the fractional bound of Lemma~\ref{lem:fractional} over the copies
+of $u_1,\dots,u_{i-1}$ satisfies $\Lambda_i(D_i)>\beta'$. Then every completion
+leaves survivors $R$ with $lo\in\mathrm{SS}(M\uplus R)$; the node is safe.
+\end{proposition}
+\begin{proof}
+Fix a completion and list the undecided copies class by class in the order
+$u_1,\dots,u_q$, flagging the deleted ones. Let $e_i$ be the mass the completion
+deletes from $u_1,\dots,u_{i-1}$. Those deleted copies form a set of total cost
+at most $\beta'$, so $e_i\ge D_i$ would contradict $\Lambda_i(D_i)>\beta'$ by
+Lemma~\ref{lem:fractional}; for $i=1$, $e_1=0<D_1$. Hence $e_i\le D_i-1$. At
+the copy number $t$ ($t=0,1,\dots$) of class $u_i$, the mass before it is
+$M_i+tv_{u_i}$ and the deleted mass before it is at most $e_i+tv_{u_i}$, so
+deleted mass plus $v_{u_i}$ is at most
+$D_i-1+(t+1)v_{u_i}=\omega+M_i+tv_{u_i}$. Lemma~\ref{lem:window-survivors}
+gives $[a,b+\sigma]\subseteq\mathrm{SS}(M\uplus R)$ with $\sigma\ge\sigma_0$ the
+surviving mass, and $a\le b<lo\le b+\sigma_0$ puts $lo$ in that window.
+\end{proof}
+\noindent The per-copy hypothesis is formalised
+(\texttt{Bobi/SubsetSum.lean}, theorem \texttt{window\_survivors}); the
+reduction to one test per class and the use of Lemma~\ref{lem:fractional} are
+argued here and in the doc comment of the code, not formalised. $\Delta$ is
+computed exactly by a bounded-knapsack recursion over the undecided classes.
+
+\subsection{The online relaxation}
+
+The online relaxation of Weninger and Fukasawa (N.~Weninger and R.~Fukasawa,
+\emph{A fast combinatorial algorithm for the bilevel knapsack problem with
+interdiction constraints}, Math.\ Program.\ 210 (2025) 847--879; Section~3,
+Theorem~2 of the preprint) applies to general KIP. Fix a list
+$o=(j_1,\dots,j_L)$ of distinct items, any subset of $N$ in any order. The
+\emph{online game} on $o$ has $2L$ rounds: at item $j_h$ the leader first
+decides whether to block it (allowed if its cost fits the remaining budget);
+if the leader does not block it, the follower decides whether to take it
+(allowed if its weight fits the remaining capacity). The follower collects
+the profits of the items it takes. Both players see all earlier moves. The
+value of this finite game of perfect information is given by backward
+induction: $\omega(\emptyset,\beta',\kappa)=0$ and, for $o=(j,o')$,
+\[
+  \omega(o,\beta',\kappa)=
+  \begin{cases}\min\{\omega(o',\beta'-\gamma_j,\kappa),\ T\} & \text{if }\gamma_j\le\beta',\\
+  T & \text{otherwise,}\end{cases}
+  \qquad
+  T=\begin{cases}\max\{\omega(o',\beta',\kappa),\ \omega(o',\beta',\kappa-w_j)+p_j\} & \text{if }w_j\le\kappa,\\
+  \omega(o',\beta',\kappa) & \text{otherwise.}\end{cases}
+\]
+
+\begin{theorem}[Online lower bound, any play order]\label{thm:online}
+For every list $o$ of distinct items and every $X\subseteq N$ with
+$\gamma(X)\le\beta$,
+$\omega(o,\beta,c)\le K(o\setminus X)\le\Phi(X)$, where $K(T)$ is the best
+packing of the items of $T$ with capacity $c$. Hence $\omega(o,\beta,c)\le\mathrm{OPT}$.
+\end{theorem}
+\begin{proof}
+In the online game the leader may adapt to the follower's earlier moves; the
+real game corresponds to the leader strategy ``block exactly the items of
+$X$'', which does not adapt. Formally, we prove by induction on the length of
+$o$, for all $\beta',\kappa\ge 0$ and all $X\subseteq o$ with $\gamma(X)\le\beta'$,
+that $\omega(o,\beta',\kappa)\le K_\kappa(o\setminus X)$ (best packing with
+capacity $\kappa$). For $o=\emptyset$ both sides are $0$. Let $o=(j,o')$. If
+$j\in X$, then $\gamma_j\le\gamma(X)\le\beta'$, so the blocking branch is offered and
+$\omega(o,\beta',\kappa)\le\omega(o',\beta'-\gamma_j,\kappa)\le K_\kappa(o'\setminus X)=K_\kappa(o\setminus X)$
+by induction applied to $X\setminus\{j\}$. If $j\notin X$, then $X\subseteq o'$ and
+$\omega(o,\beta',\kappa)\le T$. By induction $\omega(o',\beta',\kappa)\le K_\kappa(o'\setminus X)$
+and, if $w_j\le\kappa$,
+$\omega(o',\beta',\kappa-w_j)+p_j\le K_{\kappa-w_j}(o'\setminus X)+p_j\le K_\kappa((o'\setminus X)\cup\{j\})$
+(add $j$ to an optimal packing). So in both cases of $T$ we get
+$T\le K_\kappa((o'\setminus X)\cup\{j\})=K_\kappa(o\setminus X)$. For an arbitrary $X$ within
+budget apply this to $X\cap o$ (its cost is no larger and $o\setminus(X\cap o)=o\setminus X$).
+Finally $K(o\setminus X)\le K(N\setminus X)=\Phi(X)$ because more items can only help.
+\end{proof}
+\noindent Formalised: \texttt{Bobi/Online.lean}, theorems
+\texttt{online\_le\_K}, \texttt{online\_le\_K\_any} and
+\texttt{online\_lower\_bound}.
+
+\begin{remark}
+The bound need not be tight. In Weninger and Fukasawa's Table~1 (profits
+$(1,1,2)$, leader costs $(1,1,2)$, follower weights $(1,1,3)$, $\beta=2$, $c=3$)
+the online game is worth $1$ and the bilevel optimum is $2$ (Lean:
+\texttt{table1\_online}, \texttt{table1\_opt}, \texttt{table1\_block}, checked by
+evaluation).
+\end{remark}
+
+\subsection{Robust tables with an end set}
+
+For subset-sum instances the same idea is applied class by class in the
+count formulation. Let $Q=(q_1,\dots,q_L)$ be a list of classes (the
+\emph{play order}) and $A\subseteq\mathbf{Z}_{\ge 0}$ an \emph{end set}. The game
+$\Gamma_A(Q,\beta',t)$ starts with residual $t$ and budget $\beta'$; at class $q$
+the leader announces $r\le n_q$ with $P_q(r)$ at most the remaining budget,
+then the follower takes $j\le n_q-r$ copies with $jv_q$ at most the current
+residual, which decreases by $jv_q$; the follower wins if the final residual
+lies in~$A$.
+
+\begin{definition}[Robust tables]\label{def:tables}
+$G_A(\emptyset,\beta')=A$ and, for $Q=(q,Q')$,
+\[
+  t\in G_A(Q,\beta')\iff \forall r\le n_q \text{ with } P_q(r)\le\beta'\ \
+  \exists j\le n_q-r:\ jv_q\le t\ \text{and}\ t-jv_q\in G_A(Q',\beta'-P_q(r)).
+\]
+So $G_A(Q,\beta')$ is the set of residuals from which the follower wins
+$\Gamma_A(Q,\beta',\cdot)$. The robust table is $H=G_{\{0\}}$ and the band table of
+width $w\ge 1$ is $G_w=G_{[0,w-1]}$.
+\end{definition}
+
+\begin{theorem}[Soundness of the tables]\label{thm:tables-sound}
+If $t\in G_A(Q,\beta')$ and $r$ is a deletion of the classes of $Q$ with
+$P(r)\le\beta'$, then there are $s\in\mathrm{SS}(R(r))$ and $a\in A$ with $s+a=t$. In
+particular $t\in H(Q,\beta')$ gives $t\in\mathrm{SS}(R(r))$, and $t\in G_w(Q,\beta')$ gives
+some $s\in\mathrm{SS}(R(r))$ with $s\le t<s+w$. If each class's costs are ascending,
+the same holds for a deletion of arbitrary copies of total cost at most
+$\beta'$.
+\end{theorem}
+\begin{proof}
+Induction on $L$. For $L=0$ take $s=0$, $a=t$. For $Q=(q,Q')$:
+$P_q(r_1)\le P(r)\le\beta'$, so the definition gives $j\le n_q-r_1$ with
+$t-jv_q\in G_A(Q',\beta'-P_q(r_1))$, and the rest of $r$ costs at most
+$\beta'-P_q(r_1)$. By induction $t-jv_q=s'+a$ with $s'$ a subset sum of the
+survivors of $Q'$; then $s=jv_q+s'$ uses $j$ of the $n_q-r_1$ survivors of
+$q$. For deletions of arbitrary copies with ascending costs, deleting $r_i$
+copies of class $i$ costs at least $P_i(r_i)$, and the survivors are again
+$n_i-r_i$ copies of $v_i$.
+\end{proof}
+\noindent Formalised: \texttt{Bobi/EndTable.lean}, theorems
+\texttt{GA\_sound}, \texttt{GA\_sound\_any}, \texttt{G\_iff\_GA},
+\texttt{H\_iff\_GA}, \texttt{G\_sound\_of\_GA}, \texttt{H\_sound\_of\_GA};
+\texttt{Bobi/RobustTable.lean}, \texttt{H\_sound}, \texttt{H\_sound\_any},
+\texttt{take\_sum\_le}, \texttt{counts\_of\_deletion};
+\texttt{Bobi/BandTable.lean}, \texttt{G\_sound}, \texttt{G\_sound\_any},
+\texttt{G\_one}, \texttt{G\_sound\_one}.
+
+\begin{proposition}[Any play order]\label{prop:play-order}
+Let $Q$ be the undecided classes in the search order and $\pi(Q)$ any
+permutation of them. If $t\in G_A(\pi(Q),\beta')$, the conclusion of
+Theorem~\ref{thm:tables-sound} holds for every deletion $r$ of $Q$ with
+$P(r)\le\beta'$.
+\end{proposition}
+\begin{proof}
+Permuting the pairs (class, count) permutes the survivors and leaves the cost
+unchanged, and subset sums depend only on the multiset. Apply
+Theorem~\ref{thm:tables-sound} to the permuted deletion.
+\end{proof}
+\noindent Formalised: \texttt{Bobi/EndTable.lean}, theorems
+\texttt{counts\_perm}, \texttt{remaining\_eq\_flatten},
+\texttt{totalCost\_eq\_sum}, \texttt{remaining\_perm},
+\texttt{totalCost\_perm}, \texttt{GA\_sound\_perm} and
+\texttt{GA\_sound\_perm\_any}.
+
+\begin{corollary}[Root-table rules]\label{cor:root-rules}
+Let $M$ be the decided survivors and $Q$ the undecided classes (any play
+order). (i) If $s\in\mathrm{SS}(M)$ and $t\in H(Q,\beta')$, every completion leaves
+$s+t\in\mathrm{SS}(M\uplus R)$. (ii) If $[a,b]\subseteq\mathrm{SS}(M)$, $t\in G_w(Q,\beta')$,
+$a+t\le\tau$ and $\tau+w\le b+t+1$, every completion leaves
+$\tau\in\mathrm{SS}(M\uplus R)$. The search prunes when $s+t$, respectively $\tau$,
+lies in $[lo,hi]$.
+\end{corollary}
+\begin{proof}
+(i) Theorem~\ref{thm:tables-sound} gives $t\in\mathrm{SS}(R)$. (ii) It gives
+$s'\in\mathrm{SS}(R)$ with $s'\le t<s'+w$; then $a\le\tau-t\le\tau-s'$ and
+$\tau-s'\le\tau-t+w-1\le b$, so $\tau-s'\in\mathrm{SS}(M)$.
+\end{proof}
+\noindent Formalised: \texttt{Bobi/RobustTable.lean}, theorem
+\texttt{covers\_sound}; \texttt{Bobi/BandTable.lean},
+\texttt{band\_covers\_sound}, \texttt{covers\_sound\_of\_band};
+\texttt{Bobi/Threshold.lean}, \texttt{covers\_threshold\_sound},
+\texttt{covers\_threshold\_sound\_perm}, \texttt{band\_covers\_threshold\_sound},
+\texttt{band\_covers\_threshold\_sound\_perm} (the same on stored thresholds).
+
+\begin{lemma}[Antitone in the budget]\label{lem:antitone}
+If $\beta''\le\beta'$ then $G_A(Q,\beta')\subseteq G_A(Q,\beta'')$. If
+$A\subseteq A'$ then $G_A(Q,\beta')\subseteq G_{A'}(Q,\beta')$.
+\end{lemma}
+\begin{proof}
+Induction on $L$; the base case does not depend on the budget. A deletion
+$r$ with $P_q(r)\le\beta''$ also has $P_q(r)\le\beta'$; the answer $j$ for
+budget $\beta'$ leads to $G_A(Q',\beta'-P_q(r))\subseteq G_A(Q',\beta''-P_q(r))$ by
+induction. The second claim is the same induction with a larger base set.
+\end{proof}
+\noindent Formalised: \texttt{Bobi/EndTable.lean}, theorems
+\texttt{GA\_antitone}, \texttt{G\_antitone}, \texttt{H\_antitone} and
+\texttt{GA\_mono}.
+
+\subsection{Threshold form}
+
+By Lemma~\ref{lem:antitone}, for each residual $t$ the budgets at which
+$t\in G_A(Q,\cdot)$ form an initial segment, so one number per $t$ describes
+the table. Fix a cap $\mathrm{cap}\ge 0$ (the root budget $\beta$).
+
+\begin{definition}[Threshold]\label{def:thr}
+$\mathrm{thr}(\emptyset,t)=\mathrm{cap}$ if $t\in A$ and $-1$ otherwise; for
+$Q=(q,Q')$ with value $v$ and $n$ copies,
+\[
+  \mathrm{thr}(Q,t)=\min\Bigl(\mathrm{cap},\ \min_{\substack{r\le n\\ P_q(r)\le\mathrm{cap}}}
+  \Bigl[P_q(r)+\max\Bigl(-1,\ \max_{\substack{j\le n-r\\ jv\le t}}\mathrm{thr}(Q',t-jv)\Bigr)\Bigr]\Bigr).
+\]
+\end{definition}
+
+\begin{theorem}[Threshold form]\label{thm:thr}
+For every integer $B\ge 0$: $B\le\mathrm{thr}(Q,t)$ if and only if $B\le\mathrm{cap}$
+and $t\in G_A(Q,B)$. Consequently $-1\le\mathrm{thr}(Q,t)\le\mathrm{cap}$;
+$\mathrm{thr}(Q,t)=-1$ iff $t\notin G_A(Q,0)$; and otherwise $\mathrm{thr}(Q,t)$ is the
+largest $B\le\mathrm{cap}$ with $t\in G_A(Q,B)$.
+\end{theorem}
+\begin{proof}
+Induction on $L$. For $L=0$: if $t\in A$ the claim reads $B\le\mathrm{cap}$; if
+$t\notin A$ both sides are false since $B\ge 0>-1$. For $Q=(q,Q')$ write
+$m_r(t)$ for the inner maximum (at least $-1$). Then $B\le\mathrm{thr}(Q,t)$ iff
+$B\le\mathrm{cap}$ and $B\le P_q(r)+m_r(t)$ for all $r$ with $P_q(r)\le\mathrm{cap}$.
+Assume $B\le\mathrm{cap}$. For $r$ with $P_q(r)>B$ the inequality holds
+automatically, as $B\le P_q(r)-1$. For $r$ with $P_q(r)\le B$ (these have
+$P_q(r)\le\mathrm{cap}$): $B\le P_q(r)+m_r(t)$ iff $0\le B-P_q(r)\le m_r(t)$ iff some
+$j\le n-r$ with $jv\le t$ has $B-P_q(r)\le\mathrm{thr}(Q',t-jv)$ iff, by induction
+(note $B-P_q(r)\le\mathrm{cap}$), $t-jv\in G_A(Q',B-P_q(r))$. This is the
+definition of $t\in G_A(Q,B)$. The consequences follow by taking $B=0$ and
+$B=\mathrm{thr}(Q,t)$.
+\end{proof}
+\noindent Formalised: \texttt{Bobi/Threshold.lean}, theorems
+\texttt{thr\_iff}, \texttt{GA\_iff\_thr}, \texttt{thr\_bounds},
+\texttt{thr\_eq\_neg\_one\_iff}, \texttt{thr\_greatest}, \texttt{G\_iff\_thr}
+and \texttt{H\_iff\_thr} (definition \texttt{thr}).
+
+\begin{remark}[What the code computes]
+The recursion at residual $t$ reads only residuals $\le t$, so arrays indexed
+$0,\dots,hi$ hold the exact thresholds of those residuals. With nonnegative
+costs $P_q$ is nondecreasing, so stopping at the first $r$ with
+$P_q(r)>\mathrm{cap}$ implements the filter. That the code's loops compute
+$\mathrm{thr}$ (including the shortcuts that compute only residuals in a range
+that can matter, and an early exit once every computed threshold is below the
+budget) is argued in the code's doc comments and tested against a direct
+transcription of Definition~\ref{def:thr} and against brute force; it is not
+formalised.
+\end{remark}
+
+\subsection{The per-node rule}
+
+At a search node the decided survivors $M$ reach the sums $S=\mathrm{SS}(M)\cap[0,hi]$.
+The follower wins with any total in $[lo,hi]$, so it need not fix its target
+in advance. The node's end set is
+\[
+  A_{\mathrm{node}}=\{a\in[0,hi] : \exists s\in S,\ s\le a\le s+(hi-lo)\},
+\]
+that is, $(S+[0,hi-lo])\cap[0,hi]$, and the node table asks whether
+$hi\in G_{A_{\mathrm{node}}}(Q,\beta')$.
+
+\begin{theorem}[Per-node rule]\label{thm:node-rule}
+Let $S\subseteq\mathrm{SS}(M)$, $lo\le hi$, $A$ any set whose elements $a$ each have
+some $s\in S$ with $s\le a\le s+(hi-lo)$, and $\pi(Q)$ any permutation of the
+undecided classes $Q$. If $hi\in G_A(\pi(Q),\beta')$, then every completion
+(a deletion $r$ of $Q$ with $P(r)\le\beta'$, costs in any order) leaves some
+$u\in\mathrm{SS}(M\uplus R(r))$ with $lo\le u\le hi$. In threshold form: if
+$\beta'\le\mathrm{cap}$ and $\beta'\le\mathrm{thr}(\pi(Q),hi)$ computed with end set
+$A_{\mathrm{node}}$, the node is safe at every budget up to $\mathrm{thr}(\pi(Q),hi)$.
+\end{theorem}
+\begin{proof}
+Proposition~\ref{prop:play-order} gives $x\in\mathrm{SS}(R(r))$ and $a\in A$ with
+$x+a=hi$. Pick $s\in S$ with $s\le a\le s+(hi-lo)$. Then $u=s+x$ is a subset sum
+of $M\uplus R(r)$ and $u=s+hi-a\in[hi-(hi-lo),hi]=[lo,hi]$. The threshold form
+follows from Theorem~\ref{thm:thr} with $B=\beta'$ (and for smaller budgets,
+since $B\le\mathrm{thr}$ is the same condition). The hypothesis $lo\le hi$ is
+needed: with $lo>hi$ there is no target, and the code returns $-1$.
+\end{proof}
+\noindent Formalised: \texttt{Bobi/EndTable.lean}, theorems
+\texttt{node\_rule}, \texttt{node\_table\_sound}, \texttt{node\_table\_sound\_perm}
+and \texttt{node\_table\_sound\_any} (definition \texttt{nodeEnd});
+\texttt{Bobi/Threshold.lean}, \texttt{node\_table\_threshold\_sound} and
+\texttt{node\_table\_threshold\_sound\_counts} (the form the search uses:
+count formulation, any play order, any cost order).
+
+\begin{remark}[Strength]
+The per-node rule contains the rule of $H$ in the same play order: if $s\in S$,
+$s\le\tau$, $\tau\in[lo,hi]$ and $\tau-s\in H(Q,\beta')$, then
+$hi\in G_{A_{\mathrm{node}}}(Q,\beta')$ (shift the follower's strategy up by
+$hi-\tau+s$). Formalised: \texttt{Bobi/EndTable.lean}, theorem
+\texttt{node\_table\_of\_H}. The analogous containment of the band rules is
+argued in the code's doc comment, not formalised; soundness does not need
+either. The play order matters only for strength; the search plays the
+classes in ascending order of deletion cost per unit of mass.
+\end{remark}
+
+\subsection{Restricted copies}
+
+\begin{proposition}[Restricted follower]\label{prop:restrict}
+For $k\ge 1$ let $I^{(k)}$ be the class instance in which every class $i$ with
+$n_i>k$ is replaced by a class with the same value, $k$ copies and costs
+$(\gamma_{i,1}+\dots+\gamma_{i,n_i-k+1},\ \gamma_{i,n_i-k+2},\dots,\gamma_{i,n_i})$. If
+$I^{(k)}$ is safe (same band and budget), then so is the original instance.
+\end{proposition}
+\begin{proof}
+Map a deletion $r$ of the original to $r'$ with
+$r'_i=\max(0,r_i-(n_i-k))$ for the restricted classes and $r'_i=r_i$ otherwise.
+If $r'_i=0$ its cost is $0\le P_i(r_i)$; otherwise it is
+$\gamma_{i,1}+\dots+\gamma_{i,n_i-k+r'_i}=P_i(r_i)$. So $P'(r')\le P(r)$. The
+restricted survivors number $k-r'_i=\min(k,n_i-r_i)\le n_i-r_i$, so
+$R'(r')\subseteq R(r)$ as multisets and $\mathrm{SS}(R'(r'))\subseteq\mathrm{SS}(R(r))$. Safety
+of $I^{(k)}$ applied to $r'$ gives a sum in $[lo,hi]$ for $r$.
+\end{proof}
+\noindent Not formalised. The restricted costs are not ascending, which is
+why the count-formulation results above make no assumption on the order of
+costs. (The option is off by default; no run recorded in the repository
+uses it.)
+
+\subsection{Why the search is exact}\label{app:kip-exact}
+
+The search fixes an order of the classes (any order). A node at depth $k$ has
+decided counts $r_1,\dots,r_k$ with residual budget $\beta'=\beta-\sum_{i\le k}P_i(r_i)\ge 0$,
+decided survivors $M_k$ and $S_k=\mathrm{SS}(M_k)\cap[0,hi]$. The node is \emph{safe}
+if every completion $(r_{k+1},\dots,r_L)$ with $\sum_{i>k}P_i(r_i)\le\beta'$ has
+$\mathrm{SS}(M_k\uplus R_{>k})\cap[lo,hi]\neq\emptyset$. The root ($k=0$, $S_0=\{0\}$) is safe
+iff the class instance is safe.
+
+\begin{lemma}[Node state]\label{lem:node-state}
+Whether a node is safe depends only on $(k,S_k,\beta')$, and a node safe at
+$\beta'$ is safe at every $\beta''\le\beta'$.
+\end{lemma}
+\begin{proof}
+$\mathrm{SS}(M\uplus R)=\mathrm{SS}(M)+\mathrm{SS}(R)$, and all values are nonnegative, so a sum in
+$[lo,hi]$ has its $\mathrm{SS}(M)$ part in $[0,hi]$. Hence the condition reads
+$(S_k+\mathrm{SS}(R_{>k}))\cap[lo,hi]\neq\emptyset$, and the completions depend only on $k$
+and $\beta'$, with fewer completions for smaller budgets.
+\end{proof}
+
+\begin{theorem}[Sound pruning]\label{thm:kip-rules}
+Each of the following implies that the node $(k,S_k,\beta')$ is safe.
+\begin{enumerate}
+\item Direct: $S_k\cap[lo,hi]\neq\emptyset$.
+\item Guaranteed copies: with $d_i=\max\{r\le n_i: P_i(r)\le\beta'\}$, the
+multiset $U$ with $n_i-d_i$ copies of $v_i$ for each undecided $i$ has
+$(S_k+\mathrm{SS}(U))\cap[lo,hi]\neq\emptyset$.
+\item Window: the hypothesis of Proposition~\ref{prop:window-rule} holds for a
+run of $S_k$.
+\item Root tables: Corollary~\ref{cor:root-rules} gives a target in $[lo,hi]$,
+for a table built once at the root (any play order).
+\item Node table: $\beta'\le\mathrm{thr}(\pi(Q),hi)$ with end set $A_{\mathrm{node}}$
+(Theorem~\ref{thm:node-rule}).
+\item Cache: an entry $(k,S_k)\mapsto\beta^{*}$ with $\beta'\le\beta^{*}$, where an
+entry is stored only after $(k,S_k)$ was shown safe at $\beta^{*}$ by one of
+the rules or by exhausting its children; rule~5 stores
+$\beta^{*}=\mathrm{thr}(\pi(Q),hi)$.
+\end{enumerate}
+\end{theorem}
+\begin{proof}
+(1) The decided survivors are present in every completion. (2) Costs are
+nonnegative, so a completion within $\beta'$ has $P_i(r_i)\le\beta'$ and, $P_i$
+being nondecreasing, $r_i\le d_i$; at least $n_i-d_i$ copies of $v_i$ survive,
+and $\mathrm{SS}$ grows with the multiset (Lemma~\ref{lem:kip-monotone}). (3)--(5)
+are Proposition~\ref{prop:window-rule}, Corollary~\ref{cor:root-rules} and
+Theorem~\ref{thm:node-rule}. (6) is Lemma~\ref{lem:node-state} together with
+Theorem~\ref{thm:node-rule}, which holds at every budget up to the stored
+threshold.
+\end{proof}
+
+\begin{theorem}[Exactness]\label{thm:kip-exact}
+The search visits the root; at a node it returns ``safe'' if a rule of
+Theorem~\ref{thm:kip-rules} applies or if all children
+$r_{k+1}\in\{r\le n_{k+1}:P_{k+1}(r)\le\beta'\}$ return ``safe''; at a leaf
+($k=L$) to which no rule applies it returns ``blocking'' with the counts on
+the path. If the search ends without reaching its node limit, then ``safe''
+at the root means the class instance is safe, and ``blocking'' returns a
+blocking deletion.
+\end{theorem}
+\begin{proof}
+By induction from the leaves, every node that returns ``safe'' is safe: for
+the rules this is Theorem~\ref{thm:kip-rules}; for a node whose children are
+all safe, every completion within $\beta'$ starts with some $r_{k+1}$ with
+$P_{k+1}(r_{k+1})\le\beta'$ (costs are nonnegative), and the rest of it is a
+completion of that child within $\beta'-P_{k+1}(r_{k+1})$. A leaf returning
+``blocking'' has $S_L\cap[lo,hi]=\emptyset$ (rule~1 did not apply), and $M_L=R(r)$
+for the path's deletion $r$, whose cost is $\beta-\beta'\le\beta$; so $r$ is
+blocking. A node returns ``blocking'' only when a child does.
+\end{proof}
+\noindent Not formalised (the search code; see Section~\ref{app:lean-map}).
+The rules it relies on are formalised as listed above, except the fractional
+bound of Lemma~\ref{lem:fractional}.
+
+\begin{corollary}[Exact solve]\label{cor:kip-loop}
+Start from any leader set $X_0$ within budget with $u_0=\Phi(X_0)$ (the code
+uses Weninger and Fukasawa's greedy leader). For $h=0,1,\dots$ run the search
+with $\ell=u_h$: if it returns ``safe'', $\mathrm{OPT}=u_h$; if it returns a
+blocking deletion $r$, set $X_{h+1}=X(r)$ and $u_{h+1}=\Phi(X(r))<u_h$. If no
+search hits its node limit, this ends after at most $u_0+1$ searches with a
+proof of optimality and an optimal leader set.
+\end{corollary}
+\begin{proof}
+By Proposition~\ref{prop:kip-reduction}(3) and Theorem~\ref{thm:kip-exact},
+``safe'' proves $\mathrm{OPT}\ge u_h=\Phi(X_h)\ge\mathrm{OPT}$, and ``blocking''
+yields $X(r)$ within budget with $\Phi(X(r))<u_h$. The values $u_h$ are
+nonnegative integers that strictly decrease.
+\end{proof}
+
+For each of the 16 instances that were open in the literature the loop ended
+with ``safe'' at BOBILib's own value, so BOBILib's point was already optimal
+and the proof of optimality is new.
