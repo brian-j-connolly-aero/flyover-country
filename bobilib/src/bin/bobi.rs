@@ -190,6 +190,9 @@ enum Cmd {
         /// Limit the follower to this many copies per weight (proves safety only).
         #[arg(long)]
         max_copies: Option<usize>,
+        /// Replace the instance's leader budget (for experiments).
+        #[arg(long)]
+        budget: Option<i64>,
         #[command(flatten)]
         ss: SsOpts,
     },
@@ -204,9 +207,6 @@ struct SsOpts {
     /// Use every width 1..=N for the search-order tables (overrides --widths).
     #[arg(long)]
     all_widths: Option<usize>,
-    /// Use every width 1..=N for the descending tables (overrides --desc-widths).
-    #[arg(long)]
-    all_desc_widths: Option<usize>,
     /// Memory allowance of the safe-state cache, in MiB.
     #[arg(long, default_value_t = SsConfig::default().cache_mb)]
     cache_mb: usize,
@@ -216,15 +216,13 @@ struct SsOpts {
     /// Play order of the per-node robust tables (base: the node's decided sums), or "none".
     #[arg(long, default_value = "ratioasc")]
     node_order: String,
-    /// Another play order for robust tables (see robust_ss::play_order), with --extra-widths.
+    /// Another play order for robust tables built at the root (see robust_ss::play_order),
+    /// e.g. desc or ratioasc; give its widths with --extra-widths.
     #[arg(long)]
     extra_kind: Vec<String>,
     /// Widths for each --extra-kind, as 1/2/4 (one group per kind).
     #[arg(long)]
     extra_widths: Vec<String>,
-    /// Widths of the robust tables that play the undecided classes from the largest down.
-    #[arg(long, value_delimiter = ',')]
-    desc_widths: Vec<usize>,
 }
 
 impl SsOpts {
@@ -246,10 +244,6 @@ impl SsOpts {
             .zip(&self.extra_widths)
             .map(|(k, w)| (k.clone(), w.split('/').map(|x| x.parse().unwrap()).collect()))
             .collect();
-        c.tables.desc_widths = match self.all_desc_widths {
-            Some(n) => (1..=n).collect(),
-            None => self.desc_widths.clone(),
-        };
         c
     }
 }
@@ -853,12 +847,16 @@ fn main() {
             online,
             order,
             max_copies,
+            budget,
             ss,
         } => {
             let cfg = ss.config(online);
             let m = mps::read_instance(&path).unwrap_or_else(|e| panic!("{e}"));
             let pi = structure::packing_interdiction(&m).unwrap_or_else(|e| panic!("{e}"));
-            let k = Kip::from_packing(&pi).expect("not a single-row knapsack interdiction");
+            let mut k = Kip::from_packing(&pi).expect("not a single-row knapsack interdiction");
+            if let Some(b) = budget {
+                k.cu = b;
+            }
             assert!(k.is_subset_sum(), "profits differ from follower weights");
             let (_, greedy) = k.greedy();
             let lo = lo.unwrap_or(greedy);
@@ -867,7 +865,16 @@ fn main() {
                 k.subset_sum_threshold(lo, node_limit, &cfg, order, max_copies);
             let verdict = match &out {
                 Outcome::Safe => "SAFE (follower always reaches the threshold)".to_string(),
-                Outcome::Blocking(r) => format!("BLOCKED by deleting {:?}", r),
+                Outcome::Blocking(r) => {
+                    // Check the block: within budget, and the follower's best
+                    // response (exact knapsack) stays below the threshold.
+                    let x = k.x_from_deletions(&classes, g, r);
+                    let used: i64 = (0..k.n).filter(|&j| x[j]).map(|j| k.wu[j]).sum();
+                    let v = k.follower(&x).value;
+                    assert!(used <= k.cu, "blocking choice exceeds the budget");
+                    assert!(v < lo, "blocking choice does not block: follower gets {v}");
+                    format!("BLOCKED (checked: cost {used}, follower {v}) by deleting {:?}", r)
+                }
                 Outcome::Unknown => "UNKNOWN (node limit)".to_string(),
             };
             println!(

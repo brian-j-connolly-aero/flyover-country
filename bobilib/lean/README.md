@@ -193,6 +193,22 @@ contribute a sum in `[t - w + 1, t]`, not exactly `t`.
 As for `H`, truncating the bitsets at `hi` only drops elements. The
 recursion is monotone in the next table, so it stays sound.
 
+### 4d. Threshold form, play orders and per-node tables (not formalised)
+
+`robust_ss.rs` now stores each table as one number per `(k, t)`: the
+largest budget `B` with `t ∈ G_w(k, B)`. This relies on `G_w` being antitone
+in `B` (induction on the classes; written out, with the min-max recursion it
+gives, in the doc comment of `RobustTable`), and the test
+`threshold_matches_bitset` compares it with the bitset recursion. Tables may
+play the undecided classes in any order: `G_sound` is stated for any list
+`cs`, so it covers every order. The per-node tables
+(`Search::node_table_threshold`) replace the base case `[0, w - 1]` by an
+arbitrary set `A` (the node's decided sums, widened by `hi - lo` for a band
+of targets); the statement and proof are those of `G_sound` with `t < w`
+replaced by `t ∈ A`. None of this is in Lean yet; the randomized tests
+`tables_sound_by_enumeration`, `node_table_matches_definition_and_is_sound`
+and `matches_brute_force` check it against exhaustive enumeration.
+
 ### 5. Clique interdiction bounds (`Bobi/Clique.lean`)
 
 In BOBILib's edge clique interdiction instances (`clique`), the leader
@@ -228,6 +244,8 @@ triangle".
 These parts have no Lean proof:
 
 * the search itself: caching, node limits and the bitset code;
+* the threshold form of the tables and the per-node tables with an
+  arbitrary base set (section 4d);
 * `restrict_copies`;
 * the LP bracket in `mkip::lp_follower_bound`;
 * the scaling, rounding and fractional relaxations noted above;

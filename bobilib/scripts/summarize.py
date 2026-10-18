@@ -8,7 +8,8 @@ usage: python3 -I summarize.py --meta collection.json --mkip-lit mkip_literature
 
 Inputs (all optional except --meta; missing ones are skipped):
   results/kip/summary.csv         KIP optima from Weninger and Fukasawa (verified files)
-  runs/ss_*.tsv                    our subset-sum optima (bobi ss-solve)
+  results/ss/proofs.csv            our subset-sum optima (bobi ss-solve, verified files)
+  runs/ss_*.tsv                    further local subset-sum runs (bobi ss-solve)
   runs/or_compare.csv              OR bounds vs literature (scripts/compare_or.py)
   results/clique/summary.csv      clique interdiction certificates
   results/general/hpr_optimal.csv general points meeting the HPR bound
@@ -72,7 +73,11 @@ def main():
                 src = r["lit_best_lb_src"].split("-")[0]
                 src = {"F17": "Fischetti et al. 2017", "LBC": "Lozano et al. 2026", "VLH": "Vasquez et al. 2025", "BOBILib": "an earlier BOBILib release"}.get(src, src)
                 status[n].update(outcome="optimal", source=f"literature ({src})")
-    # This work: subset-sum optima.
+    # This work: subset-sum optima (committed proofs, then local runs).
+    for r in load_csv(f"{a.results}/ss/proofs.csv"):
+        n = r["name"]
+        if n in status and status[n]["outcome"] is None:
+            status[n].update(outcome="optimal", source="this work (robust subset-sum search)")
     for p in glob.glob(f"{a.runs}/ss_*.tsv"):
         for line in open(p):
             t = line.rstrip("\n").split("\t")

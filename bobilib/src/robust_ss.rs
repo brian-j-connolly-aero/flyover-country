@@ -15,7 +15,16 @@
 //!   leader choice below it) when the band is already reachable from decided
 //!   survivors plus copies the leader cannot afford to delete, or when the
 //!   reachable sums contain a contiguous window that later weights can only
-//!   extend (see [`window_safe`]).
+//!   extend (see `Search::window_safe`).
+//! * **Robust online tables** ([`RobustTable`]): in a relaxation where the
+//!   leader deletes class by class and reacts to the follower's earlier
+//!   choices, the follower can still guarantee some sums. The tables are
+//!   antitone in the budget, so they are stored as one budget threshold per
+//!   (class, sum), which makes them cheap enough to build in any *play
+//!   order* of the undecided classes, and at every node that would branch,
+//!   with that node's decided sums as the set the game must end in
+//!   (`Search::node_table_threshold`). Playing the classes that are cheapest
+//!   to delete per unit of mass first (`ratioasc`) is strongest.
 //!
 //! When every node is safe the follower always reaches the band, which proves
 //! the leader cannot do better than `lo`.
@@ -154,7 +163,8 @@ impl Sums {
 pub struct RobustTable {
     /// Band width `w` (1 for `H`).
     pub width: usize,
-    /// The play order (`asc` for the search order, `desc`).
+    /// The play order: `asc` for the search order, else a name of
+    /// [`play_order`].
     pub kind: String,
     /// `kind` and width, for statistics.
     pub label: String,
@@ -440,10 +450,8 @@ impl RobustTable {
 pub struct TableConfig {
     /// Widths of the tables in the search order as play order (1 = `H`).
     pub widths: Vec<usize>,
-    /// Widths of the tables whose row `k` plays the classes `k..` from the
-    /// largest value down.
-    pub desc_widths: Vec<usize>,
-    /// Further play orders (by name, see [`play_order`]) and their widths.
+    /// Tables whose row `k` plays the classes `k..` in another order: the
+    /// order's name (see [`play_order`]) and the widths.
     pub extra: Vec<(String, Vec<usize>)>,
 }
 
@@ -454,7 +462,6 @@ impl Default for TableConfig {
     fn default() -> Self {
         TableConfig {
             widths: vec![1],
-            desc_widths: vec![],
             extra: vec![],
         }
     }
@@ -485,11 +492,6 @@ pub fn build_tables(classes: &[Class], hi: usize, budget: i64, cfg: &TableConfig
     let mut out = Vec::new();
     for &w in &cfg.widths {
         out.push(RobustTable::build_band(classes, hi, budget, w));
-    }
-    for &w in &cfg.desc_widths {
-        out.push(RobustTable::build_suffix(classes, hi, budget, w, "desc", |k| {
-            play_order(classes, k, "desc")
-        }));
     }
     for (name, widths) in &cfg.extra {
         for &w in widths {
@@ -924,26 +926,39 @@ impl<'a> Search<'a> {
     /// give `s'` with `t - j v_p - s' in A`; take `s = j v_p + s'`.) With
     /// `A = S`, the sums the decided survivors reach, `target in G_S(B)`
     /// means the follower hits `target` exactly: `s` from the undecided
-    /// survivors plus `target - s` from the decided ones. In threshold form
-    /// this returns `max over targets in [lo, hi] of thr(target)` (capped at
-    /// the root budget): the node is safe for every budget up to it.
+    /// survivors plus `target - s` from the decided ones.
     ///
-    /// `G_S` contains what the run rules of the tables of the same play
+    /// **A band of targets.** The follower wins with any total in `[lo, hi]`,
+    /// so it need not fix the target in advance: take
+    /// `A = {t : some s in S has t - (hi - lo) <= s <= t}` and ask whether
+    /// `hi in G_A(B)`. If so, every deletion within `B` leaves undecided
+    /// survivors with a sum `u` and some `s in S` with
+    /// `hi - u - (hi - lo) <= s <= hi - u`, i.e. `lo <= u + s <= hi`. (This
+    /// contains each single target `t in [lo, hi]` with base `S`: shifting
+    /// the follower's strategy up by `hi - t` keeps every `j` feasible and
+    /// ends in `S + (hi - t) ⊆ A`.) In threshold form this returns
+    /// `thr_A(hi)` (capped at the root budget): the node is safe for every
+    /// budget up to it.
+    ///
+    /// `G_A` contains what the run rules of the tables of the same play
     /// order certify: `H` checks `target - s in G_{{0}}` for one `s in S`,
     /// and `G_{{0}} + s ⊆ G_S` (shift the recursion); a band table checks
     /// `G_{[0, w-1]}` shifted into a run of `S`, likewise contained.
     ///
     /// Only residuals that can matter are computed. Say the play order is
     /// `p_1, .., p_L` and the backward pass is at `p_i`: the follower has
-    /// taken at most `Mb_i` (the mass of `p_1..p_{i-1}`) from a target of at
-    /// least `lo`, so residuals below `lo - Mb_i` are never read; and a
-    /// residual above `max S + Ma_i` (`Ma_i` the mass of `p_i..p_L`) is -1,
-    /// since `r = 0` bounds `thr(t)` by `max_j thr'(t - j v)` and the base is
-    /// -1 above `max S`. The same bound shows the largest value never grows
-    /// along the pass, so once it is below `budget` the node table fails and
-    /// the pass stops (the value returned is then below `budget`, which is
-    /// all the caller uses).
+    /// taken at most `Mb_i` (the mass of `p_1..p_{i-1}`) from `hi`, so
+    /// residuals below `hi - Mb_i` are never read; and a residual above
+    /// `max A + Ma_i` (`Ma_i` the mass of `p_i..p_L`) is -1, since `r = 0`
+    /// bounds `thr(t)` by `max_j thr'(t - j v)` and the base is -1 above
+    /// `max A`. The same bound shows the largest value never grows along the
+    /// pass, so once it is below `budget` the node table fails and the pass
+    /// stops (the value returned is then below `budget`, which is all the
+    /// caller uses).
     fn node_table_threshold(&mut self, k: usize, sums: &Sums, budget: i64) -> i64 {
+        if self.lo > self.hi {
+            return -1; // no target at all
+        }
         let cap = self.root_budget.clamp(0, i32::MAX as i64) as i32;
         let len = self.hi + 1;
         let mut a = std::mem::take(&mut self.nt_a);
@@ -953,9 +968,15 @@ impl<'a> Search<'a> {
         a.resize(len, -1);
         b.clear();
         b.resize(len, -1);
+        // Base A: some decided sum within hi - lo below t.
+        let slack = self.hi - self.lo;
+        let mut last: Option<usize> = None;
         let mut max_s = 0;
         for t in 0..len {
             if sums.get(t) {
+                last = Some(t);
+            }
+            if matches!(last, Some(l) if l + slack >= t) {
                 a[t] = cap;
                 max_s = t;
             }
@@ -968,7 +989,7 @@ impl<'a> Search<'a> {
         for &i in play.iter().rev() {
             after += mass(i);
             let before = total - after;
-            let lo_t = self.lo.saturating_sub(before);
+            let lo_t = self.hi.saturating_sub(before);
             let hi_t = self.hi.min(max_s + after);
             let m = RobustTable::step_range(&a, &self.classes[i], cap, &mut b, lo_t, hi_t, &mut mx);
             std::mem::swap(&mut a, &mut b);
@@ -977,8 +998,7 @@ impl<'a> Search<'a> {
                 break;
             }
         }
-        let result =
-            result.unwrap_or_else(|| (self.lo..=self.hi).map(|t| a[t] as i64).max().unwrap_or(-1));
+        let result = result.unwrap_or(a[self.hi] as i64);
         self.nt_a = a;
         self.nt_b = b;
         self.nt_mx = mx;
@@ -1077,7 +1097,9 @@ mod tests {
             classes.dedup_by_key(|c| c.value);
             let total: usize = classes.iter().map(|c| c.value * c.costs.len()).sum();
             let hi = rnd(total as u64 + 1) as usize;
-            let lo = hi.saturating_sub(rnd(3) as usize);
+            // Mostly narrow target bands, sometimes wide ones.
+            let spread = if round % 4 == 3 { hi as u64 / 2 + 1 } else { 3 };
+            let lo = hi.saturating_sub(rnd(spread) as usize);
             let budget = rnd(40) as i64;
             let expect = brute(&classes, lo, hi, budget);
             // Any search order is valid: test a rotated one on some rounds.
@@ -1090,13 +1112,16 @@ mod tests {
             // tables of every width, and both kinds.
             let cfg = match round % 5 {
                 0 => None,
-                1 => Some(TableConfig { widths: vec![1], desc_widths: vec![], extra: vec![] }),
-                2 => Some(TableConfig { widths: vec![1, 2, 3, 5], desc_widths: vec![], extra: vec![] }),
-                3 => Some(TableConfig { widths: vec![1], desc_widths: (1..=6).collect(), extra: vec![] }),
+                1 => Some(TableConfig { widths: vec![1], extra: vec![] }),
+                2 => Some(TableConfig { widths: vec![1, 2, 3, 5], extra: vec![] }),
+                3 => Some(TableConfig { widths: vec![1], extra: vec![("desc".into(), (1..=6).collect())] }),
                 _ => Some(TableConfig {
                     widths: vec![1, 2, 4],
-                    desc_widths: vec![1, 2, 3, 5],
-                    extra: vec![("costdesc".into(), vec![1, 3]), ("ratioasc".into(), vec![2])],
+                    extra: vec![
+                        ("desc".into(), vec![1, 2, 3, 5]),
+                        ("costdesc".into(), vec![1, 3]),
+                        ("ratioasc".into(), vec![2]),
+                    ],
                 }),
             };
             if let Some(cfg) = &cfg {
@@ -1164,6 +1189,57 @@ mod tests {
         assert!(node_table_hits > 0, "per-node tables never exercised");
     }
 
+    /// Per-node tables on their own (no root tables), with wider values and
+    /// budgets than `matches_brute_force` so that they decide most nodes;
+    /// both answers must occur and blocks must be real.
+    #[test]
+    fn node_tables_match_brute_force() {
+        let mut rnd = lcg(2026);
+        let (mut safe, mut blocked, mut hits) = (0, 0, 0);
+        for round in 0..5000 {
+            let nclass = 2 + rnd(6) as usize;
+            let classes = random_classes(&mut rnd, nclass, 3, 12, 30);
+            let total: usize = classes.iter().map(|c| c.value * c.costs.len()).sum();
+            let hi = rnd(total as u64 / 2 + 1) as usize;
+            let spread = if round % 3 == 0 { hi as u64 / 3 + 1 } else { 1 };
+            let lo = hi.saturating_sub(rnd(spread) as usize);
+            let budget = rnd(30) as i64;
+            let expect = brute(&classes, lo, hi, budget);
+            let mut s = Search::new(&classes, lo, hi);
+            s.node_order = Some(["ratioasc", "desc", "costasc"][round % 3].into());
+            let got = s.run(budget);
+            hits += s.stats.safe_node_table;
+            match got {
+                Outcome::Safe => {
+                    assert!(expect, "round {round}: search says safe");
+                    safe += 1;
+                }
+                Outcome::Blocking(r) => {
+                    assert!(!expect, "round {round}: search found a block brute force denies");
+                    let mut sums = vec![false; hi + 1];
+                    sums[0] = true;
+                    let mut spent = 0;
+                    for (c, &rr) in classes.iter().zip(&r) {
+                        spent += c.costs[..rr].iter().sum::<i64>();
+                        for _ in 0..c.costs.len() - rr {
+                            for x in (c.value..=hi).rev() {
+                                if sums[x - c.value] {
+                                    sums[x] = true;
+                                }
+                            }
+                        }
+                    }
+                    assert!(spent <= budget && !(lo..=hi).any(|i| sums[i]), "round {round}: not a block");
+                    blocked += 1;
+                }
+                Outcome::Unknown => panic!("node limit in test"),
+            }
+        }
+        eprintln!("node_tables_match_brute_force: {safe} safe, {blocked} blocked, {hits} node-table prunes");
+        assert!(safe > 500 && blocked > 500, "safe {safe}, blocked {blocked}");
+        assert!(hits > 500, "node tables decided only {hits} nodes");
+    }
+
     /// The online game with base set `a`, straight from its definition: the
     /// classes `cl` are played in order; can the follower force the final
     /// residual into `a` from residual `t` with the leader's budget `b`?
@@ -1201,7 +1277,7 @@ mod tests {
             let classes = random_classes(&mut rnd, nclass, 3, 7, 9);
             let total: usize = classes.iter().map(|c| c.value * c.costs.len()).sum();
             let hi = rnd(total as u64 + 6) as usize;
-            let lo = hi.saturating_sub(rnd(2) as usize);
+            let lo = hi.saturating_sub(rnd(4) as usize);
             let budget = rnd(20) as i64;
             let name = ["ratioasc", "desc", "ascv", "costasc"][round % 4];
             let mut s = Search::new(&classes, lo, hi);
@@ -1220,13 +1296,19 @@ mod tests {
                     }
                 }
                 let a: Vec<bool> = (0..=hi).map(|x| sums.get(x)).collect();
+                // The base of the band game: a decided sum within hi - lo below.
+                let dil: Vec<bool> = (0..=hi)
+                    .map(|x| (x.saturating_sub(hi - lo)..=x).any(|y| a[y]))
+                    .collect();
                 let play: Vec<Class> = s.node_play[k].iter().map(|&i| classes[i].clone()).collect();
                 // Without early exit (budget 0 never stops the pass) the
                 // threshold is exact; with the node's budget the answer to
                 // "at least b?" is the same.
                 let thr = s.node_table_threshold(k, &sums, 0);
                 for b in 0..=budget {
-                    let game = (lo..=hi).any(|t| online_game(&play, &a, b, t));
+                    let game = online_game(&play, &dil, b, hi);
+                    // Never weaker than fixing one target with base S.
+                    assert!(game || !(lo..=hi).any(|t| online_game(&play, &a, b, t)));
                     assert_eq!(thr >= b, game, "round {round} k={k} b={b}: threshold {thr}");
                     let thr_b = s.node_table_threshold(k, &sums, b);
                     assert_eq!(thr_b >= b, game, "round {round} k={k} b={b}: early exit");
@@ -1319,7 +1401,7 @@ mod tests {
             let m = classes.len();
             let t = RobustTable::build_band(&classes, hi, budget, w);
             let g = bitset_band(&classes, hi, budget, w);
-            let d = build_tables(&classes, hi, budget, &TableConfig { widths: vec![], desc_widths: vec![w], extra: vec![] });
+            let d = build_tables(&classes, hi, budget, &TableConfig { widths: vec![], extra: vec![("desc".into(), vec![w])] });
             for k in 0..=m {
                 for b in 0..=budget {
                     for x in 0..=hi {
@@ -1392,10 +1474,9 @@ mod tests {
                 budget,
                 &TableConfig {
                     widths: vec![1, 2, 3],
-                    desc_widths: vec![1, 2, 4],
-                    extra: ["ascv", "costdesc", "costasc", "ratiodesc", "ratioasc"]
+                    extra: ["desc", "ascv", "costdesc", "costasc", "ratiodesc", "ratioasc"]
                         .iter()
-                        .map(|n| (n.to_string(), vec![1, 2]))
+                        .map(|n| (n.to_string(), vec![1, 2, 4]))
                         .collect(),
                 },
             );

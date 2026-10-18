@@ -134,7 +134,9 @@ impl Kip {
             );
         }
         let out = if lo_s > hi {
-            robust_ss::Outcome::Safe
+            // The follower never gets above its capacity, so it is held
+            // below `lo` whatever the leader does.
+            robust_ss::Outcome::Blocking(vec![0; classes.len()])
         } else {
             s.run(self.cu)
         };

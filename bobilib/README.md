@@ -37,9 +37,18 @@ ln -s /path/to/bobilib-data data   # collection/ and collection-solutions/ from 
   only see how many copies of each weight survive, so the leader's choice
   reduces to removal counts per weight class (cheapest copies first). The
   search prunes with contiguous windows of reachable sums, a stall analysis
-  that prices how much the leader must delete to stop a window growing, and a
-  precomputed table of sums the follower can guarantee in an online
-  relaxation that favours the leader.
+  that prices how much the leader must delete to stop a window growing, and
+  robust online tables: sums the follower can guarantee in a relaxation
+  where the leader deletes class by class and reacts to the follower's
+  earlier choices. The tables are antitone in the budget, so each is stored
+  as one budget threshold per (class, sum). That makes them cheap enough to
+  rebuild at every node that would branch, for the undecided classes in any
+  play order and with the node's decided sums as the set the game must end
+  in. Playing the classes that are cheapest to delete per unit of mass first
+  is strongest. Options of `ss-solve` and `ss`: `--node-order` (per-node
+  tables, default `ratioasc`; `none` turns them off), `--widths` and
+  `--extra-kind`/`--extra-widths` (tables built once at the root),
+  `--cache-mb`, `--progress`.
 * `verify`: the follower problem keeps the follower's rows only (as
   BOBILib's checker does) with the leader's values moved into the row
   bounds. Packing interdiction uses the exact knapsack oracle for one
