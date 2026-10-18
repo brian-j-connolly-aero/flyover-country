@@ -30,6 +30,24 @@ pub struct Class {
     pub costs: Vec<i64>,
 }
 
+/// Restrict the follower to at most `k` copies of each class. The leader then
+/// lowers a class's usable copies one at a time; the first step costs the
+/// cheapest `n - k + 1` copies together, later steps one more copy each.
+/// The follower only gets weaker, so `Safe` in the restricted game proves
+/// `Safe` in the original; a `Blocking` answer proves nothing.
+pub fn restrict_copies(classes: &mut [Class], k: usize) {
+    for c in classes.iter_mut() {
+        let n = c.costs.len();
+        if k == 0 || n <= k {
+            continue;
+        }
+        let first: i64 = c.costs[..n - k + 1].iter().sum();
+        let mut v = vec![first];
+        v.extend_from_slice(&c.costs[n - k + 1..]);
+        c.costs = v;
+    }
+}
+
 #[derive(Clone, Debug)]
 pub enum Outcome {
     /// No leader choice within budget avoids the band.

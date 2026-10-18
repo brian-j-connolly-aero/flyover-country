@@ -281,6 +281,29 @@ impl PackingInterdiction {
         (x, cur)
     }
 
+    /// The follower's LP value at `x`: an upper bound on its integer optimum,
+    /// so on the bilevel optimum too (the leader can always play `x`).
+    pub fn follower_lp(&self, x: &[bool], time_limit: f64) -> Option<f64> {
+        let n = self.n;
+        let items: Vec<usize> = (0..n).filter(|&j| !x[j] && self.profit[j] > 0).collect();
+        let mut mp = Milp::new(true);
+        let vars: Vec<usize> = items
+            .iter()
+            .map(|&j| mp.add_var(self.profit[j] as f64, 0.0, 1.0, false))
+            .collect();
+        for (w, &c) in self.foll_w.iter().zip(&self.foll_cap) {
+            let coefs = items
+                .iter()
+                .zip(&vars)
+                .filter(|(&j, _)| w[j] != 0)
+                .map(|(&j, &v)| (v, w[j] as f64))
+                .collect();
+            mp.add_row(coefs, f64::NEG_INFINITY, c as f64);
+        }
+        let r = mp.solve(time_limit, 1);
+        (r.status == MilpStatus::Optimal).then_some(r.obj)
+    }
+
     /// The leader blocks as much profit as its budgets allow.
     pub fn greedy_leader(&self, time_limit: f64) -> Vec<bool> {
         let n = self.n;
@@ -493,4 +516,54 @@ pub fn omega_root(pi: &PackingInterdiction, mu: &[f64], su: f64, sl: f64) -> i64
         std::mem::swap(&mut cur, &mut next);
     }
     next[bu * nc + cl]
+}
+
+/// Pick surrogate multipliers for the leader's rows by coordinate ascent on
+/// a coarse `omega_root` (any non-negative multipliers give a valid bound,
+/// so this only tunes its strength). Starts from rows normalised by their
+/// capacities.
+pub fn tune_mu(pi: &PackingInterdiction, bu: usize, cl: usize, sweeps: usize) -> (Vec<f64>, i64) {
+    let eval = |mu: &[f64]| {
+        let cap: f64 = pi
+            .lead_cap
+            .iter()
+            .zip(mu)
+            .map(|(&c, &m)| m * c as f64)
+            .sum();
+        if cap <= 0.0 {
+            return i64::MIN;
+        }
+        omega_root(pi, mu, bu as f64 / cap, cl as f64 / pi.foll_cap[0] as f64)
+    };
+    let mut mu: Vec<f64> = pi.lead_cap.iter().map(|&c| 1.0 / c.max(1) as f64).collect();
+    let mut best = eval(&mu);
+    if mu.len() < 2 {
+        return (mu, best);
+    }
+    for _ in 0..sweeps {
+        let mut improved = false;
+        for i in 0..mu.len() {
+            for f in [0.0, 0.5, 0.8, 1.25, 2.0] {
+                let mut t = mu.clone();
+                t[i] *= f;
+                let v = eval(&t);
+                if v > best {
+                    best = v;
+                    mu = t;
+                    improved = true;
+                }
+            }
+        }
+        if !improved {
+            break;
+        }
+    }
+    (mu, best)
+}
+
+/// Follower and leader scales for `omega_root` that keep about `cells`
+/// table entries per item, split 1 : 4 between leader and follower.
+pub fn omega_scales(cells: f64) -> (usize, usize) {
+    let bu = (cells / 4.0).sqrt().max(10.0) as usize;
+    (bu, 4 * bu)
 }

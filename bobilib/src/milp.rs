@@ -20,6 +20,8 @@ pub enum MilpStatus {
     /// Stopped by the time limit with a feasible point.
     Feasible,
     Infeasible,
+    /// The objective is unbounded (or the problem is unbounded or infeasible).
+    Unbounded,
     /// Stopped without a feasible point, or another failure.
     Unknown,
 }
@@ -101,6 +103,9 @@ impl Milp {
         let status = match status {
             HighsModelStatus::Optimal => MilpStatus::Optimal,
             HighsModelStatus::Infeasible => MilpStatus::Infeasible,
+            HighsModelStatus::Unbounded | HighsModelStatus::UnboundedOrInfeasible => {
+                MilpStatus::Unbounded
+            }
             _ if has_x && self.feasible(&x) => MilpStatus::Feasible,
             _ => MilpStatus::Unknown,
         };

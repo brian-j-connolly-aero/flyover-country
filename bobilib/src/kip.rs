@@ -96,9 +96,13 @@ impl Kip {
         node_limit: u64,
         online: bool,
         order: SsOrder,
+        max_copies: Option<usize>,
     ) -> (robust_ss::Outcome, robust_ss::Stats, Vec<Class>, i64) {
         assert!(self.is_subset_sum());
         let (mut classes, g) = self.subset_sum_classes();
+        if let Some(k) = max_copies {
+            robust_ss::restrict_copies(&mut classes, k);
+        }
         order_classes(&mut classes, order);
         let hi = (self.cl / g) as usize;
         let lo_s = ((lo + g - 1) / g) as usize;
@@ -162,13 +166,36 @@ impl Kip {
 
     /// Exact solve of a subset-sum KIP: prove the incumbent or find a leader
     /// choice that beats it, until the threshold search proves optimality.
-    pub fn solve_subset_sum(&self, node_limit: u64, online: bool, order: SsOrder) -> SsSolution {
+    pub fn solve_subset_sum(
+        &self,
+        node_limit: u64,
+        online: bool,
+        order: SsOrder,
+        max_copies: Option<usize>,
+    ) -> SsSolution {
         let (mut x, mut ub) = self.greedy();
         let mut nodes = 0;
         let mut rounds = 0;
+        // A restricted follower (at most k copies per class) can only prove
+        // safety; try it first since its search is much smaller.
+        if let Some(k) = max_copies {
+            let (out, st, _, _) = self.subset_sum_threshold(ub, node_limit, online, order, Some(k));
+            nodes += st.nodes;
+            rounds += 1;
+            if matches!(out, robust_ss::Outcome::Safe) {
+                return SsSolution {
+                    value: ub,
+                    x,
+                    proven: true,
+                    nodes,
+                    rounds,
+                };
+            }
+        }
         loop {
             rounds += 1;
-            let (out, st, classes, g) = self.subset_sum_threshold(ub, node_limit, online, order);
+            let (out, st, classes, g) =
+                self.subset_sum_threshold(ub, node_limit, online, order, None);
             nodes += st.nodes;
             match out {
                 robust_ss::Outcome::Safe => {
