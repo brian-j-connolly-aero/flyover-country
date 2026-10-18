@@ -19,8 +19,10 @@ Yes. Two observations carry most of the weight.
 
 1. **BOBILib's statuses come from two general-purpose bilevel solvers**
    (MibS and Fischetti et al.'s MIX++), one hour on one thread each. They
-   lag the specialised literature: about 530 of the 1,594 instances are
-   already solved in published work.
+   lag the specialised literature: 527 of the 1,594 instances are already
+   solved in published work (376 knapsack interdiction, 139
+   multidimensional knapsack interdiction, 4 generalized interdiction, 8
+   MIPLIB-derived).
 2. **79% of the unsolved instances are one structure.** 1,254 of the 1,594
    are *packing interdiction* games: the leader removes items within one or
    more budgets, then the follower packs what is left into one or more
@@ -34,10 +36,11 @@ whole family rather than single instances:
 | --- | --- | --- |
 | Robust subset-sum search (count formulation, window and stall pruning, online band tables) | knapsack interdiction, subset-sum classes | 10 of the 16 instances unsolved anywhere proven optimal (all 8 even-odd, 2 of 8 subset-sum) |
 | LP-follower bracket and merged-row online bound | multidimensional knapsack interdiction (OR set), one follower knapsack | median gap 17% → ~1.6% (budget 25%), 31% → ~3.5% (budget 50%); better certified points on most instances |
-| Certified points via the follower LP | OR set, several follower knapsacks | every budget-75% instance certified (180/180); first feasible points for 37+ instances with none anywhere |
+| Certified points via the follower LP | OR set, several follower knapsacks | every budget-75% instance certified (180/180); first certified points for 72 instances with none anywhere (running) |
 | Extremal graph theory (Mantel/Turán, Brouwer's stability theorem) | edge clique interdiction | 57 of 60 proven optimal (all 60 unsolved in the literature); optimum 3 or 4 where BOBILib lists 5 to 13 |
 | Recession-ray certificates | general MIPLIB-derived instances | 40 "open" instances have no bilevel feasible point at all (follower unbounded for every leader choice; 38 checked in exact arithmetic) |
 | HPR, follower, optimistic tie-break | general instances without coupling rows, incl. continuous linking variables | feasible points where neither BOBILib solver applies (running) |
+| HPR bound = MIPLIB optimum | general MIPLIB-derived instances | 4 proven optimal (2 of them open, with no point known before) |
 | Exhaustive enumeration with exact follower solves | network interdiction trees, generalized interdiction with few linking bits | the 2 non-optimal tree instances certified optimal; a published optimum reproduced |
 
 What stays hard: 6 subset-sum knapsack interdiction instances, most OR
@@ -153,6 +156,10 @@ the arguments.
 
 ### General MIPLIB-derived instances (266 not optimal)
 
+* **Literature.** 8 are proven optimal elsewhere: 5 MIPLIB 3 instances by
+  Lozano et al. (decision diagrams), air03-0.100000 by Fischetti et al.
+  (2017), p0282-0.500000 by Vasquez, Lozano and van Hoeve (2025), and
+  neos-950242_0_100 in an earlier BOBILib release.
 * **No bilevel feasible point at all (40 open instances).** For these the
   follower's own rows admit a direction d with follower objective e d < 0.
   Leader variables only shift right-hand sides, so d is a recession
@@ -163,19 +170,38 @@ the arguments.
   (supportcase42) in floating point. Most are `_50_50` variants, where
   moving half the rows to the leader leaves the follower unbounded.
 * **Feasible points (running).** Without coupling rows, solve the high
-  point relaxation, fix the leader, solve the follower to optimality and
-  break ties optimistically. This works with continuous linking variables,
-  which neither BOBILib solver accepts; no per-instance results were
-  published for those 137 instances.
+  point relaxation (HPR: both levels' rows, the leader's objective, no
+  optimality condition on the follower), fix the leader, solve the
+  follower to optimality and break ties optimistically. This works with
+  continuous linking variables, which neither BOBILib solver accepts; no
+  per-instance results were published for those 137 instances.
+* **Optimal at the MIPLIB bound.** The HPR of these instances is the MIPLIB
+  problem they were built from (checked in exact arithmetic by
+  `scripts/compare_hpr.py`), so its published optimum is a lower bound. Two
+  open instances, pigeon-10_0_100 (-9,000) and timtab1_0_100 (764,772),
+  get points at that bound from the pipeline above, and BOBILib's own
+  points for noswot_0_100 and noswot_50_50 (-41) already met it. All four
+  are optimal (`results/general/`). neos-950242_0_100 meets its bound too,
+  but an earlier BOBILib release already listed it as optimal.
 
 ## Proofs in Lean
 
 `lean/` (Lean 4 with Mathlib) proves the lemmas the new methods rest on:
-monotonicity of interdiction, the cheapest-copies count formulation, window
-extension and the stall test, Weninger and Fukasawa's online lower bound
-(for any item order), and soundness of the robust online table and its
-pruning rule. `lean/README.md` maps each theorem to the code and lists what
-is not formalised (scaling, the LP bracket, the search code itself).
+
+* monotonicity of interdiction and the cheapest-copies count formulation;
+* window extension and the stall test;
+* Weninger and Fukasawa's online lower bound, for any item order;
+* soundness of the robust online table, of the band tables and of both
+  pruning rules;
+* for clique interdiction, Mantel's theorem in deletion form (more than
+  n^2/4 edges left after deleting k means a triangle survives, checked for
+  the three density-0.7 sizes) and the partition upper bound (deleting the
+  edges inside an r-colouring leaves no clique on r + 1 vertices).
+
+There is no sorry and no axiom beyond Lean's standard three.
+`lean/README.md` maps each theorem to the code and lists what is not
+formalised: scaling, the LP bracket, the search code itself, Brouwer's
+stability theorem and the solver runs behind the density-0.9 bounds.
 
 ## Reproduce
 
