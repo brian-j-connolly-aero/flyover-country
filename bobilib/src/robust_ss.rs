@@ -66,6 +66,7 @@ pub struct Stats {
     pub safe_guaranteed: u64,
     pub safe_window: u64,
     pub safe_online: u64,
+    pub safe_band: u64,
     pub cache_hits: u64,
     pub leaves: u64,
     /// Nodes per depth (class index).
@@ -140,14 +141,88 @@ pub struct RobustTable {
     data: Vec<u64>,
 }
 
+/// Band tables for several widths (each a [`RobustTable::build_band`]).
+pub struct BandTables {
+    pub tables: Vec<(usize, RobustTable)>,
+}
+
+impl BandTables {
+    pub fn build(classes: &[Class], hi: usize, budget: i64, widths: &[usize]) -> Self {
+        BandTables {
+            tables: widths
+                .iter()
+                .map(|&w| (w, RobustTable::build_band(classes, hi, budget, w)))
+                .collect(),
+        }
+    }
+
+    /// Is there a run [a, b] of decided sums and a table of width w <= b - a + 1
+    /// with some t in G_w(k, b) such that [target - t, target - t + w - 1]
+    /// lies inside [a, b], for a target in [lo, hi]?
+    fn covers(&self, k: usize, budget: i64, sums: &Sums, lo: usize, hi: usize) -> bool {
+        let mut i = 0;
+        while i <= hi {
+            if !sums.get(i) {
+                i += 1;
+                continue;
+            }
+            let a = i;
+            while i <= hi && sums.get(i) {
+                i += 1;
+            }
+            let b = i - 1;
+            let width = b - a + 1;
+            // The widest table that fits the run.
+            let Some((w, table)) = self
+                .tables
+                .iter()
+                .filter(|(w, _)| *w <= width)
+                .max_by_key(|(w, _)| *w)
+            else {
+                continue;
+            };
+            let g = table.get(k, budget);
+            let bit = |t: usize| g[t / 64] >> (t % 64) & 1 == 1;
+            for target in lo..=hi {
+                // t in [target - b + w - 1, target - a], t >= 0.
+                if target + w < b + 1 {
+                    continue;
+                }
+                let t_lo = target + w - 1 - b;
+                if target < a {
+                    continue;
+                }
+                let t_hi = (target - a).min(hi);
+                if (t_lo..=t_hi).any(bit) {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+}
+
 impl RobustTable {
     pub fn build(classes: &[Class], hi: usize, budget: i64) -> Self {
+        Self::build_band(classes, hi, budget, 1)
+    }
+
+    /// The band version: t is in G_w(k, B) when the follower can guarantee
+    /// that classes k.. contribute a sum in [t - w + 1, t], whatever the
+    /// leader deletes (in the same leader-adaptive online game). The base
+    /// case is G_w(m, B) = [0, w - 1] (an empty contribution lands in the
+    /// band of every t < w); the recursion is the same as for w = 1, and
+    /// the same induction proves soundness. A decided window of width w can
+    /// then absorb the rest exactly.
+    pub fn build_band(classes: &[Class], hi: usize, budget: i64, w: usize) -> Self {
         let words = hi / 64 + 1;
         let nb = budget.max(0) as usize + 1;
         let m = classes.len();
         let mut data = vec![0u64; (m + 1) * nb * words];
         for b in 0..nb {
-            data[(m * nb + b) * words] = 1;
+            for t in 0..w.min(hi + 1) {
+                data[(m * nb + b) * words + t / 64] |= 1 << (t % 64);
+            }
         }
         let mut acc = Sums(vec![0; words]);
         let mut uni = Sums(vec![0; words]);
@@ -236,6 +311,7 @@ pub struct Search<'a> {
     /// mass[k] = total value of classes k.. (all copies).
     mass: Vec<f64>,
     pub table: Option<RobustTable>,
+    pub bands: Option<BandTables>,
     /// max_del[k][b]: most value the leader can delete from classes k..
     /// with budget b (exact bounded knapsack, cheapest copies first).
     max_del: Vec<Vec<i64>>,
@@ -320,6 +396,7 @@ impl<'a> Search<'a> {
             cover,
             mass,
             table: None,
+            bands: None,
             max_del: Vec::new(),
         }
     }
@@ -457,6 +534,12 @@ impl<'a> Search<'a> {
                 return Some(true);
             }
         }
+        if let Some(t) = &self.bands {
+            if t.covers(k, budget, sums, self.lo, self.hi) {
+                self.stats.safe_band += 1;
+                return Some(true);
+            }
+        }
         if let Some(&b) = self.cache.get(&(k, sums.clone())) {
             if b >= budget {
                 self.stats.cache_hits += 1;
@@ -580,6 +663,7 @@ mod tests {
             (seed >> 33) % m
         };
         let mut windows = 0;
+        let mut bands = 0;
         for round in 0..3000 {
             let nclass = 1 + rnd(8) as usize;
             let mut classes: Vec<Class> = (0..nclass)
@@ -609,8 +693,12 @@ mod tests {
             if round % 2 == 1 {
                 s.table = Some(RobustTable::build(&classes, hi, budget));
             }
+            if round % 4 >= 2 {
+                s.bands = Some(BandTables::build(&classes, hi, budget, &[2, 3, 5]));
+            }
             let got = s.run(budget);
             windows += s.stats.safe_window;
+            bands += s.stats.safe_band;
             match got {
                 Outcome::Safe => assert!(expect, "round {round}: search says safe"),
                 Outcome::Blocking(r) => {
@@ -644,5 +732,6 @@ mod tests {
             }
         }
         assert!(windows > 0, "window rule never exercised");
+        assert!(bands > 0, "band rule never exercised");
     }
 }
