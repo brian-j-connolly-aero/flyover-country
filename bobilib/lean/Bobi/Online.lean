@@ -6,12 +6,14 @@ public import Mathlib.Data.Fin.VecNotation
 /-!
 # The online (2n-round) relaxation lower bound
 
-Weninger and Fukasawa's lower bound ω (Theorem 2 of their paper), computed by
-`mkip::omega_root`. Items are taken in a fixed order; at each item the leader
-first decides whether to block it, then the follower decides whether to take
-it. Because the leader decides item by item, it may react to what the follower
-did on earlier items, which only helps the leader, so the value of this game
-is at most the bilevel optimum.
+Weninger and Fukasawa's lower bound ω, computed by `mkip::omega_root`
+(N. Weninger and R. Fukasawa, "A Fast Combinatorial Algorithm for the Bilevel
+Knapsack Problem with Interdiction Constraints", Section 3: the recursion ω,
+Lemma 5 and Theorem 2; numbering as in their preprint). Items are taken in a
+fixed order; at each item the leader first decides whether to block it, then
+the follower decides whether to take it. Because the leader decides item by
+item, it may react to what the follower did on earlier items, which only helps
+the leader, so the value of this game is at most the bilevel optimum.
 
 We state it for any processing order of any subset of the items (the Rust code
 sorts by efficiency and skips items without profit), and for every leader set
@@ -93,20 +95,30 @@ theorem online_le_K :
       · simp only [hu, ↓reduceIte]
         exact hF
 
+/-- `online_le_K` for any leader set within budget: blocked items outside the
+order do not matter to ω, and the follower is still restricted to the order. -/
+theorem online_le_K_any (order : List (Fin n)) (hnd : order.Nodup) (cU cL : ℕ)
+    (X : Finset (Fin n)) (hX : ∑ j ∈ X, wU j ≤ cU) :
+    online p wU wL order cU cL ≤ K p wL (order.toFinset \ X) cL := by
+  have hle : ∑ j ∈ X ∩ order.toFinset, wU j ≤ cU :=
+    (Finset.sum_le_sum_of_subset Finset.inter_subset_left).trans hX
+  have h := online_le_K p wU wL order hnd cU cL _ Finset.inter_subset_right hle
+  have hset : order.toFinset \ (X ∩ order.toFinset) = order.toFinset \ X := by
+    ext k
+    simp only [Finset.mem_sdiff, Finset.mem_inter]
+    tauto
+  rwa [hset] at h
+
 /-- **Theorem 4 (Weninger and Fukasawa, Theorem 2).** For any order of
 distinct items, `ω(order, C^U, C^L) ≤ min { K(items \ X, C^L) : wU(X) ≤ C^U }`:
-whatever the leader blocks within budget, the follower can still collect ω. -/
+whatever the leader blocks within budget, the follower can still collect ω.
+The paper's statement at index `i` is `online_le_K_any` with
+`order = [i, …, n]`; this is the root form, with every item available. -/
 theorem online_lower_bound (order : List (Fin n)) (hnd : order.Nodup) (CU CL : ℕ)
     (X : Finset (Fin n)) (hX : ∑ j ∈ X, wU j ≤ CU) :
-    online p wU wL order CU CL ≤ K p wL (univ \ X) CL := by
-  -- Blocked items outside the order do not matter to ω.
-  have hle : ∑ j ∈ X ∩ order.toFinset, wU j ≤ CU :=
-    (Finset.sum_le_sum_of_subset Finset.inter_subset_left).trans hX
-  refine (online_le_K p wU wL order hnd CU CL _ Finset.inter_subset_right hle).trans
-    (K_mono ?_ CL)
-  intro k hk
-  simp only [Finset.mem_sdiff, Finset.mem_inter, Finset.mem_univ, true_and] at hk ⊢
-  exact fun h => hk.2 ⟨h, hk.1⟩
+    online p wU wL order CU CL ≤ K p wL (univ \ X) CL :=
+  (online_le_K_any p wU wL order hnd CU CL X hX).trans
+    (K_mono (Finset.sdiff_subset_sdiff (Finset.subset_univ _) (subset_refl _)) CL)
 
 /-! ## The paper's example: the bound is not tight
 
@@ -122,11 +134,16 @@ def exP : Fin 3 → ℕ := ![1, 1, 2]
 def exWU : Fin 3 → ℕ := ![1, 1, 2]
 def exWL : Fin 3 → ℕ := ![1, 1, 3]
 
-example : online exP exWU exWL [0, 1, 2] 2 3 = 1 := by decide
+/-- The online game on Table 1 is worth 1. -/
+theorem table1_online : online exP exWU exWL [0, 1, 2] 2 3 = 1 := by decide
 
-example : K exP exWL (univ \ {2}) 3 = 2 := by decide
+/-- Blocking item 3 holds the follower to 2. -/
+theorem table1_block : K exP exWL (univ \ {2}) 3 = 2 := by decide
 
-example : ∀ X : Finset (Fin 3), ∑ j ∈ X, exWU j ≤ 2 → 2 ≤ K exP exWL (univ \ X) 3 := by
+/-- No leader choice within budget holds the follower below 2, so the bilevel
+optimum of Table 1 is 2, twice ω. -/
+theorem table1_opt :
+    ∀ X : Finset (Fin 3), ∑ j ∈ X, exWU j ≤ 2 → 2 ≤ K exP exWL (univ \ X) 3 := by
   decide
 
 end Example
