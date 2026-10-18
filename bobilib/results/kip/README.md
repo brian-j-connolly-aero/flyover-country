@@ -27,7 +27,8 @@ Their code, instance files (`.ki`), optima (`.ans`) and run records
 (`full_results/all_results.json`) are at
 [github.com/nwoeanhinnogaehr/bkpsolver](https://github.com/nwoeanhinnogaehr/bkpsolver)
 (MIT licence; read at commit bc1d985). None of their code is used here: only
-the optimal values and, where readable, the leader vectors of their runs.
+the optimal values and the leader vectors of their runs (the decoder below
+restates their sort rule to read the vectors).
 
 Each BOBILib instance is matched to their file by its capacities and the
 multiset of item triples (profit, follower weight, leader cost). Their files
@@ -39,15 +40,18 @@ The leader vector (`source` column) comes from
 
 * `wf-comb:<file>`: their Comb run, bits in file order (230 instances);
 * `wf-comb-sorted:<file>`: their Comb run, bits in their solver's internal
-  order (decreasing p / w^L, then decreasing profit, increasing leader cost,
-  increasing follower weight), which some records print without mapping
-  back; their `up_util` field then exceeds the budget (127 instances);
-* `greedy+ls`: the remaining records (all `interKP-*` instances of set `kp`,
-  their FMS groups) fit neither order; they appear to use the internal
-  order with another tie-break among equally efficient but different
-  items, which the data cannot recover. For these the
-  leader vector is recomputed by the greedy leader plus local search in
-  this crate (226 instances).
+  order, which records of its early exit print without mapping back (fixed
+  in their commit 1e413da, after these runs); their `up_util` field then
+  exceeds the budget (353 instances). That order is the one of the solver
+  that wrote the records: `std::sort` of the items by decreasing p / w^L,
+  then decreasing profit. Items with equal efficiency and profit can still
+  differ in leader cost, and libstdc++'s unstable sort decides their order,
+  so `wf::libstdcxx_sort` replays that sort exactly (a unit test pins it to
+  g++ 13.3 output). The current comparator in their repository (ties then
+  broken by leader cost and follower weight) decodes only 127 of these.
+* `greedy+ls`: the greedy leader plus local search in this crate, a
+  fallback for an instance whose records decode in neither order. None is
+  needed at present.
 
 Every leader vector, plus all zero-cost items, must fit the budget, and the
 follower's exact best response (`kp::solve`) must equal the published optimum;
