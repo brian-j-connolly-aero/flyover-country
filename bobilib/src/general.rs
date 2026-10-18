@@ -115,18 +115,31 @@ pub fn feasible_point(m: &Bilevel, hpr_time: f64, follower_time: f64) -> General
             return GeneralOutcome::Failed(format!("HPR found no point in {hpr_time}s"))
         }
     }
-    let mut val = h.x.clone();
+    match optimal_response(m, &h.x, follower_time) {
+        Ok(val) => GeneralOutcome::Point(GeneralPoint {
+            upper_obj: m.upper_obj(&val),
+            lower_obj: m.lower_obj(&val),
+            values: val,
+        }),
+        Err(why) => GeneralOutcome::Failed(format!("{why} at the HPR's leader values")),
+    }
+}
+
+/// The leader's values from `val`, with the follower's replaced by an
+/// optimal response chosen optimistically (best for the leader among the
+/// follower's optima).
+pub fn optimal_response(m: &Bilevel, val: &[f64], follower_time: f64) -> Result<Vec<f64>, String> {
+    let mut val = val.to_vec();
     integer_round(m, &mut val);
-    // Follower optimum at the HPR's leader values.
     let (fp, col) = follower_problem(m, &val, false, false);
     let f = fp.solve(follower_time, 1);
     if f.status == MilpStatus::Unbounded {
         // The follower can drive its objective to minus infinity here, so
         // this leader choice admits no optimal follower response.
-        return GeneralOutcome::Failed("follower unbounded at the HPR's leader values".into());
+        return Err("follower unbounded".into());
     }
     if f.status != MilpStatus::Optimal {
-        return GeneralOutcome::Failed(format!(
+        return Err(format!(
             "follower not solved to optimality ({:?})",
             f.status
         ));
@@ -149,12 +162,10 @@ pub fn feasible_point(m: &Bilevel, hpr_time: f64, follower_time: f64) -> General
     let (chosen, cols) = match t.status {
         MilpStatus::Optimal | MilpStatus::Feasible => (&t.x, &col2),
         MilpStatus::Infeasible if coupling => {
-            return GeneralOutcome::Failed(
-                "no follower optimum satisfies the coupling rows at the HPR's leader values".into(),
-            )
+            return Err("no follower optimum satisfies the coupling rows".into())
         }
         _ if !coupling => (&f.x, &col), // the follower optimum itself
-        _ => return GeneralOutcome::Failed(format!("tie-break failed ({:?})", t.status)),
+        _ => return Err(format!("tie-break failed ({:?})", t.status)),
     };
     for (j, v) in m.vars.iter().enumerate() {
         if v.lower {
@@ -162,11 +173,7 @@ pub fn feasible_point(m: &Bilevel, hpr_time: f64, follower_time: f64) -> General
         }
     }
     integer_round(m, &mut val);
-    GeneralOutcome::Point(GeneralPoint {
-        upper_obj: m.upper_obj(&val),
-        lower_obj: m.lower_obj(&val),
-        values: val,
-    })
+    Ok(val)
 }
 
 /// Re-solve the follower at the point's leader values and compare: returns

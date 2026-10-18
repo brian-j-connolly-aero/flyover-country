@@ -27,6 +27,7 @@ ln -s /path/to/bobilib-data data   # collection/ and collection-solutions/ from 
 | `bobi ss-solve MPS...` | Exact solver for subset-sum knapsack interdiction (profit = follower weight). |
 | `bobi lp-bound MPS...` | Bracket min over leader choices of the follower's LP value: a lower and an upper bound on the bilevel optimum. |
 | `bobi mkip MPS...` | Interdiction-cut loop with a HiGHS master (baseline). |
+| `bobi fire DIR\|MPS... [--only tree-]` | Attack-protect games (`inter-fire`): every attack, the follower solved exactly by a tree DP (HiGHS on graphs with cycles), certified optimum and solution file. See [results/network](results/network/README.md). |
 
 ## Methods
 
@@ -42,3 +43,11 @@ ln -s /path/to/bobilib-data data   # collection/ and collection-solutions/ from 
   variables linearises exactly). Since a knapsack's integer optimum is within
   one item's profit of its LP value per knapsack row, this brackets the
   bilevel optimum.
+* `fire`: BOBILib's attack-protect set (`inter-fire`, Baggio et al. 2021).
+  The leader attacks at most Phi nodes and the follower protects at most
+  Lambda; an unprotected node is saved only if all its neighbours are. On a
+  forest the follower's MILP is a dynamic program over the four values of
+  (protect, saved) per node, with the budget as a knapsack dimension. Every
+  attack is enumerated and every DP follower point is checked against the
+  raw model, so the minimum over attacks is a proven lower bound; HiGHS
+  re-solves the follower at the minimiser.
