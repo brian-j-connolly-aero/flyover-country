@@ -15,7 +15,7 @@ lake env lean Check.lean    # prints the axioms each main theorem uses
 
 The toolchain is Lean 4.35.0 (`lean-toolchain`, installed with elan) and Mathlib
 is pinned to its `v4.35.0` tag (`lake-manifest.json`). With Mathlib in place, a
-clean `lake build` takes about 40 s and under 2 GB of memory. There is no
+clean `lake build` takes about a minute and under 2 GB of memory. There is no
 `sorry`: `Check.lean` shows only Lean's standard axioms (`propext`,
 `Classical.choice`, `Quot.sound`) for each theorem it lists; the helper
 lemmas are checked through the theorems that use them.
@@ -164,6 +164,65 @@ the next classes, with the budget reduced by what was spent.
 The Rust bitsets hold `H(k, b) ∩ [0, hi]` for every `b ≤ budget`. Truncating
 at `hi` only drops elements, so it keeps the bitsets sound.
 
+### 4c. Band tables (`Bobi/BandTable.lean`)
+
+`G w cs B t` is the table of `RobustTable::build_band(classes, hi, budget, w)`.
+It has the recursion of `H` with the base case `G_w(m, B) = [0, w - 1]`
+instead of `{0}`. So `t ∈ G_w` says the undecided classes can be made to
+contribute a sum in `[t - w + 1, t]`, not exactly `t`.
+
+* `G_sound`: if `t ∈ G_w(cs, B)`, then for every deletion of `rs[k] ≤ n_k`
+  copies per class that costs at most `B`, the remaining copies have a subset
+  sum `s` with `s ≤ t < s + w`. The proof is the induction of `H_sound`.
+* `G_sound_any`: the same for deletions of arbitrary copies, as in
+  `H_sound_any`.
+* `band_covers_sound`: the pruning rule `BandTables::covers`. Suppose the
+  decided survivors reach every sum in a run `[a, b]`, and `t ∈ G_w` for the
+  undecided classes with `[target - t, target - t + w - 1]` inside `[a, b]`
+  (stated as `a + t ≤ target` and `target + w ≤ b + t + 1`, which are the
+  code's `t ≤ t_hi` and `t ≥ t_lo`). Then `target` is a subset sum of the
+  decided values plus the survivors against every deletion within budget.
+  The undecided classes give some `s ∈ [t - w + 1, t]`, and the run supplies
+  `target - s`. The code's test `w ≤ b - a + 1` follows from the two
+  inequalities, so the theorem does not need it.
+* `G_one`: `G 1 = H`, since `t < 1` means `t = 0`. This is why
+  `RobustTable::build` is `build_band(.., 1)`. `G_sound_one` and
+  `covers_sound_of_band` get `H_sound` and `covers_sound` back from the band
+  theorems (a one-point run `[s, s]` and `w = 1`).
+
+As for `H`, truncating the bitsets at `hi` only drops elements. The
+recursion is monotone in the next table, so it stays sound.
+
+### 5. Clique interdiction bounds (`Bobi/Clique.lean`)
+
+In BOBILib's edge clique interdiction instances (`clique`), the leader
+deletes at most `k` of the `m` edges of a graph on `n` vertices, and the
+follower takes a largest clique of what is left. These theorems back the
+clique section of `../REPORT.md` (the density-0.7 instances closed at 3 and
+the upper bounds from partitions). The Rust code has no clique solver; the report
+keeps the certificates in `results/clique/`. `G.CliqueFree 3` is Mathlib's "no
+triangle".
+
+* `mantel` (Mantel's theorem): a graph on `n` vertices with more than
+  `⌊n² / 4⌋` edges has a triangle. It is Mathlib's Turán bound
+  `CliqueFree.card_edgeFinset_le` for `r = 2` with
+  `turanNumber_two : turanNumber n 2 = n ^ 2 / 4`. `mantel'` states it as
+  `4 · #edges > n²`.
+* `triangle_survives` (lower bound 3): if `G` has `m` edges on `n` vertices,
+  `D` is any finite set of at most `k` edges (of `G` or not) and
+  `m - k > ⌊n² / 4⌋`, then `G.deleteEdges D` has a triangle, whatever the
+  leader deletes. At least `m - k` edges remain.
+* `cliqueFree_of_partition` (upper bound `r`): if `f : V → Fin r` colours the
+  vertices and `D` contains every edge of `G` whose ends have the same
+  colour, then `G.deleteEdges D` has no clique on `r + 1` vertices: `f` is a
+  proper colouring of what is left. A partition with at most `k` inside
+  edges therefore certifies value `≤ r`.
+* `mantel_40`, `mantel_50`, `mantel_60` check by `decide` that
+  `m - k > ⌊n² / 4⌋` for `(n, m, k) = (40, 546, 136)`, `(50, 857, 214)` and
+  `(60, 1239, 309)` (410 > 400, 643 > 625, 930 > 900). `clique40`,
+  `clique50` and `clique60` apply `triangle_survives`: in any graph with
+  those parameters a triangle survives every deletion of at most `k` edges.
+
 ## Not formalised
 
 These parts have no Lean proof:
@@ -171,7 +230,16 @@ These parts have no Lean proof:
 * the search itself: caching, node limits and the bitset code;
 * `restrict_copies`;
 * the LP bracket in `mkip::lp_follower_bound`;
-* the scaling, rounding and fractional relaxations noted above.
+* the scaling, rounding and fractional relaxations noted above;
+* for the clique instances: Brouwer's 1981 stability theorem (a graph with
+  at least `t_3(n) - ⌊n/3⌋ + 2` edges and no `K4` is 3-partite), which gives
+  the density-0.9 lower bounds of 4. It is not in Mathlib and is neither
+  proved nor assumed here. The solver runs (CP-SAT, SCIP and the dedicated
+  branch and bound) showing that every 3-partition of those graphs has more
+  than `k` inside edges are not formalised either;
+* that the instance files have the stated `n`, `m` and `k`, and that the
+  certificate partitions have at most `k` inside edges. Lean does not read
+  the instance files; the theorems take these numbers as hypotheses.
 
 ## Files
 
@@ -181,4 +249,6 @@ These parts have no Lean proof:
 | `Bobi/SubsetSum.lean` | subset sums, windows, theorem 3 and the stall test |
 | `Bobi/Online.lean` | ω and theorem 4, Table 1 example |
 | `Bobi/RobustTable.lean` | robust table `H` and its soundness |
+| `Bobi/BandTable.lean` | band tables `G_w`, their soundness, `G 1 = H` |
+| `Bobi/Clique.lean` | Mantel, triangle after deletions, partition bound |
 | `Check.lean` | `#print axioms` for the main theorems |
