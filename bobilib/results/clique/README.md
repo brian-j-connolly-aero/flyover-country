@@ -46,9 +46,10 @@ Points to watch (none of them changes a result):
   "best" objective next to `infeasible` (1095 to 1310, and a fractional 802.68 for 50-90-8),
   which is not a solution under the limit. The "infeasible under the objective limit" logic
   itself is sound, and my own runs (explicit budget rows, three methods) agree with it.
-* normalClique60-70-4 is tight: the best 3-partition has exactly k = 309 inside edges. The
-  value-3 certificate uses the whole budget.
-* k = floor(m/4) in every instance of all three sets (`clique`, `bcpins`, `plusbcpins`).
+* normalClique60-70-4 is tight: the best 3-partition found has exactly k = 309 inside edges.
+  The value-3 certificate uses the whole budget.
+* k = floor(m/4) in every `clique` instance. In `bcpins` and `plusbcpins` it is ceil(m/4)
+  instead, which differs from floor(m/4) in 70 of the 80 graphs (for example m = 19, k = 5).
 
 ## (a) The formulation, row by row
 
@@ -113,8 +114,9 @@ no larger clique (exact search plus an exhaustive test one size up), and an "opt
 only where the value meets the proved lower bound. `bobi check` was also re-run, with the
 same output (`runs/bobi_check_after_restart.txt`). All 60 pass.
 
-At density 0.7 the best 3-partitions of the n=60 graphs have 306, 311, 310, 309, 310, 306, 307,
-308, 307 and 308 inside edges (i = 1..10). Against k = 309, instances 2, 3 and 5 fail. For those
+At density 0.7 the best 3-partitions found for the n=60 graphs have 306, 311, 310, 309, 310, 306,
+307, 308, 307 and 308 inside edges (i = 1..10). These are the best that tabu search found, not
+proven minima. Against k = 309, the best found for instances 2, 3 and 5 is too large. For those
 three the certificate is a 4-partition (200 to 202 inside edges), giving value at most 4.
 
 ## (c) Lower bounds
@@ -238,7 +240,7 @@ inside edges, remainder's maximum clique 4).
 | --- | --- | --- | --- |
 | LP, K4 rows only | 206.5 | | |
 | LP, K4 rows and maximal-clique rows | 292.36 | 291.53 | |
-| cutting-plane LP `k4lp.py`, Turán rows, 4 rounds | 296.58 | 295.99 | not run |
+| cutting-plane LP `k4lp.py`, Turán rows, 4 rounds | 296.58 | 295.99 | run, but its output was lost in the restart |
 | the same with Brouwer-strengthened rows, 6 rounds | 296.61 | | |
 | CP-SAT dual bound after 1200 s | 266 | | |
 
@@ -256,7 +258,7 @@ and none of these methods comes near one. The 60-70-5 LP and the final JSON of t
 Brouwer run were lost when the container restarted. The Brouwer run's per-round log survived
 (`runs/k4lp_brouwer_60-70-2.rounds.jsonl`).
 
-What the evidence does say: every search stops at the best 3-partition (311, 310, 310). That
+What the evidence does say: every search stops at the best 3-partition found (311, 310, 310). That
 includes the three that are not limited to 3-partite remainders (CP-SAT, `k4ls`, `ftabu`). That fits an asymptotic theorem:
 in G(n, p) the largest K_{r+1}-free subgraph is r-partite with probability tending to 1
 (Babai, Simonovits and Spencer, J. Graph Theory 14 (1990) for p = 1/2; Brightwell, Panagiotou
@@ -345,3 +347,79 @@ python3 -I $S/recheck.py > $R/recheck.jsonl                              # final
 (`bobilib/runs/` itself is not in git). `logs/` holds the solver logs as tarballs, because the
 repository ignores `*.log`. Every run used at most 2 threads. The 60-70-2 Turán LP record
 comes from an earlier revision of `k4lp.py` with the same Turán rows and separation.
+
+## Independent review (second agent, 2026-10-18)
+
+A second agent re-checked everything above with its own code (`../../scripts/clique/review/`,
+records in `review/`). It shares no code with the scripts above. It found no error in any
+result. It fixed four wording errors in this README (k in `bcpins`/`plusbcpins` is ceil(m/4),
+not floor(m/4); "best 3-partition" became "best 3-partition found" in three places, since those
+values are heuristic; the 60-70-5 cutting-plane LP was run and lost, not "not run").
+
+* **Model.** `mymps.py` is a generic MPS/AUX reader. `structure.py` classifies every row by
+  its coefficients, not by its name. All 60 instances have the model of section (a), with no
+  extra rows. The objective sense is MIN, there are no RANGES, and every column is binary. The
+  one leader row is the sum of all w ≤ k, with k = floor(m/4). The leader's cost is +1 on each
+  x and 0 elsewhere, and the follower's AUX cost is −1 on each x and 0 on each y
+  (`review/structure.jsonl`).
+* **Solution files.** `checksol.py` checks every MPS row and the budget. It checks that x is a
+  clique of G − D and that ω(G − D) = |x|. ω is computed by two exact searches
+  (Bron–Kerbosch with Tomita pivoting, and Carraghan–Pardalos). The remainder is also checked
+  to be ω-colourable. All 60 files pass (`review/checksol.jsonl`). `partition_check.py`
+  confirms each D is exactly the set of inside edges of an r-partition (60 of 60). BOBILib's own
+  60 reference solutions also pass, with values 5 to 13 (`review/checksol_bobilib_ref.jsonl`).
+  `bobi verify --generic --time-limit 300` gave 60 PASS. Every follower MILP was solved to
+  optimality, with none left unproven (`review/bobi_verify.tsv`).
+* **Arithmetic.** `mylb.py arith` checks in exact integers: Mantel for all 60 instances; and,
+  for d = 0.9, n > 6 and m − k ≥ t_3(n) − floor(n/3) + 2, with margins 5, 8 and 13. It
+  enumerates the same 170 size vectors and budgets as `lb.py` and checks the counting identity
+  on 300 random partitions per instance. Brouwer's Theorem 2 was read in the scan
+  (https://ir.cwi.nl/pub/6791/6791D.pdf, report p. 1: "Let G be a graph on n points such that
+  α(G) ≤ t, and n > 2t. If G has no more than T(n,t) + m−2 edges (where m := ⌊n/t⌋) then V(G)
+  can be written as union of t cliques."). It matches Tyomkyn–Uzzell, arXiv:1409.8665v1,
+  eq. (1) and Theorem 1.1.
+* **w3(G) > k, re-proved two more ways for all 30 d = 0.9 instances.** Both methods differ
+  from CP-SAT, SCIP and `split_bnb.rs`:
+  1. HiGHS 1.15.1 MIP, 1 thread, on the linear model with an explicit budget row. All 170 cases
+     were infeasible, the slowest in 29 s (`review/highs_lb.jsonl`). As a positive control, the
+     same model on 40-70-1 finds a 3-partition with 136 ≤ k inside edges
+     (`review/controls_highs.jsonl`).
+  2. `rbnb.c`, an exact depth-first search. Its lower bound charges each unplaced vertex its
+     cheapest part against the vertices already placed, and it uses equal-size symmetry
+     breaking. It agrees with brute force on 97,166 decisions over 450 random graphs. On planted
+     n = 60 graphs with c = 1, 2, 3, 5 cut edges it finds the planted cut at b = c and nothing at
+     b = c − 1 (`review/controls_bnb.txt`). It finds no partition in any of the 170 cases, with
+     at most 6191 nodes (`review/bnb_lb.jsonl`).
+
+  All 340 logs in `logs/lb_solver_logs.tar.gz` end infeasible, and each model has 3n + |Ē|
+  variables for its graph. Those logs do not print the budget, so the thresholds rest on the
+  re-runs above. A local search (`rbnb ls`) bounds w3(G) − k from above by 13 to 17 (n = 40),
+  30 to 34 (n = 50) and 52 to 58 (n = 60) (`review/ls_w3.txt`).
+* **Open instances.** 3 ≤ value ≤ 4 holds for 60-70-2, -3 and -5. The lower bound is Mantel,
+  930 > 900. The upper bound is the solution files, with 202, 200 and 202 deletions and
+  ω(G − D) = 4. Of the search and LP evidence in (d), the reviewer reproduced only the K4
+  count (56,232) and the K4-only LP value (206.5) for 60-70-2 (`review/k4lp_check.jsonl`).
+  The rest rests on the records in `runs/`. The graphs' clique numbers (10 to 13, and 18 to 27)
+  were reproduced (`review/omegaG.jsonl`).
+* **Not re-checked:** the earlier agent's `minwithin3_lb` logs (not found), the `bcpins` and
+  `plusbcpins` results of (e) (their records are internally consistent), and the
+  Lean file.
+
+Reproduce the review from `bobilib` (R is any scratch directory, I the `clique` instance
+directory):
+
+```sh
+V=scripts/clique/review; R=/tmp/review; I=data/collection/interdiction/clique-interdiction/clique
+python3 -I $V/structure.py $I $R/graphs > $R/structure.jsonl
+python3 -I $V/checksol.py $I results/clique/*.res.json > $R/checksol.jsonl
+python3 -I $V/partition_check.py $R/graphs results/clique/*.res.json > $R/partition_check.jsonl
+target/release/bobi verify --instances data/collection --generic --time-limit 300 -j 2 results/clique/*.res.json
+python3 -I $V/mylb.py $R/graphs arith > $R/mylb_arith.jsonl
+python3 -I $V/mylb.py $R/graphs highs $(cd $R/graphs && ls *-90-*.edges | sed 's/.edges//') > $R/highs_lb.jsonl
+python3 -I $V/complements.py $R/graphs $R/comp && gcc -O2 -o $R/rbnb $V/rbnb.c
+$R/rbnb selftest 1 150; $R/rbnb decide $R/comp/planted_c3.comp 22 20 18 3
+python3 -I $V/bnb_driver.py $R/mylb_arith.jsonl $R/rbnb $R/comp > $R/bnb_lb.jsonl
+python3 -I $V/k4lp_check.py $R/graphs normalClique60-70-2; python3 -I $V/omegaG.py $R/graphs
+for f in $R/graphs/*-90-*.edges; do awk 'NR==1{print $1, $2; next} 1' $f > $R/g.txt; \
+  echo "$(basename $f .edges) k=$(head -1 $f | cut -d' ' -f3) $($R/rbnb ls $R/g.txt 8 20000 7)"; done
+```

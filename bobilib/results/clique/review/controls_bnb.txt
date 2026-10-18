@@ -1,0 +1,11 @@
+selftest checked=32128 bad=0
+selftest checked=31606 bad=0
+selftest checked=33432 bad=0
+planted c=1 sizes=22,20,18 b=0: NONE nodes=61 
+planted c=1 sizes=22,20,18 b=1: FOUND nodes=125 recount cut=1 sizes=22,20,18 
+planted c=2 sizes=22,20,18 b=1: NONE nodes=153 
+planted c=2 sizes=22,20,18 b=2: FOUND nodes=153 recount cut=2 sizes=22,20,18 
+planted c=3 sizes=22,20,18 b=2: NONE nodes=77 
+planted c=3 sizes=22,20,18 b=3: FOUND nodes=101 recount cut=3 sizes=22,20,18 
+planted c=5 sizes=22,20,18 b=4: NONE nodes=2000 
+planted c=5 sizes=22,20,18 b=5: FOUND nodes=2287 recount cut=5 sizes=22,20,18 

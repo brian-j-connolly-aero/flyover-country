@@ -1,0 +1,60 @@
+{"name": "normalClique40-70-1", "r": 3, "deleted": 125, "exact_inside_edges_of_partition": true, "part_sizes": [14, 13, 13]}
+{"name": "normalClique40-70-10", "r": 3, "deleted": 125, "exact_inside_edges_of_partition": true, "part_sizes": [14, 13, 13]}
+{"name": "normalClique40-70-2", "r": 3, "deleted": 125, "exact_inside_edges_of_partition": true, "part_sizes": [14, 13, 13]}
+{"name": "normalClique40-70-3", "r": 3, "deleted": 126, "exact_inside_edges_of_partition": true, "part_sizes": [14, 13, 13]}
+{"name": "normalClique40-70-4", "r": 3, "deleted": 125, "exact_inside_edges_of_partition": true, "part_sizes": [14, 13, 13]}
+{"name": "normalClique40-70-5", "r": 3, "deleted": 128, "exact_inside_edges_of_partition": true, "part_sizes": [14, 13, 13]}
+{"name": "normalClique40-70-6", "r": 3, "deleted": 126, "exact_inside_edges_of_partition": true, "part_sizes": [14, 13, 13]}
+{"name": "normalClique40-70-7", "r": 3, "deleted": 123, "exact_inside_edges_of_partition": true, "part_sizes": [14, 13, 13]}
+{"name": "normalClique40-70-8", "r": 3, "deleted": 126, "exact_inside_edges_of_partition": true, "part_sizes": [14, 13, 13]}
+{"name": "normalClique40-70-9", "r": 3, "deleted": 125, "exact_inside_edges_of_partition": true, "part_sizes": [14, 13, 13]}
+{"name": "normalClique40-90-1", "r": 4, "deleted": 131, "exact_inside_edges_of_partition": true, "part_sizes": [10, 10, 10, 10]}
+{"name": "normalClique40-90-10", "r": 4, "deleted": 130, "exact_inside_edges_of_partition": true, "part_sizes": [10, 10, 10, 10]}
+{"name": "normalClique40-90-2", "r": 4, "deleted": 129, "exact_inside_edges_of_partition": true, "part_sizes": [10, 10, 10, 10]}
+{"name": "normalClique40-90-3", "r": 4, "deleted": 128, "exact_inside_edges_of_partition": true, "part_sizes": [10, 10, 10, 10]}
+{"name": "normalClique40-90-4", "r": 4, "deleted": 127, "exact_inside_edges_of_partition": true, "part_sizes": [10, 10, 10, 10]}
+{"name": "normalClique40-90-5", "r": 4, "deleted": 128, "exact_inside_edges_of_partition": true, "part_sizes": [10, 10, 10, 10]}
+{"name": "normalClique40-90-6", "r": 4, "deleted": 127, "exact_inside_edges_of_partition": true, "part_sizes": [11, 10, 10, 9]}
+{"name": "normalClique40-90-7", "r": 4, "deleted": 127, "exact_inside_edges_of_partition": true, "part_sizes": [11, 10, 10, 9]}
+{"name": "normalClique40-90-8", "r": 4, "deleted": 129, "exact_inside_edges_of_partition": true, "part_sizes": [10, 10, 10, 10]}
+{"name": "normalClique40-90-9", "r": 4, "deleted": 130, "exact_inside_edges_of_partition": true, "part_sizes": [10, 10, 10, 10]}
+{"name": "normalClique50-70-1", "r": 3, "deleted": 205, "exact_inside_edges_of_partition": true, "part_sizes": [17, 17, 16]}
+{"name": "normalClique50-70-10", "r": 3, "deleted": 208, "exact_inside_edges_of_partition": true, "part_sizes": [18, 16, 16]}
+{"name": "normalClique50-70-2", "r": 3, "deleted": 205, "exact_inside_edges_of_partition": true, "part_sizes": [17, 17, 16]}
+{"name": "normalClique50-70-3", "r": 3, "deleted": 208, "exact_inside_edges_of_partition": true, "part_sizes": [17, 17, 16]}
+{"name": "normalClique50-70-4", "r": 3, "deleted": 203, "exact_inside_edges_of_partition": true, "part_sizes": [17, 17, 16]}
+{"name": "normalClique50-70-5", "r": 3, "deleted": 205, "exact_inside_edges_of_partition": true, "part_sizes": [17, 17, 16]}
+{"name": "normalClique50-70-6", "r": 3, "deleted": 209, "exact_inside_edges_of_partition": true, "part_sizes": [17, 17, 16]}
+{"name": "normalClique50-70-7", "r": 3, "deleted": 205, "exact_inside_edges_of_partition": true, "part_sizes": [17, 17, 16]}
+{"name": "normalClique50-70-8", "r": 3, "deleted": 204, "exact_inside_edges_of_partition": true, "part_sizes": [17, 17, 16]}
+{"name": "normalClique50-70-9", "r": 3, "deleted": 210, "exact_inside_edges_of_partition": true, "part_sizes": [17, 17, 16]}
+{"name": "normalClique50-90-1", "r": 4, "deleted": 210, "exact_inside_edges_of_partition": true, "part_sizes": [13, 13, 12, 12]}
+{"name": "normalClique50-90-10", "r": 4, "deleted": 209, "exact_inside_edges_of_partition": true, "part_sizes": [13, 13, 12, 12]}
+{"name": "normalClique50-90-2", "r": 4, "deleted": 212, "exact_inside_edges_of_partition": true, "part_sizes": [13, 13, 13, 11]}
+{"name": "normalClique50-90-3", "r": 4, "deleted": 210, "exact_inside_edges_of_partition": true, "part_sizes": [13, 13, 12, 12]}
+{"name": "normalClique50-90-4", "r": 4, "deleted": 210, "exact_inside_edges_of_partition": true, "part_sizes": [13, 13, 12, 12]}
+{"name": "normalClique50-90-5", "r": 4, "deleted": 212, "exact_inside_edges_of_partition": true, "part_sizes": [13, 13, 12, 12]}
+{"name": "normalClique50-90-6", "r": 4, "deleted": 212, "exact_inside_edges_of_partition": true, "part_sizes": [13, 13, 12, 12]}
+{"name": "normalClique50-90-7", "r": 4, "deleted": 210, "exact_inside_edges_of_partition": true, "part_sizes": [13, 13, 12, 12]}
+{"name": "normalClique50-90-8", "r": 4, "deleted": 211, "exact_inside_edges_of_partition": true, "part_sizes": [13, 13, 12, 12]}
+{"name": "normalClique50-90-9", "r": 4, "deleted": 209, "exact_inside_edges_of_partition": true, "part_sizes": [13, 13, 12, 12]}
+{"name": "normalClique60-70-1", "r": 3, "deleted": 306, "exact_inside_edges_of_partition": true, "part_sizes": [21, 20, 19]}
+{"name": "normalClique60-70-10", "r": 3, "deleted": 308, "exact_inside_edges_of_partition": true, "part_sizes": [21, 20, 19]}
+{"name": "normalClique60-70-2", "r": 4, "deleted": 202, "exact_inside_edges_of_partition": true, "part_sizes": [16, 15, 15, 14]}
+{"name": "normalClique60-70-3", "r": 4, "deleted": 200, "exact_inside_edges_of_partition": true, "part_sizes": [16, 15, 15, 14]}
+{"name": "normalClique60-70-4", "r": 3, "deleted": 309, "exact_inside_edges_of_partition": true, "part_sizes": [21, 20, 19]}
+{"name": "normalClique60-70-5", "r": 4, "deleted": 202, "exact_inside_edges_of_partition": true, "part_sizes": [15, 15, 15, 15]}
+{"name": "normalClique60-70-6", "r": 3, "deleted": 306, "exact_inside_edges_of_partition": true, "part_sizes": [20, 20, 20]}
+{"name": "normalClique60-70-7", "r": 3, "deleted": 307, "exact_inside_edges_of_partition": true, "part_sizes": [20, 20, 20]}
+{"name": "normalClique60-70-8", "r": 3, "deleted": 308, "exact_inside_edges_of_partition": true, "part_sizes": [20, 20, 20]}
+{"name": "normalClique60-70-9", "r": 3, "deleted": 307, "exact_inside_edges_of_partition": true, "part_sizes": [21, 20, 19]}
+{"name": "normalClique60-90-1", "r": 4, "deleted": 314, "exact_inside_edges_of_partition": true, "part_sizes": [15, 15, 15, 15]}
+{"name": "normalClique60-90-10", "r": 4, "deleted": 317, "exact_inside_edges_of_partition": true, "part_sizes": [15, 15, 15, 15]}
+{"name": "normalClique60-90-2", "r": 4, "deleted": 312, "exact_inside_edges_of_partition": true, "part_sizes": [15, 15, 15, 15]}
+{"name": "normalClique60-90-3", "r": 4, "deleted": 311, "exact_inside_edges_of_partition": true, "part_sizes": [15, 15, 15, 15]}
+{"name": "normalClique60-90-4", "r": 4, "deleted": 313, "exact_inside_edges_of_partition": true, "part_sizes": [15, 15, 15, 15]}
+{"name": "normalClique60-90-5", "r": 4, "deleted": 311, "exact_inside_edges_of_partition": true, "part_sizes": [15, 15, 15, 15]}
+{"name": "normalClique60-90-6", "r": 4, "deleted": 314, "exact_inside_edges_of_partition": true, "part_sizes": [15, 15, 15, 15]}
+{"name": "normalClique60-90-7", "r": 4, "deleted": 313, "exact_inside_edges_of_partition": true, "part_sizes": [15, 15, 15, 15]}
+{"name": "normalClique60-90-8", "r": 4, "deleted": 310, "exact_inside_edges_of_partition": true, "part_sizes": [15, 15, 15, 15]}
+{"name": "normalClique60-90-9", "r": 4, "deleted": 312, "exact_inside_edges_of_partition": true, "part_sizes": [15, 15, 15, 15]}
