@@ -13743,8 +13743,8 @@
   "netdiversion_0_100": {
    "family": "general-pure",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (HPR, follower, tie-break)"
   },
   "rmine6_50_50": {
    "family": "general-pure",
@@ -14283,8 +14283,8 @@
   "supportcase12_0_100": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (HPR, follower, tie-break)"
   },
   "neos-957323_0_100": {
    "family": "general-pure",
@@ -14349,8 +14349,8 @@
   "neos-4722843-widden_0_100": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (HPR, follower, tie-break)"
   },
   "cmflsp50-24-8-8_50_50": {
    "family": "general-mixed",
@@ -14589,14 +14589,14 @@
   "neos-631710_0_100": {
    "family": "general-pure",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (HPR, follower, tie-break)"
   },
   "neos-873061_0_100": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (HPR, follower, tie-break)"
   },
   "mad_0_100": {
    "family": "general-mixed",
@@ -14871,8 +14871,8 @@
   "s250r10_0_100": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (HPR, follower, tie-break)"
   },
   "drayage-25-23_0_100": {
    "family": "general-mixed",
@@ -15453,8 +15453,8 @@
   "s100_0_100": {
    "family": "general-pure",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (HPR, follower, tie-break)"
   },
   "satellites2-40_0_100": {
    "family": "general-mixed",
@@ -15957,10 +15957,10 @@
   },
   "general-pure": {
    "not optimal in BOBILib": 131,
-   "unchanged": 105,
+   "unchanged": 102,
    "optimal / literature (Fischetti et al. 2017)": 1,
    "optimal / literature (Lozano et al. 2026)": 5,
-   "feasible / this work (HPR, follower, tie-break)": 9,
+   "feasible / this work (HPR, follower, tie-break)": 12,
    "optimal / literature (Vasquez et al. 2025)": 1,
    "feasible / this work (bobi coupled)": 3,
    "optimal / literature (an earlier BOBILib release)": 1,
@@ -15969,9 +15969,9 @@
   "general-mixed": {
    "not optimal in BOBILib": 168,
    "feasible / this work (bobi coupled)": 25,
-   "feasible / this work (HPR, follower, tie-break)": 46,
+   "feasible / this work (HPR, follower, tie-break)": 50,
    "optimal / this work (point meets the MIPLIB optimum of the HPR)": 5,
-   "unchanged": 58,
+   "unchanged": 54,
    "no bilevel feasible point / this work (recession ray, exact)": 32,
    "no bilevel feasible point / this work (recession ray, floating point)": 2
   }
