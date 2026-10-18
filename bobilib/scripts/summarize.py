@@ -10,6 +10,7 @@ Inputs (all optional except --meta; missing ones are skipped):
   runs/ss_*.tsv                    our subset-sum optima (bobi ss-solve)
   runs/or_compare.csv              OR bounds vs literature (scripts/compare_or.py)
   results/clique/summary.csv      clique interdiction certificates
+  results/general/hpr_optimal.csv general points meeting the HPR bound
   runs/general.jsonl               general feasible points (bobi general)
   runs/ray_verify.jsonl            exact unbounded-follower certificates
 """
@@ -88,6 +89,10 @@ def main():
             if n in status and status[n]["bobilib"] == "open" and (d["verified"] or status[n]["outcome"] is None):
                 status[n].update(outcome="no bilevel feasible point",
                                  source="this work (recession ray, exact)" if d["verified"] else "this work (recession ray, floating point)")
+    # This work: general points meeting the HPR (MIPLIB) bound.
+    for r in load_csv(f"{a.results}/general/hpr_optimal.csv"):
+        if r["name"] in status and status[r["name"]]["outcome"] is None:
+            status[r["name"]].update(outcome="optimal", source="this work (point meets the MIPLIB optimum of the HPR)")
     # This work: general feasible points.
     p = f"{a.runs}/general.jsonl"
     if os.path.exists(p):
