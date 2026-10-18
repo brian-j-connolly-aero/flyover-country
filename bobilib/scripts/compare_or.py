@@ -95,11 +95,17 @@ def main():
     for r in rows:
         if r["gap"] is not None:
             by[(r["variant"], r["alpha"])].append((r["gap"], r["lit_gap"]))
+    # Compare medians over the same instances: those with a literature gap. The
+    # instances without a published point are reported on their own.
+    med = lambda v: sorted(v)[len(v) // 2] if v else float("nan")
     for k in sorted(by):
-        g = sorted(x for x, _ in by[k])
-        lg = sorted(y for _, y in by[k] if y is not None)
-        med = lambda v: v[len(v) // 2] if v else float("nan")
-        print(f"variant -{k[0]} alpha {k[1]}: {len(g)} instances, median gap ours+lit {med(g):.4f}, literature alone {med(lg):.4f}")
+        paired = [(x, y) for x, y in by[k] if y is not None]
+        alone = [x for x, y in by[k] if y is None]
+        print(
+            f"variant -{k[0]} alpha {k[1]}: {len(paired)} instances with a literature gap, median gap "
+            f"ours+lit {med([x for x, _ in paired]):.4f}, literature alone {med([y for _, y in paired]):.4f}; "
+            f"{len(alone)} without a published point, median gap now {med(alone):.4f}"
+        )
 
 
 if __name__ == "__main__":

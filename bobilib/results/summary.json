@@ -993,8 +993,8 @@
   "OR30x500-0.50_10.dat-50": {
    "family": "multidim-knapsack",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (first certified point)"
   },
   "OR30x250-0.25_10.dat-0": {
    "family": "multidim-knapsack",
@@ -1101,8 +1101,8 @@
   "OR30x500-0.50_9.dat-0": {
    "family": "multidim-knapsack",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (first certified point)"
   },
   "OR5x250-0.50_2.dat-0": {
    "family": "multidim-knapsack",
@@ -1329,8 +1329,8 @@
   "OR30x500-0.50_7.dat-50": {
    "family": "multidim-knapsack",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (first certified point)"
   },
   "OR30x250-0.50_5.dat-100": {
    "family": "multidim-knapsack",
@@ -1485,8 +1485,8 @@
   "OR30x500-0.50_2.dat-50": {
    "family": "multidim-knapsack",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (first certified point)"
   },
   "OR10x500-0.50_9.dat-0": {
    "family": "multidim-knapsack",
@@ -2247,8 +2247,8 @@
   "OR30x500-0.50_8.dat-50": {
    "family": "multidim-knapsack",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (first certified point)"
   },
   "OR10x100-0.75_7.dat-50": {
    "family": "multidim-knapsack",
@@ -2283,8 +2283,8 @@
   "OR30x500-0.50_8.dat-0": {
    "family": "multidim-knapsack",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (first certified point)"
   },
   "OR30x500-0.75_3.dat-100": {
    "family": "multidim-knapsack",
@@ -2589,8 +2589,8 @@
   "OR30x500-0.50_5.dat-0": {
    "family": "multidim-knapsack",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (first certified point)"
   },
   "OR30x250-0.50_3.dat-100": {
    "family": "multidim-knapsack",
@@ -2607,8 +2607,8 @@
   "OR30x500-0.50_5.dat-50": {
    "family": "multidim-knapsack",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (first certified point)"
   },
   "OR5x100-0.25_2.dat-100": {
    "family": "multidim-knapsack",
@@ -3303,8 +3303,8 @@
   "OR30x500-0.50_3.dat-50": {
    "family": "multidim-knapsack",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (first certified point)"
   },
   "OR30x250-0.75_5.dat-100": {
    "family": "multidim-knapsack",
@@ -3585,8 +3585,8 @@
   "OR30x500-0.50_6.dat-0": {
    "family": "multidim-knapsack",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (first certified point)"
   },
   "OR5x500-0.25_7.dat-50": {
    "family": "multidim-knapsack",
@@ -4029,8 +4029,8 @@
   "OR30x500-0.50_10.dat-0": {
    "family": "multidim-knapsack",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (first certified point)"
   },
   "OR30x250-0.75_9.dat-50": {
    "family": "multidim-knapsack",
@@ -4197,8 +4197,8 @@
   "OR30x500-0.50_6.dat-50": {
    "family": "multidim-knapsack",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (first certified point)"
   },
   "OR30x250-0.25_9.dat-0": {
    "family": "multidim-knapsack",
@@ -4719,8 +4719,8 @@
   "OR30x500-0.50_1.dat-50": {
    "family": "multidim-knapsack",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (first certified point)"
   },
   "OR5x250-0.50_3.dat-100": {
    "family": "multidim-knapsack",
@@ -4905,8 +4905,8 @@
   "OR30x500-0.50_7.dat-0": {
    "family": "multidim-knapsack",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (first certified point)"
   },
   "OR10x250-0.75_8.dat-100": {
    "family": "multidim-knapsack",
@@ -5397,8 +5397,8 @@
   "OR30x500-0.50_9.dat-50": {
    "family": "multidim-knapsack",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (first certified point)"
   },
   "OR5x100-0.75_9.dat-100": {
    "family": "multidim-knapsack",
@@ -5595,8 +5595,8 @@
   "OR30x500-0.50_4.dat-50": {
    "family": "multidim-knapsack",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (first certified point)"
   },
   "OR30x100-0.25_7.dat-100": {
    "family": "multidim-knapsack",
@@ -7257,8 +7257,8 @@
   "interKP-400-100-6-2": {
    "family": "knapsack",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (robust subset-sum search)"
   },
   "interKP-500-100-8-3": {
    "family": "knapsack",
@@ -8307,8 +8307,8 @@
   "interKP-500-100-6-2": {
    "family": "knapsack",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (robust subset-sum search)"
   },
   "interKP-200-100-2-2": {
    "family": "knapsack",
@@ -9879,8 +9879,8 @@
   "tree-80_2-2-2_001": {
    "family": "network",
    "bobilib": "optimal",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (every attack, follower by tree DP)"
   },
   "rndgraph-25_3-3-3_001": {
    "family": "network",
@@ -9891,14 +9891,14 @@
   "tree-80_3-3-3_009": {
    "family": "network",
    "bobilib": "optimal",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (every attack, follower by tree DP)"
   },
   "tree-50_3-3-1_008": {
    "family": "network",
    "bobilib": "optimal",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (every attack, follower by tree DP)"
   },
   "rndgraph-50_1-3-3_012": {
    "family": "network",
@@ -9921,8 +9921,8 @@
   "tree-80_2-2-2_002": {
    "family": "network",
    "bobilib": "optimal",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (every attack, follower by tree DP)"
   },
   "rndgraph-50_1-3-3_007": {
    "family": "network",
@@ -9933,8 +9933,8 @@
   "tree-80_2-2-2_012": {
    "family": "network",
    "bobilib": "optimal",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (every attack, follower by tree DP)"
   },
   "rndgraph-50_1-5-3_011": {
    "family": "network",
@@ -9951,8 +9951,8 @@
   "tree-80_2-2-2_007": {
    "family": "network",
    "bobilib": "optimal",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (every attack, follower by tree DP)"
   },
   "rndgraph-25_3-3-3_005": {
    "family": "network",
@@ -9969,8 +9969,8 @@
   "tree-50_1-3-3_012": {
    "family": "network",
    "bobilib": "optimal",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (every attack, follower by tree DP)"
   },
   "rndgraph-80_1-3-3_003": {
    "family": "network",
@@ -9987,14 +9987,14 @@
   "tree-25_3-3-3_002": {
    "family": "network",
    "bobilib": "optimal",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (every attack, follower by tree DP)"
   },
   "tree-50_1-3-3_007": {
    "family": "network",
    "bobilib": "optimal",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (every attack, follower by tree DP)"
   },
   "rndgraph-50_3-5-5_004": {
    "family": "network",
@@ -10023,26 +10023,26 @@
   "tree-50_1-3-3_004": {
    "family": "network",
    "bobilib": "optimal",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (every attack, follower by tree DP)"
   },
   "tree-25_2-2-2_009": {
    "family": "network",
    "bobilib": "optimal",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (every attack, follower by tree DP)"
   },
   "tree-50_1-3-3_014": {
    "family": "network",
    "bobilib": "optimal",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (every attack, follower by tree DP)"
   },
   "tree-25_3-3-3_010": {
    "family": "network",
    "bobilib": "optimal",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (every attack, follower by tree DP)"
   },
   "rndgraph-50_3-5-5_002": {
    "family": "network",
@@ -10053,8 +10053,8 @@
   "tree-25_3-3-3_012": {
    "family": "network",
    "bobilib": "optimal",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (every attack, follower by tree DP)"
   },
   "rndgraph-80_2-2-2_006": {
    "family": "network",
@@ -10077,14 +10077,14 @@
   "tree-25_3-3-3_013": {
    "family": "network",
    "bobilib": "optimal",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (every attack, follower by tree DP)"
   },
   "tree-25_2-2-2_002": {
    "family": "network",
    "bobilib": "optimal",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (every attack, follower by tree DP)"
   },
   "rndgraph-80_3-3-3_002": {
    "family": "network",
@@ -10113,62 +10113,62 @@
   "tree-80_3-3-1_004": {
    "family": "network",
    "bobilib": "optimal",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (every attack, follower by tree DP)"
   },
   "tree-25_1-3-3_014": {
    "family": "network",
    "bobilib": "optimal",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (every attack, follower by tree DP)"
   },
   "tree-25_1-3-3_001": {
    "family": "network",
    "bobilib": "optimal",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (every attack, follower by tree DP)"
   },
   "tree-25_1-3-3_015": {
    "family": "network",
    "bobilib": "optimal",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (every attack, follower by tree DP)"
   },
   "tree-80_3-3-1_005": {
    "family": "network",
    "bobilib": "optimal",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (every attack, follower by tree DP)"
   },
   "tree-25_2-2-2_004": {
    "family": "network",
    "bobilib": "optimal",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (every attack, follower by tree DP)"
   },
   "tree-80_3-3-1_015": {
    "family": "network",
    "bobilib": "optimal",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (every attack, follower by tree DP)"
   },
   "tree-25_2-2-2_005": {
    "family": "network",
    "bobilib": "optimal",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (every attack, follower by tree DP)"
   },
   "tree-80_3-3-1_002": {
    "family": "network",
    "bobilib": "optimal",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (every attack, follower by tree DP)"
   },
   "tree-25_1-3-3_006": {
    "family": "network",
    "bobilib": "optimal",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (every attack, follower by tree DP)"
   },
   "rndgraph-80_3-3-3_006": {
    "family": "network",
@@ -10191,14 +10191,14 @@
   "tree-50_1-5-5_006": {
    "family": "network",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (every attack, follower by tree DP)"
   },
   "tree-50_1-5-5_007": {
    "family": "network",
    "bobilib": "optimal",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (every attack, follower by tree DP)"
   },
   "rndgraph-25_1-3-3_015": {
    "family": "network",
@@ -10215,14 +10215,14 @@
   "tree-50_3-3-1_015": {
    "family": "network",
    "bobilib": "optimal",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (every attack, follower by tree DP)"
   },
   "tree-50_3-3-1_003": {
    "family": "network",
    "bobilib": "optimal",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (every attack, follower by tree DP)"
   },
   "rndgraph-25_1-3-3_003": {
    "family": "network",
@@ -10233,14 +10233,14 @@
   "tree-50_1-5-5_005": {
    "family": "network",
    "bobilib": "optimal",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (every attack, follower by tree DP)"
   },
   "tree-50_1-5-5_010": {
    "family": "network",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (every attack, follower by tree DP)"
   },
   "rndgraph-25_1-3-3_002": {
    "family": "network",
@@ -10251,8 +10251,8 @@
   "tree-80_3-3-3_007": {
    "family": "network",
    "bobilib": "optimal",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (every attack, follower by tree DP)"
   },
   "rndgraph-25_2-2-2_007": {
    "family": "network",
@@ -10263,14 +10263,14 @@
   "tree-50_3-3-1_007": {
    "family": "network",
    "bobilib": "optimal",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (every attack, follower by tree DP)"
   },
   "tree-80_3-3-3_004": {
    "family": "network",
    "bobilib": "optimal",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (every attack, follower by tree DP)"
   },
   "rndgraph-25_2-2-2_004": {
    "family": "network",
@@ -10281,8 +10281,8 @@
   "tree-80_3-3-3_010": {
    "family": "network",
    "bobilib": "optimal",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (every attack, follower by tree DP)"
   },
   "rndgraph-25_1-3-3_005": {
    "family": "network",
@@ -11397,74 +11397,74 @@
   "normalClique40-70-9": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique40-70-8": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique60-70-10": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique40-90-9": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique40-90-8": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique60-90-4": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique60-70-1": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique50-70-9": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique50-90-10": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique50-70-8": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique60-90-5": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique60-90-7": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique60-70-2": {
    "family": "clique",
@@ -11481,62 +11481,62 @@
   "normalClique60-90-6": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique60-70-7": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique60-90-2": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique40-70-10": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique60-90-3": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique60-70-6": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique60-70-4": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique60-90-1": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique50-90-9": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique50-90-8": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique60-70-5": {
    "family": "clique",
@@ -11547,212 +11547,212 @@
   "normalClique60-70-8": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique50-90-5": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique50-70-1": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique50-90-4": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique60-70-9": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique50-90-6": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique50-70-3": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique50-70-2": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique50-90-7": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique50-70-6": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique50-90-3": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique60-90-10": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique50-90-2": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique50-70-7": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique60-90-8": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique50-70-5": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique50-90-1": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique50-70-4": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique60-90-9": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique40-90-5": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique40-90-4": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique40-70-1": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique50-70-10": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique40-70-3": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique40-90-6": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique40-90-7": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique40-70-2": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique40-90-10": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique40-90-3": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique40-70-6": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique40-70-7": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique40-90-2": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique40-70-5": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique40-70-4": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "normalClique40-90-1": {
    "family": "clique",
    "bobilib": "feasible",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (Mantel/Brouwer + partitions)"
   },
   "knapsack": {
    "family": "general-pure",
@@ -11979,8 +11979,8 @@
   "air05-0.900000": {
    "family": "general-pure",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (HPR, follower, tie-break)"
   },
   "seymour-0.900000": {
    "family": "general-pure",
@@ -12010,7 +12010,7 @@
    "family": "general-pure",
    "bobilib": "feasible",
    "outcome": "optimal",
-   "source": "literature (VLH)"
+   "source": "literature (Vasquez et al. 2025)"
   },
   "air04-0.900000": {
    "family": "general-pure",
@@ -12033,8 +12033,8 @@
   "mitre-0.900000": {
    "family": "general-pure",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (HPR, follower, tie-break)"
   },
   "fast0507-0.100000": {
    "family": "general-pure",
@@ -12063,8 +12063,8 @@
   "mitre-0.500000": {
    "family": "general-pure",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (HPR, follower, tie-break)"
   },
   "harp2-0.100000": {
    "family": "general-pure",
@@ -13593,8 +13593,8 @@
   "n4-3_50_50": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (bobi coupled)"
   },
   "n4-3_0_100": {
    "family": "general-mixed",
@@ -13611,8 +13611,8 @@
   "timtab1_50_50": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (bobi coupled)"
   },
   "reblock67_50_50": {
    "family": "general-pure",
@@ -13647,8 +13647,8 @@
   "satellites1-25_0_100": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (HPR, follower, tie-break)"
   },
   "neos-916792_0_100": {
    "family": "general-mixed",
@@ -13719,8 +13719,8 @@
   "beasleyC3_50_50": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (bobi coupled)"
   },
   "neos18_50_50": {
    "family": "general-pure",
@@ -13749,8 +13749,8 @@
   "rmine6_50_50": {
    "family": "general-pure",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (bobi coupled)"
   },
   "mine-166-5_50_50": {
    "family": "general-pure",
@@ -13809,8 +13809,8 @@
   "neos-1337307_50_50": {
    "family": "general-pure",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (bobi coupled)"
   },
   "neos-1337307_0_100": {
    "family": "general-pure",
@@ -13863,8 +13863,8 @@
   "ran16x16_50_50": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (bobi coupled)"
   },
   "iis-bupa-cov_50_50": {
    "family": "general-pure",
@@ -13911,8 +13911,8 @@
   "pg5_34_50_50": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (bobi coupled)"
   },
   "noswot_0_100": {
    "family": "general-mixed",
@@ -14001,8 +14001,8 @@
   "mik-250-1-100-1_50_50": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (bobi coupled)"
   },
   "neos-686190_0_100": {
    "family": "general-pure",
@@ -14025,8 +14025,8 @@
   "neos-934278_0_100": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (HPR, follower, tie-break)"
   },
   "n3seq24_0_100": {
    "family": "general-pure",
@@ -14043,14 +14043,14 @@
   "pigeon-10_50_50": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "optimal",
+   "source": "this work (point meets the MIPLIB optimum of the HPR)"
   },
   "neos-934278_50_50": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (bobi coupled)"
   },
   "n3seq24_50_50": {
    "family": "general-pure",
@@ -14127,8 +14127,8 @@
   "core2536-691_0_100": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (HPR, follower, tie-break)"
   },
   "mine-90-10_50_50": {
    "family": "general-pure",
@@ -14229,14 +14229,14 @@
   "ex10_0_100": {
    "family": "general-pure",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (HPR, follower, tie-break)"
   },
   "mushroom-best_0_100": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (HPR, follower, tie-break)"
   },
   "ex10_50_50": {
    "family": "general-pure",
@@ -14247,8 +14247,8 @@
   "mushroom-best_50_50": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (bobi coupled)"
   },
   "atlanta-ip_0_100": {
    "family": "general-mixed",
@@ -14271,8 +14271,8 @@
   "neos-933966_50_50": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (bobi coupled)"
   },
   "atlanta-ip_50_50": {
    "family": "general-mixed",
@@ -14295,8 +14295,8 @@
   "neos-933966_0_100": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (HPR, follower, tie-break)"
   },
   "neos-5104907-jarama_50_50": {
    "family": "general-mixed",
@@ -14379,8 +14379,8 @@
   "cmflsp50-24-8-8_0_100": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (HPR, follower, tie-break)"
   },
   "co-100_50_50": {
    "family": "general-pure",
@@ -14451,8 +14451,8 @@
   "neos-950242_50_50": {
    "family": "general-pure",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (bobi coupled)"
   },
   "snp-02-004-104_0_100": {
    "family": "general-mixed",
@@ -14505,8 +14505,8 @@
   "neos-5188808-nattai_0_100": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (HPR, follower, tie-break)"
   },
   "neos-1456979_50_50": {
    "family": "general-mixed",
@@ -14517,8 +14517,8 @@
   "neos-5188808-nattai_50_50": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (bobi coupled)"
   },
   "neos-1456979_0_100": {
    "family": "general-mixed",
@@ -14541,8 +14541,8 @@
   "mik-250-20-75-4_50_50": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (bobi coupled)"
   },
   "nursesched-medium-hint03_50_50": {
    "family": "general-pure",
@@ -14559,8 +14559,8 @@
   "mc11_50_50": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (bobi coupled)"
   },
   "mc11_0_100": {
    "family": "general-mixed",
@@ -14619,8 +14619,8 @@
   "ic97_potential_50_50": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (bobi coupled)"
   },
   "neos-631710_50_50": {
    "family": "general-pure",
@@ -14649,8 +14649,8 @@
   "opm2-z10-s4_0_100": {
    "family": "general-pure",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (HPR, follower, tie-break)"
   },
   "opm2-z10-s4_50_50": {
    "family": "general-pure",
@@ -14673,8 +14673,8 @@
   "sp150x300d_50_50": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (bobi coupled)"
   },
   "eilA101-2_0_100": {
    "family": "general-pure",
@@ -14733,8 +14733,8 @@
   "neos-1445765_50_50": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (bobi coupled)"
   },
   "bab6_50_50": {
    "family": "general-pure",
@@ -14751,8 +14751,8 @@
   "neos-1445765_0_100": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (HPR, follower, tie-break)"
   },
   "cvs16r128-89_50_50": {
    "family": "general-pure",
@@ -14763,8 +14763,8 @@
   "neos-4763324-toguru_0_100": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (HPR, follower, tie-break)"
   },
   "cvs16r128-89_0_100": {
    "family": "general-pure",
@@ -14805,8 +14805,8 @@
   "neos-2978193-inde_50_50": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (bobi coupled)"
   },
   "cod105_0_100": {
    "family": "general-pure",
@@ -14835,8 +14835,8 @@
   "neos-2978193-inde_0_100": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (HPR, follower, tie-break)"
   },
   "sp97ar_0_100": {
    "family": "general-pure",
@@ -14919,8 +14919,8 @@
   "n9-3_0_100": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (HPR, follower, tie-break)"
   },
   "buildingenergy_50_50": {
    "family": "general-mixed",
@@ -14967,8 +14967,8 @@
   "n9-3_50_50": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (bobi coupled)"
   },
   "mas74_0_100": {
    "family": "general-mixed",
@@ -15003,8 +15003,8 @@
   "pg_50_50": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (bobi coupled)"
   },
   "seymour_50_50": {
    "family": "general-pure",
@@ -15021,8 +15021,8 @@
   "sing326_0_100": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (HPR, follower, tie-break)"
   },
   "supportcase40_0_100": {
    "family": "general-mixed",
@@ -15069,8 +15069,8 @@
   "h80x6320d_0_100": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (HPR, follower, tie-break)"
   },
   "toll-like_0_100": {
    "family": "general-pure",
@@ -15087,8 +15087,8 @@
   "n5-3_50_50": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (bobi coupled)"
   },
   "fast0507_50_50": {
    "family": "general-pure",
@@ -15117,8 +15117,8 @@
   "sing44_0_100": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (HPR, follower, tie-break)"
   },
   "n5-3_0_100": {
    "family": "general-mixed",
@@ -15165,8 +15165,8 @@
   "neos-827175_50_50": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (bobi coupled)"
   },
   "rmatr200-p5_0_100": {
    "family": "general-mixed",
@@ -15183,14 +15183,14 @@
   "neos-827175_0_100": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (HPR, follower, tie-break)"
   },
   "neos-4300652-rahue_0_100": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (HPR, follower, tie-break)"
   },
   "rmatr200-p5_50_50": {
    "family": "general-mixed",
@@ -15243,14 +15243,14 @@
   "neos-4954672-berkel_50_50": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (bobi coupled)"
   },
   "seymour1_50_50": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (bobi coupled)"
   },
   "bab2_50_50": {
    "family": "general-pure",
@@ -15291,14 +15291,14 @@
   "uct-subprob_50_50": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (bobi coupled)"
   },
   "p200x1188c_50_50": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (bobi coupled)"
   },
   "sp98ar_0_100": {
    "family": "general-pure",
@@ -15315,8 +15315,8 @@
   "neos17_50_50": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (bobi coupled)"
   },
   "trento1_0_100": {
    "family": "general-mixed",
@@ -15459,8 +15459,8 @@
   "satellites2-40_0_100": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": null,
-   "source": null
+   "outcome": "feasible",
+   "source": "this work (HPR, follower, tie-break)"
   },
   "neos5_50_50": {
    "family": "general-mixed",
@@ -15929,9 +15929,9 @@
   "multidim-knapsack": {
    "not optimal in BOBILib": 862,
    "optimal / literature (Fischetti et al. 2019)": 52,
-   "unchanged": 598,
+   "unchanged": 582,
    "feasible / this work (certified point)": 52,
-   "feasible / this work (first certified point)": 72,
+   "feasible / this work (first certified point)": 88,
    "optimal / literature (Lozano et al. 2026)": 87,
    "optimal / this work (certified point meets best lower bound)": 1
   },
@@ -15943,32 +15943,35 @@
   "knapsack": {
    "not optimal in BOBILib": 392,
    "optimal / literature (Weninger-Fukasawa 2025)": 376,
-   "optimal / this work (robust subset-sum search)": 10,
-   "unchanged": 6
+   "optimal / this work (robust subset-sum search)": 12,
+   "unchanged": 4
   },
   "network": {
    "not optimal in BOBILib": 2,
-   "unchanged": 2
+   "optimal / this work (every attack, follower by tree DP)": 2
   },
   "clique": {
    "not optimal in BOBILib": 60,
-   "unchanged": 60
+   "optimal / this work (Mantel/Brouwer + partitions)": 57,
+   "unchanged": 3
   },
   "general-pure": {
    "not optimal in BOBILib": 131,
-   "unchanged": 113,
+   "unchanged": 105,
    "optimal / literature (Fischetti et al. 2017)": 1,
    "optimal / literature (Lozano et al. 2026)": 5,
-   "feasible / this work (HPR, follower, tie-break)": 4,
-   "optimal / literature (VLH)": 1,
+   "feasible / this work (HPR, follower, tie-break)": 9,
+   "optimal / literature (Vasquez et al. 2025)": 1,
+   "feasible / this work (bobi coupled)": 3,
    "optimal / literature (an earlier BOBILib release)": 1,
    "no bilevel feasible point / this work (recession ray, exact)": 6
   },
   "general-mixed": {
    "not optimal in BOBILib": 168,
-   "unchanged": 101,
-   "feasible / this work (HPR, follower, tie-break)": 29,
-   "optimal / this work (point meets the MIPLIB optimum of the HPR)": 4,
+   "feasible / this work (bobi coupled)": 25,
+   "feasible / this work (HPR, follower, tie-break)": 46,
+   "optimal / this work (point meets the MIPLIB optimum of the HPR)": 5,
+   "unchanged": 58,
    "no bilevel feasible point / this work (recession ray, exact)": 32,
    "no bilevel feasible point / this work (recession ray, floating point)": 2
   }
