@@ -13,6 +13,7 @@
 %     triangle {1,3,6} survives the certificate deletion.
 % Build: pdflatex fig_clique_interdiction.tex   (6.5 in x 2 in)
 \documentclass[tikz,border=2pt]{standalone}
+\pdfinfoomitdate=1 \pdftrailerid{} \pdfsuppressptexinfo=-1 % byte-identical rebuilds
 \usepackage{mathptmx}
 \usetikzlibrary{arrows.meta,calc,shapes.geometric}
 \definecolor{leader}{HTML}{2A78D6}
@@ -43,6 +44,17 @@
   \foreach \i/\a in {0/112.5, 1/157.5, 2/202.5, 3/67.5, 4/22.5, 5/-22.5,
                      6/247.5, 7/292.5}
     \coordinate (p\i) at ({\cx+\rx*cos(\a)},{\cy+\ry*sin(\a)});}
+% a deleted edge: dashed grey with a small grey cross at its midpoint
+% (deleted/interdicted = grey with a cross, as in the other figures)
+\newcommand{\xmark}[1]{%
+  \draw[ink2, line width=0.7pt]
+    ($#1+(-0.075,-0.075)$) -- ($#1+(0.075,0.075)$)
+    ($#1+(-0.075,0.075)$) -- ($#1+(0.075,-0.075)$);}
+% \deledge[pos]{u}{v}: the cross sits at fraction pos (default 0.5) along u-v
+\newcommand{\deledge}[3][0.5]{%
+  \draw[deleted] (p#2) -- (p#3);
+  \fill[white] ($(p#2)!#1!(p#3)$) circle (0.11);
+  \xmark{($(p#2)!#1!(p#3)$)}}
 % a soft aqua band along the ellipse from angle #1 to #2 (one group)
 \newcommand{\band}[2]{%
   \draw[cert!22, line width=0.62cm, line cap=round]
@@ -64,8 +76,9 @@
                        3/6, 3/7, 5/6, 5/7}
       \draw[edge] (p\u) -- (p\v);
     % the leader's 5 deletions
-    \foreach \u/\v in {0/1, 0/3, 0/4, 2/6, 4/7}
-      \draw[deleted] (p\u) -- (p\v);
+    \foreach \u/\v in {0/1, 0/3, 2/6, 4/7}
+      \deledge{\u}{\v}
+    \deledge[0.7]{0}{4} % its midpoint lies under the clique edge 3-6
     % the follower's largest clique {1,3,6,7}
     \foreach \u/\v in {1/3, 1/6, 1/7, 3/6, 3/7, 6/7}
       \draw[clq] (p\u) -- (p\v);
@@ -73,6 +86,8 @@
     \foreach \i in {1,3,6,7} \node[vtx, hit] at (p\i) {};
     % key
     \draw[deleted] (4.45,0.80) -- ++(0.45,0);
+    \fill[white] (4.675,0.80) circle (0.11);
+    \xmark{(4.675,0.80)}
     \node[small, anchor=west] at (4.95,0.80) {deleted};
     \draw[clq] (4.45,0.45) -- ++(0.45,0);
     \node[small, anchor=west] at (4.95,0.45) {clique};
@@ -96,7 +111,7 @@
       \draw[edge] (p\u) -- (p\v);
     % the 5 edges inside groups are deleted
     \foreach \u/\v in {0/1, 1/2, 3/4, 4/5, 6/7}
-      \draw[deleted] (p\u) -- (p\v);
+      \deledge{\u}{\v}
     % a triangle that survives
     \foreach \u/\v in {1/3, 1/6, 3/6}
       \draw[clq] (p\u) -- (p\v);

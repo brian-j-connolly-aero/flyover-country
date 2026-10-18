@@ -1,0 +1,204 @@
+% General MIPLIB-derived instances: recession directions, the HPR bound,
+% the HPR -> follower -> tie-break pipeline, coupling rows, tolerances.
+\section{General instances}\label{app:general}
+
+Notation is that of~\eqref{eq:bl}. In this section a follower row is written
+$\ell_i\le C_ix+D_iy\le h_i$ with $\ell_i\in\mathbf{R}\cup\{-\infty\}$ and
+$h_i\in\mathbf{R}\cup\{+\infty\}$, and the follower's variable bounds as
+$\ell^y_j\le y_j\le h^y_j$, because the direction test below depends on which
+sides are finite.
+
+\subsection{Unbounded followers: no bilevel feasible point}
+
+\begin{theorem}[Recession direction]\label{thm:ray}
+Let $d\in\mathbf{Q}^{n_y}$ satisfy, for every follower row $i$, $D_id\ge 0$ if
+$\ell_i>-\infty$ and $D_id\le 0$ if $h_i<+\infty$; for every follower variable
+$j$, $d_j\ge 0$ if $\ell^y_j>-\infty$ and $d_j\le 0$ if $h^y_j<+\infty$; and
+$f^{\top}d<0$. Then for every leader choice $x$ (real or integral) the
+follower's problem $P(x)$ is infeasible or unbounded, so $S(x)=\emptyset$ and
+the bilevel problem has no feasible point.
+\end{theorem}
+\begin{proof}
+Let $\nu$ be a positive integer such that $\nu d_j\in\mathbf{Z}$ for every $j\in I_l$
+($d$ is rational). Suppose $y$ is feasible for $P(x)$. For every integer
+$t\ge 0$, $y+t\nu d$ satisfies every follower row, since $C_ix$ is a constant
+and $D_i(y+t\nu d)$ moves only in the permitted direction; it satisfies every
+bound for the same reason; and its integer-constrained entries stay integral.
+Its objective $f^{\top}y+t\nu f^{\top}d$ tends to $-\infty$. So $P(x)$ has no
+optimal solution whenever it is feasible.
+\end{proof}
+\noindent Not formalised.
+
+\begin{remark}[Meyer's theorem]
+The theorem only needs an explicit rational direction. It is the case we
+need of a classical result of R.~R.~Meyer (On the existence of optimal
+solutions to integer and mixed-integer programming problems, Math.\ Program.\
+7 (1974) 223--235): with rational data, the convex hull of the feasible set
+of a mixed-integer program is a rational polyhedron with the same recession
+cone as the LP relaxation, so a feasible mixed-integer program whose LP
+relaxation is unbounded is itself unbounded. Rationality matters: without it,
+a direction of the LP relaxation need not be usable by integer points. The
+directions here are found by an LP solver in floating point, written as
+decimals (which are rationals) and checked exactly.
+\end{remark}
+
+\paragraph{The exact check.} For each certificate, a script that reads the
+instance files independently of the solver code converts every entry of $d$
+to an exact rational and checks the conditions of Theorem~\ref{thm:ray} in
+rational arithmetic, counting only follower variables in each follower row
+(leader variables enter those rows as constants). When rounding leaves tiny
+residuals, the direction is first projected onto the exact null space of its
+tight rows. This succeeds for 38 of the 40 open instances; for
+\texttt{supportcase42\_0\_100} and \texttt{supportcase42\_50\_50} residuals of
+about $10^{-12}$ (relative) remain, so those two certificates rest on floating
+point.
+
+\subsection{The HPR bound and the MIPLIB optimum}
+
+\begin{lemma}[HPR bound]\label{lem:hpr}
+Every bilevel feasible point is feasible for the HPR, so
+$\mathrm{HPR}\le\mathrm{OPT}$. If a bilevel feasible point has value
+$\mathrm{HPR}$, it is optimal.
+\end{lemma}
+\begin{proof}
+A bilevel feasible point satisfies $Ax+By\ge a$, the integrality conditions,
+and, as $y\in S(x)$, also $Cx+Dy\ge b$. The HPR minimises the same objective
+over a superset.
+\end{proof}
+\noindent Not formalised.
+
+BOBILib builds its general instances from a MIPLIB problem by assigning
+variables and rows to the two levels and keeping the problem's objective as
+the leader's. If nothing else changes, dropping the condition $y\in S(x)$
+gives back the MIPLIB problem: the HPR \emph{is} the MIPLIB model, and its
+published optimum $z^{*}$ is a lower bound on $\mathrm{OPT}$ by
+Lemma~\ref{lem:hpr}. This is not assumed: a script reads the bilevel
+instance and the MIPLIB~2017 model and checks in exact rational arithmetic
+that they have the same variables, rows, coefficients, sides, bounds,
+integrality requirements and objective (up to the objective's sense). For
+the five instances where it holds and a verified bilevel feasible point has
+value $z^{*}$ (\texttt{pigeon-10\_0\_100}, \texttt{pigeon-10\_50\_50},
+\texttt{timtab1\_0\_100}, \texttt{noswot\_0\_100}, \texttt{noswot\_50\_50}),
+the point is optimal. The values $z^{*}$ are MIPLIB's published optima. The
+point for \texttt{timtab1\_0\_100} has value $764{,}771.99999978$, below
+$z^{*}=764{,}772$ by $2.2\times10^{-7}$: it is feasible within the row
+tolerance $10^{-6}$, and ``optimal'' holds in that sense.
+
+\subsection{Feasible points without coupling rows}
+
+\begin{proposition}[HPR, follower, tie-break]\label{prop:general-pipeline}
+Assume there are no coupling rows ($B=0$). Let $(\hat x,\hat y)$ be feasible for
+the HPR, and suppose $P(\hat x)$ has an optimal solution, with value
+$\varphi(\hat x)$. Then the tie-break problem at $\hat x$ (the optimistic choice
+among the follower's optima, Section~\ref{app:notation}) is feasible, and for
+any of its feasible points $y^{*}$, the point $(\hat x,y^{*})$ is bilevel
+feasible. If $y^{*}$ is optimal for the tie-break problem, $(\hat x,y^{*})$ is the
+best bilevel feasible point with leader part~$\hat x$.
+\end{proposition}
+\begin{proof}
+$A\hat x\ge a$ holds because $(\hat x,\hat y)$ is HPR feasible and $B=0$, and
+$\hat x$ satisfies its integrality conditions. Any optimal solution of
+$P(\hat x)$ is feasible for the tie-break problem, whose rows are those of
+$P(\hat x)$, $f^{\top}y\le\varphi(\hat x)$, and $A\hat x+By\ge a$, which does not involve
+$y$. A feasible point $y^{*}$ of it is feasible for $P(\hat x)$ with
+$f^{\top}y^{*}\le\varphi(\hat x)$, so $y^{*}\in S(\hat x)$. The bilevel feasible points
+with leader part $\hat x$ are exactly the pairs $(\hat x,y)$ with $y\in S(\hat x)$, the
+feasible set of the tie-break problem.
+\end{proof}
+\noindent Not formalised. The existence of an optimal solution of $P(\hat x)$
+is what the follower solve establishes; the HPR point $\hat y$ shows that
+$P(\hat x)$ is feasible. The computations accept $f^{\top}y\le\varphi(\hat x)+10^{-7}(1+|\varphi(\hat x)|)$
+in the tie-break, well inside BOBILib's relative tolerance~\eqref{eq:bobilib-tol}.
+The pipeline handles continuous linking variables, which neither of
+BOBILib's two solvers accepts.
+
+\subsection{Coupling rows}
+
+With coupling rows ($B\neq 0$) the follower's optima at the HPR's leader
+values may all violate them. Recall that $P(x)$, $\varphi(x)$ and $S(x)$ depend
+on $x$ only through the linking variables $x_L$; write $\varphi(x_L)$. For fixed
+values $\bar x_L$ define the \emph{best response}
+\[
+  \mathrm{BR}(\bar x_L)=\min\bigl\{c^{\top}x+d^{\top}y:\ x_L=\bar x_L,\ Ax+By\ge a,\
+  Cx+Dy\ge b,\ f^{\top}y\le\varphi(\bar x_L),\ \text{integrality}\bigr\},
+\]
+in which the other leader variables are free.
+
+\begin{proposition}[Best response and blocked leader choices]\label{prop:coupled}
+Suppose $P(\bar x_L)$ has an optimal solution. Then the feasible points of
+$\mathrm{BR}(\bar x_L)$ are exactly the bilevel feasible points with linking part
+$\bar x_L$, and $\mathrm{BR}(\bar x_L)$ is the best value among them. If
+$\mathrm{BR}(\bar x_L)$ is infeasible, no bilevel feasible point has linking part
+$\bar x_L$ (the choice $\bar x_L$ is \emph{blocked}). Consequently
+$\mathrm{OPT}=\inf_{\bar x_L}\mathrm{BR}(\bar x_L)$ over linking values for which
+$P(\bar x_L)$ has an optimal solution.
+\end{proposition}
+\begin{proof}
+$(x,y)$ is bilevel feasible iff it satisfies the upper-level rows and
+integrality and $y\in S(x)$, and $y\in S(x)$ iff $y$ is feasible for $P(x_L)$ and
+$f^{\top}y\le\varphi(x_L)$. These are the constraints of $\mathrm{BR}(x_L)$. If
+$P(\bar x_L)$ has no optimal solution, $S(x)=\emptyset$ for every $x$ with these
+linking values.
+\end{proof}
+\noindent Not formalised.
+
+\begin{lemma}[Value-function cuts]\label{lem:vcut}
+Let $\hat y$ be feasible for $P(\hat x_L)$ with $f^{\top}\hat y=\hat f$. Every bilevel
+feasible $(x,y)$ satisfies: $\hat y$ is infeasible for $P(x_L)$, or
+$f^{\top}y\le\hat f$.
+\end{lemma}
+\begin{proof}
+If $\hat y$ is feasible for $P(x_L)$ then $\varphi(x_L)\le\hat f$, and $y\in S(x)$ gives
+$f^{\top}y=\varphi(x_L)$.
+\end{proof}
+\noindent Not formalised.
+
+The search for an unblocked linking choice tries, in turn within a time
+budget: the HPR's own $x_L$; best-response dynamics; the HPR with objective
+$c^{\top}x+d^{\top}y+\rho f^{\top}y$ for increasing $\rho$; a penalty alternating
+direction method after Kleinert and Schmidt; moves of continuous linking
+variables towards the interior; the HPR with the cuts of
+Lemma~\ref{lem:vcut} (modelled with binary indicators, exact when every
+follower row's linking part takes integer values); and no-good cuts on
+integer linking variables. These are heuristics: none of them is needed for
+correctness, and the ``blocked'' verdicts (solver tolerances included) only
+steer the search; no instance is claimed to have no feasible point on that
+basis. What is certified is each returned point, re-checked from scratch: all
+rows, bounds and integrality within $10^{-6}$; a fresh follower solve whose
+proven dual bound puts the point's follower value within relative $10^{-5}$ of
+the optimum; and the optimistic tie-break at the point's leader values within
+relative $10^{-5}$ by a proven bound. Each file then passes \texttt{bobi
+verify}.
+
+In 9 of the 29 files with coupling rows the follower's value lies about
+$10^{-7}$ (relative) above its optimum, which BOBILib's
+test~\eqref{eq:bobilib-tol} accepts. For seven of them a point with the
+follower at its optimum (within $10^{-9}$ relative) exists at the same leader
+values with a slightly worse leader objective. For \texttt{pg\_50\_50} and
+\texttt{neos-2978193-inde\_50\_50} the coupling rows force the follower about
+$10^{-7}$ above its optimum at the files' leader values; with the non-linking
+leader variables free, exactly optimal responses exist, so both instances do
+have bilevel feasible points, but the two files are feasible only within the
+tolerance.
+
+\paragraph{Few binary linking variables.} If the linking variables are
+binary and few, Proposition~\ref{prop:coupled} gives the exact optimum by
+enumerating all $\bar x_L$, solving $P(\bar x_L)$ and $\mathrm{BR}(\bar x_L)$ for
+each. This reproduces the published optimum $299{,}577$ of
+\texttt{general30-30-10-20-20-8} (10 linking bits); with 20 bits it is too
+slow.
+
+\subsection{A tolerance observation}
+
+\begin{remark}[\texttt{general20-30-20-20-20-2}]\label{rem:tolerance}
+Test~\eqref{eq:bobilib-tol} is relative. In the generalized interdiction
+instance \texttt{general20-30-20-20-20-2} the follower's objective values are
+near $10^8$, so a response up to about $10^4$ units from the follower's optimum
+passes. BOBILib's value for this instance rests on a follower response that
+is 19 units suboptimal (relative error about $2\times10^{-7}$). Such a point is
+not bilevel feasible in the sense of Definition~\ref{def:bilevel-feasible}:
+with an exactly optimal follower response the leader's value at the same
+leader choice can differ. A value accepted only under a relative tolerance
+is therefore not proven attainable with an exactly optimal follower
+response.
+\end{remark}

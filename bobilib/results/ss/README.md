@@ -18,8 +18,12 @@ is new is the proof that nothing better exists. `proofs.csv` lists:
 | `nodes`, `cpu_seconds` | `bobi ss-solve` on one thread (CPU time; the machine was shared, so wall times were 2-3 times longer) |
 | `independent_check_nodes` | nodes of `scripts/ss_check.py`, which proves the same lower bound independently |
 
-`summary.csv` is kept from the previous version of the search (before
-per-node tables): its nodes and seconds for the 12 instances it proved.
+`summary.csv` records the runs that first proved 12 of these instances,
+with earlier versions of the search (before per-node tables, and before
+the band tables for some). Its node counts are therefore higher than the
+"before" column of `../../REPORT.md`, which re-measures the version
+immediately preceding the per-node tables on the same machine. With that
+version, interKP-200-100-6-3 did not finish in 4 hours.
 
 ## How each value is established
 

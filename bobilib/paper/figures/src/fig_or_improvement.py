@@ -69,7 +69,7 @@ for ax, a in zip(axs, BUDGETS):
     txt = f"n = {n1} one, {n2} several\nfirst points: {first[a]}"
     if below:
         txt += f"\nbelow −10%: {below}"
-    ax.text(0.97, 0.05, txt, transform=ax.transAxes, ha="right", va="bottom", fontsize=6.5,
+    ax.text(0.97, 0.05, txt, transform=ax.transAxes, ha="right", va="bottom", fontsize=7,
             color=S.INK2, linespacing=1.15)
 axs[0].set_ylabel("share of instances")
 axs[1].set_xlabel("improvement over the best published point (%)", labelpad=2)

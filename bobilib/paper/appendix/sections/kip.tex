@@ -29,10 +29,10 @@ $Y\in\mathcal{F}$ the set $Y\setminus X$ lies in $\mathcal{F}$ and avoids $X$, w
 gives ``$\ge$''. A subset of a packing has no larger weight in any row
 because $W\ge 0$.
 \end{proof}
-\noindent Formalised: \texttt{Bobi/Knapsack.lean}, theorems
+{\raggedright\noindent Formalised: \texttt{Bobi/Knapsack.lean}, theorems
 \texttt{follower\_antitone}, \texttt{bestAvoiding\_antitone},
 \texttt{bestAvoiding\_eq\_sup\_sdiff}, \texttt{packings\_downward\_closed} and
-\texttt{K\_eq\_bestAvoiding}.
+\texttt{K\_eq\_bestAvoiding}.\par}
 
 \begin{lemma}[Cheapest copies first]\label{lem:kip-cheapest}
 Consider KIP and a class $Q\subseteq N$ of identical items ($p_i=p_j$ and
@@ -53,8 +53,8 @@ the swap lowers the cost strictly, keeps $X\setminus Q$, $|X\cap Q|$ and
 $\Phi$, and the induction hypothesis applies to $X^{s}$. Otherwise $X'=X$
 works.
 \end{proof}
-\noindent Formalised: \texttt{Bobi/Knapsack.lean}, theorems
-\texttt{K\_map\_equiv}, \texttt{swap\_block} and \texttt{cheapest\_first}.
+{\raggedright\noindent Formalised: \texttt{Bobi/Knapsack.lean}, theorems
+\texttt{K\_map\_equiv}, \texttt{swap\_block} and \texttt{cheapest\_first}.\par}
 
 \begin{definition}[Class instance]\label{def:class-instance}
 A \emph{class instance} is a list of classes $1,\dots,L$; class $i$ has a
@@ -136,34 +136,34 @@ general statement follows by induction on $q$: after adding $v_1,\dots,v_{h-1}$
 the window is $[a,b+v_1+\dots+v_{h-1}]$, of width
 $(b-a+1)+v_1+\dots+v_{h-1}\ge v_h$.
 \end{proof}
-\noindent Formalised: \texttt{Bobi/SubsetSum.lean}, theorems
-\texttt{window\_extend} and \texttt{window\_extend\_all}.
+{\raggedright\noindent Formalised: \texttt{Bobi/SubsetSum.lean}, theorems
+\texttt{window\_extend} and \texttt{window\_extend\_all}.\par}
 
 \begin{lemma}[Survivors that fit]\label{lem:window-survivors}
-Let $[a,b]\subseteq\mathrm{SS}(M)$ with $a\le b$ and $\omega=b-a+1$. Let
-$(v_1,\kappa_1),\dots,(v_q,\kappa_q)$ be a list of copies with values $v_h$ and
-flags $\kappa_h\in\{\text{kept},\text{deleted}\}$. Write $\mu_h=\sum_{h'<h}v_{h'}$
+Let $[a,b]\subseteq\mathrm{SS}(M)$ with $a\le b$ and $\theta=b-a+1$. Let
+$(v_1,\eta_1),\dots,(v_q,\eta_q)$ be a list of copies with values $v_h$ and
+flags $\eta_h\in\{\text{kept},\text{deleted}\}$. Write $\mu_h=\sum_{h'<h}v_{h'}$
 for the mass before copy $h$ and $\delta_h$ for the deleted mass before copy
-$h$. If $\delta_h+v_h\le\omega+\mu_h$ for every $h$, then
+$h$. If $\delta_h+v_h\le\theta+\mu_h$ for every $h$, then
 $[a,\,b+\sigma]\subseteq\mathrm{SS}(M\uplus K)$, where $K$ is the multiset of kept
 copies and $\sigma$ its total.
 \end{lemma}
 \begin{proof}
 Let $h$ be a kept copy. The kept mass before it is $\mu_h-\delta_h$, and the
-hypothesis says $v_h\le\omega+(\mu_h-\delta_h)$. So the kept copies, in list
+hypothesis says $v_h\le\theta+(\mu_h-\delta_h)$. So the kept copies, in list
 order, satisfy the hypothesis of Lemma~\ref{lem:window-extend}.
 \end{proof}
-\noindent Formalised: \texttt{Bobi/SubsetSum.lean}, theorems
+{\raggedright\noindent Formalised: \texttt{Bobi/SubsetSum.lean}, theorems
 \texttt{fits\_survivors} and \texttt{window\_survivors}
-(\texttt{SubsetSum.perm}: subset sums do not depend on the order).
+(\texttt{SubsetSum.perm}: subset sums do not depend on the order).\par}
 
 \begin{lemma}[Fractional deletion bound]\label{lem:fractional}
 Let copies $h$ have values $v_h>0$ and costs $\gamma_h\ge 0$, sorted so that
 $\gamma_1/v_1\le\gamma_2/v_2\le\cdots$. For $d>0$ let
-$\Lambda(d)=\min\{\sum_h\gamma_h z_h:\sum_h v_hz_h\ge d,\ 0\le z\le 1\}$ ($+\infty$
+$\Psi(d)=\min\{\sum_h\gamma_h z_h:\sum_h v_hz_h\ge d,\ 0\le z\le 1\}$ ($+\infty$
 if $\sum_h v_h<d$). The greedy solution, which fills copies in this order
 until mass $d$ is reached, is optimal, and every set $H$ of copies with
-$\sum_{h\in H}v_h\ge d$ has $\sum_{h\in H}\gamma_h\ge\Lambda(d)$.
+$\sum_{h\in H}v_h\ge d$ has $\sum_{h\in H}\gamma_h\ge\Psi(d)$.
 \end{lemma}
 \begin{proof}
 The indicator vector of $H$ is feasible, which proves the last claim. Let
@@ -189,30 +189,30 @@ Order the undecided classes by ascending value, $u_1,\dots,u_q$, and let
 $M_i=\sum_{i'<i}n_{u_{i'}}v_{u_{i'}}$ be the mass of the classes before $u_i$.
 Let $\Delta$ be the largest mass that a completion deletes and $\sigma_0$ the
 total undecided mass minus $\Delta$. Let $[a,b]\subseteq S$ be a run of
-consecutive integers with $b<lo\le b+\sigma_0$ and width $\omega=b-a+1$, and
-put $D_i=M_i-v_{u_i}+\omega+1$. Suppose that for every $i$: $D_i>0$, and either
+consecutive integers with $b<lo\le b+\sigma_0$ and width $\theta=b-a+1$, and
+put $D_i=M_i-v_{u_i}+\theta+1$. Suppose that for every $i$: $D_i>0$, and either
 $i=1$ or the fractional bound of Lemma~\ref{lem:fractional} over the copies
-of $u_1,\dots,u_{i-1}$ satisfies $\Lambda_i(D_i)>\beta'$. Then every completion
+of $u_1,\dots,u_{i-1}$ satisfies $\Psi_i(D_i)>\beta'$. Then every completion
 leaves survivors $R$ with $lo\in\mathrm{SS}(M\uplus R)$; the node is safe.
 \end{proposition}
 \begin{proof}
 Fix a completion and list the undecided copies class by class in the order
 $u_1,\dots,u_q$, flagging the deleted ones. Let $e_i$ be the mass the completion
 deletes from $u_1,\dots,u_{i-1}$. Those deleted copies form a set of total cost
-at most $\beta'$, so $e_i\ge D_i$ would contradict $\Lambda_i(D_i)>\beta'$ by
+at most $\beta'$, so $e_i\ge D_i$ would contradict $\Psi_i(D_i)>\beta'$ by
 Lemma~\ref{lem:fractional}; for $i=1$, $e_1=0<D_1$. Hence $e_i\le D_i-1$. At
 the copy number $t$ ($t=0,1,\dots$) of class $u_i$, the mass before it is
 $M_i+tv_{u_i}$ and the deleted mass before it is at most $e_i+tv_{u_i}$, so
 deleted mass plus $v_{u_i}$ is at most
-$D_i-1+(t+1)v_{u_i}=\omega+M_i+tv_{u_i}$. Lemma~\ref{lem:window-survivors}
+$D_i-1+(t+1)v_{u_i}=\theta+M_i+tv_{u_i}$. Lemma~\ref{lem:window-survivors}
 gives $[a,b+\sigma]\subseteq\mathrm{SS}(M\uplus R)$ with $\sigma\ge\sigma_0$ the
 surviving mass, and $a\le b<lo\le b+\sigma_0$ puts $lo$ in that window.
 \end{proof}
-\noindent The per-copy hypothesis is formalised
+{\raggedright\noindent The per-copy hypothesis is formalised
 (\texttt{Bobi/SubsetSum.lean}, theorem \texttt{window\_survivors}); the
 reduction to one test per class and the use of Lemma~\ref{lem:fractional} are
 argued here and in the doc comment of the code, not formalised. $\Delta$ is
-computed exactly by a bounded-knapsack recursion over the undecided classes.
+computed exactly by a bounded-knapsack recursion over the undecided classes.\par}
 
 \subsection{The online relaxation}
 
@@ -228,14 +228,13 @@ if the leader does not block it, the follower decides whether to take it
 the profits of the items it takes. Both players see all earlier moves. The
 value of this finite game of perfect information is given by backward
 induction: $\omega(\emptyset,\beta',\kappa)=0$ and, for $o=(j,o')$,
-\[
-  \omega(o,\beta',\kappa)=
+\begin{align*}
+  \omega(o,\beta',\kappa)&=
   \begin{cases}\min\{\omega(o',\beta'-\gamma_j,\kappa),\ T\} & \text{if }\gamma_j\le\beta',\\
-  T & \text{otherwise,}\end{cases}
-  \qquad
-  T=\begin{cases}\max\{\omega(o',\beta',\kappa),\ \omega(o',\beta',\kappa-w_j)+p_j\} & \text{if }w_j\le\kappa,\\
+  T & \text{otherwise,}\end{cases}\\
+  T&=\begin{cases}\max\{\omega(o',\beta',\kappa),\ \omega(o',\beta',\kappa-w_j)+p_j\} & \text{if }w_j\le\kappa,\\
   \omega(o',\beta',\kappa) & \text{otherwise.}\end{cases}
-\]
+\end{align*}
 
 \begin{theorem}[Online lower bound, any play order]\label{thm:online}
 For every list $o$ of distinct items and every $X\subseteq N$ with
@@ -261,9 +260,9 @@ $T\le K_\kappa((o'\setminus X)\cup\{j\})=K_\kappa(o\setminus X)$. For an arbitra
 budget apply this to $X\cap o$ (its cost is no larger and $o\setminus(X\cap o)=o\setminus X$).
 Finally $K(o\setminus X)\le K(N\setminus X)=\Phi(X)$ because more items can only help.
 \end{proof}
-\noindent Formalised: \texttt{Bobi/Online.lean}, theorems
+{\raggedright\noindent Formalised: \texttt{Bobi/Online.lean}, theorems
 \texttt{online\_le\_K}, \texttt{online\_le\_K\_any} and
-\texttt{online\_lower\_bound}.
+\texttt{online\_lower\_bound}.\par}
 
 \begin{remark}
 The bound need not be tight. In Weninger and Fukasawa's Table~1 (profits
@@ -275,7 +274,7 @@ evaluation).
 
 \subsection{Robust tables with an end set}
 
-For subset-sum instances the same idea is applied class by class in the
+For subset-sum instances the same idea is applied class by class, in the
 count formulation. Let $Q=(q_1,\dots,q_L)$ be a list of classes (the
 \emph{play order}) and $A\subseteq\mathbf{Z}_{\ge 0}$ an \emph{end set}. The game
 $\Gamma_A(Q,\beta',t)$ starts with residual $t$ and budget $\beta'$; at class $q$
@@ -313,13 +312,13 @@ $q$. For deletions of arbitrary copies with ascending costs, deleting $r_i$
 copies of class $i$ costs at least $P_i(r_i)$, and the survivors are again
 $n_i-r_i$ copies of $v_i$.
 \end{proof}
-\noindent Formalised: \texttt{Bobi/EndTable.lean}, theorems
+{\raggedright\noindent Formalised: \texttt{Bobi/EndTable.lean}, theorems
 \texttt{GA\_sound}, \texttt{GA\_sound\_any}, \texttt{G\_iff\_GA},
 \texttt{H\_iff\_GA}, \texttt{G\_sound\_of\_GA}, \texttt{H\_sound\_of\_GA};
 \texttt{Bobi/RobustTable.lean}, \texttt{H\_sound}, \texttt{H\_sound\_any},
 \texttt{take\_sum\_le}, \texttt{counts\_of\_deletion};
 \texttt{Bobi/BandTable.lean}, \texttt{G\_sound}, \texttt{G\_sound\_any},
-\texttt{G\_one}, \texttt{G\_sound\_one}.
+\texttt{G\_one}, \texttt{G\_sound\_one}.\par}
 
 \begin{proposition}[Any play order]\label{prop:play-order}
 Let $Q$ be the undecided classes in the search order and $\pi(Q)$ any
@@ -332,11 +331,11 @@ Permuting the pairs (class, count) permutes the survivors and leaves the cost
 unchanged, and subset sums depend only on the multiset. Apply
 Theorem~\ref{thm:tables-sound} to the permuted deletion.
 \end{proof}
-\noindent Formalised: \texttt{Bobi/EndTable.lean}, theorems
+{\raggedright\noindent Formalised: \texttt{Bobi/EndTable.lean}, theorems
 \texttt{counts\_perm}, \texttt{remaining\_eq\_flatten},
 \texttt{totalCost\_eq\_sum}, \texttt{remaining\_perm},
 \texttt{totalCost\_perm}, \texttt{GA\_sound\_perm} and
-\texttt{GA\_sound\_perm\_any}.
+\texttt{GA\_sound\_perm\_any}.\par}
 
 \begin{corollary}[Root-table rules]\label{cor:root-rules}
 Let $M$ be the decided survivors and $Q$ the undecided classes (any play
@@ -351,12 +350,12 @@ lies in $[lo,hi]$.
 $s'\in\mathrm{SS}(R)$ with $s'\le t<s'+w$; then $a\le\tau-t\le\tau-s'$ and
 $\tau-s'\le\tau-t+w-1\le b$, so $\tau-s'\in\mathrm{SS}(M)$.
 \end{proof}
-\noindent Formalised: \texttt{Bobi/RobustTable.lean}, theorem
+{\raggedright\noindent Formalised: \texttt{Bobi/RobustTable.lean}, theorem
 \texttt{covers\_sound}; \texttt{Bobi/BandTable.lean},
 \texttt{band\_covers\_sound}, \texttt{covers\_sound\_of\_band};
 \texttt{Bobi/Threshold.lean}, \texttt{covers\_threshold\_sound},
 \texttt{covers\_threshold\_sound\_perm}, \texttt{band\_covers\_threshold\_sound},
-\texttt{band\_covers\_threshold\_sound\_perm} (the same on stored thresholds).
+\texttt{band\_covers\_threshold\_sound\_perm} (the same on stored thresholds).\par}
 
 \begin{lemma}[Antitone in the budget]\label{lem:antitone}
 If $\beta''\le\beta'$ then $G_A(Q,\beta')\subseteq G_A(Q,\beta'')$. If
@@ -368,9 +367,9 @@ $r$ with $P_q(r)\le\beta''$ also has $P_q(r)\le\beta'$; the answer $j$ for
 budget $\beta'$ leads to $G_A(Q',\beta'-P_q(r))\subseteq G_A(Q',\beta''-P_q(r))$ by
 induction. The second claim is the same induction with a larger base set.
 \end{proof}
-\noindent Formalised: \texttt{Bobi/EndTable.lean}, theorems
+{\raggedright\noindent Formalised: \texttt{Bobi/EndTable.lean}, theorems
 \texttt{GA\_antitone}, \texttt{G\_antitone}, \texttt{H\_antitone} and
-\texttt{GA\_mono}.
+\texttt{GA\_mono}.\par}
 
 \subsection{Threshold form}
 
@@ -406,10 +405,10 @@ $j\le n-r$ with $jv\le t$ has $B-P_q(r)\le\mathrm{thr}(Q',t-jv)$ iff, by inducti
 definition of $t\in G_A(Q,B)$. The consequences follow by taking $B=0$ and
 $B=\mathrm{thr}(Q,t)$.
 \end{proof}
-\noindent Formalised: \texttt{Bobi/Threshold.lean}, theorems
+{\raggedright\noindent Formalised: \texttt{Bobi/Threshold.lean}, theorems
 \texttt{thr\_iff}, \texttt{GA\_iff\_thr}, \texttt{thr\_bounds},
 \texttt{thr\_eq\_neg\_one\_iff}, \texttt{thr\_greatest}, \texttt{G\_iff\_thr}
-and \texttt{H\_iff\_thr} (definition \texttt{thr}).
+and \texttt{H\_iff\_thr} (definition \texttt{thr}).\par}
 
 \begin{remark}[What the code computes]
 The recursion at residual $t$ reads only residuals $\le t$, so arrays indexed
@@ -451,12 +450,12 @@ follows from Theorem~\ref{thm:thr} with $B=\beta'$ (and for smaller budgets,
 since $B\le\mathrm{thr}$ is the same condition). The hypothesis $lo\le hi$ is
 needed: with $lo>hi$ there is no target, and the code returns $-1$.
 \end{proof}
-\noindent Formalised: \texttt{Bobi/EndTable.lean}, theorems
+{\raggedright\noindent Formalised: \texttt{Bobi/EndTable.lean}, theorems
 \texttt{node\_rule}, \texttt{node\_table\_sound}, \texttt{node\_table\_sound\_perm}
 and \texttt{node\_table\_sound\_any} (definition \texttt{nodeEnd});
 \texttt{Bobi/Threshold.lean}, \texttt{node\_table\_threshold\_sound} and
 \texttt{node\_table\_threshold\_sound\_counts} (the form the search uses:
-count formulation, any play order, any cost order).
+count formulation, any play order, any cost order).\par}
 
 \begin{remark}[Strength]
 The per-node rule contains the rule of $H$ in the same play order: if $s\in S$,

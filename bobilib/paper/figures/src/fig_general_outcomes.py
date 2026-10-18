@@ -68,7 +68,7 @@ for i, (b, _) in enumerate(BARS):
             above.append((left + w / 2, w))
         left += w
     for x, w in above:
-        ax.text(x, y + H / 2 + 0.03, str(w), ha="center", va="bottom", fontsize=6.5, zorder=4)
+        ax.text(x, y + H / 2 + 0.03, str(w), ha="center", va="bottom", fontsize=7, zorder=4)
     ax.text(left + 1.5, y, str(left), ha="left", va="center", fontsize=7, color=S.INK2)
 
 ax.set_yticks(range(len(BARS)))
@@ -76,11 +76,11 @@ ax.set_yticklabels([lab for _, lab in BARS][::-1], fontsize=7, linespacing=1.0)
 ax.tick_params(axis="y", length=0, pad=3)
 ax.spines["left"].set_visible(False)
 ax.set_xlim(0, XMAX + 9)
-ax.set_ylim(-0.5, len(BARS) - 0.45)
+ax.set_ylim(-0.5, len(BARS) - 0.3)
 ax.set_xticks([0, 25, 50, 75, 100])
 ax.set_xlabel("instances", labelpad=2)
 hs, hmap = S.legend_handles()
 ax.legend(handles=hs, handler_map=hmap, ncol=2, loc="lower left", bbox_to_anchor=(-0.36, 1.0),
           handlelength=1.3, handleheight=0.9, columnspacing=1.0, handletextpad=0.4,
-          borderaxespad=0.2, fontsize=6.5)
+          borderaxespad=0.2, fontsize=7)
 S.save(fig, "fig_general_outcomes")

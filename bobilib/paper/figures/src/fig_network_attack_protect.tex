@@ -10,6 +10,7 @@
 % saved: r b2 b21 b22 c c1 c2 c11 (8 of 15).
 % Build: pdflatex fig_network_attack_protect.tex   (3.15 in x 1.8 in)
 \documentclass[tikz,border=2pt]{standalone}
+\pdfinfoomitdate=1 \pdftrailerid{} \pdfsuppressptexinfo=-1 % byte-identical rebuilds
 \usepackage{mathptmx}
 \usetikzlibrary{arrows.meta,calc}
 \definecolor{leader}{HTML}{2A78D6}
@@ -19,7 +20,7 @@
 \definecolor{ink2}{HTML}{52514E}
 \definecolor{muted}{HTML}{A9A8A2}
 \definecolor{grid}{HTML}{E6E5E0}
-\definecolor{critical}{HTML}{D03B3B}
+\definecolor{critical}{HTML}{D03B3B}% status colour: on fire
 \tikzset{
   every picture/.style={font=\fontsize{8}{9.6}\selectfont, color=ink, line cap=round, line join=round},
   small/.style={font=\fontsize{7}{8.4}\selectfont},
@@ -27,6 +28,8 @@
   fire/.style={critical!70, line width=1.3pt},
   % node glyphs (radius 0.17 cm)
   pics/attacked/.style={code={
+    % the leader's move: a blue ring (leader colour) around the fire
+    \draw[leader, line width=0.9pt] (0,0) circle (0.25);
     \fill[critical] (0,0) circle (0.19);
     \fill[white] (0.035,0.15) .. controls (0.02,0.09) and (0.115,0.05) .. (0.095,-0.035)
       .. controls (0.08,-0.115) and (-0.08,-0.115) .. (-0.095,-0.035)
@@ -76,15 +79,15 @@
   % key
   \begin{scope}[shift={(5.5,0)}]
     \pic at (0.2,3.95) {attacked};
-    \node[anchor=west, inner sep=1pt] at (0.45,3.95) {attacked};
-    \node[small, anchor=west, inner sep=1pt, text=ink2] at (0.45,3.62) {by the leader};
+    \node[anchor=west, inner sep=1pt] at (0.53,3.95) {attacked};
+    \node[small, anchor=west, inner sep=1pt, text=leader] at (0.53,3.62) {by the leader};
     \pic at (0.2,3.05) {protected};
-    \node[anchor=west, inner sep=1pt] at (0.45,3.05) {protected};
-    \node[small, anchor=west, inner sep=1pt, text=ink2] at (0.45,2.72) {by the follower};
+    \node[anchor=west, inner sep=1pt] at (0.53,3.05) {protected};
+    \node[small, anchor=west, inner sep=1pt, text=follower] at (0.53,2.72) {by the follower};
     \pic at (0.2,2.15) {burnt};
-    \node[anchor=west, inner sep=1pt] at (0.45,2.15) {burnt};
+    \node[anchor=west, inner sep=1pt] at (0.53,2.15) {burnt};
     \pic at (0.2,1.55) {saved};
-    \node[anchor=west, inner sep=1pt] at (0.45,1.55) {saved};
+    \node[anchor=west, inner sep=1pt] at (0.53,1.55) {saved};
     \node[anchor=west, inner sep=0pt, align=left] at (0.0,0.85)
       {\textbf{saved: 8} of 15};
     \node[small, anchor=west, inner sep=0pt, align=left, text=ink2] at (0.0,0.38)

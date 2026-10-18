@@ -51,8 +51,11 @@ inside = {
 }
 for k, txt in inside.items():
     l, w = seg[k]
+    box = None
+    if S.OUTCOMES[k][2]:  # textured face: put the label on a solid patch
+        box = dict(boxstyle="square,pad=0.25", facecolor=S.OUTCOMES[k][1], edgecolor="none")
     ax.text(l + w / 2, Y1, txt, ha="center", va="center", fontsize=7.5,
-            color=S.OUTCOMES[k][4], linespacing=1.0)
+            color=S.OUTCOMES[k][4], linespacing=1.0, zorder=4, bbox=box)
 
 # narrow segments: labels above with short leader lines, one to each side
 top = Y1 + H1 / 2

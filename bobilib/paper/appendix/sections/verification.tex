@@ -1,0 +1,125 @@
+% Verification protocol and threats to validity.
+\section{Verification protocol and threats to validity}\label{app:verification}
+
+\subsection{Protocol}
+
+Every claim in the paper rests on one or more of the following checks.
+
+\begin{enumerate}
+\item \textbf{Solution files.} Every solution file in the data package is
+written in BOBILib's format and passes \texttt{bobi verify}
+(Section~\ref{app:notation}): all rows, bounds and integrality requirements of
+the HPR within $10^{-6}$; the stated leader objective; and the follower's
+problem with the leader fixed, re-solved by the exact knapsack oracle (one
+follower row) or by a HiGHS MILP built from the model (otherwise), accepted
+by BOBILib's relative test~\eqref{eq:bobilib-tol}. This covers the 583
+imported KIP files, the 16 subset-sum files, the 690 OR files (270 with one
+follower knapsack, 420 with several), the 64 general files, the 29 files with
+coupling rows, the 60 clique files and the 36 network files. The points with
+coupling rows also pass \texttt{bobi certify} (proven dual bounds, relative
+$10^{-5}$, optimistic tie-break).
+
+\item \textbf{Optimality proofs.} Each ``optimal'' status rests on a lower
+bound of one of these kinds: a published proof (cited, with the published
+value matched by a verified solution file); the exact subset-sum search
+(Section~\ref{app:kip}), whose pruning rules are proved in Lean; a theorem
+with a checkable certificate (Mantel, Brouwer and partitions for clique
+interdiction, Section~\ref{app:clique}; the HPR bound with an exact
+model comparison, Section~\ref{app:general}); or exhaustive enumeration with
+checked witnesses (Section~\ref{app:network}). ``No bilevel feasible point''
+rests on Theorem~\ref{thm:ray} with an exact rational check (38 instances)
+or a floating-point check (2 instances).
+
+\item \textbf{Independent provers for the subset-sum proofs.} Two Python
+provers that share no code with the Rust search, one written by the
+designer and one by a reviewer who read neither, parse the instance files
+themselves and re-prove all 16 lower bounds with only the direct rule and the
+per-node rule (Theorem~\ref{thm:node-rule}), in integer arithmetic; both
+compare themselves with brute force on random small instances. Two other
+designs of the search, built separately, prove
+\texttt{interKP-200-100-6-3}, and one of them all four subset-sum instances
+with budget index~3.
+The reviewer compared every search binary with exhaustive enumeration on
+2,990 random small instances (no mismatch).
+
+\item \textbf{Tests of the code against its specification.} Unit tests
+compare the subset-sum search with brute force over every deletion, the
+threshold tables with the bitset recursion, the node tables with the online
+game defined directly and with enumeration of every deletion, and the
+table code with a direct transcription of the Lean recursion
+$\mathrm{thr}$ (also with costs not ascending, as after restricted copies).
+The network DP is compared with brute force over all follower points on
+random forests, and the whole enumeration with a brute-force bilevel
+optimum.
+
+\item \textbf{Independent reviews.} The clique, network and coupled-row
+results were each re-derived by a separate reviewer with its own instance
+reader and different solvers or code: two exact maximum-clique searches,
+HiGHS and a branch and bound written in C for the part-size cases of
+Proposition~\ref{prop:clique-sizes}; a C implementation of the tree DP and a
+brute force based on Lemma~\ref{lem:fire-closure}, compared with ours at all
+9.3 million attacks; and a second reading of the coupled files with HiGHS's
+own MPS reader. The reviewers found only wording errors.
+
+\item \textbf{Exact arithmetic where it is cheap.} The clique inequalities
+(Mantel, Brouwer's threshold, the size vectors of
+Proposition~\ref{prop:clique-sizes}), the recession directions and the
+comparison of each HPR with its MIPLIB model are checked with integers or
+exact rationals.
+
+\item \textbf{Machine-checked lemmas.} The Lean~4 project (with Mathlib)
+proves the lemmas listed in Section~\ref{app:lean-map}. It contains no
+\texttt{sorry}, and \texttt{\#print axioms} shows only Lean's standard axioms
+(\texttt{propext}, \texttt{Classical.choice}, \texttt{Quot.sound}) for each
+main theorem.
+\end{enumerate}
+
+\subsection{Threats to validity}
+
+\begin{enumerate}
+\item \textbf{Trusted solvers.} Several verdicts come from MILP or CP solvers:
+follower optimality for followers with several rows and for general
+instances (HiGHS), the 170 infeasibility verdicts behind $w_3(G)>k$ (each
+reproduced by five methods, two of them solver-free), the follower optimum
+at the minimising attack in the network proof (HiGHS), and the dual bounds
+in the OR bracket (Theorem~\ref{thm:mkip-bracket}). A solver bug that all
+methods share would go unnoticed.
+
+\item \textbf{Floating point and tolerances.} Points are feasible within
+$10^{-6}$ and follower-optimal within BOBILib's relative $10^{-4}$, not
+exactly. Nine coupled points use that slack, and two coupled files are
+feasible only within it. The timtab1 point lies $2.2\times10^{-7}$ below its
+bound. Two of the 40 ray certificates are checked only in floating point.
+The merged-row online bound (Theorem~\ref{thm:mkip-omega}) and the LP
+bracket are evaluated in double precision, so their rounding steps are in
+the safe direction only up to floating-point error. The window rule of the
+subset-sum search uses a floating-point fractional bound; the 16 proofs are
+independently confirmed by the integer-only provers above, which do not use
+that rule.
+
+\item \textbf{Scope of the Lean proofs.} Lean proves lemmas about abstract
+models, not the code. That the Rust loops compute the recursions, the range
+shortcuts and early exits of the table code, the bitset and cache code, and
+the absence of integer overflow are argued in doc comments and tested, not
+formalised. That the instance files have the stated parameters ($n$, $m$, $k$,
+budgets) is checked by scripts, not by Lean. Section~\ref{app:lean-map} lists
+what is not formalised.
+
+\item \textbf{Results taken from the literature.} Brouwer's theorem was read
+in the scanned 1981 report and agrees with later restatements, but it is
+neither formalised nor reproved here. Published optima (Weninger and
+Fukasawa for KIP, Fischetti et al.\ for imkp, Lozano, Bergman and Cire for
+OR, MIPLIB optima for the HPR bounds) and the published lower bounds of the
+OR instances with several follower knapsacks are used as reported; for
+them only the points are verified here.
+
+\item \textbf{Instance reading.} Every argument depends on reading the MPS
+and AUX files correctly. Each family's model is checked row by row against
+its expected pattern, and the key results were re-derived with independent
+readers (two subset-sum provers, the exact ray and HPR scripts, the
+reviewers' parsers).
+
+\item \textbf{Running times.} All times were measured on a shared machine
+with four cores that was often oversubscribed; they are indicative only and
+do not affect any proof.
+\end{enumerate}

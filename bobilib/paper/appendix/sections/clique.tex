@@ -1,0 +1,223 @@
+% Edge clique interdiction: the model, Mantel, partitions, Brouwer, the
+% part-size reduction, and the three open instances.
+\section{Edge clique interdiction}\label{app:clique}
+
+\subsection{The model}
+
+BOBILib's instance \texttt{normalClique$n$-$d$-$i$} has a graph $G=(V,E)$ with
+$n=|V|$, $m=|E|$, and budget $k=\lfloor m/4\rfloor$. All variables are binary.
+The leader has $w_e$ for $e\in E$ and the single row $\sum_ew_e\le k$. The
+follower has $x_v$ ($v\in V$) and $y_e$ ($e\in E$) and the rows
+\[
+  x_u+x_v\le 1\ \ (uv\notin E),\qquad
+  x_u+x_v-y_{uv}\le 1\ \ (uv\in E),\qquad
+  w_{uv}+y_{uv}\le 1\ \ (uv\in E).
+\]
+The leader minimises $\sum_vx_v$ and the follower minimises $-\sum_vx_v$. (Every row,
+coefficient and objective of the 60 files was checked against this pattern,
+once by the instance reader of the clique scripts and once by an independent
+reviewer's parser that classifies rows by their coefficients.)
+
+\begin{lemma}[Follower's problem]\label{lem:clique-model}
+Fix the leader's choice and let $D=\{e: w_e=1\}$. A vector $x\in\{0,1\}^V$
+extends to a feasible follower point if and only if $\{v: x_v=1\}$ is a clique
+of $G-D$. Hence the follower's optimum is $\omega(G-D)$, the game is zero-sum,
+and the bilevel optimum is $\min\{\omega(G-D): D\subseteq E,\ |D|\le k\}$.
+\end{lemma}
+\begin{proof}
+Let $x$ be part of a feasible point and $x_u=x_v=1$. The first family of rows
+forces $uv\in E$. If $uv\in D$ then $w_{uv}=1$ forces $y_{uv}=0$, and the
+second family gives $x_u+x_v\le 1$, a contradiction. So $uv\in E\setminus D$.
+Conversely, for a clique of $G-D$ set $y_{uv}=1-w_{uv}$: the third family holds
+with equality; the second holds for $uv\notin D$ because $y_{uv}=1$, and for
+$uv\in D$ because a clique of $G-D$ does not contain both $u$ and $v$; the
+first holds because a clique contains no non-edge of $G$. The leader's
+objective is minus the follower's.
+\end{proof}
+\noindent Not formalised (the Lean file states the bounds directly in terms of
+$\omega(G-D)$).
+
+\subsection{Lower bound 3: Mantel's theorem}
+
+\begin{theorem}[Mantel 1907, deletion form]\label{thm:mantel}
+A graph on $n$ vertices with more than $\lfloor n^2/4\rfloor$ edges contains a
+triangle. Consequently, if $m-k>\lfloor n^2/4\rfloor$, then $G-D$ contains a
+triangle for every set $D$ of at most $k$ edges, and the bilevel optimum is
+at least~$3$.
+\end{theorem}
+\begin{proof}
+Mantel's theorem is Tur\'an's theorem for $K_3$. After deleting at most $k$
+edges at least $m-k$ edges remain, and $m-k>\lfloor n^2/4\rfloor$.
+\end{proof}
+{\raggedright\noindent Formalised: \texttt{Bobi/Clique.lean}, theorems \texttt{mantel},
+\texttt{mantel'} and \texttt{triangle\_survives}; the instance arithmetic in
+\texttt{mantel\_40}, \texttt{mantel\_50}, \texttt{mantel\_60},
+\texttt{clique40}, \texttt{clique50} and \texttt{clique60}.\par}
+
+All 30 density-0.7 instances have $(n,m,k)\in\{(40,546,136),(50,857,214),(60,1239,309)\}$,
+so $m-k=410,643,930$ exceeds $\lfloor n^2/4\rfloor=400,625,900$. The density-0.9
+instances satisfy the same inequality.
+
+\subsection{Upper bounds: partitions}
+
+\begin{proposition}[Partition upper bound]\label{prop:clique-partition}
+Let $f:V\to\{1,\dots,r\}$ and let $D$ contain every edge of $G$ whose ends have
+the same colour. Then $G-D$ has no clique on $r+1$ vertices. If at most $k$
+edges of $G$ lie inside the colour classes, deleting exactly those edges is a
+leader choice, and the bilevel optimum is at most~$r$.
+\end{proposition}
+\begin{proof}
+$f$ is a proper colouring of $G-D$, and a clique on $r+1$ vertices needs
+$r+1$ colours.
+\end{proof}
+{\raggedright\noindent Formalised: \texttt{Bobi/Clique.lean}, theorem
+\texttt{cliqueFree\_of\_partition}.\par}
+
+For a partition $\mathcal{P}$ of $V$ into $r$ parts (parts may be empty) let
+$\mathrm{in}_G(\mathcal{P})$ be the number of edges of $G$ inside parts, and let
+$w_r(G)=\min_{\mathcal{P}}\mathrm{in}_G(\mathcal{P})$. Each solution file deletes the inside edges
+of a 3- or 4-partition found by tabu search and states a maximum clique of the
+remaining graph, computed exactly; the files pass the checks of
+Section~\ref{app:verification}.
+
+\subsection{Lower bound 4: Brouwer's theorem}
+
+Let $t_r(n)$ be the number of edges of the balanced complete $r$-partite graph
+on $n$ vertices (Tur\'an's number), and
+$T(n,r)=\binom n2-t_r(n)$, the number of edges of the disjoint union of $r$
+cliques of balanced sizes.
+
+\begin{theorem}[Brouwer 1981, Theorem~2]\label{thm:brouwer}
+\emph{(A.~E.~Brouwer, Some lotto numbers from an extension of Tur\'an's
+theorem, Afdeling Zuivere Wiskunde report ZW~152/81, Mathematisch Centrum,
+Amsterdam, 1981, Theorem~2.)} Let $H$ be a graph on $n$ points such that
+$\alpha(H)\le t$, and $n>2t$. If $H$ has no more than $T(n,t)+\lfloor n/t\rfloor-2$
+edges, then $V(H)$ can be written as a union of $t$ cliques. Moreover, this
+bound is best possible.
+\end{theorem}
+
+The theorem is restated by M.~Tyomkyn and A.~J.~Uzzell (Strong Tur\'an
+stability, Electron.\ J.\ Combin.\ 22(3) (2015) \#P3.9, equation~(1) and
+Theorem~1.1), who credit Brouwer with the first explicit proof, and, in the
+complemented form below for $t\ge 2$, by D.~Kor\'andi, A.~Roberts and
+A.~Scott (Exact stability for Tur\'an's theorem, Advances in Combinatorics
+2021:9, Theorem~1.1). We use it in complemented form.
+
+\begin{corollary}[Complement form]\label{cor:brouwer}
+Let $t\ge 1$ and $n\ge 2t+1$. Every $K_{t+1}$-free graph $F$ on $n$ vertices with
+$e(F)\ge t_t(n)-\lfloor n/t\rfloor+2$ is $t$-partite (its vertex set is the
+union of $t$ independent sets, some possibly empty).
+\end{corollary}
+\begin{proof}
+Apply Theorem~\ref{thm:brouwer} to the complement $H=\overline F$:
+$\alpha(H)=\omega(F)\le t$, $n>2t$, and
+$e(H)=\binom n2-e(F)\le\binom n2-t_t(n)+\lfloor n/t\rfloor-2=T(n,t)+\lfloor n/t\rfloor-2$.
+So $V$ is a union of $t$ cliques of $H$, that is, of $t$ independent sets of
+$F$. Assigning each vertex to one of the sets containing it gives a partition
+into independent sets.
+\end{proof}
+\noindent Not formalised: Brouwer's theorem is not in Mathlib, and it is
+neither proved nor assumed in the Lean files. The statement above was read
+in the scanned report, and the translation was checked by computer (for
+$t=3$: $T(n,3)+t_3(n)=\binom n2$).
+
+\begin{theorem}[Density 0.9: value at least 4]\label{thm:clique-lb4}
+Let $n\ge 7$, $m-k\ge t_3(n)-\lfloor n/3\rfloor+2$ and $w_3(G)>k$. Then $G-D$
+contains a $K_4$ for every $D\subseteq E$ with $|D|\le k$, so the bilevel optimum is
+at least~$4$.
+\end{theorem}
+\begin{proof}
+Suppose $|D|\le k$ and $G-D$ is $K_4$-free. It has $m-|D|\ge m-k$ edges, so by
+Corollary~\ref{cor:brouwer} with $t=3$ ($n\ge 7=2t+1$) it is 3-partite with some
+partition $\mathcal{P}$. No edge of $G-D$ lies inside a part, so every edge of $G$
+inside a part lies in $D$, and $|D|\ge\mathrm{in}_G(\mathcal{P})\ge w_3(G)>k$, a
+contradiction.
+\end{proof}
+\noindent Not formalised (it rests on Theorem~\ref{thm:brouwer}).
+
+For the density-0.9 instances $(n,m,k)\in\{(40,702,175),(50,1102,275),(60,1593,398)\}$,
+so $m-k=527,827,1195$ and $t_3(n)-\lfloor n/3\rfloor+2=522,819,1182$
+($t_3(n)=533,833,1200$): the hypothesis holds with margins $5$, $8$ and $13$,
+while $m-k<t_3(n)$, so Tur\'an's theorem alone does not give a $K_4$. It
+remains to show $w_3(G)>k$.
+
+\subsection{Reducing $w_3(G)>k$ to finitely many part-size cases}
+
+Let $\overline E$ be the edge set of the complement $\overline G$, so
+$|\overline E|=\binom n2-m$, and for a partition $\mathcal{P}$ let
+$\mathrm{cut}_{\overline G}(\mathcal{P})$ be the number of edges of $\overline G$ joining
+different parts.
+
+\begin{proposition}[Part-size reduction]\label{prop:clique-sizes}
+For a partition $\mathcal{P}=(P_1,P_2,P_3)$ of $V$ with part sizes $s_1,s_2,s_3$,
+\[
+  \mathrm{in}_G(\mathcal{P})=\sum_{i=1}^3\binom{s_i}2-|\overline E|+\mathrm{cut}_{\overline G}(\mathcal{P}).
+\]
+Hence, with $b(s)=k+|\overline E|-\sum_i\binom{s_i}2$, $w_3(G)>k$ holds if and only
+if, for every size vector $s_1\ge s_2\ge s_3\ge 0$ with $s_1+s_2+s_3=n$ and
+$b(s)\ge 0$, no partition with these part sizes has
+$\mathrm{cut}_{\overline G}(\mathcal{P})\le b(s)$.
+\end{proposition}
+\begin{proof}
+Each of the $\sum_i\binom{s_i}2$ pairs inside a part is an edge of $G$ or of
+$\overline G$, and the edges of $\overline G$ inside parts number
+$|\overline E|-\mathrm{cut}_{\overline G}(\mathcal{P})$. So $\mathrm{in}_G(\mathcal{P})\le k$ iff
+$\mathrm{cut}_{\overline G}(\mathcal{P})\le b(s)$. Relabelling the parts, every partition
+has sorted sizes, and since $\mathrm{cut}_{\overline G}\ge 0$, size vectors with
+$b(s)<0$ admit no partition with $\mathrm{in}_G\le k$.
+\end{proof}
+\noindent Not formalised (checked in exact integer arithmetic by script, and
+on random partitions of every instance).
+
+Since $n$, $m$ and $k$ are the same for all ten graphs of a group, so are the
+size vectors with $b(s)\ge 0$:
+\begin{center}
+\small
+\begin{tabular}{lll}
+\hline
+$n$ & $|\overline E|$ & size vectors $s$ with $b(s)$ in brackets\\
+\hline
+40 & 78 & (14,13,13)\,[6], (14,14,12)\,[5], (15,13,12)\,[4], (15,14,11)\,[2], (16,12,12)\,[1], (16,13,11)\,[0]\\
+50 & 123 & (17,17,16)\,[6], (18,16,16)\,[5], (18,17,15)\,[4], (19,16,15)\,[2], (18,18,14)\,[1], (19,17,14)\,[0]\\
+60 & 177 & (20,20,20)\,[5], (21,20,19)\,[4], (21,21,18)\,[2], (22,19,19)\,[2], (22,20,18)\,[1]\\
+\hline
+\end{tabular}
+\end{center}
+That is $10\cdot 6+10\cdot 6+10\cdot 5=170$ cases (instance, size vector), each
+asking for a partition of $V$ with prescribed part sizes and at most $b(s)\le 6$
+edges of the sparse complement between parts. All 170 were decided
+infeasible by five methods: CP-SAT and SCIP on two different models, an exact
+solver-free depth-first search (tested against brute force), and, by an
+independent reviewer, HiGHS on a third model with an explicit budget row and
+a separate exact branch and bound written in C (tested against brute force
+on 450 random graphs and on planted instances). With
+Theorem~\ref{thm:clique-lb4} and Proposition~\ref{prop:clique-partition}
+(4-partitions with at most $k$ inside edges), all 30 density-0.9 instances
+have value exactly~$4$. These solver verdicts are computations, not
+formalised proofs.
+
+\subsection{The three open instances}
+
+For normalClique60-70-2, -3 and -5 ($n=60$, $m=1239$, $k=309$) Mantel gives
+value $\ge 3$ and a 4-partition gives value $\le 4$. Let $\tau_4(G)$ be the
+fewest edges meeting every $K_4$ of $G$. By Lemma~\ref{lem:clique-model} the
+value is $3$ if and only if $\tau_4(G)\le k$. Deleting the inside edges of a
+3-partition destroys every $K_4$ (two of any four vertices share a part), so
+$\tau_4(G)\le w_3(G)$, and $w_3(G)\le k$ would give value~$3$; the best
+3-partitions found have $311$, $310$ and $310$ inside edges, against $k=309$.
+
+The converse argument of Theorem~\ref{thm:clique-lb4} is not available
+here. It would need every $K_4$-free subgraph with at least $m-k=930$ edges
+to be 3-partite, but $930<t_3(60)-20+2=1182$, so Corollary~\ref{cor:brouwer}
+does not apply, and its conclusion is false at this edge count: the disjoint
+union of the wheel $W_5$ (a 5-cycle plus a vertex joined to all of it; 6
+vertices, 10 edges, $K_4$-free, chromatic number~4) and any 3-partite graph
+with $920$ edges on the other 54 vertices ($920\le t_3(54)=972$) is a
+$K_4$-free graph on 60 vertices with 930 edges that is not 3-partite. So a
+proof of value~4 must bound $\tau_4(G)$ itself from below. Linear
+programming bounds on $\tau_4$ (rows for every $K_4$, for maximal cliques and
+for vertex sets whose induced subgraph must lose a Tur\'an excess of edges)
+stop near $296$, below the $310$ needed, and searches for a transversal with
+at most $309$ edges that are not restricted to 3-partite remainders stop at
+the best 3-partition found. The three instances stay open with
+$3\le\text{value}\le 4$.

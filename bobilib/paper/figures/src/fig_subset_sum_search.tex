@@ -18,6 +18,7 @@
 %     end in A at budget 2 (not at budget 3), so the node is safe.
 % Build: pdflatex fig_subset_sum_search.tex   (6.5 in x 2.2 in)
 \documentclass[tikz,border=2pt]{standalone}
+\pdfinfoomitdate=1 \pdftrailerid{} \pdfsuppressptexinfo=-1 % byte-identical rebuilds
 \usepackage{mathptmx}
 \usetikzlibrary{arrows.meta,calc,decorations.pathreplacing}
 \definecolor{leader}{HTML}{2A78D6}
@@ -119,7 +120,7 @@
     \draw[brace, cert] (\x0+4*\c,2.26) -- (\x0+12*\c,2.26)
       node[midway, above=2pt, text=cert, small] {grows to width 8};
     \node[small, text=ink2, align=center] at (\x0+2.4,0.75)
-      {later copies only extend a window;\\ if it must reach the band, the node is safe};
+      {later copies only extend a window; if it must\\ reach the target band, the node is safe};
   \end{scope}
 
   % =================== (c) the per-node online game ===================
@@ -153,7 +154,7 @@
     \node[small, text=ink2, anchor=north, inner sep=1pt] at (\x0+11*\s,\y-0.16) {11};
     % the follower's moves
     \draw[follower, line width=0.9pt, -{Stealth[length=4pt,width=3.5pt]}]
-      (\x0+19*\s,\y+0.1) to[out=110, in=70] node[midway, above, small, text=ink] {$-\,2\cdot 4$}
+      (\x0+19*\s,\y+0.1) to[out=110, in=70] node[midway, above, small, text=ink] {$-2\cdot 4$}
       (\x0+11*\s,\y+0.1);
     \draw[follower, line width=0.9pt, -{Stealth[length=4pt,width=3.5pt]}]
       (\x0+11*\s,\y+0.1) to[out=110, in=70] node[midway, above, small, text=ink] {$-2$}

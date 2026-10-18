@@ -63,13 +63,13 @@ for i, (f, _) in enumerate(FAMILIES):
         txt = S.fmt(c[k])
         if w * bar_in >= MIN_IN:
             box = None
-            if S.OUTCOMES[k][2]:  # striped face: put the number on a solid patch
+            if S.OUTCOMES[k][2]:  # textured face: put the number on a solid patch
                 box = dict(boxstyle="square,pad=0.3", facecolor=S.OUTCOMES[k][1], edgecolor="none")
             ax.text(left + w / 2, y, txt, ha="center", va="center", fontsize=7,
                     color=S.OUTCOMES[k][4], zorder=4, bbox=box)
         else:  # too narrow: count just above the bar
             ax.text(left + w / 2, y + H / 2 + 0.02, txt, ha="center", va="bottom",
-                    fontsize=6.5, color=S.INK, zorder=4)
+                    fontsize=7, color=S.INK, zorder=4)
         left += w
     ax.text(1.015, y, S.fmt(n), ha="left", va="center", fontsize=7.5)
 ax.text(1.015, len(FAMILIES) - 1 + H / 2 + 0.03, "total", ha="left", va="bottom",

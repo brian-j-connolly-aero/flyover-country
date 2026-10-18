@@ -1,0 +1,136 @@
+% Attack-protect network interdiction (inter-fire): model, closure lemma,
+% monotonicity, tree dynamic program, exhaustive enumeration.
+\section{Attack-protect network interdiction}\label{app:network}
+
+\subsection{The model as encoded in the files}
+
+BOBILib's \texttt{inter-fire} instances (from Baggio, Carvalho, Lodi and
+Tramontani, 2021, with the vaccinated nodes already removed) have a graph
+$(V,E)$ and three binary variables per node $v$: $y_v$ (the leader attacks
+$v$), $x_v$ (the follower protects $v$) and $a_v$ (node $v$ is saved). The rows
+are
+\begin{gather*}
+  \sum_vy_v\le\Phi,\qquad
+  \sum_vx_v\le\Lambda,\qquad
+  a_v+y_v\le 1\ \ (v\in V),\\
+  a_v-a_u-x_v\le 0\ \ \text{for both orientations }(u,v)\text{ of every edge }uv\in E.
+\end{gather*}
+The first row is the leader's; the others are the follower's. The leader
+minimises $\sum_vw_va_v$ and the follower minimises $-\sum_vw_va_v$, with
+$w_v=1$ in every instance (the arguments below only use $w\ge 0$). The reader of
+\texttt{bobi fire} checks every row, bound and objective coefficient of each file against this
+pattern and rejects anything else; an independent reviewer re-derived the
+pattern with a separate parser. The game is zero-sum, so the optimistic
+tie-break plays no part. In this section $\Phi$ is the attack budget.
+
+\subsection{The follower's optimum as a closure}
+
+For an attack $Y\subseteq V$ and a protection set $X\subseteq V$, call
+$B\subseteq V$ \emph{closed} if $Y\subseteq B$ and, for every edge and each
+ordering $(u,v)$ of its two ends, $u\in B$ and $v\notin X$ imply $v\in B$. The intersection of closed sets is
+closed and $V$ is closed, so there is a smallest closed set $B(Y,X)$: the
+nodes reached from $Y$ by fire spreading through unprotected nodes.
+
+\begin{lemma}[Closure]\label{lem:fire-closure}
+For fixed $y=\mathbf{1}_Y$ and $x=\mathbf{1}_X$, a vector $a\in\{0,1\}^V$ satisfies the
+follower's rows if and only if $Z(a)=\{v: a_v=0\}$ is closed. Hence the
+follower's best value for $X$ is $w(V\setminus B(Y,X))$, and its optimum against
+the attack $Y$ is
+\[
+  \mathrm{sv}(Y)=\max\bigl\{w(V\setminus B(Y,X)) : X\subseteq V,\ |X|\le\Lambda\bigr\}.
+\]
+\end{lemma}
+\begin{proof}
+The rows $a_v+y_v\le 1$ say $Y\subseteq Z(a)$. The row $a_v\le a_u+x_v$ for the
+orientation $(u,v)$ says: if $a_u=0$ and $x_v=0$ then $a_v=0$, that is, $u\in Z(a)$
+and $v\notin X$ imply $v\in Z(a)$. So the feasible $a$ are exactly the indicator
+vectors of complements of closed sets. Every closed set contains $B(Y,X)$,
+and $B(Y,X)$ is closed, so with $w\ge 0$ the best choice is
+$a=\mathbf{1}_{V\setminus B(Y,X)}$.
+\end{proof}
+\noindent Not formalised (checked against brute force over all $(a,x)$ on 400
+random graphs with up to 6 nodes, and used by the reviewer's brute force).
+
+\begin{corollary}[Monotonicity in the attack]\label{cor:fire-monotone}
+If $Y\subseteq Y'$ then $\mathrm{sv}(Y')\le\mathrm{sv}(Y)$. Hence, when $|V|\ge\Phi$,
+the minimum of $\mathrm{sv}$ over attacks with $|Y|\le\Phi$ is attained by an attack
+with exactly $\Phi$ nodes.
+\end{corollary}
+\begin{proof}
+$B(Y',X)$ is closed for $Y$ (it contains $Y'\supseteq Y$), so
+$B(Y,X)\subseteq B(Y',X)$ and $w(V\setminus B(Y',X))\le w(V\setminus B(Y,X))$ for every
+$X$. Any attack with fewer than $\Phi$ nodes can be enlarged.
+\end{proof}
+\noindent Not formalised. The enumeration below covers every attack size
+from $0$ to $\Phi$, so the certificate does not depend on this corollary.
+It explains why the least saved count falls with the attack size: for
+the instance \texttt{tree-50\_1-5-5\_006} the minima for attack sizes
+$0,\dots,5$ are $49,48,44,38,32,26$.
+
+\subsection{The tree dynamic program}
+
+Suppose the graph is a forest. Root every component and hang the roots below
+a virtual root whose edges carry no constraint. Give every node $v$ a state
+$\sigma_v=(x_v,a_v)\in\{0,1\}^2$; state $\sigma$ is \emph{allowed} at $v$ unless
+$v\in Y$ and $a_v=1$; states $\sigma_p,\sigma_c$ of the ends of an edge $pc$ are
+\emph{compatible} if $a_c\le a_p+x_c$ and $a_p\le a_c+x_p$. For a node $v$ with
+children $c_1,\dots,c_d$, a state $\sigma$ and $0\le q\le\Lambda$, let
+$T_v(\sigma,q)$ be the largest $\sum_uw_ua_u$ over the subtree of $v$ among
+assignments of allowed states with $v$ in state $\sigma$, compatible states on
+every edge of the subtree and exactly $q$ protected nodes ($-\infty$ if there
+is none). With $T^{(0)}_v(\sigma,q)=w_va(\sigma)$ if $\sigma$ is allowed and
+$q=x(\sigma)$, and $-\infty$ otherwise,
+\[
+  T^{(i)}_v(\sigma,q)=\max_{0\le q'\le q}\Bigl[T^{(i-1)}_v(\sigma,q-q')+
+  \max_{\sigma'\ \text{compatible with}\ \sigma}T_{c_i}(\sigma',q')\Bigr],\qquad
+  T_v=T^{(d)}_v .
+\]
+
+\begin{proposition}[Tree DP]\label{prop:fire-dp}
+$T_v$ satisfies the definition above for every node, and the follower's
+optimum against $Y$ is the best value at the virtual root over $q\le\Lambda$.
+\end{proposition}
+\begin{proof}
+Induction over the nodes in post-order. The follower's rows other than the
+budget row involve one node ($a_v+y_v\le 1$) or the two ends of one edge (the
+two orientations of the arc row), so an assignment of the subtree of $v$ is
+feasible iff all states are allowed and every edge is compatible. The edges
+of the subtree of $v$ are the edges $vc_i$ and the edges inside the subtrees of
+the $c_i$, which share no node. Hence a feasible assignment of the subtree of
+$v$ with $v$ in state $\sigma$ and $q$ protections is the same as: a state for
+$v$, and for each $i$ a feasible assignment of the subtree of $c_i$ whose root
+state is compatible with $\sigma$, with protection counts adding up to $q$; and
+its value is the sum of the parts. The recursion maximises over exactly these
+choices, one child at a time. At the virtual root every child state is
+compatible, and the budget row is $q\le\Lambda$.
+\end{proof}
+\noindent Not formalised (tested against brute force over all $(a,x)$ on 300
+random forests, and compared at every attack with a separate C implementation
+by the reviewer: 9,344,902 attacks on the 40 forests).
+
+\subsection{Exhaustive enumeration and the certificate}
+
+\begin{theorem}[Certified optimum]\label{thm:fire-cert}
+Suppose that for every attack $Y$ with $|Y|\le\Phi$ we have a follower point
+$(x^Y,a^Y)$ that satisfies all follower rows at $Y$ (checked against the raw
+model), with value $\mathrm{dp}(Y)=w(a^Y)$. Let $Y^{*}$ minimise $\mathrm{dp}$, and
+suppose the follower's optimum at $Y^{*}$ is proven to equal $\mathrm{dp}(Y^{*})$.
+Then the bilevel optimum is $\mathrm{dp}(Y^{*})$, attained by $Y^{*}$ and
+$(x^{Y^{*}},a^{Y^{*}})$.
+\end{theorem}
+\begin{proof}
+For every attack, $\mathrm{sv}(Y)\ge\mathrm{dp}(Y)\ge\mathrm{dp}(Y^{*})$, since the
+follower may play the checked point. The leader's feasible set is exactly
+$\{Y:|Y|\le\Phi\}$, so the optimum is at least $\mathrm{dp}(Y^{*})$; and
+$\mathrm{sv}(Y^{*})=\mathrm{dp}(Y^{*})$ shows it is attained.
+\end{proof}
+\noindent Not formalised.
+
+The certificate does not rest on the DP being optimal at any attack other
+than $Y^{*}$, where HiGHS re-solves the follower MILP built from the raw
+model. For \texttt{tree-50\_1-5-5\_006} and \texttt{\_010} the graph has 49
+nodes and $\Phi=\Lambda=5$; the enumeration visits every $k$-subset for
+$k=0,\dots,5$ (the count per size is checked against $\binom{49}k$),
+$\sum_{k=0}^5\binom{49}k=2{,}138{,}410$ attacks per instance, and both optima are
+$26$. The reviewer obtained the same minima, the same number of optimal
+attacks and the same per-size minima with independent code.

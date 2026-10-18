@@ -9,7 +9,7 @@
 #   =opt=      NAME VALUE   proven optimal value (published, or proven in this work)
 #   =inf=      NAME         no bilevel feasible point exists (follower unbounded for every leader choice)
 #   =best=     NAME VALUE   best verified bilevel feasible point (solution file in this package), not proven
-#   =bestdual= NAME VALUE   best proven lower bound, where this work improves on every published bound
+#   =bestdual= NAME VALUE   best proven lower bound, where this work proves a better one than any published
 # An instance can have both a =best= and a =bestdual= line. Values are printed with full precision
 # (integers without a decimal point, other values as the shortest decimal that round-trips a double).
 #

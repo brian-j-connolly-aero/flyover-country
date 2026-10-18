@@ -2268,7 +2268,7 @@ p0282-0.500000,miplib3,general-pure,feasible,272669,optimal,272659,272659,Vasque
 p0282-0.900000,miplib3,general-pure,feasible,615101,optimal,614837,614837,LozanoBergmanCire2026,decision-diagram network relaxation (published optimum),,na,BOBILib value 615101 is 0.04% above the optimum
 p0548-0.100000,miplib3,general-pure,feasible,11421,optimal,10968,10968,LozanoBergmanCire2026,decision-diagram network relaxation (published optimum),,na,BOBILib value 11421 is 4.13% above the optimum
 p0548-0.500000,miplib3,general-pure,open,,feasible,22197,,this work,"HPR, follower, optimistic tie-break (bobi general)",general/p0548-0.500000.res.json,yes,first point; instance without coupling rows
-p0548-0.900000,miplib3,general-pure,feasible,49476,optimal,48853,48853,LozanoBergmanCire2026,decision-diagram network relaxation (published optimum),,na,published: 48853 with an exactly optimal follower; 48851 only within BOBILib's 1e-4 follower tolerance; BOBILib value 49476 is 1.28% above the optimum
+p0548-0.900000,miplib3,general-pure,feasible,49476,optimal,48853,48853,LozanoBergmanCire2026,decision-diagram network relaxation (published optimum),,na,published: 48853 with an exactly optimal follower (48851 only within BOBILib's 1e-4 follower tolerance); BOBILib value 49476 is 1.28% above the optimum
 p2756-0.100000,miplib3,general-pure,feasible,14007,unchanged,14007,,ThuraufEtAl2026,,,na,
 p2756-0.500000,miplib3,general-pure,feasible,23500,unchanged,23500,,ThuraufEtAl2026,,,na,
 p2756-0.900000,miplib3,general-pure,feasible,33719,unchanged,33719,,ThuraufEtAl2026,,,na,

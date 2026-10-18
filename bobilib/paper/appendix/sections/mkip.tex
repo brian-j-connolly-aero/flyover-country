@@ -1,0 +1,181 @@
+% Multidimensional knapsack interdiction: the dualised follower LP, the
+% integrality-gap bracket, the merged-row online bound, certified points.
+\section{Multidimensional knapsack interdiction: bounds and certified points}\label{app:mkip}
+
+We use the packing interdiction notation of Section~\ref{app:notation}: leader
+rows $Gx\le g$, follower rows $Wy\le c$ with $m$ rows, $p,G,g,W,c\ge 0$ integral,
+and $\Phi(x)$ the follower's optimum. Let
+\[
+  U(x)=\max\bigl\{p^{\top}y : Wy\le c,\ 0\le y\le\mathbf{1}-x\bigr\}
+\]
+be the value of the follower's linear programming (LP) relaxation, and
+$p_{\max}=\max_jp_j$.
+
+\subsection{The dualised follower LP}
+
+\begin{lemma}[Dual form of $U$]\label{lem:mkip-dual}
+For $x\in\{0,1\}^n$,
+\[
+  U(x)=\min_{\lambda\in\mathbf{R}^m_{\ge 0}}D(x,\lambda),\qquad
+  D(x,\lambda)=c^{\top}\lambda+\sum_{j=1}^n\max\bigl(0,\,p_j-(W^{\top}\lambda)_j\bigr)(1-x_j),
+\]
+and the minimum is attained by some $\lambda$ with $0\le\lambda_k\le p_{\max}/w^{\min}_k$
+for every row $k$, where $w^{\min}_k$ is the smallest positive entry of row $k$
+of $W$ ($w^{\min}_k=1$ if the row is zero).
+\end{lemma}
+\begin{proof}
+The LP is feasible ($y=0$, since $c\ge 0$) and bounded ($0\le y\le\mathbf{1}$), so by
+LP duality $U(x)=\min\{c^{\top}\lambda+\sum_j(1-x_j)\nu_j : W^{\top}\lambda+\nu\ge p,\ \lambda,\nu\ge 0\}$,
+and the minimum is attained. For fixed $\lambda$ the best feasible $\nu_j$ with
+$x_j=0$ is $\max(0,p_j-(W^{\top}\lambda)_j)$; for $x_j=1$ the term has coefficient
+$0$. This gives $U(x)=\min_\lambda D(x,\lambda)$. For the box: if
+$\lambda_k>p_{\max}/w^{\min}_k$, lower $\lambda_k$ to $p_{\max}/w^{\min}_k$. Every
+item $j$ with $W_{kj}>0$ still has $(W^{\top}\lambda)_j\ge\lambda_kW_{kj}\ge p_{\max}\ge p_j$,
+so its term stays $0$; items with $W_{kj}=0$ are unaffected; and $c_k\lambda_k$
+does not increase because $c_k\ge 0$. So $D$ does not increase.
+\end{proof}
+\noindent Not formalised.
+
+\begin{proposition}[Exact linearisation]\label{prop:mkip-milp}
+Let $U^{*}=\min\{U(x): Gx\le g,\ x\in\{0,1\}^n\}$. Then $U^{*}$ is the optimal
+value of the MILP
+\begin{align*}
+  \min\quad & c^{\top}\lambda+\sum_{j:\,p_j>0}v_j\\
+  \text{s.t.}\quad & v_j\ge p_j-(W^{\top}\lambda)_j-p_jx_j,\quad v_j\ge 0\quad (p_j>0),\\
+  & 0\le\lambda_k\le p_{\max}/w^{\min}_k\quad (k=1,\dots,m),\qquad Gx\le g,\quad x\in\{0,1\}^n.
+\end{align*}
+\end{proposition}
+\begin{proof}
+For $x_j\in\{0,1\}$ and $(W^{\top}\lambda)_j\ge 0$,
+\[
+  \max\bigl(0,p_j-(W^{\top}\lambda)_j\bigr)(1-x_j)=\max\bigl(0,\,p_j-(W^{\top}\lambda)_j-p_jx_j\bigr):
+\]
+both sides equal $\max(0,p_j-(W^{\top}\lambda)_j)$ when $x_j=0$, and both are $0$
+when $x_j=1$.
+For fixed $(x,\lambda)$ the smallest feasible $v_j$ is this maximum, and items
+with $p_j=0$ contribute $0$. So the MILP's value is the minimum of
+$D(x,\lambda)$ over leader-feasible $x$ and $\lambda$ in the box, which is
+$\min_xU(x)=U^{*}$ by Lemma~\ref{lem:mkip-dual}.
+\end{proof}
+\noindent Not formalised.
+
+\subsection{The integrality-gap bracket}
+
+\begin{lemma}[Integrality gap of a packing problem with $m$ rows]\label{lem:mkip-gap}
+For every $x\in\{0,1\}^n$, with $p_{\max}(x)=\max\{p_j: x_j=0\}$ ($0$ if there is
+no such $j$),
+\[
+  U(x)-m\,p_{\max}(x)\ \le\ \Phi(x)\ \le\ U(x).
+\]
+\end{lemma}
+\begin{proof}
+$\Phi(x)\le U(x)$ because the LP is a relaxation. The LP's feasible region
+$P=\{y: Wy\le c,\ 0\le y_j\le 1-x_j\}$ is a nonempty polytope, so the LP has
+an optimal vertex $y^{*}$. A vertex of $P\subseteq\mathbf{R}^n$ satisfies $n$
+linearly independent constraints of $P$ with equality. Let
+$F=\{j: 0<y^{*}_j<1\}$; these coordinates have $x_j=0$ and neither bound
+tight. The bound constraints of coordinate $j$ are $y_j\ge 0$ and
+$y_j\le 1-x_j$, with normals $\pm e_j$, so a linearly independent family of
+tight constraints contains at most one bound constraint per coordinate
+outside $F$ and none for coordinates in $F$. Hence at least $|F|$ of the $n$
+independent tight constraints are rows of $W$, and $|F|\le m$. Let
+$\tilde y_j=1$ if $y^{*}_j=1$ and $\tilde y_j=0$ otherwise. Then
+$\tilde y\le y^{*}$, so $W\tilde y\le Wy^{*}\le c$ (as $W\ge 0$) and
+$\tilde y\le\mathbf{1}-x$; $\tilde y$ is a binary follower response, and
+$\Phi(x)\ge p^{\top}\tilde y=U(x)-\sum_{j\in F}p_jy^{*}_j\ge U(x)-m\,p_{\max}(x)$.
+\end{proof}
+\noindent Not formalised.
+
+\begin{theorem}[Bracket]\label{thm:mkip-bracket}
+Let $L\le U^{*}$ be any lower bound on $U^{*}$ (for example a MILP solver's
+proven dual bound for the MILP of Proposition~\ref{prop:mkip-milp}) and let
+$\hat x$ be any leader-feasible choice. Then
+\[
+  \lceil L-m\,p_{\max}\rceil\ \le\ \mathrm{OPT}\ \le\ \Phi(\hat x)\ \le\ U(\hat x).
+\]
+\end{theorem}
+\begin{proof}
+For every leader-feasible $x$, Lemma~\ref{lem:mkip-gap} gives
+$\Phi(x)\ge U(x)-m\,p_{\max}(x)\ge U^{*}-m\,p_{\max}\ge L-m\,p_{\max}$, so
+$\mathrm{OPT}\ge L-m\,p_{\max}$, and $\mathrm{OPT}$ is an integer because $p$ is.
+The upper bounds hold because the leader may play $\hat x$ and the game is
+zero-sum.
+\end{proof}
+\noindent Not formalised.
+
+For the OR instances with one follower knapsack (variant $-100$, $m=1$) the
+lower bound is $\lceil L-p_{\max}\rceil$. With several follower rows the width
+$m\,p_{\max}$ makes the lower bound weak, and only the upper bounds are used.
+
+\subsection{The merged-row online bound}
+
+Theorem~\ref{thm:online} needs one leader row and one follower row. For one
+follower row ($m=1$, weights $w_j=W_{1j}$, capacity $c=c_1$) and several leader
+rows, choose multipliers $\mu\in\mathbf{R}^{m_u}_{\ge 0}$ and scales
+$s_u,s_l>0$, and define the integer data
+\[
+  \gamma'_j=\Bigl\lfloor s_u\sum_i\mu_iG_{ij}\Bigr\rfloor,\quad
+  \beta'=\Bigl\lceil s_u\sum_i\mu_ig_i\Bigr\rceil,\quad
+  w'_j=\lceil s_lw_j\rceil,\quad
+  c'=\lfloor s_lc\rfloor .
+\]
+Let $\omega'$ be the value of the online game of Theorem~\ref{thm:online}
+with profits $p$, leader costs $\gamma'$, budget $\beta'$, follower weights $w'$
+and capacity $c'$, on any list of distinct items.
+
+\begin{theorem}[Merged-row online bound]\label{thm:mkip-omega}
+For all $\mu\ge 0$ and $s_u,s_l>0$: $\omega'\le\mathrm{OPT}$.
+\end{theorem}
+\begin{proof}
+\emph{The leader is relaxed.} If $Gx\le g$ then, as $x\ge 0$ and
+$\gamma'_j\le s_u\sum_i\mu_iG_{ij}$,
+\[
+  \sum_j\gamma'_jx_j\le s_u\sum_i\mu_i(Gx)_i\le s_u\sum_i\mu_ig_i\le\beta'.
+\]
+So every leader-feasible set is feasible for the merged row $(\gamma',\beta')$.
+\emph{The follower is restricted.} If $\sum_{j\in Y}w'_j\le c'$ then
+$s_l\,w(Y)\le\sum_{j\in Y}w'_j\le c'\le s_lc$, so $w(Y)\le c$. Hence every
+packing for $(w',c')$ is a packing for $(w,c)$, and the best packing
+$K'(T)$ of a set $T$ under $(w',c')$ satisfies $K'(T)\le K(T)$.
+\emph{Combine.} For every leader-feasible $X$, Theorem~\ref{thm:online} for
+the data $(p,\gamma',\beta',w',c')$ gives
+$\omega'\le K'(N\setminus X)\le K(N\setminus X)=\Phi(X)$. Minimising over $X$ gives
+$\omega'\le\mathrm{OPT}$.
+\end{proof}
+\noindent The online bound itself is formalised (Theorem~\ref{thm:online});
+the merging, scaling and rounding steps are not.
+
+Lowering leader costs and raising the leader's budget only enlarge the
+leader's options in the relaxed game, and raising follower weights and
+lowering its capacity only shrink the follower's options; both moves can only
+lower the value of the game, which is why the result stays a valid lower
+bound for any multipliers and scales. The choice of $\mu$ (coordinate ascent
+on a coarse table) and of the scales (which control the table size,
+$(\beta'+1)(c'+1)$ entries per item) affects only the strength of the bound.
+The code plays the items with positive profit in decreasing order of
+$p_j/w_j$.
+
+\subsection{Certified points}
+
+\begin{proposition}[Certified point]\label{prop:mkip-point}
+Let $\hat x$ satisfy $G\hat x\le g$, and let $\hat y$ be a follower response at
+$\hat x$ proven optimal (by the exact knapsack oracle when $m=1$, or by a MILP
+solver whose dual bound meets $p^{\top}\hat y$). Then $(\hat x,\hat y)$ is bilevel
+feasible with value $\Phi(\hat x)$, so $\mathrm{OPT}\le\Phi(\hat x)$. Without an
+exact follower solve, $\mathrm{OPT}\le\lfloor U(\hat x)\rfloor$ still holds.
+\end{proposition}
+\begin{proof}
+$\hat y\in S(\hat x)$ by definition; the game is zero-sum, so every element of
+$S(\hat x)$ gives the leader the value $\Phi(\hat x)$. The last claim is
+Lemma~\ref{lem:mkip-gap} and integrality of $\Phi$.
+\end{proof}
+
+For several follower knapsacks the leader choice $\hat x$ is the minimiser
+found for the MILP of Proposition~\ref{prop:mkip-milp}; when HiGHS proves the
+follower's optimum at $\hat x$, the point is certified. For one follower
+knapsack, a first-improvement local search on the leader's choice (add an
+item the follower uses, or swap a blocked item for one it uses, keeping
+every budget row) evaluates each candidate with the exact knapsack oracle, so
+every incumbent it reports is a certified point. Every point reported is
+checked again from its file by \texttt{bobi verify}
+(Section~\ref{app:verification}).

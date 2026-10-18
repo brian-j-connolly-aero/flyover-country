@@ -1,0 +1,143 @@
+% Map from appendix results to Lean theorems and to the Rust code that relies
+% on them, and the list of what is not formalised.
+\section{Formal proofs: map and scope}\label{app:lean-map}
+
+The Lean~4 project \texttt{bobilib/lean} (with Mathlib) proves the lemmas in
+the tables below. Lean file names are relative to \texttt{bobilib/lean}; Rust
+names are in \texttt{bobilib/src} (\texttt{Search}, \texttt{RobustTable} and
+\texttt{play\_order} are in \texttt{robust\_ss.rs}; \texttt{Kip} is in
+\texttt{kip.rs}). The Lean statements are about abstract models (items,
+weight classes, graphs); the Rust code is not verified, and the right-hand
+column says which code relies on each statement.
+
+\begin{center}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{p{1.35in}p{2.65in}p{2.0in}}
+\hline
+Result & Lean theorems (file) & Rust code that relies on it\tabularnewline
+\hline
+\multicolumn{3}{l}{\emph{Knapsack interdiction (Section~\ref{app:kip})}}\tabularnewline[3pt]
+\raggedright Lemma~\ref{lem:kip-monotone} (monotonicity) &
+\raggedright \texttt{Bobi/Knapsack.lean}: \texttt{follower\_antitone}, \texttt{bestAvoiding\_antitone}, \texttt{bestAvoiding\_eq\_sup\_sdiff}, \texttt{packings\_downward\_closed}, \texttt{K\_eq\_bestAvoiding} &
+\raggedright \texttt{Kip::free\_items}, \texttt{Kip::greedy}, \texttt{Kip::subset\_sum\_classes}; guaranteed copies in \texttt{Search::node}\tabularnewline[3pt]
+\raggedright Lemma~\ref{lem:kip-cheapest} (count formulation) &
+\raggedright \texttt{Bobi/Knapsack.lean}: \texttt{K\_map\_equiv}, \texttt{swap\_block}, \texttt{cheapest\_first} &
+\raggedright \texttt{Kip::subset\_sum\_classes}, \texttt{Kip::x\_from\_deletions}; branching on counts in \texttt{Search::node}\tabularnewline[3pt]
+\raggedright Lemmas~\ref{lem:window-extend}, \ref{lem:window-survivors} (windows, stall test) &
+\raggedright \texttt{Bobi/SubsetSum.lean}: \texttt{window\_extend}, \texttt{window\_extend\_all}, \texttt{fits\_survivors}, \texttt{window\_survivors}, \texttt{SubsetSum.perm}, \texttt{Window.perm} &
+\raggedright \texttt{Search::window\_safe}\tabularnewline[3pt]
+\raggedright Theorem~\ref{thm:online} (online bound) &
+\raggedright \texttt{Bobi/Online.lean}: \texttt{online\_le\_K}, \texttt{online\_le\_K\_any}, \texttt{online\_lower\_bound}; example: \texttt{table1\_online}, \texttt{table1\_block}, \texttt{table1\_opt} &
+\raggedright \texttt{mkip::omega\_root}\tabularnewline[3pt]
+\raggedright Theorem~\ref{thm:tables-sound} (table soundness) &
+\raggedright \texttt{Bobi/RobustTable.lean}: \texttt{H\_sound}, \texttt{H\_sound\_any}, \texttt{take\_sum\_le}, \texttt{counts\_of\_deletion}; \texttt{Bobi/BandTable.lean}: \texttt{G\_sound}, \texttt{G\_sound\_any}, \texttt{G\_one}, \texttt{G\_sound\_one}; \texttt{Bobi/EndTable.lean}: \texttt{GA\_sound}, \texttt{GA\_sound\_any}, \texttt{G\_iff\_GA}, \texttt{H\_iff\_GA}, \texttt{G\_sound\_of\_GA}, \texttt{H\_sound\_of\_GA} &
+\raggedright \texttt{RobustTable::build}, \texttt{RobustTable::build\_band}\tabularnewline
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{p{1.35in}p{2.65in}p{2.0in}}
+\hline
+Result & Lean theorems (file) & Rust code that relies on it\tabularnewline
+\hline
+\multicolumn{3}{l}{\emph{Knapsack interdiction, continued}}\tabularnewline[3pt]
+\raggedright Proposition~\ref{prop:play-order} (play orders) &
+\raggedright \texttt{Bobi/EndTable.lean}: \texttt{counts\_perm}, \texttt{remaining\_eq\_flatten}, \texttt{totalCost\_eq\_sum}, \texttt{remaining\_perm}, \texttt{totalCost\_perm}, \texttt{GA\_sound\_perm}, \texttt{GA\_sound\_perm\_any} &
+\raggedright \texttt{play\_order}, \texttt{RobustTable::build\_suffix}, \texttt{Search::node\_table\_threshold}\tabularnewline[3pt]
+\raggedright Corollary~\ref{cor:root-rules} (root-table rules) &
+\raggedright \texttt{Bobi/RobustTable.lean}: \texttt{covers\_sound}; \texttt{Bobi/BandTable.lean}: \texttt{band\_covers\_sound}, \texttt{covers\_sound\_of\_band}; \texttt{Bobi/Threshold.lean}: \texttt{covers\_threshold\_sound}, \texttt{covers\_threshold\_sound\_perm}, \texttt{band\_covers\_threshold\_sound}, \texttt{band\_covers\_threshold\_sound\_perm} &
+\raggedright \texttt{RobustTable::covers}, \texttt{RobustTable::covers\_run}, \texttt{Search::tables\_cover}\tabularnewline[3pt]
+\raggedright Lemma~\ref{lem:antitone} (antitone in the budget) &
+\raggedright \texttt{Bobi/EndTable.lean}: \texttt{GA\_antitone}, \texttt{G\_antitone}, \texttt{H\_antitone}, \texttt{GA\_mono} &
+\raggedright threshold storage in \texttt{RobustTable}; cache entries of \texttt{Search::remember}\tabularnewline[3pt]
+\raggedright Theorem~\ref{thm:thr} (threshold form) &
+\raggedright \texttt{Bobi/Threshold.lean}: \texttt{thr} (definition), \texttt{thr\_iff}, \texttt{GA\_iff\_thr}, \texttt{thr\_bounds}, \texttt{thr\_eq\_neg\_one\_iff}, \texttt{thr\_greatest}, \texttt{G\_iff\_thr}, \texttt{H\_iff\_thr}, \texttt{le\_minOver}, \texttt{le\_maxOver} &
+\raggedright \texttt{RobustTable::step}, \texttt{RobustTable::base}, \texttt{RobustTable::threshold}, \texttt{RobustTable::contains}, \texttt{RobustTable::step\_range}\tabularnewline[3pt]
+\raggedright Theorem~\ref{thm:node-rule} (per-node rule) &
+\raggedright \texttt{Bobi/EndTable.lean}: \texttt{nodeEnd} (definition), \texttt{node\_rule}, \texttt{node\_table\_sound}, \texttt{node\_table\_sound\_perm}, \texttt{node\_table\_sound\_any}; \texttt{Bobi/Threshold.lean}: \texttt{node\_table\_threshold\_sound}, \texttt{node\_table\_threshold\_sound\_counts} &
+\raggedright \texttt{Search::node\_table\_threshold}, the prune and cache entry in \texttt{Search::node}, \texttt{Search::remember}\tabularnewline[3pt]
+\raggedright Remark after Theorem~\ref{thm:node-rule} (strength) &
+\raggedright \texttt{Bobi/EndTable.lean}: \texttt{node\_table\_of\_H} &
+\raggedright none (strength, not soundness)\tabularnewline
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{p{1.35in}p{2.65in}p{2.0in}}
+\hline
+Result & Lean theorems (file) & Rust code that relies on it\tabularnewline
+\hline
+\multicolumn{3}{l}{\emph{Edge clique interdiction (Section~\ref{app:clique})}}\tabularnewline[3pt]
+\raggedright Theorem~\ref{thm:mantel} (Mantel, deletion form) &
+\raggedright \texttt{Bobi/Clique.lean}: \texttt{mantel}, \texttt{mantel'}, \texttt{triangle\_survives}, \texttt{mantel\_40}, \texttt{mantel\_50}, \texttt{mantel\_60}, \texttt{clique40}, \texttt{clique50}, \texttt{clique60} &
+\raggedright none; the arithmetic is also checked by \texttt{scripts/clique/lb.py}\tabularnewline[3pt]
+\raggedright Proposition~\ref{prop:clique-partition} (partition bound) &
+\raggedright \texttt{Bobi/Clique.lean}: \texttt{cliqueFree\_of\_partition} &
+\raggedright none; the certificates are written by \texttt{scripts/clique/ub.py}\tabularnewline
+\hline
+\end{tabular}
+\end{center}
+
+All names in the middle column are in namespace \texttt{Bobi}. There is no
+\texttt{sorry}; \texttt{lean/Check.lean} prints the axioms of 72 main
+theorems, each of which uses at most \texttt{propext},
+\texttt{Classical.choice} and \texttt{Quot.sound}.
+
+\paragraph{Not formalised.}
+{\raggedright
+\begin{itemize}
+\item \emph{Subset-sum search.} The reduction of
+Proposition~\ref{prop:kip-reduction} as a whole (free and unusable items, the
+gcd scaling; \texttt{Kip::subset\_sum\_classes}); the fractional deletion
+bound, Lemma~\ref{lem:fractional} (\texttt{Cumulative::min\_cost}), the exact
+largest deletable mass (\texttt{Search::build\_max\_del}) and the reduction of
+the stall test to one test per class in Proposition~\ref{prop:window-rule};
+restricted copies, Proposition~\ref{prop:restrict}
+(\texttt{restrict\_copies}); Lemma~\ref{lem:node-state},
+Theorems~\ref{thm:kip-rules} and~\ref{thm:kip-exact} and
+Corollary~\ref{cor:kip-loop} as statements about the code
+(\texttt{Search::node}, \texttt{Search::run}, \texttt{Kip::solve\_subset\_sum});
+that the bitset holds exactly the decided subset sums up to $hi$; that the
+Rust loops compute $\mathrm{thr}$, including the range shortcuts and early
+exit of \texttt{RobustTable::step\_range} and \texttt{Search::node\_table\_threshold},
+the fallback to \texttt{RobustTable::step} for classes with more than 63
+copies, the \texttt{row\_max} and \texttt{blockmax} skips, and the absence of
+overflow in the \texttt{i32} arithmetic (all tested against a direct
+transcription of $\mathrm{thr}$ and against brute force); and the containment
+of the band rules in the per-node rule.
+\item \emph{Multidimensional knapsack interdiction.}
+Lemmas~\ref{lem:mkip-dual} and~\ref{lem:mkip-gap},
+Proposition~\ref{prop:mkip-milp} and Theorem~\ref{thm:mkip-bracket}
+(\texttt{PackingInterdiction::lp\_follower\_bound} in \texttt{mkip.rs}); the
+merging, scaling and rounding of Theorem~\ref{thm:mkip-omega}
+(\texttt{mkip::omega\_root}, \texttt{mkip::tune\_mu},
+\texttt{mkip::omega\_scales}); the local search; all floating-point
+evaluation.
+\item \emph{Clique interdiction.} Lemma~\ref{lem:clique-model}; Brouwer's
+theorem (Theorem~\ref{thm:brouwer}) and Corollary~\ref{cor:brouwer}, which are
+neither proved nor assumed in Lean; Theorem~\ref{thm:clique-lb4};
+Proposition~\ref{prop:clique-sizes} and the 170 solver verdicts; that the
+instance files have the stated $n$, $m$ and $k$ and that each certificate
+partition has at most $k$ inside edges (Lean takes these numbers as
+hypotheses).
+\item \emph{Network interdiction.} Lemma~\ref{lem:fire-closure},
+Corollary~\ref{cor:fire-monotone}, Proposition~\ref{prop:fire-dp}
+(\texttt{fire::TreeDp::solve}) and Theorem~\ref{thm:fire-cert}
+(\texttt{fire::enumerate}).
+\item \emph{General instances.} Theorem~\ref{thm:ray}
+(\texttt{general::follower\_unbounded\_ray}, checked exactly by
+\texttt{scripts/verify\_ray.py}) and Meyer's theorem; Lemma~\ref{lem:hpr} and
+the model comparison (\texttt{scripts/compare\_hpr.py});
+Proposition~\ref{prop:general-pipeline} (\texttt{general::feasible\_point},
+\texttt{general::optimal\_response}); Proposition~\ref{prop:coupled} and
+Lemma~\ref{lem:vcut} (\texttt{coupled::Search::evaluate},
+\texttt{coupled::Search::best\_response}, \texttt{coupled::certify}).
+\end{itemize}
+\par}

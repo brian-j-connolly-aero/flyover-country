@@ -43,9 +43,11 @@ ymax = y - 1
 
 fig, (ax, bx) = S.plt.subplots(1, 2, figsize=(S.FULL, 2.4), sharey=True,
                                gridspec_kw={"width_ratios": [3.3, 1], "wspace": 0.08})
-NOTE = {"not finished in 2 h": "not finished", "not finished in 3 h": "not finished",
-        "not run to the end": "not finished", "not run": "not run"}
-XMAX = 1.5e9
+# No node count exists for these four 'before' runs, so nothing is plotted for
+# them (a line or arrow would suggest a count); a text label says why.
+NOTE = {"not finished in 2 h": "before: not finished", "not finished in 3 h": "before: not finished",
+        "not run to the end": "before: not finished", "not run": "before: not run"}
+XMAX = 6e7
 for name in rows:
     yy = ypos[name]
     na = int(after[name]["nodes"])
@@ -54,9 +56,7 @@ for name in rows:
         ax.plot([na, b[0]], [yy, yy], color=S.MUTED, lw=1.0, zorder=1)
         ax.plot(b[0], yy, "o", ms=4.5, mfc="white", mec=S.INK2, mew=0.9, zorder=2)
     else:
-        ax.plot([na, 4e7], [yy, yy], color=S.MUTED, lw=1.0, ls=(0, (1, 1.5)), zorder=1)
-        ax.plot(4e7, yy, ">", ms=4, mfc="white", mec=S.INK2, mew=0.9, zorder=2)
-        ax.text(7e7, yy, NOTE[b], va="center", ha="left", fontsize=6.5, color=S.INK2,
+        ax.text(6e4, yy, NOTE[b], va="center", ha="left", fontsize=7, color=S.INK2,
                 bbox=dict(boxstyle="square,pad=0.05", facecolor="white", edgecolor="none"))
     ax.plot(na, yy, "o", ms=4.5, color=S.AQUA, mec="white", mew=0.5, zorder=3)
     bx.plot(float(after[name]["cpu_seconds"]), yy, "o", ms=4.5, color=S.AQUA, mec="white",
@@ -70,7 +70,7 @@ for a in (ax, bx):
 ax.set_xlim(0.6, XMAX)
 ax.xaxis.set_major_locator(LogLocator(base=10, numticks=12))
 ax.xaxis.set_minor_formatter(NullFormatter())
-ax.set_xticks([1, 10, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8])
+ax.set_xticks([1, 10, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7])
 ax.set_xlabel("search nodes (log scale)", labelpad=2)
 bx.set_xlim(0.025, 30)
 bx.set_xticks([0.1, 1, 10])
@@ -78,7 +78,7 @@ bx.set_xticklabels(["0.1", "1", "10"])
 bx.set_xlabel("CPU seconds after (log scale)", labelpad=2)
 
 ax.set_yticks([ypos[n] for n in rows])
-ax.set_yticklabels([n.replace("interKP-", "").replace("-100-", "-") for n in rows], fontsize=6.5)
+ax.set_yticklabels([n.replace("interKP-", "").replace("-100-", "-") for n in rows], fontsize=7)
 ax.set_ylim(ymax + 0.7, -0.7)
 ax.spines["left"].set_visible(False)
 bx.spines["left"].set_visible(False)

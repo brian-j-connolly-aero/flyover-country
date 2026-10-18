@@ -38,12 +38,15 @@ FILL = "#e6e5e0"     # grid / neutral fill
 WHITE = "#ffffff"
 
 # The five outcomes for an instance BOBILib lists as feasible or open.
-# key -> (legend label, face colour, hatch, hatch colour, text colour on the face)
+# key -> (legend label, face colour, texture, texture colour, text colour on the face)
+# Textures are the second cue for greyscale print: aqua and orange have almost
+# the same grey value, so "first verified point" carries white dots (points)
+# and "no feasible point" white stripes; "proven optimal here" stays solid.
 OUTCOMES = {
     "lit": ("optimal in published work", BLUE, None, None, WHITE),
     "new": ("proven optimal here", AQUA, None, None, INK),
-    "none": ("no feasible point", AQUA, "////", WHITE, INK),
-    "first": ("first verified point", ORANGE, None, None, INK),
+    "none": ("no feasible point", AQUA, "stripes", WHITE, INK),
+    "first": ("first verified point", ORANGE, "dots", WHITE, INK),
     "unchanged": ("unchanged", FILL, None, None, INK2),
 }
 ORDER = ["lit", "new", "none", "first", "unchanged"]
@@ -168,6 +171,8 @@ def unsolved(per_instance):
 
 STRIPE_PITCH = 2.6   # points between stripes (perpendicular)
 STRIPE_LW = 0.9      # points
+DOT_PITCH = 3.0      # points between dot centres (staggered rows)
+DOT_D = 1.1          # dot diameter, points
 
 
 def _stripe_lines(x0, y0, x1, y1, pitch):
@@ -180,62 +185,90 @@ def _stripe_lines(x0, y0, x1, y1, pitch):
     return segs
 
 
-def stripes(ax, x, y, w, h, color=WHITE):
-    """Queue white 45-degree stripes over a data rectangle; drawn by save() once
-    the axis limits are final. (Drawn as lines, not a PDF hatch pattern, so every
-    viewer shows the same stroke width.)"""
+def _dot_centres(x0, y0, x1, y1, pitch):
+    """Centres of a staggered grid of dots covering the box [x0,x1] x [y0,y1]."""
+    import numpy as np
+    pts = []
+    dy = pitch * 3 ** 0.5 / 2
+    for i, yy in enumerate(np.arange(y0 + dy / 2, y1 + dy, dy)):
+        off = pitch / 2 if i % 2 else 0.0
+        for xx in np.arange(x0 + pitch / 4 + off - pitch, x1 + pitch, pitch):
+            pts.append((xx, yy))
+    return pts
+
+
+def stripes(ax, x, y, w, h, color=WHITE, kind="stripes"):
+    """Queue a texture (white 45-degree stripes, or white dots) over a data
+    rectangle; drawn by save() once the axis limits are final. (Drawn as lines
+    and dots, not a PDF hatch pattern, so every viewer shows the same strokes.)"""
     if not hasattr(ax, "_stripes"):
         ax._stripes = []
-    ax._stripes.append((x, y, w, h, color))
+    ax._stripes.append((x, y, w, h, color, kind))
 
 
 def _draw_stripes(fig):
     from matplotlib.collections import LineCollection
     from matplotlib.patches import Rectangle
     for ax in fig.axes:
-        for x, y, w, h, color in getattr(ax, "_stripes", []):
+        for x, y, w, h, color, kind in getattr(ax, "_stripes", []):
             t = ax.transData
             (X0, Y0), (X1, Y1) = t.transform([(x, y), (x + w, y + h)])
             X0, X1 = sorted((X0, X1))
             Y0, Y1 = sorted((Y0, Y1))
-            pitch = STRIPE_PITCH * fig.dpi / 72
-            segs = [t.inverted().transform(s) for s in _stripe_lines(X0, Y0, X1, Y1, pitch)]
             clip = Rectangle((x, y), w, h, transform=t, facecolor="none", edgecolor="none")
             ax.add_patch(clip)
-            lc = LineCollection(segs, colors=color, linewidths=STRIPE_LW, transform=t,
-                                zorder=2.5)
-            ax.add_collection(lc, autolim=False)
-            lc.set_clip_path(clip)
+            if kind == "dots":
+                pitch = DOT_PITCH * fig.dpi / 72
+                pts = t.inverted().transform(_dot_centres(X0, Y0, X1, Y1, pitch))
+                lims = ax.get_xlim(), ax.get_ylim()
+                sc = ax.scatter(pts[:, 0], pts[:, 1], s=DOT_D ** 2, marker="o", color=color,
+                                linewidths=0, zorder=2.5, clip_on=True)
+                sc.set_clip_path(clip)
+                ax.set_xlim(lims[0])
+                ax.set_ylim(lims[1])
+            else:
+                pitch = STRIPE_PITCH * fig.dpi / 72
+                segs = [t.inverted().transform(s) for s in _stripe_lines(X0, Y0, X1, Y1, pitch)]
+                lc = LineCollection(segs, colors=color, linewidths=STRIPE_LW, transform=t,
+                                    zorder=2.5)
+                ax.add_collection(lc, autolim=False)
+                lc.set_clip_path(clip)
         ax._stripes = []
 
 
 def hbar_segment(ax, y, left, width, height, key, **kw):
-    _, face, hatch, hcol, _ = OUTCOMES[key]
+    _, face, texture, tcol, _ = OUTCOMES[key]
     bars = ax.barh(y, width, left=left, height=height, color=face, linewidth=0, **kw)
-    if hatch and width > 0:
-        stripes(ax, left, y - height / 2, width, height, hcol)
+    if texture and width > 0:
+        stripes(ax, left, y - height / 2, width, height, tcol, kind=texture)
     return bars
 
 
 class _StripeHandler:
-    """Legend handler: a filled box with the same stripes as the plot."""
+    """Legend handler: a filled box with the same texture (stripes or dots) as the plot."""
 
-    def __init__(self, face, color):
-        self.face, self.color = face, color
+    def __init__(self, face, color, kind="stripes"):
+        self.face, self.color, self.kind = face, color, kind
 
     def legend_artist(self, legend, orig_handle, fontsize, handlebox):
         from matplotlib.collections import LineCollection
-        from matplotlib.patches import Rectangle
+        from matplotlib.patches import Circle, Rectangle
         x0, y0 = handlebox.xdescent, handlebox.ydescent
         w, h = handlebox.width, handlebox.height
-        r = Rectangle((-x0, -y0), w, h, facecolor=self.face, edgecolor="none",
-                      transform=handlebox.get_transform())
+        tr = handlebox.get_transform()
+        r = Rectangle((-x0, -y0), w, h, facecolor=self.face, edgecolor="none", transform=tr)
         handlebox.add_artist(r)
-        segs = _stripe_lines(-x0, -y0, -x0 + w, -y0 + h, STRIPE_PITCH)
-        lc = LineCollection(segs, colors=self.color, linewidths=STRIPE_LW,
-                            transform=handlebox.get_transform())
-        lc.set_clip_path(r)
-        handlebox.add_artist(lc)
+        if self.kind == "dots":
+            for cx, cy in _dot_centres(-x0, -y0, -x0 + w, -y0 + h, DOT_PITCH):
+                c = Circle((cx, cy), DOT_D / 2, facecolor=self.color, edgecolor="none",
+                           transform=tr)
+                c.set_clip_path(r)
+                handlebox.add_artist(c)
+        else:
+            segs = _stripe_lines(-x0, -y0, -x0 + w, -y0 + h, STRIPE_PITCH)
+            lc = LineCollection(segs, colors=self.color, linewidths=STRIPE_LW, transform=tr)
+            lc.set_clip_path(r)
+            handlebox.add_artist(lc)
         return r
 
 
@@ -244,10 +277,10 @@ def legend_handles(keys=ORDER):
     from matplotlib.patches import Patch
     hs, hmap = [], {}
     for k in keys:
-        label, face, hatch, hcol, _ = OUTCOMES[k]
+        label, face, texture, tcol, _ = OUTCOMES[k]
         p = Patch(facecolor=face, linewidth=0, label=label)
-        if hatch:
-            hmap[p] = _StripeHandler(face, hcol)
+        if texture:
+            hmap[p] = _StripeHandler(face, tcol, texture)
         hs.append(p)
     return hs, hmap
 

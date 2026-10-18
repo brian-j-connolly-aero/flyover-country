@@ -14,6 +14,16 @@ To cite this material, please cite both the paper and the data package:
 * Paper: B. J. Connolly, TITLE OF THE PAPER, JOURNAL (YEAR), doi:PAPER-DOI (placeholder).
 * Data: B. J. Connolly, BOBILib status update: data package (YEAR), doi:DATA-DOI (placeholder).
 
+```bibtex
+@misc{ConnollyBOBILibData,
+  author = {Brian J. Connolly},
+  title  = {{BOBILib} status update: data package},
+  year   = {YEAR},
+  doi    = {DATA-DOI},
+  note   = {Placeholder: fill in when the data DOI is assigned}
+}
+```
+
 ## Description
 
 BOBILib lists 1,027 instances as optimal, 33 as infeasible,
@@ -54,7 +64,7 @@ results/
 ```
 
 Each folder has its own README with the method, the columns of its tables,
-the commands that produced it and its independent review.
+the commands that produced it and, where one was done, its independent review.
 
 ## File formats
 
@@ -71,8 +81,9 @@ satisfies every follower row with leader terms and right-hand sides dropped
 (a.d <= 0 for a <= row, >= 0 for a >= row, = 0 for an equation), d_j >= 0 for
 a finite lower bound and d_j <= 0 for a finite upper bound, and f^T d < 0
 for the follower objective f. Leader variables only shift right-hand sides,
-so d is a recession direction for every leader choice, and with rational data
-the follower has no optimal response (Meyer 1974): no bilevel feasible point.
+so d is a recession direction for every leader choice; with rational data the
+follower's problem is then infeasible or unbounded for every leader choice
+(Meyer 1974), so no bilevel feasible point exists.
 
 **Clique partition certificates** are the solution files in `clique/`: the
 leader deletes exactly the edges inside the parts of an r-partition of the
@@ -99,7 +110,7 @@ exact solver proofs of w3(G) > k) and the upper bound with its partition.
 | `verified` | `yes`: the certificate passed its check (`bobi verify`, or the exact ray check); `no`: it did not or was only checked in floating point; `na`: no certificate |
 | `notes` | free text, `;`-separated |
 
-New statuses here: bobilib_infeasible 33, bobilib_optimal 1,027, feasible 230, infeasible_bilevel 40, optimal 608, unchanged 716.
+Rows per `new_status`: bobilib_infeasible 33, bobilib_optimal 1,027, feasible 230, infeasible_bilevel 40, optimal 608, unchanged 716.
 
 Other tables (columns in each folder's README): `kip/summary.csv` (published KIP
 optima and the leader-vector source), `ss/proofs.csv` (optimum, nodes, CPU
@@ -115,7 +126,8 @@ checks), `*/verify_*.tsv` (`bobi verify` output).
 instance whose status or best value changes: `=opt= NAME VALUE` (proven
 optimal), `=inf= NAME` (no bilevel feasible point), `=best= NAME VALUE` (best
 verified point, not proven) and `=bestdual= NAME VALUE` (best proven lower
-bound, where this work improves on the published ones). It has
+bound, where this work proves a better one than any published: 191 OR
+instances with one follower knapsack and the 3 open clique instances). It has
 608 `=opt=`, 40 `=inf=`, 695 `=best=` and 194 `=bestdual=` lines.
 Values are upper-level objectives of the minimising leader, at full precision.
 
@@ -135,7 +147,7 @@ From `bobilib/`, with BOBILib's instance files in `data/collection`
 (bobilib.org) and the crate built (`cargo build --release`):
 
 ```sh
-sha256sum -c results/SHA256SUMS        # run inside results/
+(cd results && sha256sum -c SHA256SUMS)
 D=data/collection
 ./target/release/bobi verify --instances $D results/kip results/ss results/network results/or
 ./target/release/bobi verify --instances $D --generic results/clique results/general results/general-coupled
@@ -150,8 +162,9 @@ python3 -I scripts/compare_hpr.py INSTANCE.mps.gz INSTANCE.aux MIPLIB.mps.gz   #
 bounds and integrality within 1e-6, the stated objective, and the follower
 re-solved with the leader fixed (exact knapsack oracle for one follower row,
 a HiGHS MILP otherwise) and found optimal within BOBILib's relative 1e-4.
-The clique, network and coupled results were also re-derived by independent
-reviewers with separate code (see the folder READMEs). Caveats: the two
+The subset-sum lower bounds are re-proved by `scripts/ss_check.py`, and the
+clique, network and coupled results were re-derived by independent reviewers
+with separate code (see the folder READMEs). Caveats: the two
 supportcase42 directions are checked in floating point only; nine coupled
 points use BOBILib's 1e-4 tolerance on the follower's value (about 1e-7
 relative); OR lower bounds for several follower knapsacks are the

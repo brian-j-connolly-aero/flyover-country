@@ -108,7 +108,7 @@ instances with 20 or more linking bits, and 123 MIPLIB-derived instances.
   | interKP-300-100-6-2 | 2,868 | 366 | 0.16 s | 12,302,768 / 102.59 s |
   | interKP-400-100-6-2 | 3,832 | 257 | 0.15 s | 7,217,774 / 75.29 s |
   | interKP-500-100-6-2 | 4,651 | 190 | 0.26 s | 14,290,940 / 174.28 s |
-  | interKP-200-100-6-3 | 2,782 | 13,498 | 3.93 s | not finished in 2 h |
+  | interKP-200-100-6-3 | 2,782 | 13,498 | 3.93 s | not finished in 4 h |
   | interKP-300-100-6-3 | 4,302 | 19,405 | 8.06 s | not finished in 3 h |
   | interKP-400-100-6-3 | 5,748 | 13,430 | 9.01 s | not run to the end |
   | interKP-500-100-6-3 | 6,976 | 10,079 | 10.04 s | not run |

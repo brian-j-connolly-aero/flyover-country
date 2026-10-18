@@ -1,7 +1,8 @@
 """OR set (multidimensional knapsack interdiction): empirical distribution of the
 relative gap (best upper - best lower) / best upper, literature alone vs
 literature plus this work, over the instances with both a published lower and a
-published upper bound (paired).
+published upper bound (paired). A gap of 0 is drawn at a separate "0" tick
+left of an axis break.
 
 Data: results/or/compare.csv (columns variant, alpha, lit_gap, gap).
 """
@@ -43,13 +44,22 @@ for k, (ql, qn) in quoted.items():
     nd = 2 if qn < 1 else 1
     S.check(round(mn, nd), qn, f"median gap now, variant -{k[0]}, budget {k[1]}")
 
-XMIN, XMAX = 0.01, 100.0   # percent, log scale; gaps of 0 sit at the left edge
+XMIN, XMAX = 0.01, 100.0   # percent, log scale
+# Gaps of 0 (closed; also the one instance whose published bounds cross,
+# OR10x100-0.75_4.dat-0, closed at 8,813) are drawn at XZ, a separate "0" tick
+# left of an axis break. The smallest positive gap is 0.012%, so nothing lies
+# between the break and 0.01.
+XZ = 0.002
+XL = 0.0013                # left end of the axis
+pos = [float(r[c]) * 100 for r in rows for c in ("gap", "lit_gap") if r[c] and float(r[c]) > 0]
+S.check(min(pos) > XMIN, True, "every positive gap is right of the axis break")
 
 
 def ecdf(ax, vals, **kw):
-    v = np.sort(np.clip(np.asarray(vals) * 100, XMIN * 0.5, None))
+    v = np.asarray(vals, dtype=float) * 100
+    v = np.sort(np.where(v <= 0, XZ, v))
     n = len(v)
-    x = np.concatenate([[XMIN * 0.5], v, [XMAX * 2]])
+    x = np.concatenate([[XL * 0.5], v, [XMAX * 2]])
     y = np.concatenate([[0], np.arange(1, n + 1) / n, [1]])
     ax.step(x, y, where="post", **kw)
 
@@ -69,15 +79,23 @@ for i, (ft, flab) in enumerate(TYPES):
         ecdf(ax, [x for x, _ in v], **LIT)
         ecdf(ax, [y for _, y in v], **NOW)
         ax.set_xscale("log")
-        ax.set_xlim(XMIN * 0.55, XMAX * 1.8)
+        ax.set_xlim(XL, XMAX * 1.8)
         ax.set_ylim(0, 1.02)
-        ax.xaxis.set_major_locator(FixedLocator([0.01, 0.1, 1, 10, 100]))
+        ax.xaxis.set_major_locator(FixedLocator([XZ, 0.01, 0.1, 1, 10, 100]))
+        ax.xaxis.set_minor_locator(FixedLocator(
+            [k * 10.0 ** e for e in range(-2, 3) for k in range(2, 10) if k * 10.0 ** e < XMAX * 1.8]))
         ax.xaxis.set_minor_formatter(NullFormatter())
-        ax.set_xticklabels(["0.01", "0.1", "1", "10", "100"])
+        ax.set_xticklabels(["0", "0.01", "0.1", "1", "10", "100"])
         ax.set_yticks([0, 0.5, 1])
         ax.set_yticklabels(["0", "0.5", "1"])
-        ax.grid(axis="x", which="major", color=S.FILL, lw=0.6)
-        ax.set_axisbelow(True)
+        for g in (0.01, 0.1, 1, 10, 100):
+            ax.axvline(g, color=S.FILL, lw=0.6, zorder=0)
+        # axis break between the "0" tick and 0.01
+        xb = (XZ * XMIN) ** 0.5
+        ax.plot([xb / 1.25, xb * 1.25], [0, 0], transform=ax.get_xaxis_transform(), color="white",
+                lw=2.5, solid_capstyle="butt", clip_on=False, zorder=5)
+        ax.plot([xb / 1.25, xb * 1.25], [0, 0], transform=ax.get_xaxis_transform(), ls="none",
+                marker=[(-1, -1.6), (1, 1.6)], ms=5, mew=0.6, color=S.INK2, clip_on=False, zorder=6)
         ax.text(0.03, 0.95, f"n = {len(v)}", transform=ax.transAxes, ha="left", va="top",
                 fontsize=7, color=S.INK2)
         if i == 0:

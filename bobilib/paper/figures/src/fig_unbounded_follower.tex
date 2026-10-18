@@ -8,6 +8,7 @@
 % with the same direction d.
 % Build: pdflatex fig_unbounded_follower.tex   (3.15 in x 2 in)
 \documentclass[tikz,border=2pt]{standalone}
+\pdfinfoomitdate=1 \pdftrailerid{} \pdfsuppressptexinfo=-1 % byte-identical rebuilds
 \usepackage{mathptmx}
 \usetikzlibrary{arrows.meta,calc,fadings}
 \definecolor{leader}{HTML}{2A78D6}
@@ -34,7 +35,8 @@
   \draw[ink2, line width=0.5pt, -{Stealth[length=3.5pt,width=3pt]}] (0.25,0.3) -- (0.25,4.85)
     node[anchor=north west, inner sep=1.5pt, xshift=1pt, text=ink2] {$y_2$};
 
-  % three leader choices: the same region shifted (x1 front, x3 back);
+  % three leader choices (labels in the leader's blue): the follower's region
+  % (orange) shifted (x1 front, x3 back);
   % corners A, B, lower edge slope 0.04, upper edge slope 0.25, cut at y1 = 7.4
   \foreach \dx/\dy/\op/\lab/\dash in {0.90/1.70/0.10/x_3/{densely dotted},
                                       0.45/0.85/0.16/x_2/{dashed},
@@ -48,7 +50,7 @@
         (A) -- (B) -- (Bf) -- (Af) -- cycle;
       \draw[follower, line width=0.9pt, \dash, path fading=fade right]
         (Af) -- (A) -- (B) -- (Bf);
-      \node[anchor=east, inner sep=1.5pt, text=follower] at (A) {$\lab$};
+      \node[anchor=east, inner sep=1.5pt, text=leader] at (A) {$\lab$};
     \end{scope}
   }
 
