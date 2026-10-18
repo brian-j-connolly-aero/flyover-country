@@ -1,0 +1,99 @@
+name,bobilib_status,status,verified,upper_obj,lower_obj,max_violation,why,secs
+gen-ip054_0_100,open,failed,False,,,,follower unbounded at the HPR's leader values,300.0
+mad_0_100,open,failed,False,,,,follower unbounded at the HPR's leader values,300.0
+mik-250-1-100-1_0_100,open,point,True,890671,-1000000,0.0,,32.5
+neos-3754480-nidda_0_100,open,point,True,13973.290531790952,-2052644.359061927,1.51e-10,,300.0
+mik-250-20-75-4_0_100,open,point,True,663799,-750000,0.0,,34.8
+timtab1_0_100,open,point,True,764771.99999978,-18653.995999999992,7.96e-13,,160.4
+pigeon-10_0_100,open,point,True,-9000,9000,5.68e-14,,300.1
+ran16x16_0_100,open,point,True,43000,-42126,6.04e-14,,209.3
+neos17_0_100,open,point,True,0.6871998436039986,-0.5639598436040021,4.44e-16,,22.5
+p0548-0.500000,open,point,True,22197,-17695,0.0,,15.9
+sp150x300d_0_100,open,point,True,300,-300,1.42e-14,,0.4
+ic97_potential_0_100,open,point,True,4002.9999645999847,-352.99996459998323,2.62e-11,,300.1
+exp-1-500-5-5_0_100,open,point,True,912510.9120646999,-879351.9120646999,5.8e-12,,12.6
+tr12-30_0_100,open,point,True,201018.9907358,-92640.9907358,4.55e-13,,300.1
+rmine6_0_100,open,point,True,-440.65034000000054,201.39953899999983,0.0,,319.6
+neos-1396125_0_100,open,failed,False,,,,follower unbounded at the HPR's leader values,300.0
+seymour1_0_100,open,point,True,959.5359764576142,-685.9999313,3.77e-15,,300.3
+neos-860300_0_100,open,point,True,5919.999999999998,-3702,2.22e-14,,36.9
+neos-3627168-kasai_0_100,open,point,True,1591085.619998998,-1591085.619998998,3.38e-07,,217.4
+neos-916792_0_100,open,point,True,32.69508719490166,-5.665551682184728,4.26e-14,,300.3
+neos-4954672-berkel_0_100,open,point,True,8891491,-7334836,2.27e-11,,300.1
+ns1830653_0_100,open,point,True,23622,-1910,0.0,,300.4
+uct-subprob_0_100,open,point,True,827.9999317,-681.9999317,0.0,,300.1
+binkar10_1_0_100,open,point,True,5006810.579954565,-5000741.319927564,5e-07,,92.0
+p200x1188c_0_100,open,point,True,3584430,-3584430,2.13e-14,,2.2
+beasleyC3_0_100,open,point,True,6844,-6844,4.07e-12,,73.7
+n5-3_0_100,open,point,True,30001631.9999334,-30000661.9999334,1.72e-11,,128.9
+pg5_34_0_100,open,point,True,-11516.287042032105,1824.4401360734178,2.03e-11,,300.1
+pg_0_100,open,point,True,-5364.2594068134995,2018.3422083883559,1.64e-11,,18.2
+lotsize_0_100,open,point,True,3691725.0000000005,-3059545.0000000005,1.44e-11,,300.3
+mc11_0_100,open,point,True,128960,-128960,7.59e-12,,182.0
+neos-3024952-loue_0_100,open,failed,False,,,,HPR found no point in 300s,300.6
+neos-3216931-puriri_0_100,open,point,True,81430,900,0.0,,300.6
+n4-3_0_100,open,point,True,34802892.5198973,-34801022.5198973,3.95e-12,,207.5
+neos-4387871-tavua_0_100,open,failed,False,,,,follower not solved to optimality (Feasible),600.1
+cost266-UUE_0_100,open,point,True,35801080.95689771,-10431020.976897696,6.37e-12,,300.2
+neos-1456979_0_100,open,point,True,250,-157,1.76e-12,,300.5
+neos-1122047_0_100,open,point,True,472,-472,7.66e-12,,22.3
+momentum1_0_100,open,failed,False,,,,HPR found no point in 300s,300.4
+nu25-pr12_0_100,open,failed,False,,,,follower unbounded at the HPR's leader values,15.2
+cap6000-0.500000,open,point,True,-1169217,0,0.0,,8.6
+cap6000-0.900000,open,point,True,-100780,45829,0.0,,8.6
+opm2-z10-s4_0_100,open,point,True,-11630,4812,0.0,,314.7
+air05-0.900000,open,point,True,64955,-63283,0.0,,135.3
+rmatr100-p10_0_100,open,failed,False,,,,follower unbounded at the HPR's leader values,299.9
+n9-3_0_100,open,point,True,50404627.959837,-50401623.959837,8.24e-13,,300.3
+mushroom-best_0_100,open,point,True,4230.055333761233,-4230,1.83e-13,,302.8
+rmatr100-p5_0_100,open,failed,False,,,,follower unbounded at the HPR's leader values,300.2
+air04-0.900000,open,failed,False,,,,follower not solved to optimality (Feasible),460.6
+satellites1-25_0_100,open,point,True,32,-32,0.0,,300.7
+mitre-0.500000,open,point,True,147075,-96600,0.0,,6.6
+mitre-0.900000,open,point,True,169500,-169500,0.0,,8.1
+neos-476283_0_100,open,failed,False,,,,follower unbounded at the HPR's leader values,306.4
+h80x6320d_0_100,open,point,True,12461.704159000003,-10960.071399999997,3.74e-12,,62.5
+neos-5188808-nattai_0_100,open,point,True,6.1216116038387876,-6.1216116038387876,1.63e-16,,301.5
+core2536-691_0_100,open,point,True,9999999000.000046,-9999998544.000046,0.0,,322.7
+cmflsp50-24-8-8_0_100,open,point,True,59480213.40059848,-12534896.784427606,4.55e-13,,301.3
+supportcase40_0_100,open,failed,False,,,,follower unbounded at the HPR's leader values,302.6
+ex10_0_100,open,point,True,100,-51,0.0,,136.9
+supportcase42_0_100,open,failed,False,,,,follower unbounded at the HPR's leader values,301.3
+neos-1445765_0_100,open,point,True,-17783,17783,3.34e-12,,257.0
+neos-2978193-inde_0_100,open,point,True,61.453994731082496,-62.32916866708249,9.87e-07,,69.4
+lectsched-5-obj_50_50,open,failed,False,,,,HPR found no point in 300s,301.1
+neos-934278_0_100,open,point,True,6339,-267,0.0,,304.3
+brazil3_0_100,open,failed,False,,,,follower unbounded at the HPR's leader values,301.0
+neos-933966_0_100,open,point,True,326,-189,0.0,,303.5
+neos-827175_0_100,open,point,True,122.00152,-122,0.0,,20.0
+neos-5052403-cygnet_0_100,open,failed,False,,,,follower not solved to optimality (Feasible),608.6
+neos-4300652-rahue_0_100,open,point,True,6.407499999999989,-2.3315999999999986,1.78e-15,,302.4
+satellites2-40_0_100,open,point,True,0,0,1.46e-11,,303.2
+satellites2-60-fs_0_100,open,failed,False,,,,HPR found no point in 300s,300.7
+rmatr200-p5_0_100,open,failed,False,,,,follower unbounded at the HPR's leader values,301.2
+neos-5093327-huahum_0_100,open,failed,False,,,,follower unbounded at the HPR's leader values,302.1
+atlanta-ip_0_100,open,failed,False,,,,follower not solved to optimality (Feasible),600.7
+neos-2746589-doon_0_100,open,failed,False,,,,HPR found no point in 300s,310.8
+neos-4763324-toguru_0_100,open,point,True,17296.727084927334,-13725.617029999998,0.0,,313.1
+sing326_0_100,open,point,True,20652331.06893904,-181252.322,2.27e-13,,302.5
+sing44_0_100,open,point,True,10059257.379094748,-112109.37100000001,2.27e-13,,302.1
+irish-electricity_0_100,open,failed,False,,,,HPR found no point in 300s,302.2
+square41_0_100,open,failed,False,,,,HPR found no point in 300s,394.2
+rail507_0_100,open,failed,False,,,,follower unbounded at the HPR's leader values,358.1
+neos-4722843-widden_0_100,open,point,True,25109.663366336634,-7400,7.37e-18,,392.5
+square47_0_100,open,failed,False,,,,HPR found no point in 300s,341.1
+netdiversion_0_100,open,point,True,19850249,-19850249,0.0,,500.6
+neos-3754224-navua_0_100,open,failed,False,,,,HPR found no point in 300s,302.6
+buildingenergy_0_100,open,failed,False,,,,follower unbounded at the HPR's leader values,302.9
+neos-631710_0_100,open,point,True,556,-556,0.0,,337.7
+neos-873061_0_100,open,point,True,258644.3940240261,-258644.1674639604,5.5e-15,,310.9
+snp-02-004-104_0_100,open,failed,False,,,,follower unbounded at the HPR's leader values,322.3
+neos-5049753-cuanza_0_100,open,failed,False,,,,follower not solved to optimality (Feasible) at the HPR's leader values,746.0
+s250r10_0_100,open,point,True,-0.06080872520517286,0.00346025,0.0,,402.2
+highschool1-aigio_0_100,open,failed,False,,,,follower unbounded at the HPR's leader values,304.2
+neos-5104907-jarama_0_100,open,failed,False,,,,HPR found no point in 300s,303.9
+s100_0_100,open,point,True,-0.07582229295992991,0,0.0,,328.4
+neos-848589_0_100,open,point,False,22245825.36444937,-21353502.984649368,0.00214,,314.0
+neos-5114902-kasavu_0_100,open,failed,False,,,,follower not solved to optimality (Feasible) at the HPR's leader values,618.9
+supportcase12_0_100,open,point,True,-1811.9515189984015,0,1.08e-12,,314.8
+supportcase19_0_100,open,failed,False,,,,HPR found no point in 300s,311.2

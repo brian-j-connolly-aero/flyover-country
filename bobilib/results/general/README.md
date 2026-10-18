@@ -28,3 +28,18 @@ its point at the bound from `bobi coupled`; the file is in
 own solution files already had the optimal value. For `noswot_*` the
 proof is new; `neos-950242_0_100` was already listed as optimal in an
 earlier BOBILib release, and the current one lists it as feasible.
+
+## Feasible points without coupling rows (`points.csv`)
+
+`bobi general` on the 98 open instances without coupling rows: 64 verified
+bilevel feasible points, the first known for each instance (BOBILib lists
+no value). Of the other 34, 17 have no bilevel feasible point at all
+(`../rays`); for 10 HiGHS found no HPR point in 300 s, for 6 the follower
+was not solved to optimality in time, and 1 point failed the final check. Each
+passes `bobi verify --generic` (rows of both levels within 1e-6, the stated
+objective, the follower re-solved by HiGHS with the leader fixed and found
+optimal within BOBILib's relative 1e-4). `points.csv` has one row per
+instance, including the 34 without a point and why.
+
+The nine solution files over 1 MB are in `large_points.tar.gz`
+(`tar xzf large_points.tar.gz` before verifying).
