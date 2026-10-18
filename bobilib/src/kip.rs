@@ -94,10 +94,11 @@ impl Kip {
         &self,
         lo: i64,
         node_limit: u64,
-        online: bool,
+        cfg: &SsConfig,
         order: SsOrder,
         max_copies: Option<usize>,
     ) -> (robust_ss::Outcome, robust_ss::Stats, Vec<Class>, i64) {
+        let online = cfg.online;
         assert!(self.is_subset_sum());
         let (mut classes, g) = self.subset_sum_classes();
         if let Some(k) = max_copies {
@@ -108,28 +109,29 @@ impl Kip {
         let lo_s = ((lo + g - 1) / g) as usize;
         let mut s = robust_ss::Search::new(&classes, lo_s.min(hi + 1), hi);
         s.node_limit = node_limit;
+        s.cache_bytes = cfg.cache_mb << 20;
+        s.progress_every = cfg.progress_every;
+        s.node_order = cfg.node_order.clone();
         if online && lo_s <= hi {
             let t = std::time::Instant::now();
-            let table = robust_ss::RobustTable::build(&classes, hi, self.cu);
-            let root = (lo_s..=hi).any(|v| table.contains(0, self.cu, v));
-            let mut rev = classes.clone();
-            rev.reverse();
-            let desc = robust_ss::RobustTable::build(&rev, hi, self.cu);
-            let root_desc = (lo_s..=hi).any(|v| desc.contains(0, self.cu, v));
-            // Largest target the descending online game still guarantees.
-            let best_desc = (0..=hi).rev().find(|&v| desc.contains(0, self.cu, v));
-            let best_asc = (0..=hi).rev().find(|&v| table.contains(0, self.cu, v));
+            s.tables = robust_ss::build_tables(&classes, hi, self.cu, &cfg.tables);
+            // The narrowest table of each kind that guarantees the target band
+            // at the root with the full budget.
+            let mut root: Vec<String> = Vec::new();
+            for tb in &s.tables {
+                if root.iter().any(|r| r.starts_with(&tb.kind)) {
+                    continue;
+                }
+                if (lo_s..=hi).any(|v| tb.contains(0, self.cu, v)) {
+                    root.push(format!("{}: width {}", tb.kind, tb.width));
+                }
+            }
             eprintln!(
-                "online tables built in {:.2}s; root reaches [{lo_s}, {hi}]: ascending {root} (best {best_asc:?}), descending {root_desc} (best {best_desc:?})",
-                t.elapsed().as_secs_f64()
+                "{} online tables built in {:.2}s; target [{lo_s}, {hi}]; root reached by [{}]",
+                s.tables.len(),
+                t.elapsed().as_secs_f64(),
+                root.join(", ")
             );
-            s.table = Some(table);
-            s.bands = Some(robust_ss::BandTables::build(
-                &classes,
-                hi,
-                self.cu,
-                &[2, 4, 8, 16, 32, 64],
-            ));
         }
         let out = if lo_s > hi {
             robust_ss::Outcome::Safe
@@ -175,7 +177,7 @@ impl Kip {
     pub fn solve_subset_sum(
         &self,
         node_limit: u64,
-        online: bool,
+        cfg: &SsConfig,
         order: SsOrder,
         max_copies: Option<usize>,
     ) -> SsSolution {
@@ -185,7 +187,7 @@ impl Kip {
         // A restricted follower (at most k copies per class) can only prove
         // safety; try it first since its search is much smaller.
         if let Some(k) = max_copies {
-            let (out, st, _, _) = self.subset_sum_threshold(ub, node_limit, online, order, Some(k));
+            let (out, st, _, _) = self.subset_sum_threshold(ub, node_limit, cfg, order, Some(k));
             nodes += st.nodes;
             rounds += 1;
             if matches!(out, robust_ss::Outcome::Safe) {
@@ -201,7 +203,7 @@ impl Kip {
         loop {
             rounds += 1;
             let (out, st, classes, g) =
-                self.subset_sum_threshold(ub, node_limit, online, order, None);
+                self.subset_sum_threshold(ub, node_limit, cfg, order, None);
             nodes += st.nodes;
             match out {
                 robust_ss::Outcome::Safe => {
@@ -232,6 +234,32 @@ impl Kip {
                     x = nx;
                 }
             }
+        }
+    }
+}
+
+/// Options of the subset-sum search.
+#[derive(Clone, Debug)]
+pub struct SsConfig {
+    /// Build and use the robust online tables.
+    pub online: bool,
+    pub tables: robust_ss::TableConfig,
+    /// Memory allowance of the safe-state cache, in MiB.
+    pub cache_mb: usize,
+    /// Progress line every this many nodes (0: none).
+    pub progress_every: u64,
+    /// See `robust_ss::Search::node_order`.
+    pub node_order: Option<String>,
+}
+
+impl Default for SsConfig {
+    fn default() -> Self {
+        SsConfig {
+            online: true,
+            tables: robust_ss::TableConfig::default(),
+            cache_mb: 1024,
+            progress_every: 0,
+            node_order: Some("ratioasc".into()),
         }
     }
 }

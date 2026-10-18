@@ -1,5 +1,5 @@
 use bobi::{
-    kip::{Kip, SsOrder},
+    kip::{Kip, SsConfig, SsOrder},
     mps,
     robust_ss::Outcome,
     solution::SolutionFile,
@@ -171,6 +171,8 @@ enum Cmd {
         /// Write solution files (BOBILib format) for solved instances here.
         #[arg(long)]
         out: Option<PathBuf>,
+        #[command(flatten)]
+        ss: SsOpts,
     },
     /// Subset-sum knapsack interdiction: can the leader hold the follower below LO?
     Ss {
@@ -188,7 +190,68 @@ enum Cmd {
         /// Limit the follower to this many copies per weight (proves safety only).
         #[arg(long)]
         max_copies: Option<usize>,
+        #[command(flatten)]
+        ss: SsOpts,
     },
+}
+
+/// Options of the subset-sum search's pruning rules.
+#[derive(clap::Args, Clone, Debug)]
+struct SsOpts {
+    /// Widths of the robust tables in the search order (1 is the online table H).
+    #[arg(long, value_delimiter = ',', default_values_t = SsConfig::default().tables.widths)]
+    widths: Vec<usize>,
+    /// Use every width 1..=N for the search-order tables (overrides --widths).
+    #[arg(long)]
+    all_widths: Option<usize>,
+    /// Use every width 1..=N for the descending tables (overrides --desc-widths).
+    #[arg(long)]
+    all_desc_widths: Option<usize>,
+    /// Memory allowance of the safe-state cache, in MiB.
+    #[arg(long, default_value_t = SsConfig::default().cache_mb)]
+    cache_mb: usize,
+    /// Print a progress line every this many nodes (0: never).
+    #[arg(long, default_value_t = 0)]
+    progress: u64,
+    /// Play order of the per-node robust tables (base: the node's decided sums), or "none".
+    #[arg(long, default_value = "ratioasc")]
+    node_order: String,
+    /// Another play order for robust tables (see robust_ss::play_order), with --extra-widths.
+    #[arg(long)]
+    extra_kind: Vec<String>,
+    /// Widths for each --extra-kind, as 1/2/4 (one group per kind).
+    #[arg(long)]
+    extra_widths: Vec<String>,
+    /// Widths of the robust tables that play the undecided classes from the largest down.
+    #[arg(long, value_delimiter = ',')]
+    desc_widths: Vec<usize>,
+}
+
+impl SsOpts {
+    fn config(&self, online: bool) -> SsConfig {
+        let mut c = SsConfig {
+            online,
+            cache_mb: self.cache_mb,
+            progress_every: self.progress,
+            node_order: (self.node_order != "none").then(|| self.node_order.clone()),
+            ..SsConfig::default()
+        };
+        c.tables.widths = match self.all_widths {
+            Some(n) => (1..=n).collect(),
+            None => self.widths.clone(),
+        };
+        c.tables.extra = self
+            .extra_kind
+            .iter()
+            .zip(&self.extra_widths)
+            .map(|(k, w)| (k.clone(), w.split('/').map(|x| x.parse().unwrap()).collect()))
+            .collect();
+        c.tables.desc_widths = match self.all_desc_widths {
+            Some(n) => (1..=n).collect(),
+            None => self.desc_widths.clone(),
+        };
+        c
+    }
 }
 
 fn instances(dir: &Path) -> Vec<PathBuf> {
@@ -746,7 +809,9 @@ fn main() {
             order,
             max_copies,
             out,
+            ss,
         } => {
+            let cfg = ss.config(true);
             for path in files {
                 let m = mps::read_instance(&path).unwrap_or_else(|e| panic!("{e}"));
                 let pi = structure::packing_interdiction(&m).unwrap_or_else(|e| panic!("{e}"));
@@ -756,7 +821,7 @@ fn main() {
                     continue;
                 }
                 let t = Instant::now();
-                let s = k.solve_subset_sum(node_limit, true, order, max_copies);
+                let s = k.solve_subset_sum(node_limit, &cfg, order, max_copies);
                 println!(
                     "{}\t{}\t{}\tnodes={}\trounds={}\t{:.2}s",
                     m.name,
@@ -788,7 +853,9 @@ fn main() {
             online,
             order,
             max_copies,
+            ss,
         } => {
+            let cfg = ss.config(online);
             let m = mps::read_instance(&path).unwrap_or_else(|e| panic!("{e}"));
             let pi = structure::packing_interdiction(&m).unwrap_or_else(|e| panic!("{e}"));
             let k = Kip::from_packing(&pi).expect("not a single-row knapsack interdiction");
@@ -797,7 +864,7 @@ fn main() {
             let lo = lo.unwrap_or(greedy);
             let t = Instant::now();
             let (out, st, classes, g) =
-                k.subset_sum_threshold(lo, node_limit, online, order, max_copies);
+                k.subset_sum_threshold(lo, node_limit, &cfg, order, max_copies);
             let verdict = match &out {
                 Outcome::Safe => "SAFE (follower always reaches the threshold)".to_string(),
                 Outcome::Blocking(r) => format!("BLOCKED by deleting {:?}", r),
