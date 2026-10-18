@@ -209,6 +209,78 @@ impl PackingInterdiction {
         }
     }
 
+    /// First-improvement local search on the leader's choice: add an item
+    /// the follower uses, or swap a blocked item for one the follower uses,
+    /// keeping every budget satisfied. Needs a fast (single-knapsack)
+    /// follower to be practical.
+    pub fn local_search(
+        &self,
+        x: &[bool],
+        time_limit: f64,
+        follower_time: f64,
+    ) -> (Vec<bool>, FollowerResult) {
+        let start = Instant::now();
+        let n = self.n;
+        let mut x = x.to_vec();
+        let mut cur = self.follower(&x, follower_time);
+        let used = |x: &[bool]| -> Vec<i64> {
+            self.lead_w
+                .iter()
+                .map(|w| (0..n).filter(|&j| x[j]).map(|j| w[j]).sum())
+                .collect()
+        };
+        'outer: loop {
+            if start.elapsed().as_secs_f64() > time_limit || !cur.proven {
+                break;
+            }
+            let u = used(&x);
+            let fits = |add: usize, drop: Option<usize>| {
+                self.lead_w
+                    .iter()
+                    .zip(&self.lead_cap)
+                    .zip(&u)
+                    .all(|((w, &c), &uu)| uu + w[add] - drop.map_or(0, |d| w[d]) <= c)
+            };
+            // Items the follower takes, most profitable first.
+            let mut targets: Vec<usize> = (0..n).filter(|&j| cur.y[j]).collect();
+            targets.sort_by_key(|&j| std::cmp::Reverse(self.profit[j]));
+            let mut blocked: Vec<usize> = (0..n).filter(|&j| x[j]).collect();
+            blocked.sort_by_key(|&j| self.profit[j]);
+            for &a in &targets {
+                if fits(a, None) {
+                    x[a] = true;
+                    let f = self.follower(&x, follower_time);
+                    if f.proven && f.value < cur.value {
+                        cur = f;
+                        continue 'outer;
+                    }
+                    x[a] = false;
+                }
+            }
+            for &a in &targets {
+                for &d in &blocked {
+                    if start.elapsed().as_secs_f64() > time_limit {
+                        break 'outer;
+                    }
+                    if !fits(a, Some(d)) {
+                        continue;
+                    }
+                    x[a] = true;
+                    x[d] = false;
+                    let f = self.follower(&x, follower_time);
+                    if f.proven && f.value < cur.value {
+                        cur = f;
+                        continue 'outer;
+                    }
+                    x[a] = false;
+                    x[d] = true;
+                }
+            }
+            break;
+        }
+        (x, cur)
+    }
+
     /// The leader blocks as much profit as its budgets allow.
     pub fn greedy_leader(&self, time_limit: f64) -> Vec<bool> {
         let n = self.n;
@@ -352,4 +424,73 @@ impl PackingInterdiction {
             seconds: start.elapsed().as_secs_f64(),
         }
     }
+}
+
+/// Weninger and Fukasawa's online-relaxation lower bound, generalised to
+/// several leader budgets and large integer data by two relaxations that
+/// keep it a valid lower bound:
+///
+/// * the leader's rows are merged into one surrogate row with multipliers
+///   `mu` (any leader choice feasible for all rows is feasible for the
+///   merged row), with merged costs rounded down and the merged capacity
+///   rounded up after scaling by `su`;
+/// * the follower's weights are rounded up and its capacity down after
+///   scaling by `sl`, which only shrinks what the follower can pack.
+///
+/// Items are processed in decreasing follower efficiency. Returns the root
+/// value omega(1, B', C').
+pub fn omega_root(pi: &PackingInterdiction, mu: &[f64], su: f64, sl: f64) -> i64 {
+    assert_eq!(pi.foll_w.len(), 1, "single follower knapsack only");
+    let n = pi.n;
+    let w = &pi.foll_w[0];
+    let mut order: Vec<usize> = (0..n).filter(|&j| pi.profit[j] > 0).collect();
+    order.sort_by(|&a, &b| {
+        crate::kp::eff_cmp(pi.profit[a], w[a], pi.profit[b], w[b])
+            .then(pi.profit[b].cmp(&pi.profit[a]))
+    });
+    let agg: Vec<f64> = (0..n)
+        .map(|j| {
+            pi.lead_w
+                .iter()
+                .zip(mu)
+                .map(|(r, &m)| m * r[j] as f64)
+                .sum()
+        })
+        .collect();
+    let cap_agg: f64 = pi
+        .lead_cap
+        .iter()
+        .zip(mu)
+        .map(|(&c, &m)| m * c as f64)
+        .sum();
+    let bu = (cap_agg * su).ceil() as usize;
+    let cl = ((pi.foll_cap[0] as f64) * sl).floor() as usize;
+    let wu: Vec<usize> = (0..n).map(|j| (agg[j] * su).floor() as usize).collect();
+    let wl: Vec<usize> = (0..n)
+        .map(|j| ((w[j] as f64) * sl).ceil() as usize)
+        .collect();
+    let (nb, nc) = (bu + 1, cl + 1);
+    // next[b * nc + c] = omega(i + 1, b, c); start with omega(n + 1, ., .) = 0.
+    let mut next = vec![0i64; nb * nc];
+    let mut cur = vec![0i64; nb * nc];
+    for &j in order.iter().rev() {
+        let (u, l, p) = (wu[j], wl[j], pi.profit[j]);
+        for b in 0..nb {
+            for c in 0..nc {
+                let skip = next[b * nc + c];
+                let follower = if l <= c {
+                    skip.max(next[b * nc + c - l] + p)
+                } else {
+                    skip
+                };
+                cur[b * nc + c] = if u <= b {
+                    follower.min(next[(b - u) * nc + c])
+                } else {
+                    follower
+                };
+            }
+        }
+        std::mem::swap(&mut cur, &mut next);
+    }
+    next[bu * nc + cl]
 }

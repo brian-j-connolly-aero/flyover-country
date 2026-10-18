@@ -1,4 +1,10 @@
-use bobi::{kip::Kip, mps, robust_ss::Outcome, solution::SolutionFile, structure};
+use bobi::{
+    kip::{Kip, SsOrder},
+    mps,
+    robust_ss::Outcome,
+    solution::SolutionFile,
+    structure,
+};
 use clap::{Parser, Subcommand};
 use rayon::prelude::*;
 use std::path::{Path, PathBuf};
@@ -37,15 +43,28 @@ enum Cmd {
         files: Vec<PathBuf>,
         #[arg(long, default_value_t = 300.0)]
         time: f64,
+        /// Seconds of local search from the bracket's leader choice.
+        #[arg(long, default_value_t = 0.0)]
+        ls_time: f64,
         /// Write certified feasible points here (BOBILib solution format).
         #[arg(long)]
         out: Option<PathBuf>,
+    },
+    /// Root online-relaxation bound with merged leader rows and scaling.
+    Omega {
+        mps: PathBuf,
+        #[arg(long, default_value_t = 2000)]
+        bu: usize,
+        #[arg(long, default_value_t = 4000)]
+        cl: usize,
     },
     /// Solve subset-sum knapsack interdiction instances exactly.
     SsSolve {
         files: Vec<PathBuf>,
         #[arg(long, default_value_t = 200_000_000)]
         node_limit: u64,
+        #[arg(long, value_enum, default_value_t = SsOrder::Ascending)]
+        order: SsOrder,
     },
     /// Subset-sum knapsack interdiction: can the leader hold the follower below LO?
     Ss {
@@ -58,6 +77,8 @@ enum Cmd {
         /// Also prune with the robust online table.
         #[arg(long)]
         online: bool,
+        #[arg(long, value_enum, default_value_t = SsOrder::Ascending)]
+        order: SsOrder,
     },
 }
 
@@ -138,14 +159,27 @@ fn main() {
                 );
             }
         }
-        Cmd::LpBound { files, time, out } => {
+        Cmd::LpBound {
+            files,
+            time,
+            ls_time,
+            out,
+        } => {
             for path in files {
                 let m = mps::read_instance(&path).unwrap_or_else(|e| panic!("{e}"));
                 let pi = structure::packing_interdiction(&m).unwrap_or_else(|e| panic!("{e}"));
                 let t = Instant::now();
                 match pi.lp_follower_bound(time, time) {
                     None => println!("{}\tNA", m.name),
-                    Some(b) => {
+                    Some(mut b) => {
+                        if ls_time > 0.0 && b.follower_proven {
+                            let (x, f) = pi.local_search(&b.x, ls_time, time);
+                            if f.proven && f.value < b.value_at_x {
+                                b.x = x;
+                                b.y = f.y;
+                                b.value_at_x = f.value;
+                            }
+                        }
                         let pmax = *pi.profit.iter().max().unwrap();
                         let lb = (b.min_lp - (pi.foll_w.len() as i64 * pmax) as f64).max(0.0);
                         println!(
@@ -165,7 +199,35 @@ fn main() {
                 }
             }
         }
-        Cmd::SsSolve { files, node_limit } => {
+        Cmd::Omega { mps: path, bu, cl } => {
+            let m = mps::read_instance(&path).unwrap_or_else(|e| panic!("{e}"));
+            let pi = structure::packing_interdiction(&m).unwrap_or_else(|e| panic!("{e}"));
+            // Normalise each leader row by its capacity.
+            let mu: Vec<f64> = pi.lead_cap.iter().map(|&c| 1.0 / c.max(1) as f64).collect();
+            let cap: f64 = pi
+                .lead_cap
+                .iter()
+                .zip(&mu)
+                .map(|(&c, &m)| m * c as f64)
+                .sum();
+            let su = bu as f64 / cap;
+            let sl = cl as f64 / pi.foll_cap[0] as f64;
+            let t = Instant::now();
+            let v = bobi::mkip::omega_root(&pi, &mu, su, sl);
+            println!(
+                "{}\tomega_root={}\tbu={}\tcl={}\t{:.1}s",
+                m.name,
+                v,
+                bu,
+                cl,
+                t.elapsed().as_secs_f64()
+            );
+        }
+        Cmd::SsSolve {
+            files,
+            node_limit,
+            order,
+        } => {
             for path in files {
                 let m = mps::read_instance(&path).unwrap_or_else(|e| panic!("{e}"));
                 let pi = structure::packing_interdiction(&m).unwrap_or_else(|e| panic!("{e}"));
@@ -175,7 +237,7 @@ fn main() {
                     continue;
                 }
                 let t = Instant::now();
-                let s = k.solve_subset_sum(node_limit, true);
+                let s = k.solve_subset_sum(node_limit, true, order);
                 println!(
                     "{}\t{}\t{}\tnodes={}\trounds={}\t{:.2}s",
                     m.name,
@@ -192,6 +254,7 @@ fn main() {
             lo,
             node_limit,
             online,
+            order,
         } => {
             let m = mps::read_instance(&path).unwrap_or_else(|e| panic!("{e}"));
             let pi = structure::packing_interdiction(&m).unwrap_or_else(|e| panic!("{e}"));
@@ -200,7 +263,7 @@ fn main() {
             let (_, greedy) = k.greedy();
             let lo = lo.unwrap_or(greedy);
             let t = Instant::now();
-            let (out, st, classes, g) = k.subset_sum_threshold(lo, node_limit, online);
+            let (out, st, classes, g) = k.subset_sum_threshold(lo, node_limit, online, order);
             let verdict = match &out {
                 Outcome::Safe => "SAFE (follower always reaches the threshold)".to_string(),
                 Outcome::Blocking(r) => format!("BLOCKED by deleting {:?}", r),

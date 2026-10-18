@@ -95,9 +95,11 @@ impl Kip {
         lo: i64,
         node_limit: u64,
         online: bool,
+        order: SsOrder,
     ) -> (robust_ss::Outcome, robust_ss::Stats, Vec<Class>, i64) {
         assert!(self.is_subset_sum());
-        let (classes, g) = self.subset_sum_classes();
+        let (mut classes, g) = self.subset_sum_classes();
+        order_classes(&mut classes, order);
         let hi = (self.cl / g) as usize;
         let lo_s = ((lo + g - 1) / g) as usize;
         let mut s = robust_ss::Search::new(&classes, lo_s.min(hi + 1), hi);
@@ -106,8 +108,15 @@ impl Kip {
             let t = std::time::Instant::now();
             let table = robust_ss::RobustTable::build(&classes, hi, self.cu);
             let root = (lo_s..=hi).any(|v| table.contains(0, self.cu, v));
+            let mut rev = classes.clone();
+            rev.reverse();
+            let desc = robust_ss::RobustTable::build(&rev, hi, self.cu);
+            let root_desc = (lo_s..=hi).any(|v| desc.contains(0, self.cu, v));
+            // Largest target the descending online game still guarantees.
+            let best_desc = (0..=hi).rev().find(|&v| desc.contains(0, self.cu, v));
+            let best_asc = (0..=hi).rev().find(|&v| table.contains(0, self.cu, v));
             eprintln!(
-                "online table built in {:.2}s; root online bound reaches threshold: {root}",
+                "online tables built in {:.2}s; root reaches [{lo_s}, {hi}]: ascending {root} (best {best_asc:?}), descending {root_desc} (best {best_desc:?})",
                 t.elapsed().as_secs_f64()
             );
             s.table = Some(table);
@@ -153,13 +162,13 @@ impl Kip {
 
     /// Exact solve of a subset-sum KIP: prove the incumbent or find a leader
     /// choice that beats it, until the threshold search proves optimality.
-    pub fn solve_subset_sum(&self, node_limit: u64, online: bool) -> SsSolution {
+    pub fn solve_subset_sum(&self, node_limit: u64, online: bool, order: SsOrder) -> SsSolution {
         let (mut x, mut ub) = self.greedy();
         let mut nodes = 0;
         let mut rounds = 0;
         loop {
             rounds += 1;
-            let (out, st, classes, g) = self.subset_sum_threshold(ub, node_limit, online);
+            let (out, st, classes, g) = self.subset_sum_threshold(ub, node_limit, online, order);
             nodes += st.nodes;
             match out {
                 robust_ss::Outcome::Safe => {
@@ -190,6 +199,27 @@ impl Kip {
                     x = nx;
                 }
             }
+        }
+    }
+}
+
+/// Order in which the subset-sum search decides classes.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, clap::ValueEnum)]
+pub enum SsOrder {
+    /// Smallest follower weight first.
+    Ascending,
+    /// Largest follower weight first.
+    Descending,
+    /// Classes that cost the leader most to delete entirely first.
+    Cost,
+}
+
+pub fn order_classes(classes: &mut [Class], order: SsOrder) {
+    match order {
+        SsOrder::Ascending => classes.sort_by_key(|c| c.value),
+        SsOrder::Descending => classes.sort_by_key(|c| std::cmp::Reverse(c.value)),
+        SsOrder::Cost => {
+            classes.sort_by_key(|c| (std::cmp::Reverse(c.costs.iter().sum::<i64>()), c.value))
         }
     }
 }

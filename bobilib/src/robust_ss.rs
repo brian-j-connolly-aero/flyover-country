@@ -50,6 +50,8 @@ pub struct Stats {
     pub safe_online: u64,
     pub cache_hits: u64,
     pub leaves: u64,
+    /// Nodes per depth (class index).
+    pub depth: Vec<u64>,
 }
 
 /// A bitset of reachable sums `0..=hi`.
@@ -201,11 +203,17 @@ pub struct Search<'a> {
     hi: usize,
     pub stats: Stats,
     pub node_limit: u64,
+    /// Memory allowance for the safe-state cache, in bytes.
+    pub cache_bytes: usize,
     /// Safe states: (depth, reachable sums) -> largest budget proven safe.
     cache: HashMap<(usize, Sums), i64>,
     choice: Vec<usize>,
-    /// cover[k][t - k - 1]: copies of classes k..t sorted by cost per value,
-    /// as cumulative (mass, cost), for fractional deletion bounds.
+    /// sorted[k]: the undecided classes k.. (search order) by ascending value.
+    sorted: Vec<Vec<usize>>,
+    /// before[k][i]: total value of the first i classes of sorted[k].
+    before: Vec<Vec<f64>>,
+    /// cover[k][i]: copies of the first i + 1 classes of sorted[k], sorted by
+    /// cost per value, as cumulative (mass, cost) for fractional bounds.
     cover: Vec<Vec<Cumulative>>,
     /// mass[k] = total value of classes k.. (all copies).
     mass: Vec<f64>,
@@ -253,18 +261,28 @@ impl Cumulative {
 }
 
 impl<'a> Search<'a> {
-    /// `classes` should be sorted by ascending value.
+    /// `classes` are taken in the given order (the search order): depth k
+    /// decides class k. Any order is valid.
     pub fn new(classes: &'a [Class], lo: usize, hi: usize) -> Self {
         let m = classes.len();
         let mut cover = Vec::with_capacity(m);
+        let mut sorted = Vec::with_capacity(m);
+        let mut before = Vec::with_capacity(m);
         for k in 0..m {
+            let mut idx: Vec<usize> = (k..m).collect();
+            idx.sort_by_key(|&i| classes[i].value);
             let mut copies: Vec<(f64, f64)> = Vec::new();
             let mut row = Vec::with_capacity(m - k);
-            for c in &classes[k..] {
+            let mut bm = vec![0.0];
+            for &i in &idx {
+                let c = &classes[i];
                 copies.extend(c.costs.iter().map(|&x| (x as f64, c.value as f64)));
                 row.push(Cumulative::build(&mut copies.clone()));
+                bm.push(bm.last().unwrap() + (c.value * c.costs.len()) as f64);
             }
             cover.push(row);
+            sorted.push(idx);
+            before.push(bm);
         }
         let mut mass = vec![0.0; m + 1];
         for k in (0..m).rev() {
@@ -276,8 +294,11 @@ impl<'a> Search<'a> {
             hi,
             stats: Stats::default(),
             node_limit: u64::MAX,
+            cache_bytes: 3 << 30,
             cache: HashMap::new(),
             choice: vec![0; classes.len()],
+            sorted,
+            before,
             cover,
             mass,
             table: None,
@@ -335,19 +356,21 @@ impl<'a> Search<'a> {
 
     /// Sufficient condition for safety from a contiguous window of reachable
     /// sums [a, b] of width w = b - a + 1. Adding a copy of value v <= w
-    /// makes [a, b + v] reachable. Taking later classes in ascending order,
+    /// makes [a, b + v] reachable. Taking the undecided classes in ascending
+    /// value order (whatever the search order),
     /// the window keeps growing unless it *stalls*: reaches a class whose
     /// value exceeds the current width. Stalling at class u needs the leader
-    /// to delete at least D_u = mass(k..u) - v_u + w + 1 of the mass before
+    /// to delete at least D_u = (undecided mass below u) - v_u + w + 1 of the mass before
     /// u; if even the fractional (cheapest per unit) cost of that exceeds the
     /// budget for every u, no stall is possible and the window reaches
     /// b + (future mass - most mass the leader can delete).
     fn window_safe(&self, k: usize, budget: i64, sums: &Sums) -> bool {
-        let m = self.classes.len();
-        let vk = self.classes[k].value;
+        let order = &self.sorted[k];
+        let vk = self.classes[order[0]].value;
         let b_budget = budget as f64;
         let future = self.mass[k] - self.max_del[k][budget.max(0) as usize] as f64;
-        // Maximal runs [a, b] of width >= v_k, scanned from the top down.
+        // Maximal runs [a, b] of width >= the smallest undecided value,
+        // scanned from the top down.
         let mut runs: Vec<(usize, usize)> = Vec::new();
         let mut i = 0;
         while i <= self.hi {
@@ -369,17 +392,17 @@ impl<'a> Search<'a> {
             }
             let w = (b - a + 1) as f64;
             let mut stallable = false;
-            for u in k..m {
-                let before = self.mass[k] - self.mass[u];
+            for (pos, &u) in order.iter().enumerate() {
+                let before = self.before[k][pos];
                 let d = before - self.classes[u].value as f64 + w + 1.0;
                 if d <= 0.0 {
                     stallable = true;
                     break;
                 }
-                if u == k {
-                    continue; // nothing before class k to delete
+                if pos == 0 {
+                    continue; // nothing smaller to delete
                 }
-                if self.cover[k][u - k - 1].min_cost(d) <= b_budget {
+                if self.cover[k][pos - 1].min_cost(d) <= b_budget {
                     stallable = true;
                     break;
                 }
@@ -395,6 +418,10 @@ impl<'a> Search<'a> {
     /// (left in `self.choice`), None on the node limit.
     fn node(&mut self, k: usize, budget: i64, sums: &Sums) -> Option<bool> {
         self.stats.nodes += 1;
+        if self.stats.depth.len() <= k {
+            self.stats.depth.resize(k + 1, 0);
+        }
+        self.stats.depth[k] += 1;
         if self.stats.nodes > self.node_limit {
             return None;
         }
@@ -464,8 +491,16 @@ impl<'a> Search<'a> {
     }
 
     fn remember(&mut self, k: usize, sums: &Sums, budget: i64) {
-        let e = self.cache.entry((k, sums.clone())).or_insert(i64::MIN);
-        *e = (*e).max(budget);
+        if let Some(e) = self.cache.get_mut(&(k, sums.clone())) {
+            *e = (*e).max(budget);
+            return;
+        }
+        // Keep the cache within its memory allowance; past that, new safe
+        // states are simply not remembered (pruning stays sound).
+        let entry_bytes = sums.0.len() * 8 + 64;
+        if (self.cache.len() + 1) * entry_bytes <= self.cache_bytes {
+            self.cache.insert((k, sums.clone()), budget);
+        }
     }
 }
 
@@ -547,6 +582,11 @@ mod tests {
             let lo = hi.saturating_sub(rnd(3) as usize);
             let budget = rnd(40) as i64;
             let expect = brute(&classes, lo, hi, budget);
+            // Any search order is valid: test a rotated one on some rounds.
+            if round % 3 == 2 {
+                let r = rnd(classes.len() as u64) as usize;
+                classes.rotate_left(r);
+            }
             let mut s = Search::new(&classes, lo, hi);
             if round % 2 == 1 {
                 s.table = Some(RobustTable::build(&classes, hi, budget));
