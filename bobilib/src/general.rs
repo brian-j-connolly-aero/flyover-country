@@ -231,3 +231,117 @@ pub fn follower_unbounded_ray(m: &Bilevel, time_limit: f64) -> Option<(Vec<f64>,
     }
     Some((d, r.obj))
 }
+
+/// Exact optimum of a bilevel instance whose *linking* leader variables
+/// (those in follower rows) are few and binary, by enumerating them. For
+/// each linking pattern z: the follower's optimum phi(z) (z fixes the
+/// follower's problem completely), then one MILP over the remaining leader
+/// variables and the follower variables with every row and the follower
+/// objective at most phi(z): the optimistic best for that pattern. Follower
+/// objectives are assumed integral (rounded), as in BOBILib's generalized
+/// interdiction set. Returns the best (upper objective, point) and how many
+/// patterns admit a bilevel feasible point.
+pub fn enumerate_linking(
+    m: &Bilevel,
+    follower_time: f64,
+    threads: usize,
+) -> Option<(f64, Vec<f64>, u64)> {
+    use rayon::prelude::*;
+    let in_follower_rows = |j: usize| {
+        m.rows
+            .iter()
+            .any(|r| r.lower && r.coefs.iter().any(|&(k, _)| k == j))
+    };
+    let link: Vec<usize> = (0..m.vars.len())
+        .filter(|&j| !m.vars[j].lower && in_follower_rows(j))
+        .collect();
+    assert!(
+        link.len() <= 26,
+        "too many linking variables to enumerate ({})",
+        link.len()
+    );
+    assert!(
+        link.iter()
+            .all(|&j| m.vars[j].integer && m.vars[j].lb == 0.0 && m.vars[j].ub == 1.0),
+        "linking variables must be binary"
+    );
+    let total = 1u64 << link.len();
+    let pool = rayon::ThreadPoolBuilder::new()
+        .num_threads(threads)
+        .build()
+        .unwrap();
+    let eval = |mask: u64| -> Option<(f64, Vec<f64>)> {
+        let mut val = vec![0.0; m.vars.len()];
+        for (b, &j) in link.iter().enumerate() {
+            val[j] = (mask >> b & 1) as f64;
+        }
+        let (fp, _) = follower_problem(m, &val, false, false);
+        let f = fp.solve(follower_time, 1);
+        if f.status != MilpStatus::Optimal {
+            return None;
+        }
+        let phi = f.obj.round();
+        // Joint optimistic MILP over free leader variables and the follower.
+        let mut mp = Milp::new(false);
+        let mut col = vec![usize::MAX; m.vars.len()];
+        for (j, v) in m.vars.iter().enumerate() {
+            if v.lower || !link.contains(&j) {
+                col[j] = mp.add_var(v.obj, v.lb, v.ub, v.integer);
+            }
+        }
+        for r in &m.rows {
+            let fixed: f64 = r
+                .coefs
+                .iter()
+                .filter(|&&(j, _)| col[j] == usize::MAX)
+                .map(|&(j, c)| c * val[j])
+                .sum();
+            let coefs: Vec<(usize, f64)> = r
+                .coefs
+                .iter()
+                .filter(|&&(j, _)| col[j] != usize::MAX)
+                .map(|&(j, c)| (col[j], c))
+                .collect();
+            if coefs.is_empty() {
+                if r.lo - 1e-9 > fixed || fixed > r.hi + 1e-9 {
+                    return None;
+                }
+                continue;
+            }
+            mp.add_row(coefs, r.lo - fixed, r.hi - fixed);
+        }
+        let ll: Vec<(usize, f64)> = m
+            .vars
+            .iter()
+            .enumerate()
+            .filter(|(_, v)| v.lower && v.ll_obj != 0.0)
+            .map(|(j, v)| (col[j], v.ll_obj))
+            .collect();
+        mp.add_row(ll, f64::NEG_INFINITY, phi + 0.5);
+        let t = mp.solve(follower_time, 1);
+        if t.status != MilpStatus::Optimal {
+            return None;
+        }
+        for j in 0..m.vars.len() {
+            if col[j] != usize::MAX {
+                val[j] = t.x[col[j]];
+            }
+        }
+        integer_round(m, &mut val);
+        Some((m.upper_obj(&val), val))
+    };
+    let found = std::sync::atomic::AtomicU64::new(0);
+    let best = pool.install(|| {
+        (0..total)
+            .into_par_iter()
+            .filter_map(|mask| {
+                let r = eval(mask);
+                if r.is_some() {
+                    found.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                }
+                r
+            })
+            .min_by(|a, b| a.0.partial_cmp(&b.0).unwrap())
+    });
+    best.map(|(v, x)| (v, x, found.into_inner()))
+}

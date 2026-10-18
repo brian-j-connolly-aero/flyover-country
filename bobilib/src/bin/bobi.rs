@@ -89,8 +89,23 @@ enum Cmd {
         #[arg(long)]
         out: Option<PathBuf>,
     },
+    /// Exact optimum by enumerating every pattern of the binary linking variables.
+    Enumerate {
+        mps: PathBuf,
+        #[arg(long, default_value_t = 60.0)]
+        follower_time: f64,
+        #[arg(long, default_value_t = 1)]
+        threads: usize,
+        #[arg(long)]
+        out: Option<PathBuf>,
+    },
     /// Certify that the follower is unbounded for every leader choice.
-    Ray { files: Vec<PathBuf> },
+    Ray {
+        files: Vec<PathBuf>,
+        /// Write each direction as JSON {variable: value} into this directory.
+        #[arg(long)]
+        out: Option<PathBuf>,
+    },
     /// Root online-relaxation bound with merged leader rows and scaling.
     Omega {
         mps: PathBuf,
@@ -112,6 +127,9 @@ enum Cmd {
         /// First try a follower limited to this many copies per weight.
         #[arg(long)]
         max_copies: Option<usize>,
+        /// Write solution files (BOBILib format) for solved instances here.
+        #[arg(long)]
+        out: Option<PathBuf>,
     },
     /// Subset-sum knapsack interdiction: can the leader hold the follower below LO?
     Ss {
@@ -157,7 +175,31 @@ fn instances(dir: &Path) -> Vec<PathBuf> {
 fn main() {
     let cli = Cli::parse();
     match cli.cmd {
-        Cmd::Ray { files } => {
+        Cmd::Enumerate {
+            mps: path,
+            follower_time,
+            threads,
+            out,
+        } => {
+            let m = mps::read_instance(&path).unwrap_or_else(|e| panic!("{e}"));
+            let t = Instant::now();
+            match bobi::general::enumerate_linking(&m, follower_time, threads) {
+                None => println!("{}\tno bilevel feasible leader choice", m.name),
+                Some((v, val, feasible)) => {
+                    println!(
+                        "{}\tOPTIMAL\t{v}\tfeasible_leader_choices={feasible}\t{:.1}s",
+                        m.name,
+                        t.elapsed().as_secs_f64()
+                    );
+                    if let Some(dir) = out {
+                        SolutionFile::from_values(&m, "optimal", &val)
+                            .write(&dir.join(format!("{}.res.json", m.name)))
+                            .unwrap();
+                    }
+                }
+            }
+        }
+        Cmd::Ray { files, out } => {
             for path in files {
                 let m = mps::read_instance(&path).unwrap_or_else(|e| panic!("{e}"));
                 match bobi::general::follower_unbounded_ray(&m, 300.0) {
@@ -165,6 +207,20 @@ fn main() {
                     Some((d, val)) => {
                         let support = d.iter().filter(|x| x.abs() > 1e-9).count();
                         println!("{}\tfollower unbounded: direction with objective {val:.4} on {support} variables", m.name);
+                        if let Some(dir) = &out {
+                            let map: serde_json::Map<String, serde_json::Value> = m
+                                .vars
+                                .iter()
+                                .zip(&d)
+                                .filter(|(_, x)| **x != 0.0)
+                                .map(|(v, &x)| (v.name.clone(), serde_json::Value::from(x)))
+                                .collect();
+                            std::fs::write(
+                                dir.join(format!("{}.ray.json", m.name)),
+                                serde_json::to_string(&map).unwrap(),
+                            )
+                            .unwrap();
+                        }
                     }
                 }
             }
@@ -320,6 +376,7 @@ fn main() {
             node_limit,
             order,
             max_copies,
+            out,
         } => {
             for path in files {
                 let m = mps::read_instance(&path).unwrap_or_else(|e| panic!("{e}"));
@@ -340,6 +397,19 @@ fn main() {
                     s.rounds,
                     t.elapsed().as_secs_f64()
                 );
+                if let Some(dir) = &out {
+                    let f = k.follower(&s.x);
+                    assert_eq!(f.value, s.value, "follower value disagrees with the solver");
+                    let mut y = vec![false; k.n];
+                    for &j in &f.take {
+                        y[j] = true;
+                    }
+                    let val = pi.assignment(m.vars.len(), &s.x, &y);
+                    let status = if s.proven { "optimal" } else { "feasible" };
+                    SolutionFile::from_values(&m, status, &val)
+                        .write(&dir.join(format!("{}.res.json", m.name)))
+                        .unwrap();
+                }
             }
         }
         Cmd::Ss {
