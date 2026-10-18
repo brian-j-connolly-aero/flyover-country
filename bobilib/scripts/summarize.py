@@ -13,6 +13,7 @@ Inputs (all optional except --meta; missing ones are skipped):
   results/clique/summary.csv      clique interdiction certificates
   results/general/hpr_optimal.csv general points meeting the HPR bound
   runs/general.jsonl               general feasible points (bobi general)
+  results/general-coupled/summary.csv  feasible points with coupling rows (bobi coupled)
   runs/ray_verify.jsonl            exact unbounded-follower certificates
 """
 import argparse
@@ -119,6 +120,11 @@ def main():
             n = d.get("name")
             if n in status and status[n]["outcome"] is None and d.get("verified") and status[n]["bobilib"] == "open":
                 status[n].update(outcome="feasible", source="this work (HPR, follower, tie-break)")
+    # This work: general feasible points with coupling rows (verified files).
+    for r in load_csv(f"{a.results}/general-coupled/summary.csv"):
+        n = r["name"]
+        if n in status and status[n]["outcome"] is None and r["status"] == "point" and status[n]["bobilib"] == "open":
+            status[n].update(outcome="feasible", source="this work (bobi coupled)")
 
     rows = collections.defaultdict(collections.Counter)
     for n, s in status.items():

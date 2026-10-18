@@ -40,7 +40,8 @@ whole family rather than single instances:
 | Extremal graph theory (Mantel/Turán, Brouwer's stability theorem) | edge clique interdiction | 57 of 60 proven optimal (all 60 unsolved in the literature); optimum 3 or 4 where BOBILib lists 5 to 13 |
 | Recession-ray certificates | general MIPLIB-derived instances | 40 "open" instances have no bilevel feasible point at all (follower unbounded for every leader choice; 38 checked in exact arithmetic) |
 | HPR, follower, optimistic tie-break | general instances without coupling rows, incl. continuous linking variables | feasible points where neither BOBILib solver applies (running) |
-| HPR bound = MIPLIB optimum | general MIPLIB-derived instances | 4 proven optimal (2 of them open, with no point known before) |
+| Search for unblocked leader values (HPR, penalty HPR, best-response dynamics, PADM, value-function and no-good cuts) | open general instances with coupling rows | first verified feasible points for 29 of the 52 attempted (`results/general-coupled/`) |
+| HPR bound = MIPLIB optimum | general MIPLIB-derived instances | 5 proven optimal (3 of them open, with no point known before) |
 | Exhaustive enumeration with exact follower solves | network interdiction trees, generalized interdiction with few linking bits | the 2 non-optimal tree instances certified optimal; a published optimum reproduced |
 
 What stays hard: 6 subset-sum knapsack interdiction instances, most OR
@@ -175,13 +176,24 @@ the arguments.
   follower to optimality and break ties optimistically. This works with
   continuous linking variables, which neither BOBILib solver accepts; no
   per-instance results were published for those 137 instances.
+* **Feasible points with coupling rows.** When leader rows contain
+  follower variables, every follower optimum at the HPR's leader values
+  can violate them. `bobi coupled` certifies or rules out ("blocked") a
+  leader choice with one MILP and searches for an unblocked one. Of 54
+  open candidates (87 minus 23 with an everywhere-unbounded follower and 10
+  over 100,000 variables), 52 were run (300-600 s each, one thread): 29 got
+  their first verified feasible point, 21 at the HPR's own leader values, 5
+  from the penalty HPR (F + rho f) and 3 from best-response dynamics; PADM,
+  interior perturbation and value-function and no-good cuts found none.
+  `results/general-coupled/`.
 * **Optimal at the MIPLIB bound.** The HPR of these instances is the MIPLIB
   problem they were built from (checked in exact arithmetic by
-  `scripts/compare_hpr.py`), so its published optimum is a lower bound. Two
-  open instances, pigeon-10_0_100 (-9,000) and timtab1_0_100 (764,772),
-  get points at that bound from the pipeline above, and BOBILib's own
-  points for noswot_0_100 and noswot_50_50 (-41) already met it. All four
-  are optimal (`results/general/`). neos-950242_0_100 meets its bound too,
+  `scripts/compare_hpr.py`), so its published optimum is a lower bound.
+  Three open instances get points at that bound: pigeon-10_0_100 (-9,000)
+  and timtab1_0_100 (764,772) from the pipeline above, pigeon-10_50_50
+  (-9,000, with coupling rows) from `bobi coupled`. BOBILib's own points
+  for noswot_0_100 and noswot_50_50 (-41) already met it. All five are
+  optimal (`results/general/`). neos-950242_0_100 meets its bound too,
   but an earlier BOBILib release already listed it as optimal.
 
 ## Proofs in Lean

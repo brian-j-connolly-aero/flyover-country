@@ -35,6 +35,38 @@ pub struct MilpResult {
     /// Proven bound on the optimum (upper for max, lower for min).
     pub bound: f64,
     pub x: Vec<f64>,
+    /// Row and column duals of an LP solved to optimality (empty otherwise).
+    pub row_duals: Vec<f64>,
+    pub col_duals: Vec<f64>,
+}
+
+/// Solver settings beyond the time limit.
+#[derive(Clone, Debug)]
+pub struct SolveOpts {
+    pub time_limit: f64,
+    pub threads: i32,
+    pub rel_gap: f64,
+    pub abs_gap: f64,
+    /// Primal and MIP feasibility tolerance; HiGHS's defaults when None.
+    pub feas_tol: Option<f64>,
+    /// Stop after this many improving MIP solutions.
+    pub max_sols: Option<i32>,
+    /// A starting point for the MIP (one value per column).
+    pub start: Option<Vec<f64>>,
+}
+
+impl SolveOpts {
+    pub fn new(time_limit: f64) -> Self {
+        SolveOpts {
+            time_limit,
+            threads: 1,
+            rel_gap: 0.0,
+            abs_gap: 1e-6,
+            feas_tol: None,
+            max_sols: None,
+            start: None,
+        }
+    }
 }
 
 impl Milp {
@@ -62,6 +94,12 @@ impl Milp {
     }
 
     pub fn solve(&self, time_limit: f64, threads: i32) -> MilpResult {
+        let mut o = SolveOpts::new(time_limit);
+        o.threads = threads;
+        self.solve_with(&o)
+    }
+
+    pub fn solve_with(&self, o: &SolveOpts) -> MilpResult {
         let mut pb = RowProblem::new();
         let cols: Vec<_> = (0..self.obj.len())
             .map(|j| {
@@ -84,10 +122,23 @@ impl Milp {
         };
         let mut model = pb.optimise(sense);
         model.make_quiet();
-        model.set_option("time_limit", time_limit);
-        model.set_option("threads", threads);
-        model.set_option("mip_rel_gap", 0.0);
-        model.set_option("mip_abs_gap", 1e-6);
+        model.set_option("time_limit", o.time_limit.max(0.01));
+        model.set_option("threads", o.threads);
+        model.set_option("mip_rel_gap", o.rel_gap);
+        model.set_option("mip_abs_gap", o.abs_gap);
+        if let Some(t) = o.feas_tol {
+            model.set_option("primal_feasibility_tolerance", t);
+            model.set_option("mip_feasibility_tolerance", t);
+        }
+        if let Some(n) = o.max_sols {
+            model.set_option("mip_max_improving_sols", n);
+        }
+        if let Some(start) = &o.start {
+            if start.len() == self.obj.len() {
+                // HiGHS ignores a start it cannot use, so an error is harmless.
+                let _ = model.try_set_solution(Some(start), None, None, None);
+            }
+        }
         // An error (an inconsistent model, say) is reported, not a panic:
         // the verifier runs this on whatever the instance files contain.
         let Ok(solved) = model.try_solve() else {
@@ -96,6 +147,8 @@ impl Milp {
                 obj: f64::NAN,
                 bound: f64::NAN,
                 x: vec![],
+                row_duals: vec![],
+                col_duals: vec![],
             };
         };
         let status = solved.status();
@@ -104,7 +157,14 @@ impl Milp {
         unsafe {
             highs_sys::Highs_getDoubleInfoValue(solved.as_ptr(), key.as_ptr(), &mut bound);
         }
-        let x = solved.get_solution().columns().to_vec();
+        let sol = solved.get_solution();
+        let x = sol.columns().to_vec();
+        let lp = !self.integer.iter().any(|&i| i);
+        let (row_duals, col_duals) = if lp && status == HighsModelStatus::Optimal {
+            (sol.dual_rows().to_vec(), sol.dual_columns().to_vec())
+        } else {
+            (vec![], vec![])
+        };
         let has_x = x.len() == self.obj.len() && x.iter().all(|v| v.is_finite());
         let obj = if has_x {
             self.obj.iter().zip(&x).map(|(c, v)| c * v).sum()
@@ -119,7 +179,7 @@ impl Milp {
             _ if has_x && self.feasible(&x) => MilpStatus::Feasible,
             _ => MilpStatus::Unknown,
         };
-        if status == MilpStatus::Optimal && !bound.is_finite() {
+        if status == MilpStatus::Optimal && (lp || !bound.is_finite()) {
             bound = obj;
         }
         MilpResult {
@@ -127,6 +187,8 @@ impl Milp {
             obj,
             bound,
             x,
+            row_duals,
+            col_duals,
         }
     }
 
