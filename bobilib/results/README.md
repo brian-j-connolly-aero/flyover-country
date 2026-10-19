@@ -33,16 +33,20 @@ BOBILib lists 1,027 instances as optimal, 33 as infeasible,
 
 | Outcome | Instances |
 | --- | ---: |
-| already optimal in published work | 527 |
-| proven optimal here | 81 |
+| already optimal in published work | 528 |
+| proven optimal here | 80 |
 | no bilevel feasible point (proven here) | 40 |
-| first verified point here, where BOBILib has none | 230 |
+| verified point here, where BOBILib has none | 230 |
 | status unchanged | 716 |
 
 So 648 (41%) are settled, 608 of them optimal.
-Every claim is backed by a file in this package: a solution in BOBILib's
+Of the 230 verified points where BOBILib has none, 168 are the first point
+anywhere; for the other 62 a published point existed (named in `notes`).
+Every claim is backed by a file in this package (a solution in BOBILib's
 format that passes BOBILib-style verification, a recession-direction
-certificate, a partition certificate, or a published optimum (cited).
+certificate, a partition certificate) or by a published optimum (cited); for
+82 of the 528 published optima there is no solution file here
+(`verified` = `na`), and only the published value is used.
 
 ## Data
 
@@ -56,15 +60,15 @@ results/
   kip/                  583 knapsack interdiction solutions at published optima (Weninger-Fukasawa)
   ss/                   16 subset-sum knapsack interdiction optima proven here; proofs.csv
   or/                   690 verified points for the 810 OR instances; bounds and compare.csv
-  clique/               60 clique-interdiction certificates, solver logs, independent review
+  clique/               60 clique-interdiction certificates, solver logs, separate review
   network/              36 attack-protect trees certified by enumeration; review
-  rays/                 41 recession directions: the follower is unbounded for every leader choice
+  rays/                 41 recession directions: the follower is infeasible or unbounded for every leader choice
   general/              64 points for MIPLIB-derived instances without coupling rows; HPR-bound optima
   general-coupled/      29 points for MIPLIB-derived instances with coupling rows
 ```
 
 Each folder has its own README with the method, the columns of its tables,
-the commands that produced it and, where one was done, its independent review.
+the commands that produced it and, where one was done, its separate review.
 
 ## File formats
 
@@ -101,7 +105,7 @@ exact solver proofs of w3(G) > k) and the upper bound with its partition.
 | `collection` | BOBILib sub-collection (last directory of the instance path), e.g. `kp`, `or`, `miplib2017` |
 | `family` | `knapsack`, `multidim-knapsack`, `clique`, `network`, `generalized`, `assignment` (interdiction), `general-pure`, `general-mixed` |
 | `bobilib_status`, `bobilib_value` | BOBILib's status and best known objective (empty: none) |
-| `new_status` | `optimal` (proven, published or here), `infeasible_bilevel` (no bilevel feasible point), `feasible` (first verified point; BOBILib had none), `unchanged`, `bobilib_optimal`, `bobilib_infeasible` |
+| `new_status` | `optimal` (proven, published or here), `infeasible_bilevel` (no bilevel feasible point), `feasible` (verified point here; BOBILib had none; `notes` says whether it is the first point anywhere), `unchanged`, `bobilib_optimal`, `bobilib_infeasible` |
 | `primal_value` | best upper-level value backed by a verified solution file (this package or BOBILib's) or a published optimum |
 | `dual_bound` | best proven lower bound (the upper level is minimised), if any |
 | `source` | citation key of the published result (see below), `this work`, or `ThuraufEtAl2026` (BOBILib's own value) |
@@ -154,21 +158,30 @@ D=data/collection
 mkdir -p /tmp/large && tar xzf results/general/large_points.tar.gz -C /tmp/large
 ./target/release/bobi verify --instances $D --generic /tmp/large
 python3 -I scripts/verify_ray.py INSTANCE.mps.gz INSTANCE.aux results/rays/INSTANCE.ray.json
-python3 -I scripts/ss_check.py INSTANCE.mps.gz INSTANCE.aux - OPTIMUM   # independent KIP lower bound
+python3 -I scripts/ss_check.py INSTANCE.mps.gz INSTANCE.aux - OPTIMUM   # second KIP lower-bound prover
 python3 -I scripts/compare_hpr.py INSTANCE.mps.gz INSTANCE.aux MIPLIB.mps.gz   # HPR = MIPLIB model
 ```
 
 `bobi verify` checks a file the way BOBILib's feasibility checker does: rows,
 bounds and integrality within 1e-6, the stated objective, and the follower
 re-solved with the leader fixed (exact knapsack oracle for one follower row,
-a HiGHS MILP otherwise) and found optimal within BOBILib's relative 1e-4.
-The subset-sum lower bounds are re-proved by `scripts/ss_check.py`, and the
-clique, network and coupled results were re-derived by independent reviewers
-with separate code (see the folder READMEs). Caveats: the two
-supportcase42 directions are checked in floating point only; nine coupled
-points use BOBILib's 1e-4 tolerance on the follower's value (about 1e-7
-relative); OR lower bounds for several follower knapsacks are the
-literature's.
+a HiGHS MILP otherwise) and found optimal within BOBILib's relative 1e-4. It
+is separate from BOBILib's solvers but not from this work's code: it is part
+of the same crate as the solvers and shares their instance reader and
+knapsack oracle. Code that shares nothing with the solvers re-checks the
+subset-sum lower bounds (`scripts/ss_check.py` and a second prover), the
+recession directions (`scripts/verify_ray.py`) and the HPR comparisons
+(`scripts/compare_hpr.py`); the clique, network and coupled results were
+re-derived with separate code in separate review sessions (see the folder
+READMEs). The software, the experiments and these reviews were carried out
+with an AI coding agent directed by the author; the reviews ran in separate
+sessions that wrote their own code. Caveats: the two supportcase42
+directions are checked in floating point only; nine coupled points use
+BOBILib's 1e-4 tolerance on the follower's value (about 1e-7 relative); OR
+lower bounds for several follower knapsacks are the literature's; the
+published OR points include values of Lefebvre and Schmidt (2025) that are
+not verified, and for 4 OR instances a published lower bound exceeds a
+published point (`notes` of `instances.csv`).
 
 ## Replicating
 

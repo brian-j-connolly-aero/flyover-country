@@ -32,8 +32,11 @@ earlier BOBILib release, and the current one lists it as feasible.
 ## Feasible points without coupling rows (`points.csv`)
 
 `bobi general` on the 98 open instances without coupling rows: 64 verified
-bilevel feasible points, the first known for each instance (BOBILib lists
-no value). Of the other 34, 17 have no bilevel feasible point at all
+bilevel feasible points (BOBILib lists no value for any of them). For 9 of
+them a point had been published elsewhere (Fischetti et al. 2017; Vasquez,
+Lozano and van Hoeve 2025; Lozano, Bergman and Cire 2026; an earlier BOBILib
+release; Lefebvre and Schmidt 2025); the notes of `../instances.csv` give
+each published value, and for 6 of the 9 it is better than the point here. Of the other 34, 17 have no bilevel feasible point at all
 (`../rays`); for 10 HiGHS found no HPR point in 300 s, for 6 the follower
 was not solved to optimality in time, and 1 point failed the final check. Each
 passes `bobi verify --generic` (rows of both levels within 1e-6, the stated

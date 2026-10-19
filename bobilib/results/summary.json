@@ -2182,7 +2182,7 @@
    "family": "multidim-knapsack",
    "bobilib": "feasible",
    "outcome": "optimal",
-   "source": "this work (certified point meets best lower bound)"
+   "source": "literature (Lozano et al. 2026)"
   },
   "OR30x500-0.25_9.dat-100": {
    "family": "multidim-knapsack",
@@ -15932,8 +15932,7 @@
    "unchanged": 582,
    "feasible / this work (certified point)": 52,
    "feasible / this work (first certified point)": 88,
-   "optimal / literature (Lozano et al. 2026)": 87,
-   "optimal / this work (certified point meets best lower bound)": 1
+   "optimal / literature (Lozano et al. 2026)": 88
   },
   "generalized": {
    "not optimal in BOBILib": 12,

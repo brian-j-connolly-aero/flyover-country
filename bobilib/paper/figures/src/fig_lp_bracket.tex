@@ -1,9 +1,9 @@
 % fig_lp_bracket: the LP bracket for one follower knapsack.
 % For every leader choice x the follower's LP value U(x) and its integer value
 % Phi(x) satisfy Phi(x) <= U(x) <= Phi(x) + p_max (the LP optimum has at most
-% one fractional item).  Hence  min_x U(x) - p_max <= OPT = min_x Phi(x) <= Phi(x*)
-% where x* minimises U.  Schematic numbers, consistent with the rule:
-%   U   = 12, 10.5, 9.2, 11, 9.8, 13, 10.6   (min 9.2 at x* = 3rd choice)
+% one fractional item).  Hence  min_x U(x) - p_max <= OPT = min_x Phi(x) <= Phi(x^)
+% where x^ (x-hat) minimises U.  Schematic numbers, consistent with the rule:
+%   U   = 12, 10.5, 9.2, 11, 9.8, 13, 10.6   (min 9.2 at x^ = 3rd choice)
 %   Phi = 10,  9,   8,   9,  7,  11,  9      (OPT = 7)
 %   p_max = 3, so the bracket is [6.2, 8] and contains 7.
 % Build: pdflatex fig_lp_bracket.tex   (3.15 in x 1.6 in)
@@ -41,15 +41,15 @@
     \fill[follower] (\xx,{0.50+(\p-5.6)*0.34}) circle (2.0pt);
     \draw[lp] (\xx,{0.50+(\u-5.6)*0.34}) circle (2.0pt);
   }
-  \node[small, anchor=north, inner sep=1pt] at (0.1+0.62*3,0.42) {$x^*$};
+  \node[small, anchor=north, inner sep=1pt] at (0.1+0.62*3,0.42) {$\hat x$};
 
   % reference lines across the plot
-  % min U (dotted grey), Phi(x*) (blue: the leader's point), min U - p_max (aqua: bound)
+  % min U (dotted grey), Phi(x^) (blue: the leader's point), min U - p_max (aqua: bound)
   \draw[ink2, line width=0.5pt, densely dotted] (2.06,{0.50+(9.2-5.6)*0.34}) -- (5.25,{0.50+(9.2-5.6)*0.34});
   \draw[leader, line width=0.9pt, dashed] (2.06,{0.50+(8-5.6)*0.34}) -- (5.25,{0.50+(8-5.6)*0.34});
   \draw[cert, line width=0.9pt, dashed] (0.35,{0.50+(6.2-5.6)*0.34}) -- (5.25,{0.50+(6.2-5.6)*0.34});
   \node[anchor=west, inner sep=1.5pt, text=ink2] at (5.25,{0.50+(9.2-5.6)*0.34}) {$\min_x U$};
-  \node[anchor=west, inner sep=1.5pt, text=leader] at (5.25,{0.50+(8-5.6)*0.34}) {$\Phi(x^*)$};
+  \node[anchor=west, inner sep=1.5pt, text=leader] at (5.25,{0.50+(8-5.6)*0.34}) {$\Phi(\hat x)$};
   \node[anchor=west, inner sep=1.5pt, text=cert] at (5.25,{0.50+(6.2-5.6)*0.34}) {$\min_x U - p_{\max}$};
   % the bracket that holds OPT
   \draw[decorate, decoration={brace, amplitude=3pt, mirror}, line width=0.7pt]

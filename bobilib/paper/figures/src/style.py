@@ -46,7 +46,7 @@ OUTCOMES = {
     "lit": ("optimal in published work", BLUE, None, None, WHITE),
     "new": ("proven optimal here", AQUA, None, None, INK),
     "none": ("no feasible point", AQUA, "stripes", WHITE, INK),
-    "first": ("first verified point", ORANGE, "dots", WHITE, INK),
+    "first": ("verified point, none in BOBILib", ORANGE, "dots", WHITE, INK),
     "unchanged": ("unchanged", FILL, None, None, INK2),
 }
 ORDER = ["lit", "new", "none", "first", "unchanged"]

@@ -19,7 +19,7 @@ cnt = collections.Counter(S.outcome_class(v) for v in U.values())
 st = collections.Counter(v["bobilib"] for v in U.values())
 
 S.check(len(U), 1594, "feasible or open in BOBILib")
-S.check(dict(cnt), {"lit": 527, "new": 81, "none": 40, "first": 230, "unchanged": 716},
+S.check(dict(cnt), {"lit": 528, "new": 80, "none": 40, "first": 230, "unchanged": 716},
         "outcomes of the 1,594")
 S.check(dict(st), {"feasible": 1175, "open": 419}, "BOBILib composition")
 settled = cnt["lit"] + cnt["new"] + cnt["none"]
@@ -46,7 +46,7 @@ for k in S.ORDER[1:]:
 # wide segments: labels inside
 inside = {
     "lit": f"optimal in published work  {S.fmt(cnt['lit'])}",
-    "first": f"first verified\npoint  {S.fmt(cnt['first'])}",
+    "first": f"verified point,\nnone in BOBILib  {S.fmt(cnt['first'])}",
     "unchanged": f"unchanged  {S.fmt(cnt['unchanged'])}",
 }
 for k, txt in inside.items():

@@ -227,34 +227,34 @@ if the leader does not block it, the follower decides whether to take it
 (allowed if its weight fits the remaining capacity). The follower collects
 the profits of the items it takes. Both players see all earlier moves. The
 value of this finite game of perfect information is given by backward
-induction: $\omega(\emptyset,\beta',\kappa)=0$ and, for $o=(j,o')$,
+induction: $\Omega(\emptyset,\beta',\kappa)=0$ and, for $o=(j,o')$,
 \begin{align*}
-  \omega(o,\beta',\kappa)&=
-  \begin{cases}\min\{\omega(o',\beta'-\gamma_j,\kappa),\ T\} & \text{if }\gamma_j\le\beta',\\
+  \Omega(o,\beta',\kappa)&=
+  \begin{cases}\min\{\Omega(o',\beta'-\gamma_j,\kappa),\ T\} & \text{if }\gamma_j\le\beta',\\
   T & \text{otherwise,}\end{cases}\\
-  T&=\begin{cases}\max\{\omega(o',\beta',\kappa),\ \omega(o',\beta',\kappa-w_j)+p_j\} & \text{if }w_j\le\kappa,\\
-  \omega(o',\beta',\kappa) & \text{otherwise.}\end{cases}
+  T&=\begin{cases}\max\{\Omega(o',\beta',\kappa),\ \Omega(o',\beta',\kappa-w_j)+p_j\} & \text{if }w_j\le\kappa,\\
+  \Omega(o',\beta',\kappa) & \text{otherwise.}\end{cases}
 \end{align*}
 
 \begin{theorem}[Online lower bound, any play order]\label{thm:online}
 For every list $o$ of distinct items and every $X\subseteq N$ with
 $\gamma(X)\le\beta$,
-$\omega(o,\beta,c)\le K(o\setminus X)\le\Phi(X)$, where $K(T)$ is the best
-packing of the items of $T$ with capacity $c$. Hence $\omega(o,\beta,c)\le\mathrm{OPT}$.
+$\Omega(o,\beta,c)\le K(o\setminus X)\le\Phi(X)$, where $K(T)$ is the best
+packing of the items of $T$ with capacity $c$. Hence $\Omega(o,\beta,c)\le\mathrm{OPT}$.
 \end{theorem}
 \begin{proof}
 In the online game the leader may adapt to the follower's earlier moves; the
 real game corresponds to the leader strategy ``block exactly the items of
 $X$'', which does not adapt. Formally, we prove by induction on the length of
 $o$, for all $\beta',\kappa\ge 0$ and all $X\subseteq o$ with $\gamma(X)\le\beta'$,
-that $\omega(o,\beta',\kappa)\le K_\kappa(o\setminus X)$ (best packing with
+that $\Omega(o,\beta',\kappa)\le K_\kappa(o\setminus X)$ (best packing with
 capacity $\kappa$). For $o=\emptyset$ both sides are $0$. Let $o=(j,o')$. If
 $j\in X$, then $\gamma_j\le\gamma(X)\le\beta'$, so the blocking branch is offered and
-$\omega(o,\beta',\kappa)\le\omega(o',\beta'-\gamma_j,\kappa)\le K_\kappa(o'\setminus X)=K_\kappa(o\setminus X)$
+$\Omega(o,\beta',\kappa)\le\Omega(o',\beta'-\gamma_j,\kappa)\le K_\kappa(o'\setminus X)=K_\kappa(o\setminus X)$
 by induction applied to $X\setminus\{j\}$. If $j\notin X$, then $X\subseteq o'$ and
-$\omega(o,\beta',\kappa)\le T$. By induction $\omega(o',\beta',\kappa)\le K_\kappa(o'\setminus X)$
+$\Omega(o,\beta',\kappa)\le T$. By induction $\Omega(o',\beta',\kappa)\le K_\kappa(o'\setminus X)$
 and, if $w_j\le\kappa$,
-$\omega(o',\beta',\kappa-w_j)+p_j\le K_{\kappa-w_j}(o'\setminus X)+p_j\le K_\kappa((o'\setminus X)\cup\{j\})$
+$\Omega(o',\beta',\kappa-w_j)+p_j\le K_{\kappa-w_j}(o'\setminus X)+p_j\le K_\kappa((o'\setminus X)\cup\{j\})$
 (add $j$ to an optimal packing). So in both cases of $T$ we get
 $T\le K_\kappa((o'\setminus X)\cup\{j\})=K_\kappa(o\setminus X)$. For an arbitrary $X$ within
 budget apply this to $X\cap o$ (its cost is no larger and $o\setminus(X\cap o)=o\setminus X$).

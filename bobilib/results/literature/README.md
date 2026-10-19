@@ -21,3 +21,16 @@ these files and from Weninger and Fukasawa's answer files (`../kip/`).
 
 Lozano, Bergman and Cire's own `optimal.csv` (their repository) is not
 copied here; `instances.csv` records which instances it closes.
+
+Lefebvre and Schmidt: H. Lefebvre and M. Schmidt, A Dantzig-Wolfe
+single-level reformulation for mixed-integer linear bilevel optimization:
+exact and heuristic approaches, Optimization Online preprint (June 2025),
+with per-instance run files on the first author's web page
+(henrilefebvre.com, open-science page of the paper). Their OR values are the
+column `lefebvre_schmidt_ub`; they are published values, not verified here,
+and for 3 OR instances they lie below Lozano, Bergman and Cire's published
+lower bound (`instances.csv`, notes). Their run files also list points for
+general instances; the four that bear on whether a point of this work is the
+first one anywhere (rmine6_0_100, rmine6_50_50, ex10_0_100 and
+neos-631710_0_100) are recorded in `paper/scripts/build_data_package.py`
+(`EXTRA_PUBLISHED`) and in the notes of `instances.csv`.

@@ -1,6 +1,6 @@
 # refs.bib: what each entry supports
 
-One line per BibTeX key in `refs.bib` (64 entries), grouped as in the file.
+One line per BibTeX key in `refs.bib` (74 entries), grouped as in the file.
 "Checked" says how the bibliographic data were confirmed. "Crossref" means the
 DOI's Crossref record matched authors, title, volume, issue, pages and year.
 
@@ -48,7 +48,7 @@ DOI's Crossref record matched authors, title, volume, issue, pages and year.
 
 ## Bilevel optimization background and other methods
 
-- `stackelberg1934marktform`: the leader-follower game. No DOI for the 1934 book; the note gives the 2011 English translation and its DOI. Checked: Springer page of the translation; publisher and year of the original from catalogue/secondary records.
+- `stackelberg1934marktform`: the leader-follower game. The entry is the 2011 English translation (*Market Structure and Equilibrium*, Springer, doi 10.1007/978-3-642-12586-7), with the 1934 original in the note, so that the DOI prints like every other DOI. Checked: Crossref (title, author, 2011, Springer Berlin Heidelberg) and the Springer page of the translation; publisher and year of the original from catalogue/secondary records.
 - `moore1990mixed`: first MIBLP branch and bound; the high point relaxation. Checked: Crossref.
 - `jeroslow1985polynomial`: complexity of multilevel programs (Sigma_2^p). Checked: Crossref.
 - `dempe2002foundations`: textbook on bilevel programming (background). Checked: Crossref and Springer page.
@@ -91,6 +91,20 @@ DOI's Crossref record matched authors, title, volume, issue, pages and year.
 - `perron2026cpsat`: OR-Tools CP-SAT (version 9.15, released Jan 2026), used in the clique proofs and searches. Software citation as requested on the OR-Tools "How to cite" page, with the version updated.
 - `moura2021lean`: Lean 4 (toolchain v4.35.0 here). Checked: Crossref and Springer page (LNCS 12699).
 - `mathlib2020`: Mathlib (v4.35.0 here). Checked: Crossref.
+
+## Added in the review round
+
+- `lefebvre2025dantzig`: Lefebvre and Schmidt, Dantzig-Wolfe single-level reformulation; source of published OR points (`lefebvre_schmidt_ub` in `results/literature/mkip_literature_status.csv`) and of four published points for general instances (`EXTRA_PUBLISHED` in `scripts/build_data_package.py`). Optimization Online preprint, June 2025 (latest version read: 20 July 2026); per-instance run files on henrilefebvre.com. Checked: Optimization Online page (title, authors) and the preprint's title page.
+- `wood1993deterministic`: classical duality-based single-level reformulation in network interdiction (prior art for the LP bracket). Checked: Crossref.
+- `israeli2002shortest`: the same, shortest-path interdiction. Checked: Crossref.
+- `kellerer2004knapsack`: knapsack textbook; a basic LP solution of a multidimensional knapsack has at most as many fractional variables as rows (prior art for the m*p_max gap). Checked: Crossref (book, Springer Berlin Heidelberg, 2004).
+- `cheung2017verifying`: VIPR certificates for MILP results (remedy for trusted solvers). Checked: Crossref (pages 148-160, LNCS 10328, editors Eisenbrand and Koenemann).
+- `eifler2023computational`: exact rational MIP in SCIP. Checked: Crossref (Math. Program. 197(2) 793-812; online January 2022, issue 2023).
+- `bogaerts2023certified`: VeriPB proof logging for optimisation (also maximum clique). Checked: Crossref (JAIR 77) and the JAIR/arXiv record for pages 1539-1589.
+- `mahdavipajouh2020minimum`: the minimum cost edge blocker clique problem, the decision version behind the open clique instances. Checked: Crossref (Ann. Oper. Res. 294(1-2) 345-376; online 2019, issue 2020).
+- `hanson1991ksaturated`: rediscovery of Brouwer's theorem. No DOI; details agree in the reference lists of Tyomkyn-Uzzell (2015) and Korandi-Roberts-Scott (2021).
+- `kang2005maximum`: rediscovery of Brouwer's theorem. No DOI; details agree in the same two reference lists.
+- `tyomkyn2015strong` (existing key) now also supports the refereed proof of Brouwer's theorem (their Theorem 1.1, proved in their Section 2), and `amin2013non` the same threshold for maximal K_p-free graphs (their Theorem 14).
 
 ## Not verified
 

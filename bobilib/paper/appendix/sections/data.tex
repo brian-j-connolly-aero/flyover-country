@@ -26,9 +26,9 @@ Path & Contents\\
 \texttt{SHA256SUMS} & SHA-256 checksum of every other file of the package\\
 \texttt{summary.json} & per-instance outcome and per-family counts\\
 \texttt{kip/} & \NumKipFiles{} knapsack interdiction solution files at the published optima of Weninger and Fukasawa\cite{weninger2025fast}\\
-\texttt{ss/} & the \NumNewKip{} subset-sum optima proven here; \texttt{proofs.csv} (optimum, nodes, CPU seconds, nodes of the independent prover)\\
+\texttt{ss/} & the \NumNewKip{} subset-sum optima proven here; \texttt{proofs.csv} (optimum, nodes, CPU seconds, nodes of the second prover, budget and capacity)\\
 \texttt{or/} & \NumOrPoints{} verified points for the \NumOr{} OR instances; the bounds of each instance; \texttt{compare.csv} (published bounds, BOBILib's value, ours, gaps)\\
-\texttt{clique/} & \NumCliqueSet{} partition certificates, solver logs of the part-size proofs, the independent review\\
+\texttt{clique/} & \NumCliqueSet{} partition certificates, solver logs of the part-size proofs, the separate review\\
 \texttt{network/} & \NumVerifyNetwork{} attack-protect trees certified by enumeration; \texttt{summary.csv}; the review\\
 \texttt{rays/} & \NumRayFiles{} recession directions (the \NumNoFeasible{} open instances and one that BOBILib lists as infeasible); \texttt{ray\_verify.jsonl} (exact checks)\\
 \texttt{general/} & \NumGeneralFiles{} points for MIPLIB-derived instances without coupling rows (nine files over 1\,MB in \texttt{large\_points.tar.gz}); \texttt{hpr\_optimal.csv}\\
@@ -39,7 +39,7 @@ Path & Contents\\
 
 \noindent Each folder has its own \texttt{README.md} with the method, the
 columns of its tables, the commands that produced it and, where one was done,
-its independent review.
+its separate review.
 
 \subsection{The instance table \texttt{instances.csv}}\label{app:data-csv}
 
@@ -56,7 +56,7 @@ Column & Meaning\\
 \texttt{collection} & BOBILib sub-collection (last directory of the instance path), e.g.\ \texttt{kp}, \texttt{or}, \texttt{miplib2017}\\
 \texttt{family} & \texttt{knapsack}, \texttt{multidim-knapsack}, \texttt{clique}, \texttt{network}, \texttt{generalized}, \texttt{assignment} (interdiction), \texttt{general-pure}, \texttt{general-mixed}\\
 \texttt{bobilib\_status}, \texttt{bobilib\_value} & BOBILib's status and best known objective value (empty: none)\\
-\texttt{new\_status} & \texttt{optimal} (proven, in published work or here), \texttt{infeasible\_bilevel} (no bilevel feasible point), \texttt{feasible} (first verified point; BOBILib had none), \texttt{unchanged}, \texttt{bobilib\_optimal}, \texttt{bobilib\_infeasible}\\
+\texttt{new\_status} & \texttt{optimal} (proven, in published work or here), \texttt{infeasible\_bilevel} (no bilevel feasible point), \texttt{feasible} (verified point here; BOBILib had none; the notes say whether it is the first point anywhere, or name the published point), \texttt{unchanged}, \texttt{bobilib\_optimal}, \texttt{bobilib\_infeasible}\\
 \texttt{primal\_value} & best upper-level value backed by a verified solution file (of this package or of BOBILib) or by a published optimum\\
 \texttt{dual\_bound} & best proven lower bound (the leader minimises), if any\\
 \texttt{source} & citation key of the published result (Table~\ref{tab:source-keys}), \texttt{this work}, or \texttt{ThuraufEtAl2026} (BOBILib's own value)\\
@@ -103,9 +103,9 @@ The file follows the MIPLIB/SCIP convention, one line per instance whose
 status differs from BOBILib's metadata or whose best value improves:
 \begin{center}
 \small
-\begin{tabular}{@{}lll@{}}
+\begin{tabular}{@{}ll>{\raggedright\arraybackslash}p{4.1in}@{}}
 \texttt{=opt=} & \emph{name value} & proven optimal value (published, or proven here)\\
-\texttt{=inf=} & \emph{name} & no bilevel feasible point (the follower is unbounded for every leader choice)\\
+\texttt{=inf=} & \emph{name} & no bilevel feasible point (the follower's problem is infeasible or unbounded for every leader choice)\\
 \texttt{=best=} & \emph{name value} & best verified bilevel feasible point (a solution file here), not proven optimal\\
 \texttt{=bestdual=} & \emph{name value} & best proven lower bound, where this work proves a better one than any published\\
 \end{tabular}
@@ -119,7 +119,9 @@ can have both a \texttt{=best=} and a \texttt{=bestdual=} line. Every value is
 the upper-level objective $c^{\top}x+d^{\top}y$ of the minimising leader under
 the optimistic convention, printed at full precision (integers without a
 decimal point, other values as the shortest decimal that reads back as the
-same double). Comment lines start with \texttt{\#}.
+same double). Comment lines start with \texttt{\#}; the header names the
+\NumRayFloat{} \texttt{=inf=} lines whose recession directions are checked only in
+floating point.
 
 \subsection{Solution files}
 
@@ -159,7 +161,7 @@ part-size proofs are in \texttt{clique/logs/lb\_solver\_logs.tar.gz}.
 \paragraph{Subset-sum proofs.} A proof of $\mathrm{OPT}\ge\ell$ is a
 computation, not a file. \texttt{ss/proofs.csv} records, per instance, the
 optimum, the nodes and CPU seconds of the search and the nodes of the
-independent prover \texttt{scripts/ss\_check.py}, which re-proves the bound
+second prover \texttt{scripts/ss\_check.py}, which re-proves the bound
 from the instance files (Section~\ref{app:verification}).
 
 \paragraph{Enumerations and HPR bounds.} \texttt{network/summary.csv} gives

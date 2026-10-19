@@ -3,7 +3,7 @@
 
 {\footnotesize\sisetup{group-separator={,},group-minimum-digits=4,group-digits=integer}\setlength{\tabcolsep}{4pt}\setlength{\LTcapwidth}{\linewidth}
 \begin{longtable}{@{}l l c l S[table-format=-10.4] S[table-format=-10.4]@{}}
-\caption{The 90 first bilevel feasible points for open MIPLIB-derived instances (BOBILib lists no point). Coupling: whether leader rows contain follower variables. Method: \texttt{hpr-f-t}, the high point relaxation, then the follower solved with the leader fixed, then an optimistic tie-break (\texttt{bobi general}); \texttt{hpr}, \texttt{penalty}, \texttt{follow}: the part of the \texttt{bobi coupled} portfolio that found the point (the HPR's own leader values, a penalised HPR, best-response dynamics). Values rounded to four decimals (full precision in \texttt{instances.csv}); the leader minimises, so does the follower. $^{*}$: the follower's value is about $10^{-7}$ relative above its optimum, inside BOBILib's tolerance of $10^{-4}$. Three further points are optimal (Table~\ref{tab:hpr}).}\label{tab:general-points}\\
+\caption{The 90 verified bilevel feasible points for open MIPLIB-derived instances, for which BOBILib lists no point. $^{\ddagger}$: a point had been published elsewhere (its value and source are in the notes of \texttt{instances.csv}); for the other 80 this is the first point known. Coupling: whether leader rows contain follower variables. Method: \texttt{hpr-f-t}, the high point relaxation, then the follower solved with the leader fixed, then an optimistic tie-break (\texttt{bobi general}); \texttt{hpr}, \texttt{penalty}, \texttt{follow}: the part of the \texttt{bobi coupled} portfolio that found the point (the HPR's own leader values, a penalised HPR, best-response dynamics). Values rounded to four decimals (full precision in \texttt{instances.csv}); the leader minimises, so does the follower. $^{*}$: the follower's value is about $10^{-7}$ relative above its optimum, inside BOBILib's tolerance of $10^{-4}$. Three further points are optimal (Table~\ref{tab:hpr}).}\label{tab:general-points}\\
 \toprule
 Instance & Collection & Coupling & Method & {Leader value} & {Follower value} \\
 \midrule
@@ -18,16 +18,16 @@ Instance & Collection & Coupling & Method & {Leader value} & {Follower value} \\
 \endfoot
 \bottomrule
 \endlastfoot
-air05-0.900000 & miplib3 & no & hpr-f-t & 64955 & -63283 \\
+air05-0.900000$^{\ddagger}$ & miplib3 & no & hpr-f-t & 64955 & -63283 \\
 beasleyC3\_0\_100 & miplib2010 & no & hpr-f-t & 6844 & -6844 \\
 beasleyC3\_50\_50 & miplib2010 & yes & hpr & 6844 & -6844 \\
 binkar10\_1\_0\_100 & miplib2010 & no & hpr-f-t & 5006810.58 & -5000741.3199 \\
-cap6000-0.500000 & miplib3 & no & hpr-f-t & -1169217 & 0 \\
-cap6000-0.900000 & miplib3 & no & hpr-f-t & -100780 & 45829 \\
+cap6000-0.500000$^{\ddagger}$ & miplib3 & no & hpr-f-t & -1169217 & 0 \\
+cap6000-0.900000$^{\ddagger}$ & miplib3 & no & hpr-f-t & -100780 & 45829 \\
 cmflsp50-24-8-8\_0\_100 & miplib2017 & no & hpr-f-t & 59480213.4006 & -12534896.7844 \\
 core2536-691\_0\_100 & miplib2010 & no & hpr-f-t & 9999999000 & -9999998544 \\
 cost266-UUE\_0\_100 & miplib2017 & no & hpr-f-t & 35801080.9569 & -10431020.9769 \\
-ex10\_0\_100 & miplib2017 & no & hpr-f-t & 100 & -51 \\
+ex10\_0\_100$^{\ddagger}$ & miplib2017 & no & hpr-f-t & 100 & -51 \\
 exp-1-500-5-5\_0\_100 & miplib2017 & no & hpr-f-t & 912510.9121 & -879351.9121 \\
 h80x6320d\_0\_100 & miplib2017 & no & hpr-f-t & 12461.7042 & -10960.0714 \\
 ic97\_potential\_0\_100 & miplib2017 & no & hpr-f-t & 4003 & -353 \\
@@ -39,8 +39,8 @@ mik-250-1-100-1\_0\_100 & miplib2010 & no & hpr-f-t & 890671 & -1000000 \\
 mik-250-1-100-1\_50\_50 & miplib2010 & yes & hpr & 890671 & -1000000 \\
 mik-250-20-75-4\_0\_100 & miplib2017 & no & hpr-f-t & 663799 & -750000 \\
 mik-250-20-75-4\_50\_50 & miplib2017 & yes & hpr & 663799 & -750000 \\
-mitre-0.500000 & miplib3 & no & hpr-f-t & 147075 & -96600 \\
-mitre-0.900000 & miplib3 & no & hpr-f-t & 169500 & -169500 \\
+mitre-0.500000$^{\ddagger}$ & miplib3 & no & hpr-f-t & 147075 & -96600 \\
+mitre-0.900000$^{\ddagger}$ & miplib3 & no & hpr-f-t & 169500 & -169500 \\
 mushroom-best\_0\_100 & miplib2017 & no & hpr-f-t & 4230.0553 & -4230 \\
 mushroom-best\_50\_50 & miplib2017 & yes & hpr & 4230.0553 & -4230 \\
 n4-3\_0\_100 & miplib2010 & no & hpr-f-t & 34802892.5199 & -34801022.5199 \\
@@ -51,7 +51,7 @@ n9-3\_0\_100 & miplib2017 & no & hpr-f-t & 50404627.9598 & -50401623.9598 \\
 n9-3\_50\_50$^{*}$ & miplib2017 & yes & penalty & 74423848.7588 & -62411798.7588 \\
 neos17\_0\_100 & miplib2017 & no & hpr-f-t & 0.6872 & -0.564 \\
 neos17\_50\_50$^{*}$ & miplib2017 & yes & hpr & 0.6872 & -0.564 \\
-neos-631710\_0\_100 & miplib2017 & no & hpr-f-t & 556 & -556 \\
+neos-631710\_0\_100$^{\ddagger}$ & miplib2017 & no & hpr-f-t & 556 & -556 \\
 neos-827175\_0\_100 & miplib2017 & no & hpr-f-t & 122.0015 & -122 \\
 neos-827175\_50\_50 & miplib2017 & yes & hpr & 122.0015 & -122 \\
 neos-860300\_0\_100 & miplib2017 & no & hpr-f-t & 5920 & -3702 \\
@@ -84,15 +84,15 @@ ns1830653\_0\_100 & miplib2010 & no & hpr-f-t & 23622 & -1910 \\
 opm2-z10-s4\_0\_100 & miplib2017 & no & hpr-f-t & -11630 & 4812 \\
 p200x1188c\_0\_100 & miplib2017 & no & hpr-f-t & 3584430 & -3584430 \\
 p200x1188c\_50\_50 & miplib2017 & yes & hpr & 3584430 & -3584430 \\
-p0548-0.500000 & miplib3 & no & hpr-f-t & 22197 & -17695 \\
+p0548-0.500000$^{\ddagger}$ & miplib3 & no & hpr-f-t & 22197 & -17695 \\
 pg5\_34\_0\_100 & miplib2010 & no & hpr-f-t & -11516.287 & 1824.4401 \\
 pg5\_34\_50\_50 & miplib2010 & yes & penalty & -11591.1699 & 0 \\
 pg\_0\_100 & miplib2017 & no & hpr-f-t & -5364.2594 & 2018.3422 \\
 pg\_50\_50$^{*}$ & miplib2017 & yes & follow & -6061.0721 & 575.8462 \\
 ran16x16\_0\_100 & miplib2010 & no & hpr-f-t & 43000 & -42126 \\
 ran16x16\_50\_50 & miplib2010 & yes & hpr & 43000 & -42126 \\
-rmine6\_0\_100 & miplib2010 & no & hpr-f-t & -440.6503 & 201.3995 \\
-rmine6\_50\_50 & miplib2010 & yes & follow & -153.7498 & 119.897 \\
+rmine6\_0\_100$^{\ddagger}$ & miplib2010 & no & hpr-f-t & -440.6503 & 201.3995 \\
+rmine6\_50\_50$^{\ddagger}$ & miplib2010 & yes & follow & -153.7498 & 119.897 \\
 s100\_0\_100 & miplib2017 & no & hpr-f-t & -0.0758 & 0 \\
 s250r10\_0\_100 & miplib2017 & no & hpr-f-t & -0.0608 & 0.0035 \\
 satellites1-25\_0\_100 & miplib2010 & no & hpr-f-t & 32 & -32 \\

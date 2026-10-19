@@ -8,10 +8,10 @@
 \newcommand{\NumBobiFeasible}{1{,}175}% BOBILib status feasible
 \newcommand{\NumBobiOpen}{419}% BOBILib status open
 \newcommand{\NumUnsolved}{1{,}594}% feasible or open in BOBILib
-\newcommand{\NumLitOptimal}{527}% already optimal in published work
-\newcommand{\NumNewOptimal}{81}% proven optimal here
+\newcommand{\NumLitOptimal}{528}% already optimal in published work
+\newcommand{\NumNewOptimal}{80}% proven optimal here
 \newcommand{\NumNoFeasible}{40}% no bilevel feasible point (here)
-\newcommand{\NumFirstPoint}{230}% first verified point here, BOBILib has none
+\newcommand{\NumFirstPoint}{230}% verified point here where BOBILib has none (first anywhere or not)
 \newcommand{\NumUnchanged}{716}% status unchanged
 \newcommand{\NumSettled}{648}% settled = literature + new optimal + no feasible point
 \newcommand{\PctSettled}{41}% settled share of the unsolved, percent
@@ -34,12 +34,12 @@
 \newcommand{\NumAssignmentInstances}{24}% BOBILib assignment instances
 \newcommand{\NumGeneralInstances}{695}% BOBILib general (MIPLIB-derived and other) instances
 \newcommand{\NumLitKip}{376}% KIP optima of Weninger and Fukasawa
-\newcommand{\NumLitLozano}{96}% optima of Lozano, Bergman and Cire (all families)
-\newcommand{\NumLitOr}{87}% OR optima of Lozano et al.
+\newcommand{\NumLitLozano}{97}% optima of Lozano, Bergman and Cire (all families)
+\newcommand{\NumLitOr}{88}% OR optima of Lozano et al.
 \newcommand{\NumLitGeneralized}{4}% generalized optima of Lozano et al.
 \newcommand{\NumLitMiplibLozano}{5}% MIPLIB 3 optima of Lozano et al.
 \newcommand{\NumLitImkp}{52}% imkp optima of Fischetti et al. 2019
-\newcommand{\NumLitMkip}{139}% MKIP literature optima (OR + imkp)
+\newcommand{\NumLitMkip}{140}% MKIP literature optima (OR + imkp)
 \newcommand{\NumLitMiplib}{8}% MIPLIB-derived literature optima
 \newcommand{\NumLitFischettiSeventeen}{1}% air03-0.100000
 \newcommand{\NumLitVasquez}{1}% p0282-0.500000
@@ -53,7 +53,7 @@
 \newcommand{\NumNewClique}{57}% clique optima proven here
 \newcommand{\NumNewNetwork}{2}% network optima proven here
 \newcommand{\NumNewHpr}{5}% MIPLIB-bound optima
-\newcommand{\NumNewOr}{1}% OR closure
+\newcommand{\NumNewOr}{0}% OR closure
 \newcommand{\NumRayExact}{38}% rays checked in exact arithmetic
 \newcommand{\NumRayFloat}{2}% rays checked in floating point only
 \newcommand{\NumOrFirstAnywhere}{88}% OR first points anywhere
@@ -112,8 +112,8 @@
 \newcommand{\OrGapOneThreeQuarterNow}{0.14}% median gap now, variant -100, budget 0.75
 \newcommand{\OrPairedOneThreeQuarter}{90}% instances in that median
 \newcommand{\OrGapZeroQuarterLit}{33.3}% median published gap, variant -0, budget 0.25
-\newcommand{\OrGapZeroQuarterNow}{31.4}% median gap now, variant -0, budget 0.25
-\newcommand{\OrPairedZeroQuarter}{55}% instances in that median
+\newcommand{\OrGapZeroQuarterNow}{31.8}% median gap now, variant -0, budget 0.25
+\newcommand{\OrPairedZeroQuarter}{54}% instances in that median
 \newcommand{\OrNoPointZeroQuarter}{31}% no published point, -0, 0.25
 \newcommand{\OrFirstZeroQuarter}{0}% first points among those
 \newcommand{\OrGapZeroHalfLit}{36.6}% median published gap, variant -0, budget 0.50
@@ -121,14 +121,14 @@
 \newcommand{\OrPairedZeroHalf}{59}% instances in that median
 \newcommand{\OrNoPointZeroHalf}{31}% no published point, -0, 0.50
 \newcommand{\OrFirstZeroHalf}{31}% first points among those
-\newcommand{\OrGapZeroThreeQuarterLit}{5.1}% median published gap, variant -0, budget 0.75
-\newcommand{\OrGapZeroThreeQuarterNow}{0.04}% median gap now, variant -0, budget 0.75
-\newcommand{\OrPairedZeroThreeQuarter}{63}% instances in that median
+\newcommand{\OrGapZeroThreeQuarterLit}{5.3}% median published gap, variant -0, budget 0.75
+\newcommand{\OrGapZeroThreeQuarterNow}{0.05}% median gap now, variant -0, budget 0.75
+\newcommand{\OrPairedZeroThreeQuarter}{62}% instances in that median
 \newcommand{\OrNoPointZeroThreeQuarter}{27}% no published point, -0, 0.75
 \newcommand{\OrFirstZeroThreeQuarter}{27}% first points among those
-\newcommand{\OrGapFiftyQuarterLit}{29.6}% median published gap, variant -50, budget 0.25
-\newcommand{\OrGapFiftyQuarterNow}{28.2}% median gap now, variant -50, budget 0.25
-\newcommand{\OrPairedFiftyQuarter}{70}% instances in that median
+\newcommand{\OrGapFiftyQuarterLit}{30.6}% median published gap, variant -50, budget 0.25
+\newcommand{\OrGapFiftyQuarterNow}{28.3}% median gap now, variant -50, budget 0.25
+\newcommand{\OrPairedFiftyQuarter}{68}% instances in that median
 \newcommand{\OrNoPointFiftyQuarter}{20}% no published point, -50, 0.25
 \newcommand{\OrFirstFiftyQuarter}{0}% first points among those
 \newcommand{\OrGapFiftyHalfLit}{41.3}% median published gap, variant -50, budget 0.50
@@ -141,11 +141,11 @@
 \newcommand{\OrPairedFiftyThreeQuarter}{80}% instances in that median
 \newcommand{\OrNoPointFiftyThreeQuarter}{10}% no published point, -50, 0.75
 \newcommand{\OrFirstFiftyThreeQuarter}{10}% first points among those
-\newcommand{\OrClosureName}{OR10x100-0.75\_4.dat-0}% the OR instance closed here
-\newcommand{\OrClosureValue}{8{,}813}% its optimum
+\newcommand{\OrClosureName}{OR10x100-0.75\_4.dat-0}% OR instance whose published lower bound exceeds the published point but whose published branch-and-cut bound closes it
+\newcommand{\OrClosureValue}{8{,}813}% its optimum (published point and bound)
 \newcommand{\OrClosureLitLb}{8{,}814}% published (inconsistent) lower bound
 \newcommand{\NumOrInconsistent}{4}% OR instances whose published lower bound exceeds the published point
-\newcommand{\NumOrLitOptimalPoint}{69}% published OR optima reproduced by a file here
+\newcommand{\NumOrLitOptimalPoint}{70}% published OR optima reproduced by a file here
 \newcommand{\NumCliqueSet}{60}% instances of the clique set
 \newcommand{\NumCliqueSevenThree}{27}% density 0.7 with value 3
 \newcommand{\NumCliqueNineFour}{30}% density 0.9 with value 4
@@ -179,7 +179,7 @@
 \newcommand{\CliqueKSixtyNine}{398}% budget k at n=60, d=0.9
 \newcommand{\CliqueMSixtyNine}{1{,}593}% edges m at n=60, d=0.9
 \newcommand{\NumCliquePartCases}{170}% part-size cases decided by exact solvers
-\newcommand{\CliqueOpenNames}{normalClique60-70-2, normalClique60-70-3, normalClique60-70-5}% the three open instances
+\newcommand{\CliqueOpenNames}{\inst{normalClique60-70-2}, \inst{normalClique60-70-3}, \inst{normalClique60-70-5}}% the three open instances (each in \inst)
 \newcommand{\CliqueOpenBestThreeA}{311}% best 3-partition found (inside edges)
 \newcommand{\CliqueOpenBestThreeB}{310}% best 3-partition found (inside edges)
 \newcommand{\CliqueOpenBestThreeC}{310}% best 3-partition found (inside edges)
@@ -228,3 +228,177 @@
 \newcommand{\NumSoluInf}{40}% .solu =inf= lines
 \newcommand{\NumSoluBest}{695}% .solu =best= lines
 \newcommand{\NumSoluBestDual}{194}% .solu =bestdual= lines
+\newcommand{\FamKipAll}{599}% knapsack: instances
+\newcommand{\FamKipUnsolved}{392}% knapsack: feasible or open in BOBILib
+\newcommand{\FamKipLit}{376}% knapsack: optimal in published work
+\newcommand{\FamKipNew}{16}% knapsack: proven optimal here
+\newcommand{\FamKipNoFeas}{0}% knapsack: no bilevel feasible point
+\newcommand{\FamKipFirst}{0}% knapsack: verified point where BOBILib has none
+\newcommand{\FamKipUnchanged}{0}% knapsack: unchanged
+\newcommand{\FamMkipAll}{954}% multidim-knapsack: instances
+\newcommand{\FamMkipUnsolved}{862}% multidim-knapsack: feasible or open in BOBILib
+\newcommand{\FamMkipLit}{140}% multidim-knapsack: optimal in published work
+\newcommand{\FamMkipNew}{0}% multidim-knapsack: proven optimal here
+\newcommand{\FamMkipNoFeas}{0}% multidim-knapsack: no bilevel feasible point
+\newcommand{\FamMkipFirst}{140}% multidim-knapsack: verified point where BOBILib has none
+\newcommand{\FamMkipUnchanged}{582}% multidim-knapsack: unchanged
+\newcommand{\FamCliqueAll}{220}% clique: instances
+\newcommand{\FamCliqueUnsolved}{60}% clique: feasible or open in BOBILib
+\newcommand{\FamCliqueLit}{0}% clique: optimal in published work
+\newcommand{\FamCliqueNew}{57}% clique: proven optimal here
+\newcommand{\FamCliqueNoFeas}{0}% clique: no bilevel feasible point
+\newcommand{\FamCliqueFirst}{0}% clique: verified point where BOBILib has none
+\newcommand{\FamCliqueUnchanged}{3}% clique: unchanged
+\newcommand{\FamNetworkAll}{72}% network: instances
+\newcommand{\FamNetworkUnsolved}{2}% network: feasible or open in BOBILib
+\newcommand{\FamNetworkLit}{0}% network: optimal in published work
+\newcommand{\FamNetworkNew}{2}% network: proven optimal here
+\newcommand{\FamNetworkNoFeas}{0}% network: no bilevel feasible point
+\newcommand{\FamNetworkFirst}{0}% network: verified point where BOBILib has none
+\newcommand{\FamNetworkUnchanged}{0}% network: unchanged
+\newcommand{\FamGeneralizedAll}{90}% generalized: instances
+\newcommand{\FamGeneralizedUnsolved}{12}% generalized: feasible or open in BOBILib
+\newcommand{\FamGeneralizedLit}{4}% generalized: optimal in published work
+\newcommand{\FamGeneralizedNew}{0}% generalized: proven optimal here
+\newcommand{\FamGeneralizedNoFeas}{0}% generalized: no bilevel feasible point
+\newcommand{\FamGeneralizedFirst}{0}% generalized: verified point where BOBILib has none
+\newcommand{\FamGeneralizedUnchanged}{8}% generalized: unchanged
+\newcommand{\FamAssignmentAll}{24}% assignment: instances
+\newcommand{\FamAssignmentUnsolved}{0}% assignment: feasible or open in BOBILib
+\newcommand{\FamAssignmentLit}{0}% assignment: optimal in published work
+\newcommand{\FamAssignmentNew}{0}% assignment: proven optimal here
+\newcommand{\FamAssignmentNoFeas}{0}% assignment: no bilevel feasible point
+\newcommand{\FamAssignmentFirst}{0}% assignment: verified point where BOBILib has none
+\newcommand{\FamAssignmentUnchanged}{0}% assignment: unchanged
+\newcommand{\FamGenPureAll}{359}% general-pure: instances
+\newcommand{\FamGenPureUnsolved}{105}% general-pure: feasible or open in BOBILib
+\newcommand{\FamGenPureLit}{8}% general-pure: optimal in published work
+\newcommand{\FamGenPureNew}{0}% general-pure: proven optimal here
+\newcommand{\FamGenPureNoFeas}{6}% general-pure: no bilevel feasible point
+\newcommand{\FamGenPureFirst}{15}% general-pure: verified point where BOBILib has none
+\newcommand{\FamGenPureUnchanged}{76}% general-pure: unchanged
+\newcommand{\FamGenMixedAll}{336}% general-mixed: instances
+\newcommand{\FamGenMixedUnsolved}{161}% general-mixed: feasible or open in BOBILib
+\newcommand{\FamGenMixedLit}{0}% general-mixed: optimal in published work
+\newcommand{\FamGenMixedNew}{5}% general-mixed: proven optimal here
+\newcommand{\FamGenMixedNoFeas}{34}% general-mixed: no bilevel feasible point
+\newcommand{\FamGenMixedFirst}{75}% general-mixed: verified point where BOBILib has none
+\newcommand{\FamGenMixedUnchanged}{47}% general-mixed: unchanged
+\newcommand{\NumImkp}{144}% instances of the imkp set
+\newcommand{\CliqueOptSeven}{3}% optimum of the solved density-0.7 clique instances
+\newcommand{\CliqueOptNine}{4}% optimum of the density-0.9 clique instances
+\newcommand{\CliqueOpenUpper}{4}% upper bound of the open clique instances
+\newcommand{\CliqueOpenLower}{3}% lower bound of the open clique instances
+\newcommand{\OrNoPointOneQuarter}{0}% no published point, -100, 0.25
+\newcommand{\OrFirstOneQuarter}{0}% first points among those
+\newcommand{\OrNoPointOneHalf}{0}% no published point, -100, 0.50
+\newcommand{\OrFirstOneHalf}{0}% first points among those
+\newcommand{\OrNoPointOneThreeQuarter}{0}% no published point, -100, 0.75
+\newcommand{\OrFirstOneThreeQuarter}{0}% first points among those
+\newcommand{\OrGroupOneQuarter}{90}% OR instances, variant -100, budget 0.25
+\newcommand{\OrPointsOneQuarter}{90}% verified points, variant -100, budget 0.25
+\newcommand{\OrGroupOneHalf}{90}% OR instances, variant -100, budget 0.50
+\newcommand{\OrPointsOneHalf}{90}% verified points, variant -100, budget 0.50
+\newcommand{\OrGroupOneThreeQuarter}{90}% OR instances, variant -100, budget 0.75
+\newcommand{\OrPointsOneThreeQuarter}{90}% verified points, variant -100, budget 0.75
+\newcommand{\OrGroupZeroQuarter}{90}% OR instances, variant -0, budget 0.25
+\newcommand{\OrPointsZeroQuarter}{20}% verified points, variant -0, budget 0.25
+\newcommand{\OrGroupZeroHalf}{90}% OR instances, variant -0, budget 0.50
+\newcommand{\OrPointsZeroHalf}{90}% verified points, variant -0, budget 0.50
+\newcommand{\OrGroupZeroThreeQuarter}{90}% OR instances, variant -0, budget 0.75
+\newcommand{\OrPointsZeroThreeQuarter}{90}% verified points, variant -0, budget 0.75
+\newcommand{\OrGroupFiftyQuarter}{90}% OR instances, variant -50, budget 0.25
+\newcommand{\OrPointsFiftyQuarter}{40}% verified points, variant -50, budget 0.25
+\newcommand{\OrGroupFiftyHalf}{90}% OR instances, variant -50, budget 0.50
+\newcommand{\OrPointsFiftyHalf}{90}% verified points, variant -50, budget 0.50
+\newcommand{\OrGroupFiftyThreeQuarter}{90}% OR instances, variant -50, budget 0.75
+\newcommand{\OrPointsFiftyThreeQuarter}{90}% verified points, variant -50, budget 0.75
+\newcommand{\KipTableRows}{%
+\inst{interKP-200-100-6-2} & 200 & 6 & 2 & 1{,}860 & 1{,}855 & 1{,}855 & 303 & 0.10 & 303 \\
+\inst{interKP-300-100-6-2} & 300 & 6 & 2 & 2{,}865 & 2{,}868 & 2{,}868 & 366 & 0.16 & 366 \\
+\inst{interKP-400-100-6-2} & 400 & 6 & 2 & 3{,}828 & 3{,}832 & 3{,}832 & 257 & 0.15 & 257 \\
+\inst{interKP-500-100-6-2} & 500 & 6 & 2 & 4{,}645 & 4{,}651 & 4{,}651 & 190 & 0.26 & 190 \\
+\inst{interKP-200-100-6-3} & 200 & 6 & 3 & 2{,}787 & 2{,}782 & 2{,}782 & 13{,}498 & 3.93 & 13{,}502 \\
+\inst{interKP-300-100-6-3} & 300 & 6 & 3 & 4{,}299 & 4{,}302 & 4{,}302 & 19{,}405 & 8.06 & 19{,}537 \\
+\inst{interKP-400-100-6-3} & 400 & 6 & 3 & 5{,}744 & 5{,}748 & 5{,}748 & 13{,}430 & 9.01 & 13{,}583 \\
+\inst{interKP-500-100-6-3} & 500 & 6 & 3 & 6{,}970 & 6{,}976 & 6{,}976 & 10{,}079 & 10.04 & 10{,}116 \\
+\inst{interKP-200-100-7-2} & 200 & 7 & 2 & 1{,}878 & 1{,}873 & 1{,}872 & 22 & 0.06 & 22 \\
+\inst{interKP-300-100-7-2} & 300 & 7 & 2 & 2{,}892 & 2{,}895 & 2{,}894 & 27 & 0.04 & 27 \\
+\inst{interKP-400-100-7-2} & 400 & 7 & 2 & 3{,}863 & 3{,}867 & 3{,}866 & 18 & 0.05 & 18 \\
+\inst{interKP-500-100-7-2} & 500 & 7 & 2 & 4{,}689 & 4{,}695 & 4{,}694 & 1 & 0.05 & 1 \\
+\inst{interKP-200-100-7-3} & 200 & 7 & 3 & 2{,}814 & 2{,}809 & 2{,}808 & 651 & 0.10 & 651 \\
+\inst{interKP-300-100-7-3} & 300 & 7 & 3 & 4{,}338 & 4{,}341 & 4{,}340 & 470 & 0.20 & 470 \\
+\inst{interKP-400-100-7-3} & 400 & 7 & 3 & 5{,}797 & 5{,}801 & 5{,}800 & 378 & 0.17 & 378 \\
+\inst{interKP-500-100-7-3} & 500 & 7 & 3 & 7{,}037 & 7{,}043 & 7{,}042 & 256 & 0.15 & 256 \\
+}% rows of the paper's table of the 16 KIP instances
+\newcommand{\KipBeforeNodesTwoSixTwo}{3{,}926{,}223}% 200-6-2: nodes of the previous version
+\newcommand{\KipBeforeSecsTwoSixTwo}{22.8}% 200-6-2: CPU s of the previous version
+\newcommand{\KipAfterNodesTwoSixTwo}{303}% 200-6-2: nodes with per-node tables
+\newcommand{\KipAfterSecsTwoSixTwo}{0.10}% 200-6-2: CPU s with per-node tables
+\newcommand{\KipPrevUnfinishedHours}{4}% 200-6-3: hours the previous version ran without finishing
+\newcommand{\KipAblationThreshold}{3{,}926{,}223}% 200-6-2 nodes: threshold tables, same rules
+\newcommand{\KipAblationMemBefore}{478}% memory before threshold tables, MB
+\newcommand{\KipAblationMemAfter}{229}% memory with threshold tables, MB
+\newcommand{\KipAblationBand}{3{,}278{,}153}% 200-6-2 nodes: every band width
+\newcommand{\KipAblationLargestFirst}{1{,}128{,}566}% 200-6-2 nodes: root tables, largest value first
+\newcommand{\KipAblationCheapestFirst}{513{,}834}% 200-6-2 nodes: root tables, cheapest per unit of mass first
+\newcommand{\KipBruteForceInstances}{2{,}990}% random instances compared with brute force
+\newcommand{\KipBruteForceMismatches}{0}% mismatches
+\newcommand{\GenTolPhiSol}{106{,}899{,}984.14}% follower value in BOBILib's file
+\newcommand{\GenTolPhiOpt}{106{,}899{,}953}% follower optimum at the same leader choice
+\newcommand{\GenTolDiff}{31}% difference, units
+\newcommand{\GenTolRel}{\ensuremath{2.9\times 10^{-7}}}% relative difference
+\newcommand{\GenTolObjFile}{100{,}056}% leader objective stated in BOBILib's file
+\newcommand{\GenTolObjComputed}{100{,}056.207}% leader objective computed from the file's point
+\newcommand{\GenTolViolation}{\ensuremath{3.3\times 10^{-4}}}% largest row violation
+\newcommand{\NoswotMiplibOptimum}{\ensuremath{-}41.00000885}% MIPLIB's optimum of noswot (floating point)
+\newcommand{\HprTableRows}{%
+noswot\_0\_100 & feasible & \ensuremath{-}41 & BOBILib \\
+noswot\_50\_50 & feasible & \ensuremath{-}41 & BOBILib \\
+pigeon-10\_0\_100 & open & \ensuremath{-}9{,}000 & \texttt{bobi general} \\
+timtab1\_0\_100 & open & 764{,}771.99999978 & \texttt{bobi general} \\
+pigeon-10\_50\_50 & open & \ensuremath{-}9{,}000 & \texttt{bobi coupled} \\
+}% rows of the paper's table of the MIPLIB-bound optima
+\newcommand{\NumFirstAnywhere}{168}% verified points here that are the first point anywhere
+\newcommand{\NumPointPublishedBefore}{62}% verified points here where BOBILib has none but a point was published
+\newcommand{\NumGeneralFirstAnywhere}{80}% general first points anywhere
+\newcommand{\NumGeneralPublishedPoint}{10}% general points where a point was published
+\newcommand{\NumGeneralPublishedBetter}{6}% of them: the published point is better
+\newcommand{\NumGeneralPublishedLS}{4}% of them: published only in Lefebvre and Schmidt's run files
+\newcommand{\NumGeneralNoCplPublished}{9}% bobi general points where a point was published
+\newcommand{\NumGeneralNoCplPublishedBetter}{6}% of them: the published point is better
+\newcommand{\NumCoupledPublished}{1}% bobi coupled points where a point was published
+\newcommand{\NumOrPublishedPointFile}{52}% OR points new to BOBILib whose published point has a solution file (Lozano et al.)
+\newcommand{\NumSettledHere}{120}% settled by this work (new optima + no point)
+\newcommand{\PctSettledHere}{7.5}% settled by this work, percent of the unsolved
+\newcommand{\NumLitWithFile}{446}% published optima with a verified solution file at the optimum
+\newcommand{\NumLitNoFile}{82}% published optima without a solution file here (value only)
+\newcommand{\NumLitNoFileImkp}{52}% of them imkp
+\newcommand{\NumLitNoFileOr}{18}% of them OR
+\newcommand{\NumLitNoFileMiplib}{8}% of them MIPLIB-derived
+\newcommand{\NumLitNoFileGeneralized}{4}% of them generalized
+\newcommand{\NumLitKnapsackMethods}{428}% published optima from knapsack interdiction methods (Weninger-Fukasawa, Fischetti et al. 2019)
+\newcommand{\NumNewValueKnown}{20}% new optima where BOBILib's value was already optimal
+\newcommand{\NumNewValueKnownGeneral}{2}% of them general (noswot)
+\newcommand{\NumOrEqualPublished}{72}% OR points equal to the best published point
+\newcommand{\NumOrWorsePublished}{61}% OR points worse than the best published point
+\newcommand{\OrConflictNames}{\inst{OR5x100-0.25\_7.dat-50}, \inst{OR5x100-0.25\_8.dat-0}, \inst{OR10x500-0.25\_5.dat-50}}% OR instances whose published point lies below the published lower bound (besides the closure; each in \inst)
+\newcommand{\NumOrQuarterNoPointNoPub}{51}% several knapsacks, budget 25%, no point here: none published either
+\newcommand{\NumOrQuarterNoPointPub}{69}% several knapsacks, budget 25%, no point here: a published (unverified) point
+\newcommand{\NetworkRndSmall}{12}% rndgraph-25 re-derived (HiGHS at every attack)
+\newcommand{\NetworkReviewOnly}{8}% rndgraph-50/80 re-derived only by the review's brute force
+\newcommand{\NumGeneralCandRays}{17}% of the 98: no bilevel feasible point (rays)
+\newcommand{\NumGeneralCandWithPoint}{81}% of the 98: not ruled out by a ray
+\newcommand{\NumGeneralNoHpr}{10}% no HPR point in time
+\newcommand{\NumGeneralFollowerUnsolved}{6}% follower not solved in time
+\newcommand{\NumGeneralFailedCheck}{1}% point failed the final check
+\newcommand{\NumCoupledOpen}{87}% open instances with coupling rows
+\newcommand{\NumCoupledLarge}{10}% left out: more than 100,000 variables
+\newcommand{\NumCoupledRays}{23}% left out: no bilevel feasible point (rays)
+\newcommand{\NumCoupledNone}{23}% attempted, no point in time
+\newcommand{\NumGeneralUnchangedMiplib}{122}% general unchanged that are MIPLIB-derived
+\newcommand{\NumKipOptIsCap}{8}% optimum = capacity (class 6)
+\newcommand{\NumKipOptIsCapMinusOne}{8}% optimum = capacity - 1 (class 7)
+\newcommand{\NumKipValidation}{36}% class 6/7 instances with 100 or 200 items and a published optimum
+\newcommand{\KipPubLbGapMin}{2}% published lower bounds: fewest units below the optimum
+\newcommand{\KipPubLbGapMax}{8}% published lower bounds: most units below the optimum

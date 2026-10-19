@@ -89,16 +89,39 @@ REFERENCES = [
 # Hand-written notes that come from the text of REPORT.md or a results README
 # rather than from a table (prose only, never a value used elsewhere).
 EXTRA_NOTES = {
-    "general20-30-20-20-20-2": "BOBILib's value rests on a follower response 19 units suboptimal, accepted "
-                               "by BOBILib's relative tolerance 1e-4 (follower objectives near 1e8; REPORT.md)",
+    "general20-30-20-20-20-2": "BOBILib's solution file has follower value 106899984.14 against the follower's "
+                               "optimum 106899953 at the same leader choice (31 units, relative 2.9e-7) and row "
+                               "violations up to 3.3e-4; BOBILib's checker accepts it (relative 1e-4 on the "
+                               "follower's value, 1e-4 on the rows), bobi verify rejects it "
+                               "(notes/general20-30-20-20-20-2.verify.tsv)",
     "timtab1_50_50": "HPR is exactly MIPLIB's timtab1 (optimum 764772), a lower bound; this point is 764774 "
                      "(general-coupled/README.md)",
+}
+
+# Published points for general instances that are not in miblp_literature_status.csv: they appear only
+# in the per-instance run files that Lefebvre and Schmidt publish with their 2025 preprint
+# (henrilefebvre.com, open-science page of the paper: results/results-PADM.csv and results-MILP.csv,
+# column best_obj). Used only to decide whether a point here is the first one anywhere.
+EXTRA_PUBLISHED = {
+    "rmine6_0_100": (-3.11093, "Lefebvre and Schmidt (2025), PADM run files"),
+    "rmine6_50_50": (-3.11093, "Lefebvre and Schmidt (2025), PADM run files"),
+    "ex10_0_100": (100, "Lefebvre and Schmidt (2025), MILP run files, reported there as optimal"),
+    "neos-631710_0_100": (556, "Lefebvre and Schmidt (2025), MILP run files"),
+}
+
+# OR instances proven optimal in Lozano, Bergman and Cire's published data although the lower
+# bound in their paper's table exceeds their point: their repository's branch-and-cut bound
+# (results_solvers_plus_dd_Mar24_2026_mibs_bc_augmented.csv, bilevelsolver_plus_dd) equals it.
+OR_BC_CLOSED = {
+    "OR10x100-0.75_4.dat-0": (8813.0, "published point 8813; the published decision-diagram lower bound 8814 "
+                              "comes from runs its authors flag as numerically inconsistent; their repository's "
+                              "branch-and-cut bound is 8813, which closes the instance"),
 }
 
 # Authoritative counts (paper spec). The script fails if the data disagree.
 EXPECT = dict(
     instances=2654, bobilib_optimal=1027, bobilib_infeasible=33, bobilib_feasible=1175, bobilib_open=419,
-    unsolved=1594, literature=527, new_optimal=81, infeasible_bilevel=40, first_point=230, unchanged=716,
+    unsolved=1594, literature=528, new_optimal=80, infeasible_bilevel=40, first_point=230, unchanged=716,
     settled=648, optimal_now=608, packing=1254,
 )
 
@@ -276,9 +299,43 @@ def main():
             lit[n] = (num(r["literature_optimum"]), "")
     for n, r in orc.items():
         if summary[n]["source"] == "literature (Lozano et al. 2026)":
+            if n in OR_BC_CLOSED:
+                lit[n] = OR_BC_CLOSED[n]
+                continue
             check(num(r["lit_lb"]) == num(r["lit_ub"]), f"published OR optimum of {n}")
             lit[n] = (num(r["lit_ub"]), "")
     lit_sources = ["results/kip/summary.csv", "results/or/compare.csv"]
+    # Who published the best OR point (compare.csv's lit_ub): Lozano, Bergman and Cire, whose
+    # repository holds a solution file for it, or Lefebvre and Schmidt (value only).
+    or_pub_src = {}
+    if a.mkip_lit:
+        for r in load_csv(a.mkip_lit):
+            if r["set"] != "or" or num(r["best_known_ub"]) is None:
+                continue
+            b, dd, ls_ = num(r["best_known_ub"]), num(r["dd_lcb2026_ub"]), num(r["lefebvre_schmidt_ub"])
+            or_pub_src[r["name"]] = ("Lozano, Bergman and Cire (2026), solution file in their repository"
+                                     if dd is not None and dd == b else
+                                     "Lefebvre and Schmidt (2025), value only" if ls_ is not None and ls_ == b
+                                     else "published")
+    # Best published point of the general instances BOBILib lists as feasible or open.
+    gen_pub = {}
+    if a.miblp_lit:
+        for r in load_csv(a.miblp_lit):
+            if num(r["lit_best_ub"]) is not None:
+                src = r["lit_best_ub_src"]
+                who = ("Fischetti et al. (2017)" if src.startswith("F17") else
+                       "Vasquez, Lozano and van Hoeve (2025)" if src.startswith("VLH") else
+                       "Lozano, Bergman and Cire (2026)" if src.startswith("LBC") else
+                       "an earlier BOBILib release" if src.startswith("BOBILib") else src)
+                gen_pub[r["instance"]] = (num(r["lit_best_ub"]), who)
+    else:  # read back from the existing instances.csv
+        for n, p in prev.items():
+            for x in p["notes"].split("; "):
+                m = re.match(r"published point (\S+) \((.*?)\)", x)
+                if m and p["family"].startswith("general-"):
+                    gen_pub[n] = (num(m.group(1)), m.group(2))
+    for n, v in EXTRA_PUBLISHED.items():
+        gen_pub.setdefault(n, v)
     if a.mkip_lit:
         for r in load_csv(a.mkip_lit):
             if r["set"] == "imkp" and r["proven_optimal_in_literature"] == "True":
@@ -465,18 +522,35 @@ def main():
                 if lu is None:
                     notes.append("first point anywhere")
                 else:
-                    notes.append(f"published point {fmt(lu)} (no solution file); BOBILib lists none")
+                    src = or_pub_src.get(n)
+                    if src is None:  # without --mkip-lit: keep the source recorded before
+                        old = [x for x in prev.get(n, {}).get("notes", "").split("; ") if x.startswith("published point")]
+                        m = re.search(r"\((.*)\)", old[0]) if old else None
+                        src = m.group(1) if m else "published"
+                    notes.append(f"published point {fmt(lu)} ({src}); BOBILib lists none")
             elif n in gpts and gpts[n]["status"] == "point":
                 obj, rel = own_file("general/")
                 cert(rel)
                 row["method"] = "HPR, follower, optimistic tie-break (bobi general)"
-                notes.append("first point; instance without coupling rows")
+                if n in gen_pub:
+                    pv, who = gen_pub[n]
+                    cmp = "better than" if pv < obj else "equal to" if pv == obj else "worse than"
+                    notes.append(f"verified point; BOBILib lists none; published point {fmt(pv)} ({who}), "
+                                 f"{cmp} this one")
+                else:
+                    notes.append("first point anywhere; instance without coupling rows")
             else:
                 r = cpl[n]
                 obj, rel = own_file("general-coupled/")
                 cert(rel)
                 row["method"] = f"bobi coupled, method {r['method']}"
-                notes.append("first point; instance with coupling rows")
+                if n in gen_pub:
+                    pv, who = gen_pub[n]
+                    cmp = "better than" if pv < obj else "equal to" if pv == obj else "worse than"
+                    notes.append(f"verified point; BOBILib lists none; published point {fmt(pv)} ({who}), "
+                                 f"{cmp} this one; instance with coupling rows")
+                else:
+                    notes.append("first point anywhere; instance with coupling rows")
                 if num(r["rel_error"]) and num(r["rel_error"]) > 1e-8:
                     notes.append(f"follower value {num(r['rel_error']):.1e} relative above its optimum "
                                  f"(within BOBILib's tolerance 1e-4)")
@@ -508,7 +582,7 @@ def main():
                 elif ll is not None:
                     notes.append("dual bound published by Lozano, Bergman and Cire (2026)")
                 if lu is not None and (row["primal_value"] is None or lu < row["primal_value"] - 1e-6):
-                    notes.append(f"published point {fmt(lu)} (no solution file here)")
+                    notes.append(f"published point {fmt(lu)} (not verified here)")
                 if ll is not None and lu is not None and ll > lu:
                     notes.append(f"published lower bound {fmt(ll)} exceeds published point {fmt(lu)}: inconsistent sources")
             elif fam == "clique":
@@ -551,9 +625,9 @@ def main():
     by = C((r["family"], r["new_status"], r["source"]) for r in unsolved)
     want = {
         ("knapsack", "optimal", "WeningerFukasawa2025"): 376, ("knapsack", "optimal", "this work"): 16,
-        ("multidim-knapsack", "optimal", "LozanoBergmanCire2026"): 87,
+        ("multidim-knapsack", "optimal", "LozanoBergmanCire2026"): 88,
         ("multidim-knapsack", "optimal", "FischettiEtAl2019"): 52,
-        ("multidim-knapsack", "optimal", "this work"): 1, ("multidim-knapsack", "feasible", "this work"): 140,
+        ("multidim-knapsack", "optimal", "this work"): 0, ("multidim-knapsack", "feasible", "this work"): 140,
         ("clique", "optimal", "this work"): 57, ("network", "optimal", "this work"): 2,
         ("generalized", "optimal", "LozanoBergmanCire2026"): 4,
     }
@@ -573,11 +647,17 @@ def main():
     check(sum(r["verified"] == "yes" for r in ray_rows) == 38 and
           sorted(r["instance"] for r in ray_rows if r["verified"] == "no") == ["supportcase42_0_100", "supportcase42_50_50"],
           "38 exact + 2 floating-point rays")
-    first = C("OR first anywhere" if "first point anywhere" in r["notes"] else
-              "OR point" if r["family"] == "multidim-knapsack" else
-              "general coupled" if r["certificate"].startswith("general-coupled/") else "general"
+    first = C(("OR" if r["family"] == "multidim-knapsack" else
+               "general coupled" if r["certificate"].startswith("general-coupled/") else "general")
+              + (" first anywhere" if "first point anywhere" in "; ".join(r["notes"]) else " published point")
               for r in rows if r["new_status"] == "feasible")
-    check(first == {"OR first anywhere": 88, "OR point": 52, "general": 62, "general coupled": 28}, f"first points {first}")
+    check(first == {"OR first anywhere": 88, "OR published point": 52, "general first anywhere": 53,
+                    "general published point": 9, "general coupled first anywhere": 27,
+                    "general coupled published point": 1}, f"first points {first}")
+    got["first_anywhere"] = sum(v for k, v in first.items() if k.endswith("first anywhere"))
+    got["lit_no_file"] = sum(1 for r in lit_rows if r["verified"] == "na")
+    got["or_inconsistent"] = sum(1 for r in orc.values() if num(r["lit_lb"]) is not None and num(r["lit_ub"]) is not None
+                                 and num(r["lit_lb"]) > num(r["lit_ub"]))
     check(sum(1 for rel in objs if rel.startswith("or/")) == 690, "690 OR files")
     check(sum(1 for rel in objs if rel.startswith("general/")) == 64, "64 general files")
     check(sum(1 for rel in objs if rel.startswith("general-coupled/")) == 29, "29 coupled files")
@@ -626,7 +706,7 @@ def main():
             tally["bestdual"] += 1
             tally["bestdual " + r["family"]] += 1
     check(tally["opt"] == 608 and tally["inf"] == 40, f"solu tally {tally}")
-    check(tally["opt literature"] == 527 and tally["opt this work"] == 81, "solu optimal split")
+    check(tally["opt literature"] == 528 and tally["opt this work"] == 80, "solu optimal split")
     lit_counts = C(r["source"] for r in lit_rows)
     header = [
         "# bobilib_update.solu: status update for BOBILib (https://bobilib.org) in the MIPLIB/SCIP .solu format.",
@@ -638,7 +718,8 @@ def main():
         "#",
         "# One line per instance whose status differs from BOBILib's metadata, or whose best value improves:",
         "#   =opt=      NAME VALUE   proven optimal value (published, or proven in this work)",
-        "#   =inf=      NAME         no bilevel feasible point exists (follower unbounded for every leader choice)",
+        "#   =inf=      NAME         no bilevel feasible point exists (the follower's problem is infeasible or",
+        "#                           unbounded for every leader choice; certificate: a recession direction)",
         "#   =best=     NAME VALUE   best verified bilevel feasible point (solution file in this package), not proven",
         "#   =bestdual= NAME VALUE   best proven lower bound, where this work proves a better one than any published",
         "# An instance can have both a =best= and a =bestdual= line. Values are printed with full precision",
@@ -652,6 +733,10 @@ def main():
         header.append(f"#   {key}: {cnt}")
     header += [
         "#   this work: every other line; the certificate of each is named in instances.csv (column 'certificate').",
+        "#",
+        f"# Of the =inf= lines, {sum(r['verified'] == 'yes' for r in ray_rows)} rest on recession directions checked in exact "
+        f"rational arithmetic; {', '.join(sorted(r['instance'] for r in ray_rows if r['verified'] != 'yes'))}",
+        "# rest on directions checked in floating point only (residuals of about 1e-12 relative remain).",
         "#",
     ]
     write(f"{R}/bobilib_update.solu", "\n".join(header + lines) + "\n")
@@ -729,13 +814,17 @@ BOBILib lists {got['bobilib_optimal']:,} instances as optimal, {got['bobilib_inf
 | already optimal in published work | {got['literature']} |
 | proven optimal here | {got['new_optimal']} |
 | no bilevel feasible point (proven here) | {got['infeasible_bilevel']} |
-| first verified point here, where BOBILib has none | {got['first_point']} |
+| verified point here, where BOBILib has none | {got['first_point']} |
 | status unchanged | {got['unchanged']} |
 
 So {got['settled']} ({round(100 * got['settled'] / got['unsolved'])}%) are settled, {got['optimal_now']} of them optimal.
-Every claim is backed by a file in this package: a solution in BOBILib's
+Of the {got['first_point']} verified points where BOBILib has none, {got['first_anywhere']} are the first point
+anywhere; for the other {got['first_point'] - got['first_anywhere']} a published point existed (named in `notes`).
+Every claim is backed by a file in this package (a solution in BOBILib's
 format that passes BOBILib-style verification, a recession-direction
-certificate, a partition certificate, or a published optimum (cited).
+certificate, a partition certificate) or by a published optimum (cited); for
+{got['lit_no_file']} of the {got['literature']} published optima there is no solution file here
+(`verified` = `na`), and only the published value is used.
 
 ## Data
 
@@ -749,15 +838,15 @@ results/
   kip/                  {folder_counts['kip']} knapsack interdiction solutions at published optima (Weninger-Fukasawa)
   ss/                   {folder_counts['ss']} subset-sum knapsack interdiction optima proven here; proofs.csv
   or/                   {folder_counts['or']} verified points for the 810 OR instances; bounds and compare.csv
-  clique/               {folder_counts['clique']} clique-interdiction certificates, solver logs, independent review
+  clique/               {folder_counts['clique']} clique-interdiction certificates, solver logs, separate review
   network/              {folder_counts['network']} attack-protect trees certified by enumeration; review
-  rays/                 {nrays} recession directions: the follower is unbounded for every leader choice
+  rays/                 {nrays} recession directions: the follower is infeasible or unbounded for every leader choice
   general/              {folder_counts['general']} points for MIPLIB-derived instances without coupling rows; HPR-bound optima
   general-coupled/      {folder_counts['general-coupled']} points for MIPLIB-derived instances with coupling rows
 ```
 
 Each folder has its own README with the method, the columns of its tables,
-the commands that produced it and, where one was done, its independent review.
+the commands that produced it and, where one was done, its separate review.
 
 ## File formats
 
@@ -794,7 +883,7 @@ exact solver proofs of w3(G) > k) and the upper bound with its partition.
 | `collection` | BOBILib sub-collection (last directory of the instance path), e.g. `kp`, `or`, `miplib2017` |
 | `family` | `knapsack`, `multidim-knapsack`, `clique`, `network`, `generalized`, `assignment` (interdiction), `general-pure`, `general-mixed` |
 | `bobilib_status`, `bobilib_value` | BOBILib's status and best known objective (empty: none) |
-| `new_status` | `optimal` (proven, published or here), `infeasible_bilevel` (no bilevel feasible point), `feasible` (first verified point; BOBILib had none), `unchanged`, `bobilib_optimal`, `bobilib_infeasible` |
+| `new_status` | `optimal` (proven, published or here), `infeasible_bilevel` (no bilevel feasible point), `feasible` (verified point here; BOBILib had none; `notes` says whether it is the first point anywhere), `unchanged`, `bobilib_optimal`, `bobilib_infeasible` |
 | `primal_value` | best upper-level value backed by a verified solution file (this package or BOBILib's) or a published optimum |
 | `dual_bound` | best proven lower bound (the upper level is minimised), if any |
 | `source` | citation key of the published result (see below), `this work`, or `{BOBILIB_KEY}` (BOBILib's own value) |
@@ -841,21 +930,30 @@ D=data/collection
 mkdir -p /tmp/large && tar xzf results/general/large_points.tar.gz -C /tmp/large
 ./target/release/bobi verify --instances $D --generic /tmp/large
 python3 -I scripts/verify_ray.py INSTANCE.mps.gz INSTANCE.aux results/rays/INSTANCE.ray.json
-python3 -I scripts/ss_check.py INSTANCE.mps.gz INSTANCE.aux - OPTIMUM   # independent KIP lower bound
+python3 -I scripts/ss_check.py INSTANCE.mps.gz INSTANCE.aux - OPTIMUM   # second KIP lower-bound prover
 python3 -I scripts/compare_hpr.py INSTANCE.mps.gz INSTANCE.aux MIPLIB.mps.gz   # HPR = MIPLIB model
 ```
 
 `bobi verify` checks a file the way BOBILib's feasibility checker does: rows,
 bounds and integrality within 1e-6, the stated objective, and the follower
 re-solved with the leader fixed (exact knapsack oracle for one follower row,
-a HiGHS MILP otherwise) and found optimal within BOBILib's relative 1e-4.
-The subset-sum lower bounds are re-proved by `scripts/ss_check.py`, and the
-clique, network and coupled results were re-derived by independent reviewers
-with separate code (see the folder READMEs). Caveats: the two
-supportcase42 directions are checked in floating point only; nine coupled
-points use BOBILib's 1e-4 tolerance on the follower's value (about 1e-7
-relative); OR lower bounds for several follower knapsacks are the
-literature's.
+a HiGHS MILP otherwise) and found optimal within BOBILib's relative 1e-4. It
+is separate from BOBILib's solvers but not from this work's code: it is part
+of the same crate as the solvers and shares their instance reader and
+knapsack oracle. Code that shares nothing with the solvers re-checks the
+subset-sum lower bounds (`scripts/ss_check.py` and a second prover), the
+recession directions (`scripts/verify_ray.py`) and the HPR comparisons
+(`scripts/compare_hpr.py`); the clique, network and coupled results were
+re-derived with separate code in separate review sessions (see the folder
+READMEs). The software, the experiments and these reviews were carried out
+with an AI coding agent directed by the author; the reviews ran in separate
+sessions that wrote their own code. Caveats: the two supportcase42
+directions are checked in floating point only; nine coupled points use
+BOBILib's 1e-4 tolerance on the follower's value (about 1e-7 relative); OR
+lower bounds for several follower knapsacks are the literature's; the
+published OR points include values of Lefebvre and Schmidt (2025) that are
+not verified, and for {got['or_inconsistent']} OR instances a published lower bound exceeds a
+published point (`notes` of `instances.csv`).
 
 ## Replicating
 

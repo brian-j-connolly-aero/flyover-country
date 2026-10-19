@@ -1,8 +1,10 @@
 """OR set (multidimensional knapsack interdiction): empirical distribution of the
 relative gap (best upper - best lower) / best upper, literature alone vs
 literature plus this work, over the instances with both a published lower and a
-published upper bound (paired). A gap of 0 is drawn at a separate "0" tick
-left of an axis break.
+published upper bound (paired), leaving out the instances whose published
+lower bound exceeds the published point (inconsistent sources; listed in the
+supplement). A gap of 0 (closed instance) is drawn at a separate "0" tick
+left of an axis break; no paired gap is negative.
 
 Data: results/or/compare.csv (columns variant, alpha, lit_gap, gap).
 """
@@ -22,10 +24,12 @@ S.setup()
 rows = S.read_csv("or/compare.csv")
 S.check(len(rows), 810, "OR instances")
 
+conflict = {r["name"] for r in rows if r["lit_lb"] and r["lit_ub"] and float(r["lit_lb"]) > float(r["lit_ub"])}
+S.check(len(conflict), 4, "OR instances with a published lower bound above the published point")
 pairs = collections.defaultdict(list)       # (follower type, budget) -> [(lit, now)]
 by_variant = collections.defaultdict(list)  # (variant, budget) -> [(lit, now)]
 for r in rows:
-    if r["gap"] and r["lit_gap"]:
+    if r["gap"] and r["lit_gap"] and r["name"] not in conflict:
         lit, now = float(r["lit_gap"]), float(r["gap"])
         ft = "one" if r["variant"] == "100" else "several"
         pairs[(ft, r["alpha"])].append((lit, now))
@@ -33,8 +37,8 @@ for r in rows:
 
 # Paired medians quoted in the paper (upper median, as scripts/compare_or.py), in %.
 quoted = {("100", "0.25"): (24.0, 4.1), ("100", "0.50"): (34.0, 7.1), ("100", "0.75"): (0.14, 0.14),
-          ("0", "0.25"): (33.3, 31.4), ("0", "0.50"): (36.6, 29.1), ("0", "0.75"): (5.1, 0.04),
-          ("50", "0.25"): (29.6, 28.2), ("50", "0.50"): (41.3, 34.8), ("50", "0.75"): (11.8, 1.4)}
+          ("0", "0.25"): (33.3, 31.8), ("0", "0.50"): (36.6, 29.1), ("0", "0.75"): (5.3, 0.05),
+          ("50", "0.25"): (30.6, 28.3), ("50", "0.50"): (41.3, 34.8), ("50", "0.75"): (11.8, 1.4)}
 for k, (ql, qn) in quoted.items():
     v = by_variant[k]
     ml = 100 * S.upper_median([a for a, _ in v])
@@ -45,12 +49,12 @@ for k, (ql, qn) in quoted.items():
     S.check(round(mn, nd), qn, f"median gap now, variant -{k[0]}, budget {k[1]}")
 
 XMIN, XMAX = 0.01, 100.0   # percent, log scale
-# Gaps of 0 (closed; also the one instance whose published bounds cross,
-# OR10x100-0.75_4.dat-0, closed at 8,813) are drawn at XZ, a separate "0" tick
-# left of an axis break. The smallest positive gap is 0.012%, so nothing lies
-# between the break and 0.01.
+# Gaps of 0 (closed instances) are drawn at XZ, a separate "0" tick left of an
+# axis break. The smallest positive gap is 0.012%, so nothing lies between the
+# break and 0.01.
 XZ = 0.002
 XL = 0.0013                # left end of the axis
+S.check(min(x for v in pairs.values() for p in v for x in p) >= 0, True, "no negative paired gap")
 pos = [float(r[c]) * 100 for r in rows for c in ("gap", "lit_gap") if r[c] and float(r[c]) > 0]
 S.check(min(pos) > XMIN, True, "every positive gap is right of the axis break")
 

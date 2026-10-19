@@ -17,12 +17,16 @@ follower knapsack, \NumVerifyOrSeveral{} with several), the \NumGeneralFiles{} g
 coupling rows, the \NumVerifyClique{} clique files and the \NumVerifyNetwork{} network files; all of
 them passed again when this supplement was assembled. The points with
 coupling rows also pass \texttt{bobi certify} (proven dual bounds, relative
-$10^{-5}$, optimistic tie-break).
+$10^{-5}$, optimistic tie-break). \texttt{bobi verify} is separate from
+BOBILib's solvers but not from this work's code: it belongs to the same Rust
+crate as the solvers and shares their instance reader and knapsack oracle.
 
 \item \textbf{Optimality proofs.} Each ``optimal'' status rests on a lower
 bound of one of these kinds: a published proof or published lower bound
-(cited, with the value matched by a verified solution file); the exact subset-sum search
-(Section~\ref{app:kip}), whose pruning rules are proved in Lean; a theorem
+(cited; for \NumLitWithFile{} of the \NumLitOptimal{} published optima a verified
+solution file here has the published value, for the other \NumLitNoFile{} only
+the published value is used); the exact subset-sum search
+(Section~\ref{app:kip}), whose main pruning lemmas are proved in Lean; a theorem
 with a checkable certificate (Mantel, Brouwer and partitions for clique
 interdiction, Section~\ref{app:clique}; the HPR bound with an exact
 model comparison, Section~\ref{app:general}); or exhaustive enumeration with
@@ -30,17 +34,17 @@ checked witnesses (Section~\ref{app:network}). ``No bilevel feasible point''
 rests on Theorem~\ref{thm:ray} with an exact rational check (\NumRayExact{} instances)
 or a floating-point check (\NumRayFloat{} instances).
 
-\item \textbf{Independent provers for the subset-sum proofs.} Two Python
-provers that share no code with the Rust search, one written by the
-designer and one by a reviewer who read neither, parse the instance files
+\item \textbf{Separate provers for the subset-sum proofs.} Two Python
+provers that share no code with the Rust search, one written with the search
+and one in a separate review session that read neither, parse the instance files
 themselves and re-prove all \NumNewKip{} lower bounds with only the direct rule and the
 per-node rule (Theorem~\ref{thm:node-rule}), in integer arithmetic; both
 compare themselves with brute force on random small instances. Two other
 designs of the search, built separately, prove
 \texttt{interKP-200-100-6-3}, and one of them all four instances of class~6
 with budget index~3.
-The reviewer compared every search binary with exhaustive enumeration on
-2,990 random small instances (no mismatch).
+The review session compared every search binary with exhaustive enumeration on
+\KipBruteForceInstances{} random small instances (no mismatch).
 
 \item \textbf{Tests of the code against its specification.} Unit tests
 compare the subset-sum search with brute force over every deletion, the
@@ -52,14 +56,18 @@ The network DP is compared with brute force over all follower points on
 random forests, and the whole enumeration with a brute-force bilevel
 optimum.
 
-\item \textbf{Independent reviews.} The clique, network and coupled-row
-results were each re-derived by a separate reviewer with its own instance
+\item \textbf{Separate reviews.} The clique, network and coupled-row
+results were each re-derived in a separate review session with its own instance
 reader and different solvers or code: two exact maximum-clique searches,
 HiGHS and a branch and bound written in C for the part-size cases of
 Proposition~\ref{prop:clique-sizes}; a C implementation of the tree DP and a
 brute force based on Lemma~\ref{lem:fire-closure}, compared with ours at all
 9.3 million attacks; and a second reading of the coupled files with HiGHS's
-own MPS reader. The reviewers found only wording errors.
+own MPS reader. The notes of each review and the corrections it led to are in
+the \texttt{README.md} of the folder concerned. All the software, the
+experiments and the review sessions were carried out with an AI coding agent
+directed by the author; the review sessions were fresh sessions of the same
+agent that wrote their own code (threat~\ref{it:common} below).
 
 \item \textbf{Exact arithmetic where it is cheap.} The clique inequalities
 (Mantel, Brouwer's threshold, the size vectors of
@@ -95,7 +103,7 @@ The merged-row online bound (Theorem~\ref{thm:mkip-omega}) and the LP
 bracket are evaluated in double precision, so their rounding steps are in
 the safe direction only up to floating-point error. The window rule of the
 subset-sum search uses a floating-point fractional bound; the 16 proofs are
-independently confirmed by the integer-only provers above, which do not use
+confirmed by the integer-only provers above, which do not use
 that rule.
 
 \item \textbf{Scope of the Lean proofs.} Lean proves lemmas about abstract
@@ -107,21 +115,38 @@ budgets) is checked by scripts, not by Lean. Section~\ref{app:lean-map} lists
 what is not formalised.
 
 \item \textbf{Results taken from the literature.} Brouwer's
-theorem\cite{brouwer1981lotto} was read in the scanned 1981 report and agrees
-with later restatements,\cite{tyomkyn2015strong,korandi2021exact} but it is
-neither formalised nor reproved here. Published optima (Weninger and
+theorem\cite{brouwer1981lotto} was read in the scanned 1981 report; a refereed
+proof is Tyomkyn and Uzzell's,\cite{tyomkyn2015strong} and other refereed papers
+give the same statement (Section~\ref{app:clique}). It is neither formalised nor
+reproved here. Published optima (Weninger and
 Fukasawa\cite{weninger2025fast} for KIP, Fischetti et
 al.\cite{fischetti2019interdiction} for imkp, Lozano, Bergman and
 Cire\cite{lozano2026network} for OR, MIPLIB~2017 optima\cite{gleixner2021miplib}
 for the HPR bounds) and the published lower bounds of the
-OR instances with several follower knapsacks are used as reported; for
-them only the points are verified here.
+OR instances with several follower knapsacks are used as reported. For
+\NumLitWithFile{} of the \NumLitOptimal{} published optima a solution file at
+the published value is verified here; for \NumLitNoFile{}
+(\NumLitNoFileImkp{} imkp, \NumLitNoFileOr{} OR, \NumLitNoFileMiplib{}
+MIPLIB-derived, \NumLitNoFileGeneralized{} generalized) only the published value
+is used. The published OR points include values of Lefebvre and
+Schmidt\cite{lefebvre2025dantzig} that are not verified and, for three
+instances, contradict published lower bounds (Section~\ref{app:mkip-or}).
+
+\item \label{it:common}\textbf{Common-mode errors.} The solvers, the verifier,
+the second prover and the review sessions were all written with the same AI
+coding agent directed by the same author. Fresh sessions with their own code
+and instance readers reduce, but do not remove, the risk of a shared
+misreading of the file format or a shared conceptual slip. The checks least
+exposed to it are the Lean proofs, which Lean's kernel checks, and short
+programs whose verdicts can be audited by hand: the exact rational checks of
+the recession directions, the exact HPR comparisons and the brute-force
+comparisons.
 
 \item \textbf{Instance reading.} Every argument depends on reading the MPS
 and AUX files correctly. Each family's model is checked row by row against
-its expected pattern, and the key results were re-derived with independent
-readers (two subset-sum provers, the exact ray and HPR scripts, the
-reviewers' parsers).
+its expected pattern, and the key results were re-derived with separately
+written readers (two subset-sum provers, the exact ray and HPR scripts, the
+parsers of the review sessions).
 
 \item \textbf{Running times.} All times were measured on a shared machine
 with four cores that was often oversubscribed; they are indicative only and

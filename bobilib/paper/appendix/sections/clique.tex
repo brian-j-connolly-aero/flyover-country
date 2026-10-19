@@ -15,8 +15,8 @@ follower has $x_v$ ($v\in V$) and $y_e$ ($e\in E$) and the rows
 \]
 The leader minimises $\sum_vx_v$ and the follower minimises $-\sum_vx_v$. (Every row,
 coefficient and objective of the 60 files was checked against this pattern,
-once by the instance reader of the clique scripts and once by an independent
-reviewer's parser that classifies rows by their coefficients.)
+once by the instance reader of the clique scripts and once by the parser of a
+separate review session, which classifies rows by their coefficients.)
 
 \begin{lemma}[Follower's problem]\label{lem:clique-model}
 Fix the leader's choice and let $D=\{e: w_e=1\}$. A vector $x\in\{0,1\}^V$
@@ -100,8 +100,14 @@ Here $\alpha(H)$ is the independence number. The theorem is restated by
 Tyomkyn and Uzzell\cite{tyomkyn2015strong} (their equation~(1) and
 Theorem~1.1), who credit Brouwer with the first explicit proof, and, in the
 complemented form below for $t\ge 2$, by Kor\'andi, Roberts and
-Scott\cite{korandi2021exact} (their Theorem~1.1). We use it in complemented
-form.
+Scott\cite{korandi2021exact} (their Theorem~1.1). Brouwer's report is not
+refereed, but the statement is: Tyomkyn and Uzzell give a new proof of it in
+their Section~2, Hanson and Toft and Kang and Pikhurko found it
+again,\cite{hanson1991ksaturated,kang2005maximum} and Amin, Faudree, Gould and
+Sidorowicz\cite{amin2013non} determine the largest number of edges of a maximal
+$K_p$-free graph that is not $(p-1)$-partite, which gives the same threshold
+(a $K_p$-free graph that is not $(p-1)$-partite stays so when edges are added
+until it is maximal). We use the theorem in complemented form.
 
 \begin{corollary}[Complement form]\label{cor:brouwer}
 Let $t\ge 1$ and $n\ge 2t+1$. Every $K_{t+1}$-free graph $F$ on $n$ vertices with
@@ -188,8 +194,8 @@ asking for a partition of $V$ with prescribed part sizes and at most $b(s)\le 6$
 edges of the sparse complement between parts. All 170 were decided
 infeasible by five methods: CP-SAT\cite{perron2026cpsat} and
 SCIP\cite{hojny2025scip} on two different models, an exact
-solver-free depth-first search (tested against brute force), and, by an
-independent reviewer, HiGHS on a third model with an explicit budget row and
+solver-free depth-first search (tested against brute force), and, in a
+separate review session with its own code, HiGHS on a third model with an explicit budget row and
 a separate exact branch and bound written in C (tested against brute force
 on 450 random graphs and on planted instances). With
 Theorem~\ref{thm:clique-lb4} and Proposition~\ref{prop:clique-partition}

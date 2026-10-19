@@ -15,7 +15,7 @@ leaks into the document. Instance names are escaped for LaTeX.
   tab_hpr.tex             5 optima at the MIPLIB bound of the HPR
   tab_general_points.tex  90 first points for MIPLIB-derived instances
   tab_or.tex              all 810 OR instances: published and new bounds
-  tab_literature.tex      527 published optima BOBILib does not list, by source
+  tab_literature.tex      528 published optima BOBILib does not list, by source
   tab_unchanged.tex       716 instances whose status is unchanged, by family
 """
 import argparse
@@ -141,19 +141,21 @@ def main():
     rows = []
     for r in ss:
         n, cls, b = parse(r["name"])
-        rows.append(" & ".join([esc(r["name"]), str(n), str(cls), str(b), r["bobilib_value"], r["optimum"],
-                                r["nodes"], r["cpu_seconds"], r["independent_check_nodes"]]))
+        assert int(r["capacity"]) - int(r["optimum"]) == (0 if cls == 6 else 1), r["name"]
+        rows.append(" & ".join([esc(r["name"]), str(n), str(cls), str(b), r["budget"], r["capacity"],
+                                r["optimum"], r["nodes"], r["cpu_seconds"], r["independent_check_nodes"]]))
     put("tab_kip.tex", longtable(
         "@{}l S[table-format=3.0] S[table-format=1.0] S[table-format=1.0] S[table-format=4.0] S[table-format=4.0] "
-        "S[table-format=5.0] S[table-format=2.2] S[table-format=5.0]@{}",
+        "S[table-format=4.0] S[table-format=5.0] S[table-format=2.2] S[table-format=5.0]@{}",
         "The 16 knapsack interdiction instances without a published optimum, all proven optimal here by the "
         "robust subset-sum search. $n$: items; class 6: subset sum ($p = w$), class 7: even weights and odd "
-        "capacity; budget index as in the instance name. Nodes and CPU seconds of \\texttt{bobi ss-solve} on "
-        "one thread of a shared machine; independent prover: nodes of \\texttt{scripts/ss\\_check.py}, which "
-        "shares no code with the search. BOBILib's value was already optimal in every case.",
+        "capacity; index: the budget index of the instance name; $\\beta$: the leader's budget; $c$: the "
+        "follower's capacity. Every optimum equals $c$ (class 6) or $c-1$ (class 7), the trivial upper bound, "
+        "and BOBILib's value. Nodes and CPU seconds of \\texttt{bobi ss-solve} on one thread of a shared machine; "
+        "second prover: nodes of \\texttt{scripts/ss\\_check.py}, which shares no code with the search.",
         "tab:kip",
-        ["Instance", "{$n$}", "{Class}", "{Budget}", "{BOBILib}", "{Optimum}", "{Nodes}", "{CPU (s)}",
-         "{\\shortstack{Indep.\\\\nodes}}"], rows))
+        ["Instance", "{$n$}", "{Class}", "{Index}", "{$\\beta$}", "{$c$}", "{Optimum}", "{Nodes}", "{CPU (s)}",
+         "{\\shortstack{Prover\\\\nodes}}"], rows))
 
     # ---- tab_clique --------------------------------------------------------------------------
     cq = load(f"{R}/clique/summary.csv")
@@ -245,12 +247,12 @@ def main():
     put("tab_rays.tex", longtable(
         "@{}l l S[table-format=5.0] S[table-format=-9.4] l@{}",
         "The 40 open MIPLIB-derived instances with no bilevel feasible point: the follower's own rows admit a "
-        "recession direction $d$ (follower variables only) with $f^\\top d<0$, for every leader choice (Meyer "
-        "1974). Support: nonzero entries of $d$; $f^\\top d$ rounded to four decimals; exact: checked in exact "
+        "recession direction $r$ (follower variables only) with $f^\\top r<0$, for every leader choice (Meyer "
+        "1974). Support: nonzero entries of $r$; $f^\\top r$ rounded to four decimals; exact: checked in exact "
         "rational arithmetic by \\texttt{scripts/verify\\_ray.py} (the two supportcase42 directions leave "
         "residuals of about $10^{-12}$ relative and rest on floating point).",
         "tab:rays",
-        ["Instance", "Collection", "{Support}", "{$f^\\top d$}", "Exact"], rows))
+        ["Instance", "Collection", "{Support}", "{$f^\\top r$}", "Exact"], rows))
 
     # ---- tab_hpr -----------------------------------------------------------------------------
     hpr = load(f"{R}/general/hpr_optimal.csv")
@@ -287,7 +289,7 @@ def main():
     pts = sorted((r for r in ins if r["new_status"] == "feasible" and r["family"].startswith("general-")),
                  key=lambda r: natural(r["instance"]))
     assert len(pts) == 90
-    rows, tol = [], 0
+    rows, tol, pub = [], 0, 0
     for r in pts:
         if r["certificate"].startswith("general-coupled/"):
             c = cp[r["instance"]]
@@ -297,12 +299,17 @@ def main():
         else:
             g = gp[r["instance"]]
             coup, meth, low, mark = "no", "hpr-f-t", num(g["lower_obj"]), ""
+        if "published point" in r["notes"]:
+            mark += "$^{\\ddagger}$"
+            pub += 1
         rows.append(" & ".join([esc(r["instance"]) + mark, esc(r["collection"]), coup, meth,
                                 dec(num(r["primal_value"])), dec(low)]))
-    assert tol == 9
+    assert tol == 9 and pub == 10, (tol, pub)
     put("tab_general_points.tex", longtable(
         "@{}l l c l S[table-format=-10.4] S[table-format=-10.4]@{}",
-        "The 90 first bilevel feasible points for open MIPLIB-derived instances (BOBILib lists no point). Coupling: "
+        "The 90 verified bilevel feasible points for open MIPLIB-derived instances, for which BOBILib lists no "
+        "point. $^{\\ddagger}$: a point had been published elsewhere (its value and source are in the notes of "
+        "\\texttt{instances.csv}); for the other 80 this is the first point known. Coupling: "
         "whether leader rows contain follower variables. Method: \\texttt{hpr-f-t}, the high point relaxation, "
         "then the follower solved with the leader fixed, then an optimistic tie-break (\\texttt{bobi general}); "
         "\\texttt{hpr}, \\texttt{penalty}, \\texttt{follow}: the part of the \\texttt{bobi coupled} portfolio "
@@ -343,9 +350,11 @@ def main():
         "S[table-format=6.0] S[table-format=6.0] S[table-format=3.2]@{}",
         "All 810 multidimensional knapsack interdiction instances of the OR set; names have the form "
         "\\texttt{OR}\\emph{rows}\\texttt{x}\\emph{items}\\texttt{-}\\allowbreak\\emph{budget}"
-        "\\texttt{\\_}\\emph{i}\\texttt{.dat-}\\allowbreak\\emph{variant}. Budget: leader budget in percent of the item weights; follower rows: "
+        "\\texttt{\\_}\\emph{i}\\texttt{.dat-}\\allowbreak\\emph{variant}. Budget: the tightness $\\alpha$ in percent (the right-hand side of every knapsack row, leader's and "
+        "follower's, is $\\alpha$ times the sum of its coefficients); follower rows: "
         "knapsack rows of the follower (variant -100: one; -0 and -50: several). Published LB: Lozano, Bergman "
-        "and Cire (2026); published UB: best published point; BOBILib: BOBILib's best known value; our LB: "
+        "and Cire (2026); published UB: best published point (Lozano, Bergman and Cire, or Lefebvre and Schmidt "
+        "(2025); not verified here); BOBILib: BOBILib's best known value; our LB: "
         "dualised follower LP bracket or merged-row online bound (one follower knapsack only); our point: "
         "verified solution file; gap: (best upper bound $-$ best lower bound)/best upper bound in percent, where "
         "the best upper bound may be the follower LP bound at our leader choice (100: no lower bound known). "
@@ -358,10 +367,38 @@ def main():
          "{\\shortstack{Publ.\\\\UB}}", "{BOBILib}", "{\\shortstack{Our\\\\LB}}", "{\\shortstack{Our\\\\point}}",
          "{\\shortstack{Gap\\\\(\\%)}}"], rows, colsep="3.5pt"))
 
+    # ---- tab_or_conflicts: published bounds that contradict each other ----------------------------
+    mk = {r["name"]: r for r in load(f"{R}/literature/mkip_literature_status.csv")}
+    rows = []
+    for r in orr:
+        ll, lu = num(r["lit_lb"]), num(r["lit_ub"])
+        if ll is None or lu is None or ll <= lu:
+            continue
+        m = mk[r["name"]]
+        dd, ls_ = num(m["dd_lcb2026_ub"]), num(m["lefebvre_schmidt_ub"])
+        src = ("Lefebvre--Schmidt" if ls_ is not None and ls_ == lu else
+               "Lozano et al." if dd is not None and dd == lu else "published")
+        row = I[r["name"]]
+        treat = ("closed (Section~\\ref{app:mkip-or}); not paired" if row["new_status"] == "optimal" else
+                 "not in the paired medians")
+        rows.append(" & ".join([esc(r["name"]), intval(ll), intval(lu), src, intval(dd), intval(num(r["our_point"])),
+                                treat]))
+    assert len(rows) == 4
+    put("tab_or_conflicts.tex", longtable(
+        "@{}l S[table-format=5.0] S[table-format=6.0] l S[table-format=6.0] S[table-format=5.0] l@{}",
+        "The OR instances whose published lower bound (Lozano, Bergman and Cire) exceeds the best published "
+        "point. Point source: who published that point; Lozano et al.'s point: their own published point; our "
+        "point: the verified solution file of this work (blank: none). Lefebvre and Schmidt's three values come "
+        "from runs that stopped at a time or solution limit and lie below a published lower bound; they are not "
+        "verified here. The paper's paired median gaps leave these instances out.",
+        "tab:or-conflicts",
+        ["Instance", "{\\shortstack{Publ.\\\\LB}}", "{\\shortstack{Publ.\\\\point}}", "Point source",
+         "{\\shortstack{Lozano\\\\et al.}}", "{\\shortstack{Our\\\\point}}", "Here"], rows, colsep="4pt"))
+
     # ---- tab_literature ------------------------------------------------------------------------
     lit = [r for r in ins if r["bobilib_status"] in ("feasible", "open") and r["new_status"] == "optimal"
            and r["source"] != "this work"]
-    assert len(lit) == 527
+    assert len(lit) == 528
     bysrc = collections.defaultdict(list)
     for r in lit:
         bysrc[r["source"]].append(r)

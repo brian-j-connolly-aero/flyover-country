@@ -17,12 +17,12 @@ U = S.unsolved(S.load_summary())
 
 FAMILIES = [  # summary.json family -> row label
     ("knapsack", "Knapsack interdiction"),
-    ("multidim-knapsack", "Multidim. knapsack interdiction"),
+    ("multidim-knapsack", "Multidim. knapsack interdiction (MKIP)"),
     ("clique", "Edge clique interdiction"),
     ("network", "Network interdiction"),
     ("generalized", "Generalized interdiction"),
-    ("general-pure", "MIPLIB-derived, pure integer"),
-    ("general-mixed", "MIPLIB-derived, mixed integer"),
+    ("general-pure", "General, pure integer"),
+    ("general-mixed", "General, mixed integer"),
 ]
 cnt = {f: collections.Counter() for f, _ in FAMILIES}
 for v in U.values():
@@ -31,7 +31,7 @@ for v in U.values():
 # Check against the numbers quoted in the paper.
 expect = {
     "knapsack": {"lit": 376, "new": 16},
-    "multidim-knapsack": {"lit": 139, "new": 1, "first": 140, "unchanged": 582},
+    "multidim-knapsack": {"lit": 140, "first": 140, "unchanged": 582},
     "clique": {"new": 57, "unchanged": 3},
     "network": {"new": 2},
     "generalized": {"lit": 4, "unchanged": 8},
@@ -67,8 +67,9 @@ for i, (f, _) in enumerate(FAMILIES):
                 box = dict(boxstyle="square,pad=0.3", facecolor=S.OUTCOMES[k][1], edgecolor="none")
             ax.text(left + w / 2, y, txt, ha="center", va="center", fontsize=7,
                     color=S.OUTCOMES[k][4], zorder=4, bbox=box)
-        else:  # too narrow: count just above the bar
-            ax.text(left + w / 2, y + H / 2 + 0.02, txt, ha="center", va="bottom",
+        else:  # too narrow: count just above the bar, on a short leader tick
+            ax.plot([left + w / 2] * 2, [y + H / 2, y + H / 2 + 0.07], color=S.INK2, lw=0.5)
+            ax.text(left + w / 2, y + H / 2 + 0.07, txt, ha="center", va="bottom",
                     fontsize=7, color=S.INK, zorder=4)
         left += w
     ax.text(1.015, y, S.fmt(n), ha="left", va="center", fontsize=7.5)
@@ -83,7 +84,7 @@ ax.set_xlim(0, 1)
 ax.set_ylim(-0.5, len(FAMILIES) - 0.25)
 ax.set_xticks([0, 0.25, 0.5, 0.75, 1])
 ax.set_xticklabels(["0", "25", "50", "75", "100"])
-ax.set_xlabel("share of the family's unsolved instances (%)", labelpad=2)
+ax.set_xlabel("share of the family's feasible or open instances (%)", labelpad=2)
 hs, hmap = S.legend_handles()
 ax.legend(handles=hs, handler_map=hmap, ncol=5, loc="lower right", bbox_to_anchor=(1.0, 1.0),
           handlelength=1.4, handleheight=0.9, columnspacing=1.2, handletextpad=0.5,

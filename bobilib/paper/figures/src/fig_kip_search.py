@@ -46,6 +46,7 @@ fig, (ax, bx) = S.plt.subplots(1, 2, figsize=(S.FULL, 2.4), sharey=True,
 # No node count exists for these four 'before' runs, so nothing is plotted for
 # them (a line or arrow would suggest a count); a text label says why.
 NOTE = {"not finished in 2 h": "before: not finished", "not finished in 3 h": "before: not finished",
+        "not finished in 4 h": "before: not finished",
         "not run to the end": "before: not finished", "not run": "before: not run"}
 XMAX = 6e7
 for name in rows:

@@ -67,8 +67,9 @@ for i, (b, _) in enumerate(BARS):
         else:
             above.append((left + w / 2, w))
         left += w
-    for x, w in above:
-        ax.text(x, y + H / 2 + 0.03, str(w), ha="center", va="bottom", fontsize=7, zorder=4)
+    for x, w in above:  # narrow segments: count above the bar, on a short leader tick
+        ax.plot([x, x], [y + H / 2, y + H / 2 + 0.09], color=S.INK2, lw=0.5)
+        ax.text(x, y + H / 2 + 0.09, str(w), ha="center", va="bottom", fontsize=7, zorder=4)
     ax.text(left + 1.5, y, str(left), ha="left", va="center", fontsize=7, color=S.INK2)
 
 ax.set_yticks(range(len(BARS)))

@@ -7,21 +7,25 @@
 #
 # One line per instance whose status differs from BOBILib's metadata, or whose best value improves:
 #   =opt=      NAME VALUE   proven optimal value (published, or proven in this work)
-#   =inf=      NAME         no bilevel feasible point exists (follower unbounded for every leader choice)
+#   =inf=      NAME         no bilevel feasible point exists (the follower's problem is infeasible or
+#                           unbounded for every leader choice; certificate: a recession direction)
 #   =best=     NAME VALUE   best verified bilevel feasible point (solution file in this package), not proven
 #   =bestdual= NAME VALUE   best proven lower bound, where this work proves a better one than any published
 # An instance can have both a =best= and a =bestdual= line. Values are printed with full precision
 # (integers without a decimal point, other values as the shortest decimal that round-trips a double).
 #
-# Counts: =opt= 608 (527 published, 81 this work), =inf= 40, =best= 695, =bestdual= 194.
+# Counts: =opt= 608 (528 published, 80 this work), =inf= 40, =best= 695, =bestdual= 194.
 # Sources of the published optima (instances.csv, column 'source'; full references in README.md):
 #   WeningerFukasawa2025: 376
-#   LozanoBergmanCire2026: 96
+#   LozanoBergmanCire2026: 97
 #   FischettiEtAl2019: 52
 #   BOBILibEarlierRelease: 1
 #   FischettiEtAl2017: 1
 #   VasquezLozanoVanHoeve2025: 1
 #   this work: every other line; the certificate of each is named in instances.csv (column 'certificate').
+#
+# Of the =inf= lines, 38 rest on recession directions checked in exact rational arithmetic; supportcase42_0_100, supportcase42_50_50
+# rest on directions checked in floating point only (residuals of about 1e-12 relative remain).
 #
 =opt=      air03-0.100000  376936
 =best=     air05-0.900000  64955

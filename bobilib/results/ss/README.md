@@ -17,6 +17,7 @@ is new is the proof that nothing better exists. `proofs.csv` lists:
 | `optimum` | proven optimal value (= `bobilib_value`) |
 | `nodes`, `cpu_seconds` | `bobi ss-solve` on one thread (CPU time; the machine was shared, so wall times were 2-3 times longer) |
 | `independent_check_nodes` | nodes of `scripts/ss_check.py`, which proves the same lower bound independently |
+| `budget`, `capacity` | the leader's budget and the follower's capacity, read from the instance files by the parser of `scripts/ss_check.py`; every optimum equals the capacity (class 6) or the capacity minus one (class 7, even weights and odd capacity), the trivial upper bound |
 
 `summary.csv` records the runs that first proved 12 of these instances,
 with earlier versions of the search (before per-node tables, and before

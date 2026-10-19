@@ -9,11 +9,11 @@ objectives of the minimising leader; full-precision values and the
 certificate of every row are in \texttt{instances.csv}
 (Section~\ref{app:data-csv}). The order follows the paper:
 published optima (Table~\ref{tab:literature}); knapsack interdiction
-(Table~\ref{tab:kip}); the OR set (Table~\ref{tab:or}); clique
+(Table~\ref{tab:kip}); the OR set (Tables~\ref{tab:or} and~\ref{tab:or-conflicts}); clique
 interdiction (Table~\ref{tab:clique}); network interdiction
 (Tables~\ref{tab:network} and~\ref{tab:network-trees}); general instances
 without a feasible point (Table~\ref{tab:rays}), with an HPR-bound optimum
-(Table~\ref{tab:hpr}) and with a first point (Table~\ref{tab:general-points});
+(Table~\ref{tab:hpr}) and with a verified point where BOBILib has none (Table~\ref{tab:general-points});
 and the instances whose status is unchanged (Table~\ref{tab:unchanged}).
 
 \subsection{Published optima}
@@ -24,6 +24,7 @@ and the instances whose status is unchanged (Table~\ref{tab:unchanged}).
 
 \subsection{The OR set}
 \input{generated/tab_or.tex}
+\input{generated/tab_or_conflicts.tex}
 
 \subsection{Clique interdiction}
 \input{generated/tab_clique.tex}

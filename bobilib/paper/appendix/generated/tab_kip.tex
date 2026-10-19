@@ -2,37 +2,37 @@
 % Needs booktabs, longtable, siunitx (v3) and multicol in the preamble.
 
 {\footnotesize\sisetup{group-separator={,},group-minimum-digits=4,group-digits=integer}\setlength{\tabcolsep}{4pt}\setlength{\LTcapwidth}{\linewidth}
-\begin{longtable}{@{}l S[table-format=3.0] S[table-format=1.0] S[table-format=1.0] S[table-format=4.0] S[table-format=4.0] S[table-format=5.0] S[table-format=2.2] S[table-format=5.0]@{}}
-\caption{The 16 knapsack interdiction instances without a published optimum, all proven optimal here by the robust subset-sum search. $n$: items; class 6: subset sum ($p = w$), class 7: even weights and odd capacity; budget index as in the instance name. Nodes and CPU seconds of \texttt{bobi ss-solve} on one thread of a shared machine; independent prover: nodes of \texttt{scripts/ss\_check.py}, which shares no code with the search. BOBILib's value was already optimal in every case.}\label{tab:kip}\\
+\begin{longtable}{@{}l S[table-format=3.0] S[table-format=1.0] S[table-format=1.0] S[table-format=4.0] S[table-format=4.0] S[table-format=4.0] S[table-format=5.0] S[table-format=2.2] S[table-format=5.0]@{}}
+\caption{The 16 knapsack interdiction instances without a published optimum, all proven optimal here by the robust subset-sum search. $n$: items; class 6: subset sum ($p = w$), class 7: even weights and odd capacity; index: the budget index of the instance name; $\beta$: the leader's budget; $c$: the follower's capacity. Every optimum equals $c$ (class 6) or $c-1$ (class 7), the trivial upper bound, and BOBILib's value. Nodes and CPU seconds of \texttt{bobi ss-solve} on one thread of a shared machine; second prover: nodes of \texttt{scripts/ss\_check.py}, which shares no code with the search.}\label{tab:kip}\\
 \toprule
-Instance & {$n$} & {Class} & {Budget} & {BOBILib} & {Optimum} & {Nodes} & {CPU (s)} & {\shortstack{Indep.\\nodes}} \\
+Instance & {$n$} & {Class} & {Index} & {$\beta$} & {$c$} & {Optimum} & {Nodes} & {CPU (s)} & {\shortstack{Prover\\nodes}} \\
 \midrule
 \endfirsthead
-\multicolumn{9}{l}{\emph{(continued)}}\\
+\multicolumn{10}{l}{\emph{(continued)}}\\
 \toprule
-Instance & {$n$} & {Class} & {Budget} & {BOBILib} & {Optimum} & {Nodes} & {CPU (s)} & {\shortstack{Indep.\\nodes}} \\
+Instance & {$n$} & {Class} & {Index} & {$\beta$} & {$c$} & {Optimum} & {Nodes} & {CPU (s)} & {\shortstack{Prover\\nodes}} \\
 \midrule
 \endhead
 \midrule
-\multicolumn{9}{r}{\emph{continued on the next page}}\\
+\multicolumn{10}{r}{\emph{continued on the next page}}\\
 \endfoot
 \bottomrule
 \endlastfoot
-interKP-200-100-6-2 & 200 & 6 & 2 & 1855 & 1855 & 303 & 0.10 & 303 \\
-interKP-300-100-6-2 & 300 & 6 & 2 & 2868 & 2868 & 366 & 0.16 & 366 \\
-interKP-400-100-6-2 & 400 & 6 & 2 & 3832 & 3832 & 257 & 0.15 & 257 \\
-interKP-500-100-6-2 & 500 & 6 & 2 & 4651 & 4651 & 190 & 0.26 & 190 \\
-interKP-200-100-6-3 & 200 & 6 & 3 & 2782 & 2782 & 13498 & 3.93 & 13502 \\
-interKP-300-100-6-3 & 300 & 6 & 3 & 4302 & 4302 & 19405 & 8.06 & 19537 \\
-interKP-400-100-6-3 & 400 & 6 & 3 & 5748 & 5748 & 13430 & 9.01 & 13583 \\
-interKP-500-100-6-3 & 500 & 6 & 3 & 6976 & 6976 & 10079 & 10.04 & 10116 \\
-interKP-200-100-7-2 & 200 & 7 & 2 & 1872 & 1872 & 22 & 0.06 & 22 \\
-interKP-300-100-7-2 & 300 & 7 & 2 & 2894 & 2894 & 27 & 0.04 & 27 \\
-interKP-400-100-7-2 & 400 & 7 & 2 & 3866 & 3866 & 18 & 0.05 & 18 \\
-interKP-500-100-7-2 & 500 & 7 & 2 & 4694 & 4694 & 1 & 0.05 & 1 \\
-interKP-200-100-7-3 & 200 & 7 & 3 & 2808 & 2808 & 651 & 0.10 & 651 \\
-interKP-300-100-7-3 & 300 & 7 & 3 & 4340 & 4340 & 470 & 0.20 & 470 \\
-interKP-400-100-7-3 & 400 & 7 & 3 & 5800 & 5800 & 378 & 0.17 & 378 \\
-interKP-500-100-7-3 & 500 & 7 & 3 & 7042 & 7042 & 256 & 0.15 & 256 \\
+interKP-200-100-6-2 & 200 & 6 & 2 & 1860 & 1855 & 1855 & 303 & 0.10 & 303 \\
+interKP-300-100-6-2 & 300 & 6 & 2 & 2865 & 2868 & 2868 & 366 & 0.16 & 366 \\
+interKP-400-100-6-2 & 400 & 6 & 2 & 3828 & 3832 & 3832 & 257 & 0.15 & 257 \\
+interKP-500-100-6-2 & 500 & 6 & 2 & 4645 & 4651 & 4651 & 190 & 0.26 & 190 \\
+interKP-200-100-6-3 & 200 & 6 & 3 & 2787 & 2782 & 2782 & 13498 & 3.93 & 13502 \\
+interKP-300-100-6-3 & 300 & 6 & 3 & 4299 & 4302 & 4302 & 19405 & 8.06 & 19537 \\
+interKP-400-100-6-3 & 400 & 6 & 3 & 5744 & 5748 & 5748 & 13430 & 9.01 & 13583 \\
+interKP-500-100-6-3 & 500 & 6 & 3 & 6970 & 6976 & 6976 & 10079 & 10.04 & 10116 \\
+interKP-200-100-7-2 & 200 & 7 & 2 & 1878 & 1873 & 1872 & 22 & 0.06 & 22 \\
+interKP-300-100-7-2 & 300 & 7 & 2 & 2892 & 2895 & 2894 & 27 & 0.04 & 27 \\
+interKP-400-100-7-2 & 400 & 7 & 2 & 3863 & 3867 & 3866 & 18 & 0.05 & 18 \\
+interKP-500-100-7-2 & 500 & 7 & 2 & 4689 & 4695 & 4694 & 1 & 0.05 & 1 \\
+interKP-200-100-7-3 & 200 & 7 & 3 & 2814 & 2809 & 2808 & 651 & 0.10 & 651 \\
+interKP-300-100-7-3 & 300 & 7 & 3 & 4338 & 4341 & 4340 & 470 & 0.20 & 470 \\
+interKP-400-100-7-3 & 400 & 7 & 3 & 5797 & 5801 & 5800 & 378 & 0.17 & 378 \\
+interKP-500-100-7-3 & 500 & 7 & 3 & 7037 & 7043 & 7042 & 256 & 0.15 & 256 \\
 \end{longtable}
 }

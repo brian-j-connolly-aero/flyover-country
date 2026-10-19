@@ -16,9 +16,9 @@ that was run on them, in the comment block at the top of its source.
 | `fig_knapsack_interdiction.tex` | toy knapsack interdiction: 8 items, the leader removes 2, the follower packs the best of the rest (value 13, or 21 with no removal) | 6.5 x 1.8 |
 | `fig_subset_sum_search.tex` | the subset-sum search: (a) branching on survivor counts, (b) windows of reachable sums, (c) the per-node online game and its end set | 6.5 x 2.2 |
 | `fig_clique_interdiction.tex` | clique interdiction on 8 vertices: (a) one deletion and the largest clique left, (b) the 3-partition and Mantel certificate | 6.5 x 2.0 |
-| `fig_unbounded_follower.tex` | recession-ray certificate: the follower's region moves with `x`, its direction `d` does not | 3.15 x 2.0 |
+| `fig_unbounded_follower.tex` | recession-ray certificate: the follower's region moves with `x`, its direction `r` does not | 3.15 x 2.0 |
 | `fig_hpr_bound.tex` | HPR optimum <= bilevel optimum <= any bilevel feasible point | 3.15 x 1.0 |
-| `fig_lp_bracket.tex` | LP bracket for one follower knapsack: `min U - p_max <= OPT <= Phi(x*)` | 3.15 x 1.6 |
+| `fig_lp_bracket.tex` | LP bracket for one follower knapsack: `min U - p_max <= OPT <= Phi(x^)` | 3.15 x 1.6 |
 | `fig_network_attack_protect.tex` | attack-protect game on a 15-node tree: 2 attacks, 2 protections, 8 saved | 3.15 x 1.8 |
 
 Build (pdflatex with TikZ; run from this folder):

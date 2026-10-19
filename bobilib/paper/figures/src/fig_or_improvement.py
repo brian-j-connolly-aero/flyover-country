@@ -1,7 +1,9 @@
 """OR set: relative improvement of our verified point over the best published
 point, (published - ours) / published, where 'published' is the lower of the
 literature's best point (lit_ub) and BOBILib's value. Instances with no
-published point (88 first points) have no ratio; their count is printed.
+published point (88 first points) have no ratio; their count is printed. The
+instances whose published lower bound exceeds the published point
+(inconsistent sources) are left out of the curves.
 
 Data: results/or/compare.csv (columns variant, alpha, bobilib, lit_ub, our_point).
 """
@@ -20,7 +22,7 @@ S.setup()
 rows = S.read_csv("or/compare.csv")
 imp = collections.defaultdict(list)    # (follower type, budget) -> [improvement %]
 first = collections.Counter()           # budget -> first points
-better = n_points = 0
+better = n_points = left_out = 0
 for r in rows:
     p = S.num(r["our_point"])
     if p is None:
@@ -32,6 +34,9 @@ for r in rows:
         continue
     pub = min(pubs)
     better += p < pub
+    if S.num(r["lit_lb"]) is not None and S.num(r["lit_lb"]) > S.num(r["lit_ub"]):
+        left_out += 1   # published bounds contradict each other: no baseline
+        continue
     ft = "one" if r["variant"] == "100" else "several"
     imp[(ft, r["alpha"])].append(100 * (pub - p) / pub)
 
@@ -39,11 +44,13 @@ S.check(n_points, 690, "verified OR points")
 S.check(better, 469, "points strictly better than every published value")
 S.check(sum(first.values()), 88, "first points anywhere")
 S.check(dict(first), {"0.50": 51, "0.75": 37}, "first points per budget (31+20, 27+10)")
+S.check(left_out, 3, "points left out: inconsistent published bounds")
 
 XL, XR = -10.0, 40.0
 BUDGETS = ["0.25", "0.50", "0.75"]
-STY = {"one": dict(color=S.ORANGE, lw=1.4, label="one follower knapsack"),
-       "several": dict(color=S.INK2, lw=1.1, ls=(0, (3.5, 1.8)), label="several follower knapsacks")}
+# Black and grey (not the orange/blue of the gap figure, where they mean "this work"/"literature").
+STY = {"one": dict(color=S.INK, lw=1.3, label="one follower knapsack"),
+       "several": dict(color=S.MUTED, lw=1.3, ls=(0, (3.5, 1.8)), label="several follower knapsacks")}
 
 fig, axs = S.plt.subplots(1, 3, figsize=(S.FULL, 1.95), sharey=True, gridspec_kw={"wspace": 0.12})
 for ax, a in zip(axs, BUDGETS):
@@ -66,9 +73,9 @@ for ax, a in zip(axs, BUDGETS):
     ax.set_axisbelow(True)
     ax.set_title(f"budget {int(float(a) * 100)}%", fontsize=8, pad=3)
     n1, n2 = len(imp[("one", a)]), len(imp[("several", a)])
-    txt = f"n = {n1} one, {n2} several\nfirst points: {first[a]}"
+    txt = f"compared: {n1} + {n2}\nfirst points: {first[a]}"
     if below:
-        txt += f"\nbelow −10%: {below}"
+        txt += f"\nleft of −10%: {below}"
     ax.text(0.97, 0.05, txt, transform=ax.transAxes, ha="right", va="bottom", fontsize=7,
             color=S.INK2, linespacing=1.15)
 axs[0].set_ylabel("share of instances")

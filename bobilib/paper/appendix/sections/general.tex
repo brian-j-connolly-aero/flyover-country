@@ -11,20 +11,20 @@ sides are finite.
 \subsection{Unbounded followers: no bilevel feasible point}
 
 \begin{theorem}[Recession direction]\label{thm:ray}
-Let $d\in\mathbf{Q}^{n_y}$ satisfy, for every follower row $i$, $D_id\ge 0$ if
-$\ell_i>-\infty$ and $D_id\le 0$ if $h_i<+\infty$; for every follower variable
-$j$, $d_j\ge 0$ if $\ell^y_j>-\infty$ and $d_j\le 0$ if $h^y_j<+\infty$; and
-$f^{\top}d<0$. Then for every leader choice $x$ (real or integral) the
+Let $r\in\mathbf{Q}^{n_y}$ satisfy, for every follower row $i$, $D_ir\ge 0$ if
+$\ell_i>-\infty$ and $D_ir\le 0$ if $h_i<+\infty$; for every follower variable
+$j$, $r_j\ge 0$ if $\ell^y_j>-\infty$ and $r_j\le 0$ if $h^y_j<+\infty$; and
+$f^{\top}r<0$. Then for every leader choice $x$ (real or integral) the
 follower's problem $P(x)$ is infeasible or unbounded, so $S(x)=\emptyset$ and
 the bilevel problem has no feasible point.
 \end{theorem}
 \begin{proof}
-Let $\nu$ be a positive integer such that $\nu d_j\in\mathbf{Z}$ for every $j\in I_l$
-($d$ is rational). Suppose $y$ is feasible for $P(x)$. For every integer
-$t\ge 0$, $y+t\nu d$ satisfies every follower row, since $C_ix$ is a constant
-and $D_i(y+t\nu d)$ moves only in the permitted direction; it satisfies every
+Let $\nu$ be a positive integer such that $\nu r_j\in\mathbf{Z}$ for every $j\in I_l$
+($r$ is rational). Suppose $y$ is feasible for $P(x)$. For every integer
+$t\ge 0$, $y+t\nu r$ satisfies every follower row, since $C_ix$ is a constant
+and $D_i(y+t\nu r)$ moves only in the permitted direction; it satisfies every
 bound for the same reason; and its integer-constrained entries stay integral.
-Its objective $f^{\top}y+t\nu f^{\top}d$ tends to $-\infty$. So $P(x)$ has no
+Its objective $f^{\top}y+t\nu f^{\top}r$ tends to $-\infty$. So $P(x)$ has no
 optimal solution whenever it is feasible.
 \end{proof}
 \noindent Not formalised.
@@ -41,7 +41,7 @@ decimals (which are rationals) and checked exactly.
 \end{remark}
 
 \paragraph{The exact check.} For each certificate, a script that reads the
-instance files independently of the solver code converts every entry of $d$
+instance files independently of the solver code converts every entry of $r$
 to an exact rational and checks the conditions of Theorem~\ref{thm:ray} in
 rational arithmetic, counting only follower variables in each follower row
 (leader variables enter those rows as constants). When rounding leaves tiny
@@ -201,7 +201,11 @@ passes. In BOBILib's solution file for this instance the follower's value is
 $106{,}899{,}984.14$ against the follower's optimum $106{,}899{,}953$ at the same
 leader choice, $31$ units above it (relative error about $2.9\times10^{-7}$), and
 rows are violated by up to $3.3\times10^{-4}$ (our verifier's record is in
-\texttt{results/notes/}). Such a point is
+\texttt{results/notes/}). The row violations pass the $10^{-4}$ tolerance of
+the MIPLIB checker inside BOBILib's checker (Section~\ref{app:tolerances}) but
+not the $10^{-6}$ of \texttt{bobi verify}, and the stated objective
+\GenTolObjFile{} differs from the \GenTolObjComputed{} of the point, so
+\texttt{bobi verify} rejects the file. Such a point is
 not bilevel feasible in the sense of Definition~\ref{def:bilevel-feasible}:
 with an exactly optimal follower response the leader's value at the same
 leader choice can differ. A value accepted only under a relative tolerance

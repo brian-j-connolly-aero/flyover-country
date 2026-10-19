@@ -1,12 +1,12 @@
 % fig_network_attack_protect: the attack-protect (firefighter-type) game on a
 % small tree.  The leader attacks at most 2 nodes, then the follower protects
-% at most 2; fire spreads from attacked nodes through unprotected neighbours;
+% at most 2; fire spreads from attacked nodes through unprotected neighbors;
 % the follower maximises the saved nodes, the leader minimises them.
 % Tree (15 nodes): r - {a, b, c}; a - {a1, a2}; a1 - a11; b - {b1, b2, b3};
 % b2 - {b21, b22}; c - {c1, c2}; c1 - c11.
 % Checked by enumeration of every attack (<= 2 nodes) and every protection
 % (<= 2 nodes): the bilevel optimum is 8 saved.  Shown: attack {a, b} (optimal),
-% the follower's best answer protects {r, b2}; burnt: a1 a11 a2 b1 b3;
+% the follower's best answer protects {r, b2}; burned: a1 a11 a2 b1 b3;
 % saved: r b2 b21 b22 c c1 c2 c11 (8 of 15).
 % Build: pdflatex fig_network_attack_protect.tex   (3.15 in x 1.8 in)
 \documentclass[tikz,border=2pt]{standalone}
@@ -39,7 +39,7 @@
     \fill[critical] (0.005,0.035) .. controls (0.01,0.0) and (0.05,-0.02) .. (0.04,-0.055)
       .. controls (0.03,-0.085) and (-0.03,-0.085) .. (-0.04,-0.055)
       .. controls (-0.05,-0.025) and (-0.01,-0.005) .. cycle;}},
-  pics/burnt/.style={code={
+  pics/burned/.style={code={
     \draw[critical, line width=0.8pt, fill=critical!22] (0,0) circle (0.15);}},
   pics/protected/.style={code={
     \draw[follower!80!black, line width=0.6pt, fill=follower]
@@ -72,7 +72,7 @@
 
   % nodes
   \foreach \n in {a, b} \pic at (\n) {attacked};
-  \foreach \n in {a1, a2, a11, b1, b3} \pic at (\n) {burnt};
+  \foreach \n in {a1, a2, a11, b1, b3} \pic at (\n) {burned};
   \foreach \n in {r, b2} \pic at (\n) {protected};
   \foreach \n in {b21, b22, c, c1, c2, c11} \pic at (\n) {saved};
 
@@ -84,8 +84,8 @@
     \pic at (0.2,3.05) {protected};
     \node[anchor=west, inner sep=1pt] at (0.53,3.05) {protected};
     \node[small, anchor=west, inner sep=1pt, text=follower] at (0.53,2.72) {by the follower};
-    \pic at (0.2,2.15) {burnt};
-    \node[anchor=west, inner sep=1pt] at (0.53,2.15) {burnt};
+    \pic at (0.2,2.15) {burned};
+    \node[anchor=west, inner sep=1pt] at (0.53,2.15) {burned};
     \pic at (0.2,1.55) {saved};
     \node[anchor=west, inner sep=1pt] at (0.53,1.55) {saved};
     \node[anchor=west, inner sep=0pt, align=left] at (0.0,0.85)

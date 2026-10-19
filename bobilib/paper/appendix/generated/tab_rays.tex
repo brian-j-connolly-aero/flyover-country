@@ -3,14 +3,14 @@
 
 {\footnotesize\sisetup{group-separator={,},group-minimum-digits=4,group-digits=integer}\setlength{\tabcolsep}{4pt}\setlength{\LTcapwidth}{\linewidth}
 \begin{longtable}{@{}l l S[table-format=5.0] S[table-format=-9.4] l@{}}
-\caption{The 40 open MIPLIB-derived instances with no bilevel feasible point: the follower's own rows admit a recession direction $d$ (follower variables only) with $f^\top d<0$, for every leader choice (Meyer 1974). Support: nonzero entries of $d$; $f^\top d$ rounded to four decimals; exact: checked in exact rational arithmetic by \texttt{scripts/verify\_ray.py} (the two supportcase42 directions leave residuals of about $10^{-12}$ relative and rest on floating point).}\label{tab:rays}\\
+\caption{The 40 open MIPLIB-derived instances with no bilevel feasible point: the follower's own rows admit a recession direction $r$ (follower variables only) with $f^\top r<0$, for every leader choice (Meyer 1974). Support: nonzero entries of $r$; $f^\top r$ rounded to four decimals; exact: checked in exact rational arithmetic by \texttt{scripts/verify\_ray.py} (the two supportcase42 directions leave residuals of about $10^{-12}$ relative and rest on floating point).}\label{tab:rays}\\
 \toprule
-Instance & Collection & {Support} & {$f^\top d$} & Exact \\
+Instance & Collection & {Support} & {$f^\top r$} & Exact \\
 \midrule
 \endfirsthead
 \multicolumn{5}{l}{\emph{(continued)}}\\
 \toprule
-Instance & Collection & {Support} & {$f^\top d$} & Exact \\
+Instance & Collection & {Support} & {$f^\top r$} & Exact \\
 \midrule
 \endhead
 \midrule

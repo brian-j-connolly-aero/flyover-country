@@ -22,10 +22,10 @@ Yes. Of the 1,594:
 
 | Outcome | Instances |
 | --- | ---: |
-| already proven optimal in published work (BOBILib's labels are stale) | 527 |
-| proven optimal here for the first time | 81 |
+| already proven optimal in published work (BOBILib's labels are stale) | 528 |
+| proven optimal here for the first time | 80 |
 | proven here to have no bilevel feasible point at all | 40 |
-| first verified point here, where BOBILib knows none | 230 |
+| verified point here where BOBILib lists none (168 of them the first anywhere) | 230 |
 | status unchanged (many with better points, see below) | 716 |
 
 So 648 (41%) are now settled, 608 of them optimal. On top of the status
@@ -36,7 +36,7 @@ Two observations carry most of the weight.
 
 1. **BOBILib's statuses come from two general-purpose bilevel solvers**
    (MibS and Fischetti et al.'s MIX++), one hour on one thread each. The
-   specialised literature is far ahead: 376 knapsack interdiction, 139
+   specialised literature is far ahead: 376 knapsack interdiction, 140
    multidimensional knapsack interdiction, 4 generalized interdiction and 8
    MIPLIB-derived instances are solved in published work.
 2. **Most unsolved instances share a structure that general solvers ignore.**
@@ -58,7 +58,7 @@ The approaches that resolve whole families rather than single instances:
 | Extremal graph theory (Mantel 1907, Brouwer 1981) plus partition certificates | edge clique interdiction | 57 of 60 proven optimal at 3 or 4, where BOBILib lists 5 to 13 |
 | Exhaustive attacks with an exact tree dynamic program (DP) | attack-protect network interdiction | both non-optimal instances proven optimal |
 | Recession-ray certificates | MIPLIB-derived | 40 open instances have no bilevel feasible point (38 checked in exact arithmetic) |
-| High point relaxation (HPR), then the follower, then an optimistic tie-break; a portfolio for coupling rows | MIPLIB-derived | 93 first verified points (64 without coupling rows, 29 with), 3 of them optimal |
+| High point relaxation (HPR), then the follower, then an optimistic tie-break; a portfolio for coupling rows | MIPLIB-derived | 93 verified points where BOBILib lists none (64 without coupling rows, 29 with), 3 of them optimal; for 10 of the others a published point already existed |
 | HPR bound = published MIPLIB optimum | MIPLIB-derived | 5 proven optimal (3 of them open, with no point known before) |
 
 What stays hard: 3 clique instances (value 3 or 4), OR instances with
@@ -196,9 +196,11 @@ instances with 20 or more linking bits, and 123 MIPLIB-derived instances.
 * Over all 810: 690 verified points, 469 strictly better than every
   published value (BOBILib's included), 88 the first anywhere
   (`results/or/compare.csv` per instance, next to the solution files).
-* One closure: for OR10x100-0.75_4.dat-0 the published lower bound 8,814
-  comes from runs its authors marked numerically inconsistent; our point
-  8,813 (verified with SCIP) meets their branch-and-cut bound of 8,813.
+* OR10x100-0.75_4.dat-0 is optimal in the published data: the lower bound
+  8,814 in Lozano et al.'s table comes from runs they mark numerically
+  inconsistent, but their repository's branch-and-cut bound of 8,813 meets
+  their point of 8,813. Our verified point (also checked with SCIP) confirms
+  it; the instance counts as a literature closure, not ours.
 * Tried and dropped: an interdiction-cut loop (the leader's MILP with one
   cut per follower packing) stalls far below the published bounds (4,515
   against 8,747 after 600 s on OR10x100-0.75_3.dat-0).

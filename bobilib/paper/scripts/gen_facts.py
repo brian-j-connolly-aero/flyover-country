@@ -100,10 +100,10 @@ def main():
     fact("NumBobiFeasible", st["feasible"], "BOBILib status feasible", expect=1175)
     fact("NumBobiOpen", st["open"], "BOBILib status open", expect=419)
     fact("NumUnsolved", len(unsolved), "feasible or open in BOBILib", expect=1594)
-    fact("NumLitOptimal", len(lit), "already optimal in published work", expect=527)
-    fact("NumNewOptimal", len(new), "proven optimal here", expect=81)
+    fact("NumLitOptimal", len(lit), "already optimal in published work", expect=528)
+    fact("NumNewOptimal", len(new), "proven optimal here", expect=80)
     fact("NumNoFeasible", ns["infeasible_bilevel"], "no bilevel feasible point (here)", expect=40)
-    fact("NumFirstPoint", ns["feasible"], "first verified point here, BOBILib has none", expect=230)
+    fact("NumFirstPoint", ns["feasible"], "verified point here where BOBILib has none (first anywhere or not)", expect=230)
     fact("NumUnchanged", ns["unchanged"], "status unchanged", expect=716)
     settled = len(lit) + len(new) + ns["infeasible_bilevel"]
     fact("NumSettled", settled, "settled = literature + new optimal + no feasible point", expect=648)
@@ -129,13 +129,13 @@ def main():
     # ---- literature closures ------------------------------------------------------------------
     ls = C(r["source"] for r in lit)
     fact("NumLitKip", ls["WeningerFukasawa2025"], "KIP optima of Weninger and Fukasawa", expect=376)
-    fact("NumLitLozano", ls["LozanoBergmanCire2026"], "optima of Lozano, Bergman and Cire (all families)", expect=96)
-    fact("NumLitOr", sum(1 for r in lit if r["collection"] == "or"), "OR optima of Lozano et al.", expect=87)
+    fact("NumLitLozano", ls["LozanoBergmanCire2026"], "optima of Lozano, Bergman and Cire (all families)", expect=97)
+    fact("NumLitOr", sum(1 for r in lit if r["collection"] == "or"), "OR optima of Lozano et al.", expect=88)
     fact("NumLitGeneralized", len(fam(lit, "generalized")), "generalized optima of Lozano et al.", expect=4)
     fact("NumLitMiplibLozano", sum(1 for r in gen(lit) if r["source"] == "LozanoBergmanCire2026"),
          "MIPLIB 3 optima of Lozano et al.", expect=5)
     fact("NumLitImkp", ls["FischettiEtAl2019"], "imkp optima of Fischetti et al. 2019", expect=52)
-    fact("NumLitMkip", len(fam(lit, "multidim-knapsack")), "MKIP literature optima (OR + imkp)", expect=139)
+    fact("NumLitMkip", len(fam(lit, "multidim-knapsack")), "MKIP literature optima (OR + imkp)", expect=140)
     fact("NumLitMiplib", len(gen(lit)), "MIPLIB-derived literature optima", expect=8)
     fact("NumLitFischettiSeventeen", ls["FischettiEtAl2017"], "air03-0.100000", expect=1)
     fact("NumLitVasquez", ls["VasquezLozanoVanHoeve2025"], "p0282-0.500000", expect=1)
@@ -157,7 +157,7 @@ def main():
     fact("NumNewClique", len(fam(new, "clique")), "clique optima proven here", expect=57)
     fact("NumNewNetwork", len(fam(new, "network")), "network optima proven here", expect=2)
     fact("NumNewHpr", len(gen(new)), "MIPLIB-bound optima", expect=5)
-    fact("NumNewOr", len(fam(new, "multidim-knapsack")), "OR closure", expect=1)
+    fact("NumNewOr", len(fam(new, "multidim-knapsack")), "OR closure", expect=0)
     rays = [r for r in unsolved if r["new_status"] == "infeasible_bilevel"]
     fact("NumRayExact", sum(r["verified"] == "yes" for r in rays), "rays checked in exact arithmetic", expect=38)
     fact("NumRayFloat", sum(r["verified"] == "no" for r in rays), "rays checked in floating point only", expect=2)
@@ -240,14 +240,18 @@ def main():
     med = lambda v: sorted(v)[len(v) // 2]  # as scripts/compare_or.py
     vname = {"100": "One", "0": "Zero", "50": "Fifty"}
     bname = {"0.25": "Quarter", "0.50": "Half", "0.75": "ThreeQuarter"}
+    # Paired medians leave out the instances whose published lower bound exceeds the published point
+    # (referee review: inconsistent sources). Values as in the spec except the three affected groups.
     spec_gaps = {("100", "0.25"): ("24.0", "4.1"), ("100", "0.50"): ("34.0", "7.1"), ("100", "0.75"): ("0.14", "0.14"),
-                 ("0", "0.25"): ("33.3", "31.4"), ("0", "0.50"): ("36.6", "29.1"), ("0", "0.75"): ("5.1", "0.04"),
-                 ("50", "0.25"): ("29.6", "28.2"), ("50", "0.50"): ("41.3", "34.8"), ("50", "0.75"): ("11.8", "1.4")}
+                 ("0", "0.25"): ("33.3", "31.8"), ("0", "0.50"): ("36.6", "29.1"), ("0", "0.75"): ("5.3", "0.05"),
+                 ("50", "0.25"): ("30.6", "28.3"), ("50", "0.50"): ("41.3", "34.8"), ("50", "0.75"): ("11.8", "1.4")}
+    conflict = {r["name"] for r in orr if num(r["lit_lb"]) is not None and num(r["lit_ub"]) is not None
+                and num(r["lit_lb"]) > num(r["lit_ub"])}
     spec_nopoint = {("0", "0.25"): (31, 0), ("0", "0.50"): (31, 31), ("0", "0.75"): (27, 27),
                     ("50", "0.25"): (20, 0), ("50", "0.50"): (20, 20), ("50", "0.75"): (10, 10)}
     for (v, al), (lit_s, now_s) in spec_gaps.items():
         grp_rows = [r for r in orr if r["variant"] == v and r["alpha"] == al and num(r["gap"]) is not None]
-        paired = [r for r in grp_rows if num(r["lit_gap"]) is not None]
+        paired = [r for r in grp_rows if num(r["lit_gap"]) is not None and r["name"] not in conflict]
         lg, g = pct(med([num(r["lit_gap"]) for r in paired])), pct(med([num(r["gap"]) for r in paired]))
         fact(f"OrGap{vname[v]}{bname[al]}Lit", lg, f"median published gap, variant -{v}, budget {al}", tex=lg, expect=lit_s)
         fact(f"OrGap{vname[v]}{bname[al]}Now", g, f"median gap now, variant -{v}, budget {al}", tex=g, expect=now_s)
@@ -257,17 +261,19 @@ def main():
             fact(f"OrNoPoint{vname[v]}{bname[al]}", len(nop), f"no published point, -{v}, {al}", expect=spec_nopoint[(v, al)][0])
             fact(f"OrFirst{vname[v]}{bname[al]}", sum(num(r["our_point"]) is not None for r in nop),
                  f"first points among those", expect=spec_nopoint[(v, al)][1])
-    clo = [r for r in ins if r["collection"] == "or" and r["new_status"] == "optimal" and r["source"] == "this work"]
-    assert len(clo) == 1
+    assert not [r for r in ins if r["collection"] == "or" and r["new_status"] == "optimal" and r["source"] == "this work"]
+    clo = [r for r in ins if r["instance"] == "OR10x100-0.75_4.dat-0"]
     c0 = next(r for r in orr if r["name"] == clo[0]["instance"])
-    fact("OrClosureName", clo[0]["instance"], "the OR instance closed here", expect="OR10x100-0.75_4.dat-0")
-    fact("OrClosureValue", int(num(clo[0]["primal_value"])), "its optimum", expect=8813)
+    assert clo[0]["new_status"] == "optimal" and clo[0]["source"] == "LozanoBergmanCire2026"
+    fact("OrClosureName", clo[0]["instance"], "OR instance whose published lower bound exceeds the published point "
+         "but whose published branch-and-cut bound closes it", expect="OR10x100-0.75_4.dat-0")
+    fact("OrClosureValue", int(num(clo[0]["primal_value"])), "its optimum (published point and bound)", expect=8813)
     fact("OrClosureLitLb", int(num(c0["lit_lb"])), "published (inconsistent) lower bound", expect=8814)
     fact("NumOrInconsistent", sum(num(r["lit_lb"]) is not None and num(r["lit_ub"]) is not None
                                   and num(r["lit_lb"]) > num(r["lit_ub"]) for r in orr),
          "OR instances whose published lower bound exceeds the published point", expect=4)
     fact("NumOrLitOptimalPoint", sum(1 for r in ins if r["collection"] == "or" and r["source"] == "LozanoBergmanCire2026"
-                                     and r["certificate"]), "published OR optima reproduced by a file here", expect=69)
+                                     and r["certificate"]), "published OR optima reproduced by a file here", expect=70)
 
     # ---- clique (results/clique/summary.csv) ----------------------------------------------------
     cq = load(f"{R}/clique/summary.csv")
@@ -304,7 +310,8 @@ def main():
                 cases += int(re.search(r"over (\d+) part-size vectors", r["lb_argument"]).group(1))
     fact("NumCliquePartCases", cases, "part-size cases decided by exact solvers", expect=170)
     openq = [r for r in cq if r["status"] == "open"]
-    fact("CliqueOpenNames", ", ".join(r["name"] for r in openq), "the three open instances",
+    fact("CliqueOpenNames", ", ".join(r["name"] for r in openq), "the three open instances (each in \\inst)",
+         tex=", ".join(f"\\inst{{{tex_name(r['name'])}}}" for r in openq),
          expect="normalClique60-70-2, normalClique60-70-3, normalClique60-70-5")
     best3 = []
     for r in openq:
@@ -397,6 +404,223 @@ def main():
     fact("NumSoluInf", sc["=inf="], ".solu =inf= lines", expect=40)
     fact("NumSoluBest", sc["=best="], ".solu =best= lines", expect=None)
     fact("NumSoluBestDual", sc["=bestdual="], ".solu =bestdual= lines", expect=None)
+
+    # ---- paper (main.tex): outcome table by family ----------------------------------------------
+    # One macro per cell of the family table: Fam<Family><Column>, over all instances (All), the
+    # feasible or open ones (Unsolved) and their outcomes (Lit, New, NoFeas, First, Unchanged).
+    famkeys = (("knapsack", "Kip"), ("multidim-knapsack", "Mkip"), ("clique", "Clique"), ("network", "Network"),
+               ("generalized", "Generalized"), ("assignment", "Assignment"), ("general-pure", "GenPure"),
+               ("general-mixed", "GenMixed"))
+    assert sorted(f for f, _ in famkeys) == sorted({r["family"] for r in ins})
+    for f, nm in famkeys:
+        u = fam(unsolved, f)
+        nsf = C(r["new_status"] for r in u)
+        fact(f"Fam{nm}All", len(fam(ins, f)), f"{f}: instances")
+        fact(f"Fam{nm}Unsolved", len(u), f"{f}: feasible or open in BOBILib")
+        fact(f"Fam{nm}Lit", len(fam(lit, f)), f"{f}: optimal in published work")
+        fact(f"Fam{nm}New", len(fam(new, f)), f"{f}: proven optimal here")
+        fact(f"Fam{nm}NoFeas", nsf["infeasible_bilevel"], f"{f}: no bilevel feasible point")
+        fact(f"Fam{nm}First", nsf["feasible"], f"{f}: verified point where BOBILib has none")
+        fact(f"Fam{nm}Unchanged", nsf["unchanged"], f"{f}: unchanged")
+        assert len(u) == len(fam(lit, f)) + len(fam(new, f)) + nsf["infeasible_bilevel"] + nsf["feasible"] + nsf["unchanged"]
+    fact("NumImkp", sum(1 for r in ins if r["collection"] == "imkp"), "instances of the imkp set", expect=144)
+    opt7 = {r["upper_bound"] for r in cq if r["density"] == "0.7" and r["status"] == "optimal"}
+    opt9 = {r["upper_bound"] for r in cq if r["density"] == "0.9" and r["status"] == "optimal"}
+    assert len(opt7) == 1 and len(opt9) == 1, (opt7, opt9)
+    fact("CliqueOptSeven", int(opt7.pop()), "optimum of the solved density-0.7 clique instances", expect=3)
+    fact("CliqueOptNine", int(opt9.pop()), "optimum of the density-0.9 clique instances", expect=4)
+    fact("CliqueOpenUpper", max(int(r["upper_bound"]) for r in openq), "upper bound of the open clique instances",
+         expect=4)
+    fact("CliqueOpenLower", min(int(r["lower_bound"]) for r in openq), "lower bound of the open clique instances",
+         expect=3)
+
+    # ---- paper: OR groups without a published point, variant -100 (none) -----------------------------
+    for al in ("0.25", "0.50", "0.75"):
+        nop = [r for r in orr if r["variant"] == "100" and r["alpha"] == al and num(r["lit_ub"]) is None]
+        fact(f"OrNoPointOne{bname[al]}", len(nop), f"no published point, -100, {al}", expect=0)
+        fact(f"OrFirstOne{bname[al]}", sum(num(r["our_point"]) is not None for r in nop),
+             f"first points among those", expect=0)
+    for v in ("100", "0", "50"):
+        for al in ("0.25", "0.50", "0.75"):
+            g = [r for r in orr if r["variant"] == v and r["alpha"] == al]
+            fact(f"OrGroup{vname[v]}{bname[al]}", len(g), f"OR instances, variant -{v}, budget {al}", expect=90)
+            fact(f"OrPoints{vname[v]}{bname[al]}", sum(num(r["our_point"]) is not None for r in g),
+                 f"verified points, variant -{v}, budget {al}", expect=None)
+
+    # ---- paper: the 16 KIP instances, one table row each (results/ss/proofs.csv) -----------------
+    rows = []
+    for r in ss:
+        n_, cls, bud = parse(r["name"])
+        rows.append(f"\\inst{{{tex_name(r['name'])}}} & {n_} & {cls} & {bud} & {tex_num(int(r['budget']))} & "
+                    f"{tex_num(int(r['capacity']))} & {tex_num(int(r['optimum']))} & "
+                    f"{tex_num(int(r['nodes']))} & {r['cpu_seconds']} & {tex_num(int(r['independent_check_nodes']))} \\\\")
+    fact("KipTableRows", "rows", "rows of the paper's table of the 16 KIP instances", tex="%\n" + "\n".join(rows) + "\n")
+
+    # ---- paper: numbers quoted from bobilib/REPORT.md (runs of earlier search versions) ---------
+    report = " ".join(open(os.path.join(BOBILIB, "REPORT.md")).read().split())
+    mrow = re.search(r"\| interKP-200-100-6-2 \| 1,855 \| (\d+) \| ([\d.]+) s \| ([\d,]+) / ([\d.]+) s \|", report)
+    fact("KipBeforeNodesTwoSixTwo", int(mrow.group(3).replace(",", "")), "200-6-2: nodes of the previous version",
+         expect=3926223)
+    fact("KipBeforeSecsTwoSixTwo", float(mrow.group(4)), "200-6-2: CPU s of the previous version",
+         tex=f"{float(mrow.group(4)):.1f}", expect=22.77)
+    fact("KipAfterNodesTwoSixTwo", int(mrow.group(1)), "200-6-2: nodes with per-node tables", expect=303)
+    fact("KipAfterSecsTwoSixTwo", float(mrow.group(2)), "200-6-2: CPU s with per-node tables",
+         tex=mrow.group(2), expect=0.10)
+    mfin = re.search(r"\| interKP-200-100-6-3 \| 2,782 \| [\d,]+ \| [\d.]+ s \| not finished in (\d+) h \|", report)
+    fact("KipPrevUnfinishedHours", int(mfin.group(1)), "200-6-3: hours the previous version ran without finishing",
+         expect=4)
+    mab = re.search(r"interKP-200-100-6-2 \(nodes\): previous search ([\d,]+); same rules with threshold tables "
+                    r"([\d,]+) \(memory (\d+) to (\d+) MB\); every band width 1\.\.64 ([\d,]+); root tables played "
+                    r"largest value first ([\d,]+), or cheapest per unit of mass first ([\d,]+); per-node tables ([\d,]+)",
+                    report)
+    ab = [int(x.replace(",", "")) for x in mab.groups()]
+    assert ab[0] == 3926223 and ab[7] == 303, ab
+    fact("KipAblationThreshold", ab[1], "200-6-2 nodes: threshold tables, same rules", expect=3926223)
+    fact("KipAblationMemBefore", ab[2], "memory before threshold tables, MB", expect=None)
+    fact("KipAblationMemAfter", ab[3], "memory with threshold tables, MB", expect=None)
+    fact("KipAblationBand", ab[4], "200-6-2 nodes: every band width", expect=None)
+    fact("KipAblationLargestFirst", ab[5], "200-6-2 nodes: root tables, largest value first", expect=None)
+    fact("KipAblationCheapestFirst", ab[6], "200-6-2 nodes: root tables, cheapest per unit of mass first", expect=None)
+    mbf = re.search(r"exhaustive enumeration on ([\d,]+) random small instances \((\d+) mismatches\)", report)
+    fact("KipBruteForceInstances", int(mbf.group(1).replace(",", "")), "random instances compared with brute force",
+         expect=2990)
+    fact("KipBruteForceMismatches", int(mbf.group(2)), "mismatches", expect=0)
+
+    # ---- paper: BOBILib's point for general20-30-20-20-20-2 (results/notes) ----------------------
+    nt = load(f"{R}/notes/general20-30-20-20-20-2.verify.tsv", "\t")[0]
+    phi_sol, phi_opt = float(nt["phi_sol"]), float(nt["phi_bound"])
+    fact("GenTolPhiSol", phi_sol, "follower value in BOBILib's file", tex=tex_num(phi_sol, 2), expect=None)
+    fact("GenTolPhiOpt", phi_opt, "follower optimum at the same leader choice", tex=tex_num(phi_opt), expect=106899953)
+    fact("GenTolDiff", round(phi_sol - phi_opt), "difference, units", expect=31)
+    rel = (phi_sol - phi_opt) / abs(phi_opt)
+    fact("GenTolRel", rel, "relative difference", tex=f"\\ensuremath{{{rel / 1e-7:.1f}\\times 10^{{-7}}}}", expect=None)
+    assert f"{rel / 1e-7:.1f}" == "2.9"
+    fact("GenTolObjFile", float(nt["file_objective"]), "leader objective stated in BOBILib's file",
+         tex=tex_num(float(nt["file_objective"])), expect=100056)
+    fact("GenTolObjComputed", float(nt["objective"]), "leader objective computed from the file's point",
+         tex=tex_num(float(nt["objective"]), 3), expect=None)
+    viol = float(nt["max_violation"])
+    fact("GenTolViolation", viol, "largest row violation",
+         tex=f"\\ensuremath{{{viol / 1e-4:.1f}\\times 10^{{-4}}}}", expect=3.3e-4)
+
+    # ---- paper: the five optima at the MIPLIB bound, one table row each -----------------------------
+    hrows = []
+    for r in hpr:
+        if r["name"] not in {x["instance"] for x in new}:
+            continue
+        src = r["point_from"]
+        how = ("BOBILib" if src.startswith("BOBILib") else
+               "\\texttt{bobi coupled}" if "general-coupled" in src else "\\texttt{bobi general}")
+        hrows.append(f"{tex_name(r['name'])} & {r['bobilib_status']} & {tex_num(float(r['optimum']))} & {how} \\\\")
+    assert len(hrows) == 5
+    nsw = {float(r["miplib_optimum"]) for r in hpr if r["name"].startswith("noswot")}
+    assert len(nsw) == 1
+    nsw = nsw.pop()
+    fact("NoswotMiplibOptimum", nsw, "MIPLIB's optimum of noswot (floating point)", tex=tex_num(nsw),
+         expect=-41.00000885)
+    fact("HprTableRows", "rows", "rows of the paper's table of the MIPLIB-bound optima", tex="%\n" + "\n".join(hrows) + "\n")
+
+    # ---- review round: categories, funnels and splits the revised text quotes ---------------------
+    fp_all = [r for r in unsolved if r["new_status"] == "feasible"]
+    first_any = [r for r in fp_all if "first point anywhere" in r["notes"]]
+    fact("NumFirstAnywhere", len(first_any), "verified points here that are the first point anywhere", expect=168)
+    fact("NumPointPublishedBefore", len(fp_all) - len(first_any),
+         "verified points here where BOBILib has none but a point was published", expect=62)
+    gfa = [r for r in first_any if r["family"].startswith("general-")]
+    fact("NumGeneralFirstAnywhere", len(gfa), "general first points anywhere", expect=80)
+    gpub = [r for r in fp_all if r["family"].startswith("general-") and "first point anywhere" not in r["notes"]]
+    fact("NumGeneralPublishedPoint", len(gpub), "general points where a point was published", expect=10)
+    fact("NumGeneralPublishedBetter", sum(", better than this one" in r["notes"] for r in gpub),
+         "of them: the published point is better", expect=6)
+    fact("NumGeneralPublishedLS", sum("Lefebvre and Schmidt" in r["notes"] for r in gpub),
+         "of them: published only in Lefebvre and Schmidt's run files", expect=4)
+    gpub_nocpl = [r for r in gpub if r["certificate"].startswith("general/")]
+    fact("NumGeneralNoCplPublished", len(gpub_nocpl), "bobi general points where a point was published", expect=9)
+    fact("NumGeneralNoCplPublishedBetter", sum(", better than this one" in r["notes"] for r in gpub_nocpl),
+         "of them: the published point is better", expect=6)
+    fact("NumCoupledPublished", sum(r["certificate"].startswith("general-coupled/") for r in gpub),
+         "bobi coupled points where a point was published", expect=1)
+    fact("NumOrPublishedPointFile", sum("solution file in their repository" in r["notes"] for r in fp_all
+                                        if r["collection"] == "or" and "first point anywhere" not in r["notes"]),
+         "OR points new to BOBILib whose published point has a solution file (Lozano et al.)", expect=52)
+    fact("NumSettledHere", len(new) + ns["infeasible_bilevel"], "settled by this work (new optima + no point)", expect=120)
+    fact("PctSettledHere", f"{100 * (len(new) + ns['infeasible_bilevel']) / len(unsolved):.1f}",
+         "settled by this work, percent of the unsolved", tex=f"{100 * (len(new) + ns['infeasible_bilevel']) / len(unsolved):.1f}",
+         expect="7.5")
+    lit_file = [r for r in lit if r["verified"] == "yes"]
+    lit_nofile = [r for r in lit if r["verified"] == "na"]
+    fact("NumLitWithFile", len(lit_file), "published optima with a verified solution file at the optimum", expect=446)
+    fact("NumLitNoFile", len(lit_nofile), "published optima without a solution file here (value only)", expect=82)
+    fact("NumLitNoFileImkp", sum(r["collection"] == "imkp" for r in lit_nofile), "of them imkp", expect=52)
+    fact("NumLitNoFileOr", sum(r["collection"] == "or" for r in lit_nofile), "of them OR", expect=18)
+    fact("NumLitNoFileMiplib", sum(r["family"].startswith("general-") for r in lit_nofile), "of them MIPLIB-derived", expect=8)
+    fact("NumLitNoFileGeneralized", sum(r["family"] == "generalized" for r in lit_nofile), "of them generalized", expect=4)
+    fact("NumLitKnapsackMethods", ls["WeningerFukasawa2025"] + ls["FischettiEtAl2019"],
+         "published optima from knapsack interdiction methods (Weninger-Fukasawa, Fischetti et al. 2019)", expect=428)
+    known = [r for r in new if "already optimal" in r["notes"]]
+    fact("NumNewValueKnown", len(known), "new optima where BOBILib's value was already optimal", expect=20)
+    fact("NumNewValueKnownGeneral", sum(r["family"].startswith("general-") for r in known), "of them general (noswot)", expect=2)
+    # OR: verified points against the best published point (literature or BOBILib)
+    eq = wo = 0
+    for r in pts:
+        pubs = [x for x in (num(r["lit_ub"]), num(r["bobilib"])) if x is not None]
+        if num(r["lit_ub"]) is None or r in better:
+            continue
+        b = min(pubs)
+        if abs(num(r["our_point"]) - b) <= 1e-6:
+            eq += 1
+        else:
+            wo += 1
+    fact("NumOrEqualPublished", eq, "OR points equal to the best published point", expect=72)
+    fact("NumOrWorsePublished", wo, "OR points worse than the best published point", expect=61)
+    assert len(better) + eq + wo + sum(num(r["lit_ub"]) is None for r in pts) == len(pts)
+    conf = sorted((r for r in orr if r["name"] in conflict and r["name"] != clo[0]["instance"]),
+                  key=lambda r: (int(r["m"]), int(r["n"]), r["name"]))
+    fact("OrConflictNames", ", ".join(r["name"] for r in conf), "OR instances whose published point lies below the "
+         "published lower bound (besides the closure; each in \\inst)",
+         tex=", ".join(f"\\inst{{{tex_name(r['name'])}}}" for r in conf),
+         expect="OR5x100-0.25_7.dat-50, OR5x100-0.25_8.dat-0, OR10x500-0.25_5.dat-50")
+    lo_nopt = [r for r in orr if r["variant"] != "100" and r["alpha"] == "0.25" and num(r["our_point"]) is None]
+    fact("NumOrQuarterNoPointNoPub", sum(num(r["lit_ub"]) is None for r in lo_nopt),
+         "several knapsacks, budget 25%, no point here: none published either", expect=51)
+    fact("NumOrQuarterNoPointPub", sum(num(r["lit_ub"]) is not None for r in lo_nopt),
+         "several knapsacks, budget 25%, no point here: a published (unverified) point", expect=69)
+    # network: how the 54 re-derived BOBILib optima split
+    fact("NetworkRndSmall", sum(r["name"].startswith("rndgraph-25") for r in red), "rndgraph-25 re-derived (HiGHS at every attack)",
+         expect=12)
+    fact("NetworkReviewOnly", sum(r["name"].startswith(("rndgraph-50", "rndgraph-80")) for r in red),
+         "rndgraph-50/80 re-derived only by the review's brute force", expect=8)
+    assert len(red) == 34 + 12 + 8
+    # general: the funnels of bobi general and bobi coupled
+    I_ = {r["instance"]: r for r in ins}
+    g_ray = [r for r in gp if I_[r["name"]]["new_status"] == "infeasible_bilevel"]
+    g_rest = [r for r in gp if I_[r["name"]]["new_status"] not in ("infeasible_bilevel",) and r["verified"] != "True"]
+    fact("NumGeneralCandRays", len(g_ray), "of the 98: no bilevel feasible point (rays)", expect=17)
+    fact("NumGeneralCandWithPoint", len(gp) - len(g_ray), "of the 98: not ruled out by a ray", expect=81)
+    fact("NumGeneralNoHpr", sum(r["why"].startswith("HPR found no point") for r in g_rest), "no HPR point in time", expect=10)
+    fact("NumGeneralFollowerUnsolved", sum(r["why"].startswith("follower not solved") for r in g_rest),
+         "follower not solved in time", expect=6)
+    fact("NumGeneralFailedCheck", sum(r["status"] == "point" for r in g_rest), "point failed the final check", expect=1)
+    creadme = " ".join(open(f"{R}/general-coupled/README.md").read().split())
+    mo = re.search(r"BOBILib lists (\d+) instances with status `open` and at least one coupling constraint", creadme)
+    ml = re.search(r"\* (\d+) with more than 100,000 variables", creadme)
+    fact("NumCoupledOpen", int(mo.group(1)), "open instances with coupling rows", expect=87)
+    fact("NumCoupledLarge", int(ml.group(1)), "left out: more than 100,000 variables", expect=10)
+    fact("NumCoupledRays", ns["infeasible_bilevel"] - len(g_ray), "left out: no bilevel feasible point (rays)", expect=23)
+    assert int(mo.group(1)) == len(cp) + int(ml.group(1)) + ns["infeasible_bilevel"] - len(g_ray)
+    fact("NumCoupledNone", sum(r["status"] == "none" for r in cp), "attempted, no point in time", expect=23)
+    fact("NumGeneralUnchangedMiplib", sum(r["collection"].startswith("miplib") for r in gen(unch)),
+         "general unchanged that are MIPLIB-derived", expect=122)
+    # KIP: capacities, and the validation on instances with published optima
+    fact("NumKipOptIsCap", sum(int(r["capacity"]) == int(r["optimum"]) for r in ss), "optimum = capacity (class 6)", expect=8)
+    fact("NumKipOptIsCapMinusOne", sum(int(r["capacity"]) - int(r["optimum"]) == 1 for r in ss),
+         "optimum = capacity - 1 (class 7)", expect=8)
+    assert all((int(r["capacity"]) - int(r["optimum"])) == (0 if parse(r["name"])[1] == 6 else 1) for r in ss)
+    val = [r for r in kipsum if re.match(r"interKP-(100|200)-100-[67]-\d+$", r["name"]) and r["literature_optimum"]]
+    fact("NumKipValidation", len(val), "class 6/7 instances with 100 or 200 items and a published optimum", expect=36)
+    mlb = re.search(r"the best lower bounds sit (\d+) to (\d+) units below the incumbent", report)
+    fact("KipPubLbGapMin", int(mlb.group(1)), "published lower bounds: fewest units below the optimum", expect=2)
+    fact("KipPubLbGapMax", int(mlb.group(2)), "published lower bounds: most units below the optimum", expect=8)
 
     # ---- check and write -----------------------------------------------------------------------
     bad = []

@@ -119,12 +119,12 @@ $s_u,s_l>0$, and define the integer data
   w'_j=\lceil s_lw_j\rceil,\quad
   c'=\lfloor s_lc\rfloor .
 \]
-Let $\omega'$ be the value of the online game of Theorem~\ref{thm:online}
+Let $\Omega'$ be the value of the online game of Theorem~\ref{thm:online}
 with profits $p$, leader costs $\gamma'$, budget $\beta'$, follower weights $w'$
 and capacity $c'$, on any list of distinct items.
 
 \begin{theorem}[Merged-row online bound]\label{thm:mkip-omega}
-For all $\mu\ge 0$ and $s_u,s_l>0$: $\omega'\le\mathrm{OPT}$.
+For all $\mu\ge 0$ and $s_u,s_l>0$: $\Omega'\le\mathrm{OPT}$.
 \end{theorem}
 \begin{proof}
 \emph{The leader is relaxed.} If $Gx\le g$ then, as $x\ge 0$ and
@@ -139,8 +139,8 @@ packing for $(w',c')$ is a packing for $(w,c)$, and the best packing
 $K'(T)$ of a set $T$ under $(w',c')$ satisfies $K'(T)\le K(T)$.
 \emph{Combine.} For every leader-feasible $X$, Theorem~\ref{thm:online} for
 the data $(p,\gamma',\beta',w',c')$ gives
-$\omega'\le K'(N\setminus X)\le K(N\setminus X)=\Phi(X)$. Minimising over $X$ gives
-$\omega'\le\mathrm{OPT}$.
+$\Omega'\le K'(N\setminus X)\le K(N\setminus X)=\Phi(X)$. Minimising over $X$ gives
+$\Omega'\le\mathrm{OPT}$.
 \end{proof}
 \noindent The online bound itself is formalised (Theorem~\ref{thm:online});
 the merging, scaling and rounding steps are not.
@@ -180,3 +180,26 @@ every budget row) evaluates each candidate with the exact knapsack oracle, so
 every incumbent it reports is a certified point. Every point reported is
 checked again from its file by \texttt{bobi verify}
 (Section~\ref{app:verification}).
+
+\subsection{Published bounds of the OR set}\label{app:mkip-or}
+
+The paper compares this work's bounds with the published ones. The published
+lower bounds of the OR instances are Lozano, Bergman and
+Cire's;\cite{lozano2026network} the best published point of an instance is the
+better of theirs (with a solution file in their repository\cite{lozano_dbo_repo})
+and Lefebvre and Schmidt's.\cite{lefebvre2025dantzig} The published points are
+not verified here. For \NumOrInconsistent{} instances a published lower bound
+exceeds the best published point (Table~\ref{tab:or-conflicts}); the paper's
+paired median gaps leave them out. In three of them the point is one of
+Lefebvre and Schmidt's, from runs stopped at a time or solution limit, and it
+lies below Lozano et al.'s lower bound; at least one of the two published
+values is wrong, and the points of this work do not decide which.
+
+The fourth, \texttt{\OrClosureName}, is closed in the published data. Lozano et
+al.\ publish a point of value \OrClosureValue{} and a lower bound of
+\OrClosureLitLb{} from runs they flag as numerically inconsistent; their
+repository also records a branch-and-cut bound of \OrClosureValue{}, which with
+the point proves the value optimal. The instance is therefore counted among the
+published optima. This work's verified solution file at \OrClosureValue{}
+(checked also with SCIP) confirms that the bound \OrClosureLitLb{} is wrong.
+
