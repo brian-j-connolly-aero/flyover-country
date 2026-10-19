@@ -172,8 +172,9 @@ enum Cmd {
         #[arg(long)]
         improve: bool,
         /// Hold the follower to its optimum: zero relative gap, best responses
-        /// capped 1e-9 (absolute) above it, certified within 1e-6 (absolute)
-        /// instead of BOBILib's relative 1e-4.
+        /// capped 1e-9 (absolute; 1e-7 when the solver finds no point with
+        /// 1e-9) above it, certified within 1e-6 (absolute) instead of
+        /// BOBILib's relative 1e-4.
         #[arg(long)]
         strict: bool,
         /// Write verified points here (BOBILib solution format).
@@ -185,7 +186,7 @@ enum Cmd {
     /// Re-derive a coupled solution file's point under the strict tolerance:
     /// the follower solved at the file's leader values (zero relative gap),
     /// then the optimistic tie-break with the follower's value at most 1e-9
-    /// above its optimum, every leader variable fixed or, if no such response
+    /// (else 1e-7) above its optimum, every leader variable fixed or, if no such response
     /// meets the coupling rows, only the linking ones. Prints one JSON line
     /// per file; writes `<name>.res.json` into `--out` when certified.
     CoupledTighten {

@@ -40,7 +40,7 @@
 //! [`Tolerance::Strict`] (`bobi coupled --strict`, `bobi coupled-tighten`,
 //! `bobi certify --tight`) holds the follower to its optimum instead: the
 //! follower is solved with zero relative gap, best responses cap its value
-//! at the optimum plus [`STRICT_CAP`] (absolute), and the certificate asks
+//! at the optimum plus [`STRICT_CAPS`] (absolute), and the certificate asks
 //! for the point's follower value at most [`STRICT_ABS`] above the proven
 //! bound, so the leader cannot use the relative slack BOBILib allows.
 
@@ -58,10 +58,12 @@ const CERT_REL: f64 = 1e-5;
 /// Strict mode: the follower's value at most this far (absolute) above the
 /// proven lower bound on its optimum.
 pub const STRICT_ABS: f64 = 1e-6;
-/// Strict mode: the cap on the follower's value in a best response, above
+/// Strict mode: the caps on the follower's value in a best response, above
 /// the follower's optimum (absolute), well inside [`STRICT_ABS`] so that
-/// rounding and polishing keep the final point within it.
-pub const STRICT_CAP: f64 = 1e-9;
+/// rounding and polishing keep the final point within it. The second is
+/// tried when the first gives no point: on objectives near 1e7 a cap of 1e-9
+/// is about one unit in the last place, below what the solver can resolve.
+pub const STRICT_CAPS: [f64; 2] = [1e-9, 1e-7];
 /// Strict mode: the leader's objective at most this far (relative, on top
 /// of [`STRICT_ABS`] absolute) above the proven tie-break bound.
 const STRICT_TIE_REL: f64 = 1e-9;
@@ -327,6 +329,22 @@ pub fn worst_rel_error(value: f64, bound: f64) -> f64 {
     (value - bound) / (1e-10 + lo_abs)
 }
 
+/// Solve `mp`, whose last row caps the follower's value at `phi + caps[0]`,
+/// widening the cap through `caps` while the solver finds no point.
+fn solve_capped(mp: &mut Milp, phi: f64, caps: &[f64], o: &SolveOpts) -> MilpResult {
+    let mut r = mp.solve_with(o);
+    for &cap in &caps[1..] {
+        if matches!(r.status, MilpStatus::Optimal | MilpStatus::Feasible) {
+            break;
+        }
+        if let Some(row) = mp.rows.last_mut() {
+            row.2 = phi + cap;
+        }
+        r = mp.solve_with(o);
+    }
+    r
+}
+
 /// Integer-valued objective at integer points: bounds can be rounded up.
 fn integral_objective(m: &Bilevel, coef: impl Fn(&crate::model::Var) -> f64) -> bool {
     m.vars
@@ -347,7 +365,8 @@ pub fn certify(m: &Bilevel, val: &[f64], time: f64) -> Certificate {
 /// [`certify`] under either tolerance. Strict: the follower solved with zero
 /// relative gap and its value at most [`STRICT_ABS`] above the proven bound;
 /// the tie-break over follower values at most the point's own (plus 1e-9,
-/// absolute), solved to a relative gap of 1e-9, with the leader's objective
+/// absolute, or 1e-7 if the solver finds no point with that), solved to a
+/// relative gap of 1e-9, with the leader's objective
 /// at most [`STRICT_ABS`] + 1e-9 |F| above its bound.
 pub fn certify_with(m: &Bilevel, val: &[f64], time: f64, tol: Tolerance) -> Certificate {
     let (viol, worst) = m.max_violation(val);
@@ -377,19 +396,19 @@ pub fn certify_with(m: &Bilevel, val: &[f64], time: f64, tol: Tolerance) -> Cert
         .filter(|(_, v)| v.lower && v.ll_obj != 0.0)
         .map(|(j, v)| (sub.col[j], v.ll_obj))
         .collect();
-    let cap = if tol.strict() {
-        1e-9
+    let caps: &[f64] = if tol.strict() {
+        &STRICT_CAPS
     } else {
-        1e-9 * (1.0 + ll.abs())
+        &[1e-9 * (1.0 + ll.abs())]
     };
-    sub.mp.add_row(ll_terms, f64::NEG_INFINITY, ll + cap);
+    sub.mp.add_row(ll_terms, f64::NEG_INFINITY, ll + caps[0]);
     let mut o = SolveOpts::new(time);
     o.rel_gap = if tol.strict() { STRICT_TIE_REL } else { 1e-7 };
     o.abs_gap = 1e-9;
     if tol.strict() {
         o.feas_tol = Some(1e-9);
     }
-    let t = sub.mp.solve_with(&o);
+    let t = solve_capped(&mut sub.mp, ll, caps, &o);
     let fixed_part: f64 = m.obj_offset
         + m.vars
             .iter()
@@ -778,14 +797,15 @@ impl<'a> Search<'a> {
             .map(|(j, v)| (sub.col[j], v.ll_obj))
             .collect();
         let strict = self.opts.tolerance.strict();
-        let tol = if self.split.ll_integral {
-            1e-6
+        let wide = [1e-7 * (1.0 + phi.abs())];
+        let caps: &[f64] = if self.split.ll_integral {
+            &[1e-6]
         } else if strict {
-            STRICT_CAP
+            &STRICT_CAPS
         } else {
-            1e-7 * (1.0 + phi.abs())
+            &wide
         };
-        sub.mp.add_row(ll, f64::NEG_INFINITY, phi + tol);
+        sub.mp.add_row(ll, f64::NEG_INFINITY, phi + caps[0]);
         let mut o = SolveOpts::new(time);
         if strict {
             // The optimistic tie-break proper, not just a feasible response.
@@ -796,7 +816,7 @@ impl<'a> Search<'a> {
             o.feas_tol = Some(1e-8);
             o.rel_gap = 1e-6;
         }
-        let r = sub.mp.solve_with(&o);
+        let r = solve_capped(&mut sub.mp, phi, caps, &o);
         if matches!(r.status, MilpStatus::Optimal | MilpStatus::Feasible) {
             let full = expand(&sub, &r.x, x);
             return MilpResult { x: full, ..r };

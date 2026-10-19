@@ -1,6 +1,6 @@
 # Figure manifest
 
-Fifteen figures, one PDF each, all built from `figures/src/`. The paper uses 13:
+Twenty figures, one PDF each, all built from `figures/src/`. Of the first fifteen the paper uses 13:
 `fig_family_outcomes` (it repeats Table 1) and `fig_hpr_bound` (it only restates
 HPR <= OPT) were dropped in the review round; they are still built (`make figures`
 from `bobilib/paper/`; rebuilds are byte-identical). Widths are the page
@@ -25,13 +25,23 @@ the paper; numbers are not fixed yet.
 | `fig_hpr_bound.pdf` | The bound for the MIPLIB-derived instances: the high point relaxation (HPR) is the original MIPLIB model, so its published optimum is a lower bound, and a verified bilevel feasible point with that value is optimal. | MIPLIB-derived instances (method) | 3.15 (h 1.0) | none (schematic) |
 | `fig_unbounded_follower.pdf` | Why some MIPLIB-derived instances have no bilevel feasible point: the follower's region moves with the leader's choice x but keeps the same direction r, and f^T r < 0 leaves the follower without a best response for every x (Meyer 1974). | MIPLIB-derived instances (method) | 3.15 (h 2.0) | none (schematic) |
 | `fig_general_outcomes.pdf` | Outcomes for the 266 MIPLIB-derived instances BOBILib lists as feasible or open, by BOBILib status and, for the open ones, by whether leader rows contain follower variables (coupling rows). | MIPLIB-derived instances (results) | 3.15 (h 1.75) | `results/summary.json`, `results/general/points.csv`, `results/general-coupled/summary.csv` |
+| `fig_family_map.pdf` | BOBILib at a glance: one tile per family, with its number of instances and the number BOBILib lists as feasible or open (unsolved; the bar shows their share); BOBILib's other 33 non-optimal instances are proven infeasible and belong to the general families. | The problems (section opening) | 6.5 (h 2.0) | `generated/facts.tex` (`\Fam...All`, `\Fam...Unsolved`), read at build time |
+| `fig_mkip.pdf` | Multidimensional knapsack interdiction on a toy instance: every item has a profit, a weight and a volume, and the follower's knapsack has a limit for each; the leader blocks two items and the follower packs the most valuable set within both limits (15 instead of 23; blocking the two most valuable items would leave 17). | The problems / multidimensional knapsack interdiction | 6.5 (h 1.9) | toy instance, brute-force checked (numbers in the source header) |
+| `fig_generalized.pdf` | Generalized interdiction: leader variables x, follower variables y; for the interdiction pairs x_j = 1 forces y_j = 0; the leader's rows contain x and y (coupling), the follower's only y; the objectives differ. | The problems / generalized interdiction | 3.15 (h 1.75) | none (schematic, structure checked on all 90 files) |
+| `fig_assignment.pdf` | Assignment interdiction on a toy instance (4 workers, 4 jobs, costs in the cells): the leader bans two pairs and the follower's cheapest assignment of the rest costs 21 instead of 8. | The problems / assignment interdiction (pairs with `fig_generalized`) | 3.15 (h 1.75) | toy instance, brute-force checked (numbers in the source header) |
+| `fig_miplib_split.pdf` | How BOBILib turns a MILP into a bilevel instance: X_0_100 (leader: first half of the variables; every row at the follower), X_50_50 (leader also gets the first half of the rows, which then contain follower variables: coupling rows), MIPLIB 3 X-k (follower: first fraction k of the variables and every row); the leader keeps the MILP's objective, the follower minimizes its negation on its own variables. | The problems / general instances | 6.5 (h 2.0) | none (schematic; the split rules were checked on all 389 MIPLIB-derived instance files) |
 
 Pairing: the paper is single column, so the half-width figures can share a
-row as (a)/(b) panels, for example `fig_unbounded_follower` with
+row as (a)/(b) panels, as `fig_generalized` and `fig_assignment` do in the problems section
+(both 1.75 in high), for example `fig_unbounded_follower` with
 `fig_general_outcomes` (heights 2.0 and 1.75 in), or `fig_lp_bracket` with
 `fig_network_attack_protect` if those sections are short.
 
 ## Glyphs and colours
+
+* `fig_overview_status`: every label sits on a plain face or on white. The label of the
+  dotted orange segment ("verified point, none in BOBILib") is below the bar, in black on
+  white, with a leader line; the narrow aqua segments keep their labels above the bar.
 
 * Explainer figures: leader blue, follower orange, deleted or interdicted
   grey with a cross, certificates and proofs aqua. The network figure uses the

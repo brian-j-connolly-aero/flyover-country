@@ -61,8 +61,8 @@ follower's variables with their objective coefficients $f$, and the follower's r
 other variable and row belongs to the leader. In the interdiction families the leader's
 objective and the follower's are opposite ($c=0$ and $f=-d$; for the generalized and
 assignment families, see below), so the game is zero-sum, the optimistic and pessimistic
-readings agree, and the model reads more naturally as $\min_x\max_y$. In most of them, each item $j$ that the
-leader can block has a leader variable $x_j\in\{0,1\}$ and a follower row $x_j+y_j\le 1$
+readings agree, and the model reads more naturally as $\min_x\max_y$. In most of them, each
+item $j$ that the leader can block has a leader variable $x_j\in\{0,1\}$ and a follower row $x_j+y_j\le 1$
 (an \emph{interdiction row}): blocking item $j$ takes it away from the follower.
 
 \begin{table}[t]
@@ -232,9 +232,9 @@ variant \code{-0} the leader has the first row and the follower the other $K-1$;
 Research Library),\cite{chu1998genetic,beasley1990orlibrary} with $n\in\{100,250,500\}$ items,
 $K\in\{5,10,30\}$ rows, tightness $\alpha\in\{0.25,0.5,0.75\}$ and ten instances $i$ for each
 combination. The weights are integers between 0 and 1,000; an item's profit is, up to
-rounding, its average weight over the $K$ rows plus a random amount between 0 and 500. The right-hand side of every row, the
-leader's budget rows and the follower's capacity rows alike, is $\alpha$ times the sum of its
-coefficients, rounded to an integer (below, ``budget 25\%'' means $\alpha=0.25$). So variant
+rounding, its average weight over the $K$ rows plus a random amount between 0 and 500. The
+right-hand side of every row, the leader's budget rows and the follower's capacity rows alike,
+is $\alpha$ times the sum of its coefficients, rounded to an integer (below, ``budget 25\%'' means $\alpha=0.25$). So variant
 \code{-100} has one follower knapsack, and variants \code{-0} and \code{-50} have several.
 \item \code{imkp} (\NumImkp{} instances), named after the MKP with the same suffixes, for example
 \inst{weish26.dat-50}: built on the SAC-94 suite\cite{khuri1994zero} (the instances
@@ -443,7 +443,7 @@ it. The first party, the leader, now has to plan for the worst reply of the seco
 \textbf{The construction.} A MILP $\min\{c\T z: \text{rows},\ \text{integrality}\}$ with $n$
 variables and $m$ rows becomes a bilevel instance by splitting its variables and rows between the
 two levels and giving the follower an objective (Figure~\ref{fig:miplib}). BOBILib has three
-constructions; the following was checked on every one of its % TODO macro: 389
+constructions; the following was checked on every one of its 389 % TODO macro
 MIPLIB-derived instances.
 \begin{itemize}\setlength{\emergencystretch}{3em}
 \item \code{miplib2010} and \code{miplib2017} (Kleinert and Schmidt;\cite{kleinert2021computing}

@@ -2,7 +2,8 @@
 # Re-derive coupled solution files under the strict follower tolerance with
 # `bobi coupled-tighten`: the follower solved at each file's leader values
 # with zero relative gap, then the optimistic tie-break with the follower's
-# value at most 1e-9 (absolute) above its optimum, every leader variable
+# value at most 1e-9 (absolute; 1e-7 if the solver finds no point with
+# 1e-9) above its optimum, every leader variable
 # fixed or, if no such response meets the coupling rows, only the linking
 # ones. One JSON line per file on stdout; certified points go to OUTDIR.
 #
