@@ -1,0 +1,235 @@
+# python3 -I scripts/check_clique_certificates.py data/collection/interdiction/clique-interdiction/clique results/clique/certificates
+# Python 3.13.16, run in bobilib/ on 2026-10-19
+normalClique40-90-1: n=40 m=702 k=175 h=78 t3=533 Brouwer margin 5; 154 sorted size vectors, 6 with b(s) >= 0
+  sizes (16, 13, 11) b=0: tree OK, 115 nodes, 77 leaves
+  sizes (16, 12, 12) b=1: tree OK, 66 nodes, 39 leaves
+  sizes (15, 14, 11) b=2: tree OK, 187 nodes, 125 leaves
+  sizes (15, 13, 12) b=4: tree OK, 991 nodes, 661 leaves
+  sizes (14, 14, 12) b=5: tree OK, 775 nodes, 513 leaves
+  sizes (14, 13, 13) b=6: tree OK, 1061 nodes, 703 leaves
+  PASS: w3(G) > k = 175 (0.06 s)
+normalClique40-90-2: n=40 m=702 k=175 h=78 t3=533 Brouwer margin 5; 154 sorted size vectors, 6 with b(s) >= 0
+  sizes (16, 13, 11) b=0: tree OK, 115 nodes, 77 leaves
+  sizes (16, 12, 12) b=1: tree OK, 66 nodes, 39 leaves
+  sizes (15, 14, 11) b=2: tree OK, 151 nodes, 101 leaves
+  sizes (15, 13, 12) b=4: tree OK, 1021 nodes, 681 leaves
+  sizes (14, 14, 12) b=5: tree OK, 1063 nodes, 705 leaves
+  sizes (14, 13, 13) b=6: tree OK, 1901 nodes, 1263 leaves
+  PASS: w3(G) > k = 175 (0.07 s)
+normalClique40-90-3: n=40 m=702 k=175 h=78 t3=533 Brouwer margin 5; 154 sorted size vectors, 6 with b(s) >= 0
+  sizes (16, 13, 11) b=0: tree OK, 115 nodes, 77 leaves
+  sizes (16, 12, 12) b=1: tree OK, 75 nodes, 45 leaves
+  sizes (15, 14, 11) b=2: tree OK, 277 nodes, 185 leaves
+  sizes (15, 13, 12) b=4: tree OK, 2185 nodes, 1457 leaves
+  sizes (14, 14, 12) b=5: tree OK, 2311 nodes, 1537 leaves
+  sizes (14, 13, 13) b=6: tree OK, 4490 nodes, 2989 leaves
+  PASS: w3(G) > k = 175 (0.12 s)
+normalClique40-90-4: n=40 m=702 k=175 h=78 t3=533 Brouwer margin 5; 154 sorted size vectors, 6 with b(s) >= 0
+  sizes (16, 13, 11) b=0: tree OK, 115 nodes, 77 leaves
+  sizes (16, 12, 12) b=1: tree OK, 66 nodes, 39 leaves
+  sizes (15, 14, 11) b=2: tree OK, 115 nodes, 77 leaves
+  sizes (15, 13, 12) b=4: tree OK, 745 nodes, 497 leaves
+  sizes (14, 14, 12) b=5: tree OK, 769 nodes, 509 leaves
+  sizes (14, 13, 13) b=6: tree OK, 1379 nodes, 915 leaves
+  PASS: w3(G) > k = 175 (0.06 s)
+normalClique40-90-5: n=40 m=702 k=175 h=78 t3=533 Brouwer margin 5; 154 sorted size vectors, 6 with b(s) >= 0
+  sizes (16, 13, 11) b=0: tree OK, 115 nodes, 77 leaves
+  sizes (16, 12, 12) b=1: tree OK, 66 nodes, 39 leaves
+  sizes (15, 14, 11) b=2: tree OK, 235 nodes, 157 leaves
+  sizes (15, 13, 12) b=4: tree OK, 1951 nodes, 1301 leaves
+  sizes (14, 14, 12) b=5: tree OK, 2254 nodes, 1499 leaves
+  sizes (14, 13, 13) b=6: tree OK, 4832 nodes, 3217 leaves
+  PASS: w3(G) > k = 175 (0.13 s)
+normalClique40-90-6: n=40 m=702 k=175 h=78 t3=533 Brouwer margin 5; 154 sorted size vectors, 6 with b(s) >= 0
+  sizes (16, 13, 11) b=0: tree OK, 115 nodes, 77 leaves
+  sizes (16, 12, 12) b=1: tree OK, 66 nodes, 39 leaves
+  sizes (15, 14, 11) b=2: tree OK, 205 nodes, 137 leaves
+  sizes (15, 13, 12) b=4: tree OK, 1213 nodes, 809 leaves
+  sizes (14, 14, 12) b=5: tree OK, 1105 nodes, 733 leaves
+  sizes (14, 13, 13) b=6: tree OK, 1988 nodes, 1321 leaves
+  PASS: w3(G) > k = 175 (0.09 s)
+normalClique40-90-7: n=40 m=702 k=175 h=78 t3=533 Brouwer margin 5; 154 sorted size vectors, 6 with b(s) >= 0
+  sizes (16, 13, 11) b=0: tree OK, 115 nodes, 77 leaves
+  sizes (16, 12, 12) b=1: tree OK, 66 nodes, 39 leaves
+  sizes (15, 14, 11) b=2: tree OK, 361 nodes, 241 leaves
+  sizes (15, 13, 12) b=4: tree OK, 2077 nodes, 1385 leaves
+  sizes (14, 14, 12) b=5: tree OK, 2065 nodes, 1373 leaves
+  sizes (14, 13, 13) b=6: tree OK, 4649 nodes, 3095 leaves
+  PASS: w3(G) > k = 175 (0.15 s)
+normalClique40-90-8: n=40 m=702 k=175 h=78 t3=533 Brouwer margin 5; 154 sorted size vectors, 6 with b(s) >= 0
+  sizes (16, 13, 11) b=0: tree OK, 115 nodes, 77 leaves
+  sizes (16, 12, 12) b=1: tree OK, 66 nodes, 39 leaves
+  sizes (15, 14, 11) b=2: tree OK, 223 nodes, 149 leaves
+  sizes (15, 13, 12) b=4: tree OK, 1651 nodes, 1101 leaves
+  sizes (14, 14, 12) b=5: tree OK, 1918 nodes, 1275 leaves
+  sizes (14, 13, 13) b=6: tree OK, 4256 nodes, 2833 leaves
+  PASS: w3(G) > k = 175 (0.12 s)
+normalClique40-90-9: n=40 m=702 k=175 h=78 t3=533 Brouwer margin 5; 154 sorted size vectors, 6 with b(s) >= 0
+  sizes (16, 13, 11) b=0: tree OK, 115 nodes, 77 leaves
+  sizes (16, 12, 12) b=1: tree OK, 66 nodes, 39 leaves
+  sizes (15, 14, 11) b=2: tree OK, 265 nodes, 177 leaves
+  sizes (15, 13, 12) b=4: tree OK, 1597 nodes, 1065 leaves
+  sizes (14, 14, 12) b=5: tree OK, 1708 nodes, 1135 leaves
+  sizes (14, 13, 13) b=6: tree OK, 3953 nodes, 2631 leaves
+  PASS: w3(G) > k = 175 (0.11 s)
+normalClique40-90-10: n=40 m=702 k=175 h=78 t3=533 Brouwer margin 5; 154 sorted size vectors, 6 with b(s) >= 0
+  sizes (16, 13, 11) b=0: tree OK, 115 nodes, 77 leaves
+  sizes (16, 12, 12) b=1: tree OK, 66 nodes, 39 leaves
+  sizes (15, 14, 11) b=2: tree OK, 187 nodes, 125 leaves
+  sizes (15, 13, 12) b=4: tree OK, 1699 nodes, 1133 leaves
+  sizes (14, 14, 12) b=5: tree OK, 1636 nodes, 1087 leaves
+  sizes (14, 13, 13) b=6: tree OK, 3542 nodes, 2357 leaves
+  PASS: w3(G) > k = 175 (0.10 s)
+normalClique50-90-1: n=50 m=1102 k=275 h=123 t3=833 Brouwer margin 8; 234 sorted size vectors, 6 with b(s) >= 0
+  sizes (19, 17, 14) b=0: tree OK, 145 nodes, 97 leaves
+  sizes (18, 18, 14) b=1: tree OK, 80 nodes, 49 leaves
+  sizes (19, 16, 15) b=2: tree OK, 145 nodes, 97 leaves
+  sizes (18, 17, 15) b=4: tree OK, 1021 nodes, 681 leaves
+  sizes (18, 16, 16) b=5: tree OK, 1171 nodes, 775 leaves
+  sizes (17, 17, 16) b=6: tree OK, 1746 nodes, 1159 leaves
+  PASS: w3(G) > k = 275 (0.10 s)
+normalClique50-90-2: n=50 m=1102 k=275 h=123 t3=833 Brouwer margin 8; 234 sorted size vectors, 6 with b(s) >= 0
+  sizes (19, 17, 14) b=0: tree OK, 145 nodes, 97 leaves
+  sizes (18, 18, 14) b=1: tree OK, 80 nodes, 49 leaves
+  sizes (19, 16, 15) b=2: tree OK, 433 nodes, 289 leaves
+  sizes (18, 17, 15) b=4: tree OK, 3883 nodes, 2589 leaves
+  sizes (18, 16, 16) b=5: tree OK, 4282 nodes, 2849 leaves
+  sizes (17, 17, 16) b=6: tree OK, 9888 nodes, 6587 leaves
+  PASS: w3(G) > k = 275 (0.30 s)
+normalClique50-90-3: n=50 m=1102 k=275 h=123 t3=833 Brouwer margin 8; 234 sorted size vectors, 6 with b(s) >= 0
+  sizes (19, 17, 14) b=0: tree OK, 145 nodes, 97 leaves
+  sizes (18, 18, 14) b=1: tree OK, 80 nodes, 49 leaves
+  sizes (19, 16, 15) b=2: tree OK, 145 nodes, 97 leaves
+  sizes (18, 17, 15) b=4: tree OK, 1243 nodes, 829 leaves
+  sizes (18, 16, 16) b=5: tree OK, 1252 nodes, 829 leaves
+  sizes (17, 17, 16) b=6: tree OK, 2304 nodes, 1531 leaves
+  PASS: w3(G) > k = 275 (0.11 s)
+normalClique50-90-4: n=50 m=1102 k=275 h=123 t3=833 Brouwer margin 8; 234 sorted size vectors, 6 with b(s) >= 0
+  sizes (19, 17, 14) b=0: tree OK, 145 nodes, 97 leaves
+  sizes (18, 18, 14) b=1: tree OK, 80 nodes, 49 leaves
+  sizes (19, 16, 15) b=2: tree OK, 163 nodes, 109 leaves
+  sizes (18, 17, 15) b=4: tree OK, 727 nodes, 485 leaves
+  sizes (18, 16, 16) b=5: tree OK, 844 nodes, 557 leaves
+  sizes (17, 17, 16) b=6: tree OK, 1404 nodes, 931 leaves
+  PASS: w3(G) > k = 275 (0.09 s)
+normalClique50-90-5: n=50 m=1102 k=275 h=123 t3=833 Brouwer margin 8; 234 sorted size vectors, 6 with b(s) >= 0
+  sizes (19, 17, 14) b=0: tree OK, 145 nodes, 97 leaves
+  sizes (18, 18, 14) b=1: tree OK, 80 nodes, 49 leaves
+  sizes (19, 16, 15) b=2: tree OK, 145 nodes, 97 leaves
+  sizes (18, 17, 15) b=4: tree OK, 595 nodes, 397 leaves
+  sizes (18, 16, 16) b=5: tree OK, 562 nodes, 369 leaves
+  sizes (17, 17, 16) b=6: tree OK, 795 nodes, 525 leaves
+  PASS: w3(G) > k = 275 (0.08 s)
+normalClique50-90-6: n=50 m=1102 k=275 h=123 t3=833 Brouwer margin 8; 234 sorted size vectors, 6 with b(s) >= 0
+  sizes (19, 17, 14) b=0: tree OK, 145 nodes, 97 leaves
+  sizes (18, 18, 14) b=1: tree OK, 80 nodes, 49 leaves
+  sizes (19, 16, 15) b=2: tree OK, 145 nodes, 97 leaves
+  sizes (18, 17, 15) b=4: tree OK, 445 nodes, 297 leaves
+  sizes (18, 16, 16) b=5: tree OK, 724 nodes, 477 leaves
+  sizes (17, 17, 16) b=6: tree OK, 1188 nodes, 787 leaves
+  PASS: w3(G) > k = 275 (0.08 s)
+normalClique50-90-7: n=50 m=1102 k=275 h=123 t3=833 Brouwer margin 8; 234 sorted size vectors, 6 with b(s) >= 0
+  sizes (19, 17, 14) b=0: tree OK, 145 nodes, 97 leaves
+  sizes (18, 18, 14) b=1: tree OK, 80 nodes, 49 leaves
+  sizes (19, 16, 15) b=2: tree OK, 163 nodes, 109 leaves
+  sizes (18, 17, 15) b=4: tree OK, 1243 nodes, 829 leaves
+  sizes (18, 16, 16) b=5: tree OK, 1198 nodes, 793 leaves
+  sizes (17, 17, 16) b=6: tree OK, 1881 nodes, 1249 leaves
+  PASS: w3(G) > k = 275 (0.10 s)
+normalClique50-90-8: n=50 m=1102 k=275 h=123 t3=833 Brouwer margin 8; 234 sorted size vectors, 6 with b(s) >= 0
+  sizes (19, 17, 14) b=0: tree OK, 145 nodes, 97 leaves
+  sizes (18, 18, 14) b=1: tree OK, 80 nodes, 49 leaves
+  sizes (19, 16, 15) b=2: tree OK, 145 nodes, 97 leaves
+  sizes (18, 17, 15) b=4: tree OK, 1039 nodes, 693 leaves
+  sizes (18, 16, 16) b=5: tree OK, 940 nodes, 621 leaves
+  sizes (17, 17, 16) b=6: tree OK, 1518 nodes, 1007 leaves
+  PASS: w3(G) > k = 275 (0.09 s)
+normalClique50-90-9: n=50 m=1102 k=275 h=123 t3=833 Brouwer margin 8; 234 sorted size vectors, 6 with b(s) >= 0
+  sizes (19, 17, 14) b=0: tree OK, 145 nodes, 97 leaves
+  sizes (18, 18, 14) b=1: tree OK, 80 nodes, 49 leaves
+  sizes (19, 16, 15) b=2: tree OK, 145 nodes, 97 leaves
+  sizes (18, 17, 15) b=4: tree OK, 1081 nodes, 721 leaves
+  sizes (18, 16, 16) b=5: tree OK, 979 nodes, 647 leaves
+  sizes (17, 17, 16) b=6: tree OK, 1884 nodes, 1251 leaves
+  PASS: w3(G) > k = 275 (0.10 s)
+normalClique50-90-10: n=50 m=1102 k=275 h=123 t3=833 Brouwer margin 8; 234 sorted size vectors, 6 with b(s) >= 0
+  sizes (19, 17, 14) b=0: tree OK, 145 nodes, 97 leaves
+  sizes (18, 18, 14) b=1: tree OK, 80 nodes, 49 leaves
+  sizes (19, 16, 15) b=2: tree OK, 217 nodes, 145 leaves
+  sizes (18, 17, 15) b=4: tree OK, 1483 nodes, 989 leaves
+  sizes (18, 16, 16) b=5: tree OK, 1240 nodes, 821 leaves
+  sizes (17, 17, 16) b=6: tree OK, 2250 nodes, 1495 leaves
+  PASS: w3(G) > k = 275 (0.12 s)
+normalClique60-90-1: n=60 m=1593 k=398 h=177 t3=1200 Brouwer margin 13; 331 sorted size vectors, 5 with b(s) >= 0
+  sizes (22, 20, 18) b=1: tree OK, 175 nodes, 117 leaves
+  sizes (21, 21, 18) b=2: tree OK, 115 nodes, 71 leaves
+  sizes (22, 19, 19) b=2: tree OK, 117 nodes, 71 leaves
+  sizes (21, 20, 19) b=4: tree OK, 1075 nodes, 717 leaves
+  sizes (20, 20, 20) b=5: tree OK, 397 nodes, 258 leaves
+  PASS: w3(G) > k = 398 (0.09 s)
+normalClique60-90-2: n=60 m=1593 k=398 h=177 t3=1200 Brouwer margin 13; 331 sorted size vectors, 5 with b(s) >= 0
+  sizes (22, 20, 18) b=1: tree OK, 175 nodes, 117 leaves
+  sizes (21, 21, 18) b=2: tree OK, 106 nodes, 65 leaves
+  sizes (22, 19, 19) b=2: tree OK, 108 nodes, 65 leaves
+  sizes (21, 20, 19) b=4: tree OK, 625 nodes, 417 leaves
+  sizes (20, 20, 20) b=5: tree OK, 274 nodes, 176 leaves
+  PASS: w3(G) > k = 398 (0.08 s)
+normalClique60-90-3: n=60 m=1593 k=398 h=177 t3=1200 Brouwer margin 13; 331 sorted size vectors, 5 with b(s) >= 0
+  sizes (22, 20, 18) b=1: tree OK, 175 nodes, 117 leaves
+  sizes (21, 21, 18) b=2: tree OK, 97 nodes, 59 leaves
+  sizes (22, 19, 19) b=2: tree OK, 99 nodes, 59 leaves
+  sizes (21, 20, 19) b=4: tree OK, 535 nodes, 357 leaves
+  sizes (20, 20, 20) b=5: tree OK, 178 nodes, 112 leaves
+  PASS: w3(G) > k = 398 (0.08 s)
+normalClique60-90-4: n=60 m=1593 k=398 h=177 t3=1200 Brouwer margin 13; 331 sorted size vectors, 5 with b(s) >= 0
+  sizes (22, 20, 18) b=1: tree OK, 175 nodes, 117 leaves
+  sizes (21, 21, 18) b=2: tree OK, 106 nodes, 65 leaves
+  sizes (22, 19, 19) b=2: tree OK, 108 nodes, 65 leaves
+  sizes (21, 20, 19) b=4: tree OK, 337 nodes, 225 leaves
+  sizes (20, 20, 20) b=5: tree OK, 166 nodes, 104 leaves
+  PASS: w3(G) > k = 398 (0.08 s)
+normalClique60-90-5: n=60 m=1593 k=398 h=177 t3=1200 Brouwer margin 13; 331 sorted size vectors, 5 with b(s) >= 0
+  sizes (22, 20, 18) b=1: tree OK, 175 nodes, 117 leaves
+  sizes (21, 21, 18) b=2: tree OK, 115 nodes, 71 leaves
+  sizes (22, 19, 19) b=2: tree OK, 117 nodes, 71 leaves
+  sizes (21, 20, 19) b=4: tree OK, 589 nodes, 393 leaves
+  sizes (20, 20, 20) b=5: tree OK, 250 nodes, 160 leaves
+  PASS: w3(G) > k = 398 (0.09 s)
+normalClique60-90-6: n=60 m=1593 k=398 h=177 t3=1200 Brouwer margin 13; 331 sorted size vectors, 5 with b(s) >= 0
+  sizes (22, 20, 18) b=1: tree OK, 175 nodes, 117 leaves
+  sizes (21, 21, 18) b=2: tree OK, 124 nodes, 77 leaves
+  sizes (22, 19, 19) b=2: tree OK, 126 nodes, 77 leaves
+  sizes (21, 20, 19) b=4: tree OK, 679 nodes, 453 leaves
+  sizes (20, 20, 20) b=5: tree OK, 157 nodes, 98 leaves
+  PASS: w3(G) > k = 398 (0.09 s)
+normalClique60-90-7: n=60 m=1593 k=398 h=177 t3=1200 Brouwer margin 13; 331 sorted size vectors, 5 with b(s) >= 0
+  sizes (22, 20, 18) b=1: tree OK, 175 nodes, 117 leaves
+  sizes (21, 21, 18) b=2: tree OK, 97 nodes, 59 leaves
+  sizes (22, 19, 19) b=2: tree OK, 99 nodes, 59 leaves
+  sizes (21, 20, 19) b=4: tree OK, 763 nodes, 509 leaves
+  sizes (20, 20, 20) b=5: tree OK, 262 nodes, 168 leaves
+  PASS: w3(G) > k = 398 (0.10 s)
+normalClique60-90-8: n=60 m=1593 k=398 h=177 t3=1200 Brouwer margin 13; 331 sorted size vectors, 5 with b(s) >= 0
+  sizes (22, 20, 18) b=1: tree OK, 175 nodes, 117 leaves
+  sizes (21, 21, 18) b=2: tree OK, 97 nodes, 59 leaves
+  sizes (22, 19, 19) b=2: tree OK, 99 nodes, 59 leaves
+  sizes (21, 20, 19) b=4: tree OK, 529 nodes, 353 leaves
+  sizes (20, 20, 20) b=5: tree OK, 250 nodes, 160 leaves
+  PASS: w3(G) > k = 398 (0.08 s)
+normalClique60-90-9: n=60 m=1593 k=398 h=177 t3=1200 Brouwer margin 13; 331 sorted size vectors, 5 with b(s) >= 0
+  sizes (22, 20, 18) b=1: tree OK, 175 nodes, 117 leaves
+  sizes (21, 21, 18) b=2: tree OK, 115 nodes, 71 leaves
+  sizes (22, 19, 19) b=2: tree OK, 117 nodes, 71 leaves
+  sizes (21, 20, 19) b=4: tree OK, 859 nodes, 573 leaves
+  sizes (20, 20, 20) b=5: tree OK, 232 nodes, 148 leaves
+  PASS: w3(G) > k = 398 (0.09 s)
+normalClique60-90-10: n=60 m=1593 k=398 h=177 t3=1200 Brouwer margin 13; 331 sorted size vectors, 5 with b(s) >= 0
+  sizes (22, 20, 18) b=1: tree OK, 175 nodes, 117 leaves
+  sizes (21, 21, 18) b=2: tree OK, 97 nodes, 59 leaves
+  sizes (22, 19, 19) b=2: tree OK, 99 nodes, 59 leaves
+  sizes (21, 20, 19) b=4: tree OK, 409 nodes, 273 leaves
+  sizes (20, 20, 20) b=5: tree OK, 178 nodes, 112 leaves
+  PASS: w3(G) > k = 398 (0.08 s)
+instances passed 30/30; cases certified 170; tree nodes 134368, leaves 89132; time 3.1 s
+RESULT PASS
+# exit status 0

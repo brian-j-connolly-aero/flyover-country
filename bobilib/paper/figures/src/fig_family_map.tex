@@ -1,0 +1,153 @@
+% fig_family_map: a visual catalogue of BOBILib, one tile per family (the rows of the
+% paper's family table): a pictogram, the number of instances and how many BOBILib lists
+% as feasible or open ("unsolved"); the bar shows that share.  The counts are the macros
+% of generated/facts.tex (\Fam...All, \Fam...Unsolved), read at build time, so the figure
+% always shows the paper's numbers.
+% Pictograms: knapsack (items, one blocked), two-resource knapsack, a clique with one
+% deleted edge, a small tree with an attack, a protection and the spread, leader and
+% follower variables with one interdiction link and a leader row over both, an assignment
+% with one forbidden pair, and a matrix whose columns and rows are split between the levels.
+% Build: pdflatex fig_family_map.tex   (6.5 in x 2.0 in; needs ../../generated/facts.tex)
+\documentclass[tikz,border=2pt]{standalone}
+\pdfinfoomitdate=1 \pdftrailerid{} \pdfsuppressptexinfo=-1 % byte-identical rebuilds
+\usepackage{mathptmx}
+\usetikzlibrary{arrows.meta,calc}
+\providecommand{\inst}[1]{\mbox{#1}}
+\input{../../generated/facts.tex}
+\definecolor{leader}{HTML}{2A78D6}
+\definecolor{follower}{HTML}{EB6834}
+\definecolor{cert}{HTML}{1BAF7A}
+\definecolor{ink}{HTML}{0B0B0B}
+\definecolor{ink2}{HTML}{52514E}
+\definecolor{muted}{HTML}{A9A8A2}
+\definecolor{grid}{HTML}{E6E5E0}
+\definecolor{critical}{HTML}{D03B3B}% status colour: on fire (as in the network figure)
+\tikzset{
+  every picture/.style={font=\fontsize{8}{9.6}\selectfont, color=ink, line cap=round, line join=round},
+  small/.style={font=\fontsize{7}{8.4}\selectfont},
+  tile/.style={draw=grid, line width=0.8pt, rounded corners=3pt},
+  itm/.style={draw=ink2, line width=0.5pt, fill=white},
+  packed/.style={draw=follower, line width=0.6pt, fill=follower!22},
+  blocked/.style={draw=muted, line width=0.5pt, fill=grid},
+  vtx/.style={circle, draw=ink2, line width=0.5pt, fill=white, inner sep=0pt, minimum size=4pt},
+  cvtx/.style={circle, draw=follower, line width=0.6pt, fill=follower!22, inner sep=0pt, minimum size=4.6pt},
+  ged/.style={ink2, line width=0.45pt},
+  ced/.style={follower, line width=1.0pt},
+  ded/.style={muted, line width=0.6pt, densely dashed},
+}
+% a grey cross over the box (#1)--(#2)
+\newcommand{\cross}[2]{\draw[ink2, line width=0.7pt] ($(#1)+(0.05,0.05)$) -- ($(#2)+(-0.05,-0.05)$)
+  ($(#1|-#2)+(0.05,-0.05)$) -- ($(#2|-#1)+(-0.05,0.05)$);}
+% a small x mark at a point
+\newcommand{\xmark}[1]{\draw[ink2, line width=0.7pt] ($(#1)+(-0.07,-0.07)$) -- ($(#1)+(0.07,0.07)$)
+  ($(#1)+(-0.07,0.07)$) -- ($(#1)+(0.07,-0.07)$);}
+% \tile{x}{y}{name}{instances}{unsolved}{pictogram code}
+\newcommand{\tile}[6]{%
+  \begin{scope}[shift={(#1,#2)}]
+    \draw[tile] (0,0) rectangle (\TW,\TH);
+    \begin{scope}[shift={(0.10,0.27)}, scale=0.92] #6 \end{scope}
+    \node[anchor=north west, align=left, inner sep=0pt, font=\fontsize{8}{9.2}\selectfont\bfseries]
+      at (1.60,\TH-0.17) {#3};
+    \node[anchor=west, inner sep=0pt] at (1.60,0.86) {#4 instances};
+    % bar: whole = instances, dark part = unsolved
+    \pgfmathsetmacro{\barfrac}{#5/#4}
+    \fill[grid] (1.60,0.25) rectangle ++(2.12,0.17);
+    \fill[ink2] (1.60,0.25) rectangle ++(2.12*\barfrac,0.17);
+    \node[anchor=west, inner sep=0pt] at (1.60,0.59) {#5 unsolved};
+  \end{scope}}
+\begin{document}
+\begin{tikzpicture}
+  % fixed page: 6.5 in x 2.0 in including the 2 pt border
+  \useasboundingbox (0,0) rectangle (16.37,4.939);
+  \def\TW{3.92}\def\TH{2.33}
+  \def\GX{0.23}
+
+  % ---------------- row 1 ----------------
+  % knapsack interdiction: items above, one blocked; the knapsack holds two packed items
+  \tile{0}{2.609}{Knapsack\\interdiction}{\FamKipAll}{\FamKipUnsolved}{
+    \draw[blocked] (0.02,1.35) rectangle ++(0.32,0.32); \cross{0.02,1.35}{0.34,1.67}
+    \draw[packed] (0.42,1.35) rectangle ++(0.45,0.32);
+    \draw[itm] (0.95,1.35) rectangle ++(0.22,0.32);
+    \draw[packed] (1.25,1.35) rectangle ++(0.25,0.32);
+    \draw[follower!70, line width=0.4pt, densely dashed] (0.645,1.35) -- (0.405,0.57) (1.375,1.35) -- (0.98,0.57);
+    \draw[packed] (0.18,0.25) rectangle ++(0.45,0.32);
+    \draw[packed] (0.63,0.25) rectangle ++(0.25,0.32);
+    \draw[ink, line width=0.9pt] (0.18,0.25) rectangle (1.30,0.57);
+  }
+  % multidimensional knapsack interdiction: two resources, two limits
+  \tile{\TW+\GX}{2.609}{Multidimensional\\knapsack\\interdiction}{\FamMkipAll}{\FamMkipUnsolved}{
+    \draw[blocked] (0.05,1.35) rectangle ++(0.40,0.32); \cross{0.05,1.35}{0.45,1.67}
+    \draw[packed] (0.57,1.35) rectangle ++(0.40,0.32);
+    \draw[itm] (1.09,1.35) rectangle ++(0.40,0.32);
+    % two gauges: weight and volume, each with its limit
+    \fill[follower!45] (0.12,0.72) rectangle ++(0.95,0.20);
+    \draw[ink, line width=0.8pt] (0.12,0.72) rectangle ++(1.28,0.20);
+    \fill[follower!45] (0.12,0.30) rectangle ++(1.12,0.20);
+    \draw[ink, line width=0.8pt] (0.12,0.30) rectangle ++(1.28,0.20);
+  }
+  % edge clique interdiction: a 4-clique (orange) and one deleted edge
+  \tile{2*\TW+2*\GX}{2.609}{Edge clique\\interdiction}{\FamCliqueAll}{\FamCliqueUnsolved}{
+    \coordinate (a) at (0.20,1.10); \coordinate (b) at (0.75,1.62); \coordinate (c) at (1.32,1.12);
+    \coordinate (d) at (1.10,0.32); \coordinate (e) at (0.38,0.32);
+    \draw[ged] (a) -- (e) (e) -- (d) (b) -- (e) (e) -- (c) (b) -- (d) (c) -- (d);
+    \draw[ded] (a) -- (d); \xmark{$(a)!0.5!(d)$}
+    \draw[ced] (a) -- (b) (b) -- (c) (a) -- (c);
+    \foreach \v in {a,b,c} \node[cvtx] at (\v) {};
+    \node[vtx] at (d) {}; \node[vtx] at (e) {};
+  }
+  % network: attack (red, blue ring), protection (orange shield), spread, saved
+  \tile{3*\TW+3*\GX}{2.609}{Network\\(attack-protect)}{\FamNetworkAll}{\FamNetworkUnsolved}{
+    \coordinate (r) at (0.75,1.58);
+    \coordinate (p) at (0.30,0.95); \coordinate (q) at (1.20,0.95);
+    \coordinate (p1) at (0.12,0.30); \coordinate (p2) at (0.50,0.30);
+    \coordinate (q1) at (1.02,0.30); \coordinate (q2) at (1.40,0.30);
+    \draw[ged] (r) -- (q) (q) -- (q1) (q) -- (q2);
+    \draw[critical!70, line width=1.0pt] (r) -- (p) (p) -- (p1) (p) -- (p2);
+    \draw[leader, line width=0.8pt] (p) circle (0.17);
+    \fill[critical] (p) circle (0.12);
+    \foreach \v in {p1,p2} \draw[critical, line width=0.6pt, fill=critical!22] (\v) circle (0.10);
+    \draw[follower!80!black, line width=0.5pt, fill=follower]
+      ($(r)+(-0.11,0.11)$) -- ($(r)+(0.11,0.11)$) -- ($(r)+(0.11,0.0)$)
+      .. controls ($(r)+(0.11,-0.07)$) and ($(r)+(0.04,-0.10)$) .. ($(r)+(0,-0.14)$)
+      .. controls ($(r)+(-0.04,-0.10)$) and ($(r)+(-0.11,-0.07)$) .. ($(r)+(-0.11,0.0)$) -- cycle;
+    \foreach \v in {q,q1,q2} \draw[ink2, line width=0.5pt, fill=white] (\v) circle (0.10);
+  }
+
+  % ---------------- row 2 ----------------
+  % generalized interdiction: leader x (squares), follower y (circles), one interdiction
+  % link (x_1 = 1 blocks y_1), and a leader row over x and y (coupling)
+  \tile{0}{0}{Generalized\\interdiction}{\FamGeneralizedAll}{\FamGeneralizedUnsolved}{
+    \draw[leader, line width=0.6pt, rounded corners=2pt, densely dashed] (0.02,0.12) rectangle (1.48,1.72);
+    \foreach \i/\f in {0/1,1/0,2/0} {
+      \pgfmathsetmacro{\xx}{0.30+0.45*\i}
+      \ifnum\f=1 \fill[leader] (\xx-0.1,1.25) rectangle ++(0.2,0.2);
+      \else \draw[leader, line width=0.6pt, fill=white] (\xx-0.1,1.25) rectangle ++(0.2,0.2); \fi
+    }
+    \draw[ink2, line width=0.5pt] (0.30,1.25) -- (0.30,0.62);
+    \draw[muted, line width=0.5pt, fill=grid] (0.30,0.50) circle (0.11); \xmark{0.30,0.50}
+    \foreach \i in {1,2} \draw[follower, line width=0.6pt, fill=follower!22] (0.30+0.45*\i,0.50) circle (0.11);
+  }
+  % assignment interdiction: 3 x 3, an orange assignment and one forbidden pair
+  \tile{\TW+\GX}{0}{Assignment\\interdiction}{\FamAssignmentAll}{\FamAssignmentUnsolved}{
+    \foreach \i in {0,1,2} {
+      \coordinate (l\i) at (0.22,1.55-0.6*\i); \coordinate (r\i) at (1.28,1.55-0.6*\i); }
+    \draw[ged] (l0) -- (r1) (l1) -- (r2) (l2) -- (r1);
+    \draw[ded] (l0) -- (r0); \xmark{$(l0)!0.5!(r0)$}
+    \draw[ced] (l0) -- (r2) (l1) -- (r0) (l2) -- (r1);
+    \foreach \i in {0,1,2} { \node[vtx, minimum size=5pt] at (l\i) {}; \node[vtx, minimum size=5pt] at (r\i) {}; }
+  }
+  % general instances: a MILP's columns and rows split between leader and follower
+  % #1: the columns drawn with dots (integer variables); the others are continuous
+  \def\mat#1{%
+    \fill[grid] (0.22,0.15) rectangle (1.45,1.30);
+    \fill[leader] (0.22,1.38) rectangle (0.83,1.52);
+    \fill[follower] (0.85,1.38) rectangle (1.45,1.52);
+    \fill[leader] (0.02,0.74) rectangle (0.14,1.30);
+    \fill[follower] (0.02,0.15) rectangle (0.14,0.72);
+    \foreach \i in {#1} \foreach \j in {0,...,3}
+      \fill[muted] (0.34+0.25*\i,0.30+0.29*\j) circle (0.035);
+  }
+  \tile{2*\TW+2*\GX}{0}{General,\\pure integer}{\FamGenPureAll}{\FamGenPureUnsolved}{\mat{0,...,4}}
+  \tile{3*\TW+3*\GX}{0}{General,\\mixed integer}{\FamGenMixedAll}{\FamGenMixedUnsolved}{\mat{0,2,3}}
+\end{tikzpicture}
+\end{document}

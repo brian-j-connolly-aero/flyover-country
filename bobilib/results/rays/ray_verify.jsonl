@@ -41,3 +41,5 @@
 {"instance": "nu25-pr12_50_50.mps.gz", "verified": true, "objective_along_d": -9000.0, "support": 36, "problems": []}
 {"instance": "gen-ip054_0_100.mps.gz", "verified": true, "objective_along_d": -1475.2477026237293, "support": 9, "problems": []}
 {"instance": "gen-ip054_50_50.mps.gz", "verified": true, "objective_along_d": -2718.0650455811133, "support": 13, "problems": []}
+{"instance": "supportcase42_0_100.mps.gz", "verified": true, "objective_along_d": -1.0, "support": 1, "problems": []}
+{"instance": "supportcase42_50_50.mps.gz", "verified": true, "objective_along_d": -1.0, "support": 1, "problems": []}

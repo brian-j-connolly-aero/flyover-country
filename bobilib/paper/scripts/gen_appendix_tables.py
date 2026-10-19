@@ -17,11 +17,14 @@ leaks into the document. Instance names are escaped for LaTeX.
   tab_or.tex              all 810 OR instances: published and new bounds
   tab_literature.tex      528 published optima BOBILib does not list, by source
   tab_unchanged.tex       716 instances whose status is unchanged, by family
+  supp_facts.tex          macros for counts quoted in the appendix text that are not in
+                          generated/facts.tex (network attack counts, OR bound sources)
 """
 import argparse
 import collections
 import csv
 import json
+import math
 import os
 import re
 import statistics
@@ -99,6 +102,16 @@ def longtable(spec, caption, label, head, rows, foot_note=None, size="\\footnote
     return "\n".join(out) + "\n"
 
 
+def big(n):
+    """An integer with comma group separators, for running text (as generated/facts.tex)."""
+    return f"{int(n):,}".replace(",", "{,}")
+
+
+def round2(text, note):
+    """Mark a generated table for the integrator: a LaTeX comment after the header."""
+    return text.replace(HEADER, HEADER + "% ROUND2: " + note + "\n", 1)
+
+
 def brace(s):
     return "{" + s + "}"
 
@@ -127,6 +140,7 @@ def main():
     ins = load(f"{R}/instances.csv")
     I = {r["instance"]: r for r in ins}
     written = []
+    facts = collections.OrderedDict()  # name -> (TeX value, comment), written to supp_facts.tex
 
     def put(fname, text):
         with open(os.path.join(O, fname), "w", newline="\n") as f:
@@ -151,7 +165,9 @@ def main():
         "robust subset-sum search. $n$: items; class 6: subset sum ($p = w$), class 7: even weights and odd "
         "capacity; index: the budget index of the instance name; $\\beta$: the leader's budget; $c$: the "
         "follower's capacity. Every optimum equals $c$ (class 6) or $c-1$ (class 7), the trivial upper bound, "
-        "and BOBILib's value. Nodes and CPU seconds of \\texttt{bobi ss-solve} on one thread of a shared machine; "
+        "and BOBILib's value. Each lower bound is a computational proof supported by formally verified lemmas "
+        "(an exact certificate, class (i) of Section~\\ref{app:classes}). Nodes and CPU seconds of "
+        "\\texttt{bobi ss-solve} on one thread of a shared machine; "
         "second prover: nodes of \\texttt{scripts/ss\\_check.py}, which shares no code with the search.",
         "tab:kip",
         ["Instance", "{$n$}", "{Class}", "{Index}", "{$\\beta$}", "{$c$}", "{Optimum}", "{Nodes}", "{CPU (s)}",
@@ -176,22 +192,47 @@ def main():
         status = "optimal" if r["status"] == "optimal" else "\\textbf{open}"
         rows.append(" & ".join([esc(r["name"]), r["n"], r["density"], r["m"], r["k"], r["bobilib_value"],
                                 r["lower_bound"], arg, r["upper_bound"], certif, status]))
-    put("tab_clique.tex", longtable(
+    # ROUND2: update when scripts/check_clique_certificates.py has checked all 170 case certificates
+    # (results/clique/certificates); until then the density-0.9 lower bounds are class (ii).
+    put("tab_clique.tex", round2(longtable(
         "@{}l S[table-format=2.0] S[table-format=1.1] S[table-format=4.0] S[table-format=3.0] S[table-format=2.0] "
         "S[table-format=1.0] l S[table-format=1.0] l l@{}",
         "Edge clique interdiction, BOBILib set \\texttt{clique}: $n$ vertices, density $d$, $m$ edges, budget $k$ "
         "(the leader deletes at most $k$ edges). Lower bound: Mantel's theorem ($m-k>\\lfloor n^2/4\\rfloor$, so a "
         "triangle survives) or Brouwer's 1981 Theorem~2 ($m-k\\ge t_3(n)-\\lfloor n/3\\rfloor+2$, so a $K_4$-free "
-        "remainder is 3-partite) together with exact solver proofs that every 3-partition has more than $k$ edges "
-        "inside its parts ($w_3(G)>k$). Upper bound: the solution file deletes the edges inside an $r$-partition "
-        "(certificate: $r$ and the number of inside edges, at most $k$), leaving an $r$-partite graph." + open_note,
+        "remainder is 3-partite) together with the proof that every 3-partition has more than $k$ edges "
+        "inside its parts ($w_3(G)>k$): \\NumCliquePartCases{} part-size cases, each decided by solvers and by "
+        "exhaustive integer searches, with case certificates checked by the integer checker "
+        "\\texttt{scripts/check\\_clique\\_certificates.py}. Upper bound: the solution file deletes the edges "
+        "inside an $r$-partition "
+        "(certificate: $r$ and the number of inside edges, at most $k$), leaving an $r$-partite graph. Both bounds "
+        "are exact certificates (class (i) of Section~\\ref{app:classes})." + open_note,
         "tab:clique",
         ["Instance", "{$n$}", "{$d$}", "{$m$}", "{$k$}", "{BOBILib}", "{LB}", "Argument", "{UB}", "Certificate",
-         "Status"], rows))
+         "Status"], rows),
+        "update when scripts/check_clique_certificates.py has checked all 170 case certificates; until then the "
+        "density-0.9 lower bounds are class (ii) and the caption must say so."))
 
     # ---- tab_network -------------------------------------------------------------------------
+    # Attack counts: every attack of 0 to Phi nodes, sum_k C(n, k), once per instance (summary.csv,
+    # asserted against the binomial sums). The review compared its own DP with ours at every attack
+    # on all 40 forests: the 36 trees and the 4 rndgraph-25 graphs that are forests (review.tsv).
     net = load(f"{R}/network/summary.csv")
+    for r in net:
+        assert int(r["attacks"]) == sum(math.comb(int(r["nodes"]), k) for k in range(int(r["phi"]) + 1)), r["name"]
+    rev = load(f"{R}/network/review.tsv", delimiter="\t")
+    forests = [r for r in rev if r["dp_equals_treedp"] == "yes"]
+    assert all(r["forest"] == "yes" for r in forests)
+    rnd_forests = [r for r in forests if not r["name"].startswith("tree-")]
+    tree_attacks = sum(int(r["attacks"]) for r in net)
+    assert {r["name"] for r in forests if r["name"].startswith("tree-")} == {r["name"] for r in net}
+    assert tree_attacks == sum(int(r["attacks"]) for r in forests if r["name"].startswith("tree-"))
+    forest_attacks = sum(int(r["attacks"]) for r in forests)
+    hx = load(f"{R}/network/highs_crosscheck.csv")
     open_ = [r for r in net if r["bobilib_status"] == "feasible"]
+    n0, phi0 = int(open_[0]["nodes"]), int(open_[0]["phi"])
+    assert all((int(r["nodes"]), int(r["phi"])) == (n0, phi0) for r in open_)
+    full0 = math.comb(n0, phi0)
     rows = [" & ".join([esc(r["name"]), r["nodes"], r["edges"], r["phi"], r["lambda"], r["attacks"], r["value"],
                         r["optimal_attacks"], r["bobilib_value"], f"{float(r['secs_enum']):.0f}"]) for r in open_]
     t1 = longtable(
@@ -199,8 +240,12 @@ def main():
         "S[table-format=2.0] S[table-format=2.0] S[table-format=2.0] S[table-format=2.0]@{}",
         "The two attack-protect games (\\texttt{inter-fire}) BOBILib lists as feasible, proven optimal by "
         "enumerating every attack of at most $\\Phi$ nodes, with the follower (protect at most $\\Lambda$ nodes) "
-        "solved exactly by a tree dynamic program and the minimiser re-solved by HiGHS. Time: wall seconds of the "
-        "enumeration on one thread of a loaded machine.",
+        f"solved exactly by a tree dynamic program and the minimiser re-solved by HiGHS. Attacks: every attack of "
+        f"$0$ to $\\Phi$ nodes, $\\sum_{{k=0}}^{{\\Phi}}\\binom{{{n0}}}{{k}}=\\num{{{open_[0]['attacks']}}}$ per instance "
+        f"(\\num{{{full0}}} of them with exactly $\\Phi={phi0}$ nodes), each enumerated once. Optimal attacks: "
+        "attacks at which the follower saves only the optimum. Time: wall seconds of the "
+        "enumeration on one thread of a loaded machine. The optima are exact certificates (class (i) of "
+        "Section~\\ref{app:classes}).",
         "tab:network",
         ["Instance", "{Nodes}", "{Edges}", "{$\\Phi$}", "{$\\Lambda$}", "{Attacks}", "{Optimum}",
          "{\\shortstack{Optimal\\\\attacks}}", "{BOBILib}", "{Time (s)}"], rows)
@@ -211,23 +256,49 @@ def main():
         g = r["name"].rsplit("_", 1)[0]
         groups.setdefault(g, []).append(r)
     rows = []
-    tot = 0
+    tot, tot_att = 0, 0
     for g, rs in groups.items():
+        assert len({r["attacks"] for r in rs}) == 1, g
         vals = sorted(int(r["value"]) for r in rs)
         agree = sum(r["agrees"] == "true" and r["certified"] == "true" and r["value"] == r["bobilib_value"] for r in rs)
         tot += agree
+        att = sum(int(r["attacks"]) for r in rs)
+        tot_att += att
         vtxt = ", ".join(str(v) for v in vals)
         rows.append(" & ".join([esc(g), str(len(rs)), rs[0]["nodes"], rs[0]["phi"], rs[0]["lambda"], rs[0]["attacks"],
-                                vtxt, f"{agree}/{len(rs)}"]))
+                                str(att), vtxt, f"{agree}/{len(rs)}"]))
     assert tot == 34 and sum(len(v) for v in groups.values()) == 34
+    assert tot_att + sum(int(r["attacks"]) for r in open_) == tree_attacks
+    rows.append("\\midrule")
+    rows.append(" & ".join(["Total", str(tot), "", "", "", "", str(tot_att), "", f"{tot}/{tot}"]))
     t2 = longtable(
-        "@{}l S[table-format=1.0] S[table-format=2.0] S[table-format=1.0] S[table-format=1.0] S[table-format=7.0] l l@{}",
+        "@{}l S[table-format=2.0] S[table-format=2.0] S[table-format=1.0] S[table-format=1.0] S[table-format=7.0] "
+        "S[table-format=7.0] l l@{}",
         "The 34 tree instances BOBILib lists as optimal, re-derived by the same enumeration: instances per group, "
-        "nodes (after removing the vaccinated ones), budgets, attacks per instance, the optimal values found, "
-        "and how many equal BOBILib's value with a certified solution file.",
+        "nodes (after removing the vaccinated ones), budgets, attacks (every attack of $0$ to $\\Phi$ nodes, "
+        "$\\sum_{k=0}^{\\Phi}\\binom{n}{k}$ for $n$ nodes) per instance and in all over the group's instances, the "
+        "optimal values found, and how many equal BOBILib's value with a certified solution file. The 34 trees "
+        f"have \\num{{{tot_att}}} attacks; with the two trees of Table~\\ref{{tab:network}} the 36 trees have "
+        f"\\num{{{tree_attacks}}}, and with the {len(rnd_forests)} \\texttt{{rndgraph-25}} instances that are "
+        f"forests (\\num{{{forest_attacks - tree_attacks}}} attacks) the {len(forests)} forests of "
+        f"\\texttt{{inter-fire}} have \\num{{{forest_attacks}}}, the attacks at which the review compared its "
+        "dynamic program with ours (Section~\\ref{app:network}).",
         "tab:network-trees",
-        ["Group", "{Inst.}", "{Nodes}", "{$\\Phi$}", "{$\\Lambda$}", "{Attacks}", "Optima", "Agree"], rows)
+        ["Group", "{Inst.}", "{Nodes}", "{$\\Phi$}", "{$\\Lambda$}", "{\\shortstack{Attacks per\\\\instance}}",
+         "{\\shortstack{Attacks\\\\in all}}", "Optima", "Agree"], rows)
     put("tab_network.tex", t1 + "\n" + t2.replace(HEADER, ""))
+    facts["SuppNetTrees"] = (str(len(net)), "tree instances enumerated (summary.csv)")
+    facts["SuppNetTreeAttacks"] = (big(tree_attacks), "attacks of 0..Phi nodes over the 36 trees")
+    facts["SuppNetTableTreeAttacks"] = (big(tot_att), "attacks over the 34 BOBILib-optimal trees")
+    facts["SuppNetForests"] = (str(len(forests)), "forests among the inter-fire instances (review.tsv)")
+    facts["SuppNetRndForests"] = (str(len(rnd_forests)), "rndgraph-25 instances that are forests")
+    facts["SuppNetRndForestAttacks"] = (big(forest_attacks - tree_attacks), "attacks on those")
+    facts["SuppNetForestAttacks"] = (big(forest_attacks), "attacks on all forests: review DP = TreeDp")
+    facts["SuppNetFullBudgetAttacks"] = (big(full0), "attacks with exactly Phi nodes, open trees")
+    facts["SuppNetHighsInstances"] = (str(len(hx)), "instances with HiGHS at every attack")
+    facts["SuppNetHighsAttacks"] = (big(sum(int(r['attacks']) for r in hx)), "attacks solved by HiGHS")
+    facts["SuppNetHighsChecks"] = (big(sum(int(r['highs_checks']) for r in net)),
+                                   "HiGHS follower solves in the DP runs (36 trees)")
 
     # ---- tab_rays ----------------------------------------------------------------------------
     rv = {}
@@ -240,19 +311,26 @@ def main():
     rays = sorted((r for r in ins if r["new_status"] == "infeasible_bilevel"), key=lambda r: natural(r["instance"]))
     assert len(rays) == 40
     rows = []
+    float_rays = [r["instance"] for r in rays if not rv[r["instance"]]["verified"]]
     for r in rays:
         d = rv[r["instance"]]
         rows.append(" & ".join([esc(r["instance"]), esc(r["collection"]), str(d["support"]),
                                 dec(d["objective_along_d"], 4), "yes" if d["verified"] else "no (floating point)"]))
-    put("tab_rays.tex", longtable(
+    # ROUND2: update when results/rays has exact certificates for the two supportcase42 directions.
+    put("tab_rays.tex", round2(longtable(
         "@{}l l S[table-format=5.0] S[table-format=-9.4] l@{}",
         "The 40 open MIPLIB-derived instances with no bilevel feasible point: the follower's own rows admit a "
         "recession direction $r$ (follower variables only) with $f^\\top r<0$, for every leader choice (Meyer "
         "1974). Support: nonzero entries of $r$; $f^\\top r$ rounded to four decimals; exact: checked in exact "
-        "rational arithmetic by \\texttt{scripts/verify\\_ray.py} (the two supportcase42 directions leave "
-        "residuals of about $10^{-12}$ relative and rest on floating point).",
+        "rational arithmetic by \\texttt{scripts/verify\\_ray.py}, an exact certificate (class (i) of "
+        "Section~\\ref{app:classes})" + (
+            "." if not float_rays else
+            "; " + " and ".join(f"\\texttt{{{esc(n)}}}" for n in float_rays) + (" leave" if len(float_rays) > 1 else " leaves")
+            + " residuals of about $10^{-12}$ relative and rest on floating point (class (ii))."),
         "tab:rays",
-        ["Instance", "Collection", "{Support}", "{$f^\\top r$}", "Exact"], rows))
+        ["Instance", "Collection", "{Support}", "{$f^\\top r$}", "Exact"], rows),
+        "update when results/rays has exact certificates for supportcase42_0_100 and supportcase42_50_50 "
+        "(the caption follows ray_verify.jsonl; the residual clause is for the floating-point directions only)."))
 
     # ---- tab_hpr -----------------------------------------------------------------------------
     hpr = load(f"{R}/general/hpr_optimal.csv")
@@ -276,8 +354,11 @@ def main():
         "Five MIPLIB-derived instances whose high point relaxation is exactly the MIPLIB model they were built "
         "from (checked in exact arithmetic by \\texttt{scripts/compare\\_hpr.py}), so the published MIPLIB "
         "optimum (MIPLIB 2017's solution file) is a lower bound; a verified bilevel feasible point at that value "
-        "is optimal. The objective of noswot takes integer values only, so its bound rounds up to $-41$. "
-        "Status: BOBILib's "
+        "is optimal by accepted benchmark conventions. The MIPLIB optima are floating-point results of MILP "
+        "solvers (class (ii) of Section~\\ref{app:classes}), not exact-arithmetic proofs: the objective of noswot "
+        "takes integer values only, so its published bound rounds up to $-41$ and the result is safe if that "
+        "bound is valid; pigeon-10 inherits MIPLIB's optimal status; for timtab1 the agreement of point and "
+        "bound is numerical. Status: BOBILib's "
         "before this work. (neos-950242\\_0\\_100 meets its bound too, but was already listed as optimal in an "
         "earlier BOBILib release and is counted as published.)",
         "tab:hpr",
@@ -305,7 +386,14 @@ def main():
         rows.append(" & ".join([esc(r["instance"]) + mark, esc(r["collection"]), coup, meth,
                                 dec(num(r["primal_value"])), dec(low)]))
     assert tol == 9 and pub == 10, (tol, pub)
-    put("tab_general_points.tex", longtable(
+    cfiles = [c for c in cp.values() if c["status"] == "point"]
+    exact_c = [c for c in cfiles if (num(c["rel_error"]) or 0) <= 1e-8]
+    facts["SuppCoupledExact"] = (str(len(exact_c)), "coupled files with the follower within 1e-8 of its optimum")
+    facts["SuppCoupledFiles"] = (str(len(cfiles)), "coupled files (results/general-coupled)")
+    # ROUND2: update when the 9 coupled files (results/general-coupled) are repaired, and when
+    # results/general records the follower error of each point (19 of its 64 files have the follower
+    # more than 1e-8 relative above its optimum; Section E.3); then mark those rows too.
+    put("tab_general_points.tex", round2(longtable(
         "@{}l l c l S[table-format=-10.4] S[table-format=-10.4]@{}",
         "The 90 verified bilevel feasible points for open MIPLIB-derived instances, for which BOBILib lists no "
         "point. $^{\\ddagger}$: a point had been published elsewhere (its value and source are in the notes of "
@@ -316,22 +404,35 @@ def main():
         "that found the point (the HPR's own leader values, a penalised HPR, best-response dynamics). Values "
         "rounded to four decimals (full precision in \\texttt{instances.csv}); the leader minimises, so does the "
         "follower. $^{*}$: the follower's value is about $10^{-7}$ relative above its optimum, inside BOBILib's "
-        "tolerance of $10^{-4}$. Three further points are optimal (Table~\\ref{tab:hpr}).",
+        "tolerance of $10^{-4}$, so the file is a benchmark-accepted point (class (iii) of "
+        "Section~\\ref{app:classes}); the mark is set from \\texttt{general-coupled/summary.csv}, and "
+        "\\texttt{general/points.csv} records no follower error, so points without coupling rows are not marked "
+        "(Section~\\ref{app:general} lists those that are class (iii) too). Three further points are optimal "
+        "(Table~\\ref{tab:hpr}).",
         "tab:general-points",
-        ["Instance", "Collection", "Coupling", "Method", "{Leader value}", "{Follower value}"], rows))
+        ["Instance", "Collection", "Coupling", "Method", "{Leader value}", "{Follower value}"], rows),
+        "update when the 9 coupled files are repaired (results/general-coupled) and when results/general records "
+        "the follower error of each point (19 of its 64 files are more than 1e-8 relative above the follower "
+        "optimum); mark those rows too."))
 
     # ---- tab_or --------------------------------------------------------------------------------
     orr = load(f"{R}/or/compare.csv")
     key = lambda r: (int(r["m"]), int(r["n"]), r["alpha"], int(r["variant"]),
                      int(re.search(r"_(\d+)\.dat", r["name"]).group(1)))
     orr.sort(key=key)
-    rows, flagged = [], 0
+    rows, flagged, no_lb = [], 0, []
     for r in orr:
         row = I[r["name"]]
         fr = {"0": int(r["m"]) - 1, "50": int(r["m"]) // 2, "100": 1}[r["variant"]]
         ll, lu, ol, op = num(r["lit_lb"]), num(r["lit_ub"]), num(r["our_lb"]), num(r["our_point"])
         gap = num(r["gap"])
         name = esc(r["name"])
+        # compare.csv writes best_lb = 0 (the trivial bound) and gap = 1 when no lower bound is known;
+        # such an instance has no gap: print n/a, never 100.
+        trivial = ll is None and ol is None and (num(r["best_lb"]) or 0) <= 0
+        if trivial:
+            assert row["new_status"] != "optimal" and not (num(row["dual_bound"]) or 0) > 0, r["name"]
+            no_lb.append(r)
         if ll is not None and lu is not None and ll > lu:  # published bounds contradict each other
             flagged += 1
             name += "$^{\\dagger}$"
@@ -340,11 +441,34 @@ def main():
             gap = (min(ubs) - lb) / min(ubs) if ubs and lb is not None else None
         status = row["new_status"]
         g = "" if gap is None else f"{100 * max(gap, 0):.2f}"
+        if trivial:
+            g = "{n/a}"
         if status == "optimal":
             g = "0.00"
         rows.append(" & ".join([name, f"{int(round(100 * float(r['alpha'])))}", str(fr), intval(ll), intval(lu),
                                 intval(num(r["bobilib"])), intval(ol), intval(op), g]))
     assert flagged == 4
+    # Lower bounds of the one-knapsack instances: merged-row online bound (Theorem C.5, exact, class (i))
+    # or LP bracket (Theorem C.4, HiGHS dual bound, class (ii)); lb = max of the two.
+    bnd = {}
+    for line in open(f"{R}/or/bounds_one_knapsack.jsonl"):
+        d = json.loads(line)
+        if "lb" in d:
+            bnd[d["name"]] = d
+    one = [r for r in orr if r["variant"] == "100"]
+    assert all(int(num(r["our_lb"])) == bnd[r["name"]]["lb"] for r in one)
+    by_omega = [r for r in one if bnd[r["name"]]["lb_omega"] >= bnd[r["name"]]["lb_milp"]]
+    better = [r for r in orr if num(r["our_lb"]) is not None
+              and (num(r["lit_lb"]) is None or num(r["our_lb"]) > num(r["lit_lb"]) + 1e-6)]
+    better_omega = [r for r in better if r in by_omega]
+    facts["SuppOrLbOmega"] = (str(len(by_omega)), "one-knapsack lower bounds given by the merged-row online bound")
+    facts["SuppOrLbMilp"] = (str(len(one) - len(by_omega)), "one-knapsack lower bounds given by the LP bracket only")
+    facts["SuppOrBetterLbOmega"] = (str(len(better_omega)), "improved lower bounds from the online bound")
+    facts["SuppOrBetterLbMilp"] = (str(len(better) - len(better_omega)), "improved lower bounds from the LP bracket")
+    facts["SuppOrNoLb"] = (str(len(no_lb)), "OR instances without a nontrivial lower bound (gap n/a)")
+    facts["SuppOrNoLbPoint"] = (str(sum(num(r["our_point"]) is not None for r in no_lb)),
+                                "of them with a verified point here")
+    assert all(r["variant"] != "100" for r in no_lb)
     put("tab_or.tex", longtable(
         "@{}l S[table-format=2.0] S[table-format=2.0] S[table-format=6.0] S[table-format=6.0] S[table-format=6.0] "
         "S[table-format=6.0] S[table-format=6.0] S[table-format=3.2]@{}",
@@ -357,7 +481,10 @@ def main():
         "(2025); not verified here); BOBILib: BOBILib's best known value; our LB: "
         "dualised follower LP bracket or merged-row online bound (one follower knapsack only); our point: "
         "verified solution file; gap: (best upper bound $-$ best lower bound)/best upper bound in percent, where "
-        "the best upper bound may be the follower LP bound at our leader choice (100: no lower bound known). "
+        "the best upper bound may be the follower LP bound at our leader choice. n/a: no nontrivial lower bound "
+        f"is known (published or here; the only bound is the trivial $0$), so no gap is given; these {len(no_lb)} "
+        "instances, all with several follower knapsacks, are left out of every gap statistic of the paper and "
+        "of this supplement. "
         "Blank: none. "
         "$^{\\dagger}$: the published lower bound exceeds the published point (inconsistent sources); the gap "
         "then leaves the published point out, and OR10x100-0.75\\_4.dat-0 is closed at 8,813, the authors' "
@@ -450,6 +577,10 @@ def main():
         txt += (heading(f"{FAMILY_TEXT[f][0].upper() + FAMILY_TEXT[f][1:]} ({len(names)})")
                 + name_list(names, mark=lambda n: "$^{*}$" if n in better else ""))
     put("tab_unchanged.tex", txt)
+
+    lines = [HEADER.splitlines()[0], "% Counts quoted in the appendix text; generated/facts.tex has the paper's."]
+    lines += [f"\\newcommand{{\\{k}}}{{{v}}}% {c}" for k, (v, c) in facts.items()]
+    put("supp_facts.tex", "\n".join(lines) + "\n")
 
     print(f"gen_appendix_tables: {len(written)} files -> {O}: {', '.join(written)}")
 

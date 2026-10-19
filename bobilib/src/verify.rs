@@ -10,6 +10,13 @@
 //!    where phi is the follower objective in BOBILib's (minimising) sense
 //!    (differences below [`NOISE`] count as equal).
 //!
+//! With [`Tight`] tolerances (`bobi verify --tight`) step 3 asks instead
+//! that `phi_sol` lie within `max(abs, rel |phi|)` of every optimum phi the
+//! solver's proof allows (the follower MILP solved with zero relative gap
+//! and absolute gap 1e-9, at HiGHS's default feasibility tolerance 1e-7,
+//! finer than the 1e-6 the file's own rows get); the report keeps BOBILib's
+//! verdict on the same solve beside it.
+//!
 //! The follower problem keeps only the follower's rows, as BOBILib's checker
 //! does: upper-level rows, coupling ones included, constrain the leader.
 //! Packing interdiction instances get an exact oracle (or a MILP with a proof
@@ -17,7 +24,7 @@
 //! solved as a MILP built from the model, under a time limit, so its verdict
 //! can stay unproven.
 
-use crate::milp::{Milp, MilpStatus};
+use crate::milp::{Milp, MilpStatus, SolveOpts};
 use crate::model::Bilevel;
 use crate::solution::SolutionFile;
 use crate::structure;
@@ -49,6 +56,28 @@ impl Verdict {
     }
 }
 
+/// Tight follower tolerances: absolute and relative.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Tight {
+    pub abs: f64,
+    pub rel: f64,
+}
+
+impl Default for Tight {
+    fn default() -> Self {
+        Tight {
+            abs: 1e-6,
+            rel: 1e-9,
+        }
+    }
+}
+
+impl Tight {
+    fn tol(&self, phi: f64) -> f64 {
+        self.abs.max(self.rel * phi.abs())
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct Options {
     /// Seconds for each follower MILP.
@@ -57,6 +86,8 @@ pub struct Options {
     /// Build the follower MILP from the model even when an exact oracle
     /// applies, to cross-check one against the other.
     pub generic: bool,
+    /// The tight follower test in place of BOBILib's relative 1e-4.
+    pub tight: Option<Tight>,
 }
 
 impl Default for Options {
@@ -65,6 +96,7 @@ impl Default for Options {
             time_limit: 60.0,
             threads: 1,
             generic: false,
+            tight: None,
         }
     }
 }
@@ -82,6 +114,9 @@ pub struct Report {
     pub objective: f64,
     pub file_objective: Option<f64>,
     pub follower: Verdict,
+    /// BOBILib's verdict (relative 1e-4) from the same follower solve; equal
+    /// to `follower` unless the tolerances are tight.
+    pub follower_bobilib: Verdict,
     /// Follower objective (minimised) of the file's point.
     pub phi_sol: f64,
     /// Best follower value the oracle found, and a proven lower bound on
@@ -106,6 +141,12 @@ impl Report {
 
     pub fn passed(&self) -> bool {
         self.feasible() && self.objective_matches() && self.follower == Verdict::Yes
+    }
+
+    /// Passes BOBILib's tolerance-based test (rows, objective, follower
+    /// within relative 1e-4) on the same solve.
+    pub fn benchmark_accepted(&self) -> bool {
+        self.feasible() && self.objective_matches() && self.follower_bobilib == Verdict::Yes
     }
 
     /// File errors, then the other notes, for display.
@@ -149,6 +190,7 @@ pub fn verify(m: &Bilevel, sol: &SolutionFile, opts: &Options) -> Report {
         objective: m.upper_obj(&val),
         file_objective: sol.objective_value,
         follower: f.verdict,
+        follower_bobilib: f.bobilib,
         phi_sol,
         phi_check: f.best,
         phi_bound: f.bound,
@@ -185,6 +227,7 @@ fn file_errors(m: &Bilevel, sol: &SolutionFile) -> Vec<String> {
 
 struct FollowerCheck {
     verdict: Verdict,
+    bobilib: Verdict,
     best: Option<f64>,
     bound: Option<f64>,
     oracle: &'static str,
@@ -200,8 +243,10 @@ fn follower_check(m: &Bilevel, val: &[f64], phi_sol: f64, opts: &Options) -> Fol
             // The follower maximises profit; BOBILib minimises its negation.
             let best = -(r.value as f64);
             let bound = (r.bound != i64::MAX).then_some(-(r.bound as f64));
+            let (verdict, bobilib) = verdicts(phi_sol, Some(best), bound, r.proven, opts.tight);
             return FollowerCheck {
-                verdict: follower_verdict(phi_sol, Some(best), bound, r.proven),
+                verdict,
+                bobilib,
                 best: Some(best),
                 bound,
                 oracle: match pi.foll_w.len() {
@@ -219,6 +264,7 @@ fn follower_check(m: &Bilevel, val: &[f64], phi_sol: f64, opts: &Options) -> Fol
     }
     let fail = |note: String| FollowerCheck {
         verdict: Verdict::No,
+        bobilib: Verdict::No,
         best: None,
         bound: None,
         oracle: "milp",
@@ -230,23 +276,37 @@ fn follower_check(m: &Bilevel, val: &[f64], phi_sol: f64, opts: &Options) -> Fol
     };
     if mp.obj.is_empty() {
         // No follower variables: the follower's value is a constant.
+        let (verdict, bobilib) = verdicts(phi_sol, Some(0.0), Some(0.0), true, opts.tight);
         return FollowerCheck {
-            verdict: follower_verdict(phi_sol, Some(0.0), Some(0.0), true),
+            verdict,
+            bobilib,
             best: Some(0.0),
             bound: Some(0.0),
             oracle: "none",
             note: String::new(),
         };
     }
-    let r = mp.solve(opts.time_limit, opts.threads);
-    let bound = r.bound.is_finite().then_some(r.bound);
+    let mut so = SolveOpts::new(opts.time_limit);
+    so.threads = opts.threads;
+    if opts.tight.is_some() {
+        so.abs_gap = 1e-9;
+    }
+    let r = mp.solve_with(&so);
+    let mut bound = r.bound.is_finite().then_some(r.bound);
+    if opts.tight.is_some() && integral_follower(m) {
+        // The optimum is an integer at least the bound.
+        bound = bound.map(|b| (b - 1e-6).ceil());
+    }
     match r.status {
         MilpStatus::Optimal | MilpStatus::Feasible => {
             let proven = r.status == MilpStatus::Optimal;
+            let bound = if proven { bound.or(Some(r.obj)) } else { bound };
+            let (verdict, bobilib) = verdicts(phi_sol, Some(r.obj), bound, proven, opts.tight);
             FollowerCheck {
-                verdict: follower_verdict(phi_sol, Some(r.obj), bound, proven),
+                verdict,
+                bobilib,
                 best: Some(r.obj),
-                bound: if proven { bound.or(Some(r.obj)) } else { bound },
+                bound,
                 oracle: "milp",
                 note: if proven {
                     String::new()
@@ -262,6 +322,7 @@ fn follower_check(m: &Bilevel, val: &[f64], phi_sol: f64, opts: &Options) -> Fol
         }
         MilpStatus::Unknown => FollowerCheck {
             verdict: Verdict::Unproven,
+            bobilib: Verdict::Unproven,
             best: None,
             bound,
             oracle: "milp",
@@ -306,6 +367,53 @@ pub fn follower_milp(m: &Bilevel, val: &[f64]) -> Result<Milp, String> {
         mp.add_row(coefs, lo, hi);
     }
     Ok(mp)
+}
+
+/// The follower's objective takes integer values at integer points.
+fn integral_follower(m: &Bilevel) -> bool {
+    m.vars
+        .iter()
+        .filter(|v| v.lower)
+        .all(|v| v.ll_obj == 0.0 || (v.integer && v.ll_obj == v.ll_obj.round()))
+}
+
+/// The verdict under the options' tolerance, and BOBILib's.
+fn verdicts(
+    phi_sol: f64,
+    best: Option<f64>,
+    bound: Option<f64>,
+    proven: bool,
+    tight: Option<Tight>,
+) -> (Verdict, Verdict) {
+    let bobilib = follower_verdict(phi_sol, best, bound, proven);
+    match tight {
+        Some(t) => (tight_verdict(phi_sol, best, bound, &t), bobilib),
+        None => (bobilib, bobilib),
+    }
+}
+
+/// The tight test: every optimum phi in [bound, best] the solver's proof
+/// allows is within `max(abs, rel |phi|)` of phi_sol. A strictly better
+/// response found (best below phi_sol by more), or phi_sol below the proven
+/// bound by more, is a definite "no".
+pub fn tight_verdict(phi_sol: f64, best: Option<f64>, bound: Option<f64>, t: &Tight) -> Verdict {
+    if let Some(b) = best {
+        if phi_sol - b > t.tol(b) {
+            return Verdict::No;
+        }
+    }
+    let Some(lb) = bound else {
+        return Verdict::Unproven;
+    };
+    if lb - phi_sol > t.tol(lb) {
+        return Verdict::No;
+    }
+    let best_ok = best.is_none_or(|b| b - phi_sol <= t.tol(b));
+    if phi_sol - lb <= t.tol(lb) && best_ok {
+        Verdict::Yes
+    } else {
+        Verdict::Unproven
+    }
 }
 
 /// BOBILib's test `|sol - check| / (1e-10 + |check|) <= OPT_TOL`, up to [`NOISE`].
@@ -559,6 +667,42 @@ mod tests {
         // Near zero, rounding residue is not a better response; 1e-6 is.
         assert_eq!(follower_verdict(0.0, Some(-1.8e-14), None, true), Yes);
         assert_eq!(follower_verdict(0.0, Some(-1e-6), None, true), No);
+    }
+
+    #[test]
+    fn tight_verdict_from_bounds() {
+        use Verdict::*;
+        let t = Tight::default();
+        // Absolute 1e-6 for small values, relative 1e-9 for large ones.
+        assert_eq!(tight_verdict(-10.0, Some(-10.0), Some(-10.0), &t), Yes);
+        assert_eq!(tight_verdict(-10.0 + 5e-7, Some(-10.0), Some(-10.0), &t), Yes);
+        assert_eq!(tight_verdict(-10.0 + 1e-5, Some(-10.0), Some(-10.0), &t), No);
+        assert_eq!(tight_verdict(-10.0 - 1e-5, Some(-10.0), Some(-10.0), &t), No);
+        assert_eq!(tight_verdict(6e7 + 0.05, Some(6e7), Some(6e7), &t), Yes);
+        assert_eq!(tight_verdict(6e7 + 6.0, Some(6e7), Some(6e7), &t), No);
+        // An open gap: unproven unless phi_sol is within the tolerance of both ends.
+        assert_eq!(tight_verdict(-10.0, Some(-10.0), Some(-10.5), &t), Unproven);
+        assert_eq!(tight_verdict(-10.0, Some(-10.0), None, &t), Unproven);
+        assert_eq!(tight_verdict(-10.0, Some(-11.0), Some(-12.0), &t), No);
+    }
+
+    #[test]
+    fn tight_mode_rejects_relative_slack() {
+        let m = continuous();
+        let tight = Options {
+            tight: Some(Tight::default()),
+            ..Options::default()
+        };
+        // y = 2.9999 is within BOBILib's relative 1e-4 of 3, not within 1e-6.
+        let r = verify(&m, &solution(&m, &[2.0, 2.9999]), &tight);
+        assert_eq!((r.follower, r.follower_bobilib), (Verdict::No, Verdict::Yes));
+        assert!(!r.passed() && r.benchmark_accepted());
+        let r = verify(&m, &solution(&m, &[2.0, 3.0 - 1e-7]), &tight);
+        assert!(r.passed(), "{r:?}");
+        // The exact oracle under the tight test.
+        let k = kip(1);
+        let r = verify(&k, &solution(&k, &[1.0, 0.0, 0.0, 0.0, 1.0, 1.0]), &tight);
+        assert!(r.passed() && r.oracle == "kp", "{r:?}");
     }
 
     #[test]

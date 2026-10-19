@@ -271,13 +271,17 @@ and nothing here proves τ4 = w3 for these graphs.
 | --- | --- | --- |
 | value ≥ 3 | all 60 | Mantel's theorem plus the exact integer comparison m − k > ⌊n²/4⌋ (`lb.py`; also formalised in `../../lean/Bobi/Clique.lean`, `triangle_survives`) |
 | a K4-free remainder would be 3-partite | 30 at d = 0.9 | Brouwer 1981, Theorem 2 (complemented), with n ≥ 7 and m − k ≥ t_3(n) − ⌊n/3⌋ + 2 checked in exact integers (`lb.py`) |
-| w3(G) > k, so value ≥ 4 | 30 at d = 0.9 | computation: the size-vector reduction (exact identity, `lb.py`) and then infeasibility of every remaining case, decided independently by CP-SAT, by SCIP and by the solver-free `split_bnb.rs`; logs in `logs/lb_solver_logs.tar.gz` |
+| w3(G) > k, so value ≥ 4 | 30 at d = 0.9 | exact certificate: the size-vector reduction (exact identity) and an explicit branch-and-bound tree for each of the 170 remaining cases, verified by the short, dependency-free checker `../../scripts/check_clique_certificates.py`, which reads the instance files itself (`certificates/`). The same cases were also decided infeasible by CP-SAT, SCIP and `split_bnb.rs` (logs in `logs/lb_solver_logs.tar.gz`), and by HiGHS and `rbnb.c` in the review |
 | value ≤ 3 or ≤ 4 | all 60 | computation, checked by anyone in seconds: the solution file's leader deletes the inside edges of an r-partition (at most k of them), so the remainder is r-partite and its clique number is at most r (`cliqueFree_of_partition` in the Lean file). The follower's clique and the exact clique number of the remainder are checked by `cliquelib`, `bobi check` and a SCIP re-solve of the follower |
 | 3 ≤ value ≤ 4 | 60-70-2, -3, -5 | the same; no proof of either value |
 
-The only steps that trust a large solver are the infeasibility verdicts behind w3(G) > k. Each
-of them is reproduced by two solvers and by `split_bnb.rs`, about 160 lines of Rust that was
-tested against brute force. Its largest case takes 3309 search nodes.
+The infeasibility verdicts behind w3(G) > k no longer need any solver to be trusted.
+`certificates/` holds a branch-and-bound tree for each of the 170 cases (134,368 nodes in all,
+the largest 9,888). It also holds the checker's log: all 170 pass, in 3 to 4 s. Its README
+gives the format, the leaf bound, the symmetry argument and the trusted base: a Python
+interpreter and one script with 174 lines of code, plus Brouwer's theorem for the step to value 4.
+Before the certificates, each verdict was reproduced by two solvers and by `split_bnb.rs`, about
+160 lines of Rust tested against brute force, whose largest case takes 3309 search nodes.
 
 ## (e) `bcpins` and `plusbcpins`
 

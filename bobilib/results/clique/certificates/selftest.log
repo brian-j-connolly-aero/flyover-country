@@ -1,0 +1,11 @@
+# python3 -I scripts/clique/cert_selftest.py CERT_PROVE_BIN WORKDIR 450   (CERT_PROVE_BIN = rustc -O --edition 2021 scripts/clique/cert_prove.rs)
+# Python 3.13.16, run in bobilib/ on 2026-10-19
+(A) reduction: 450 random graphs (n = 3..9), 8243 values of k, 0 mismatches
+(B) symmetry rule and leaf bound: 150 random graphs (n = 3..8), 3824 partial placements, 0 failures
+(C) end to end: 150 random instance files (n = 7..12, k near w3), 441 cases; w3 > k in 77 (certificate written, 17985 tree nodes, checker PASS), w3 <= k in 73 (no certificate, checker FAIL), as brute force says; 74 of them also satisfy Brouwer's hypothesis and give the same verdict without --no-brouwer
+(D) forgeries: 73 forged certificates for false claims, all rejected
+(E) instance mutations rejected: 7/7 (budget k+1; budget k-1; row C0,16 deleted; a y coefficient -1 -> -2; RANGES section added; a follower cost -1 -> -2; a bound BV -> UP)
+    certificate mutations (rejected/still a valid proof): one tree character flipped 10/0; last tree character dropped 10/0; a leaf appended 10/0; two of the first 8 order entries swapped 6/4; a budget raised by 1 10/0; a case deleted 10/0
+(F) case lists of 3 distinct groups equal the appendix table
+SELFTEST PASS
+# exit status 0, 46 s

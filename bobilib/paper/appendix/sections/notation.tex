@@ -1,6 +1,7 @@
 % Notation and conventions used throughout the appendix; the tolerances of
-% the checkers. The verification protocol (verification.tex) follows as the
-% last subsections of this section.
+% the checkers. The verification protocol, the certificate classes and the
+% threats to validity (verification.tex) follow as the last subsections of
+% this section.
 \section{Notation and verification protocol}\label{app:notation}
 
 \subsection{Notation and conventions}\label{app:conventions}
@@ -143,4 +144,6 @@ use proven dual bounds and the relative tolerance $10^{-5}$.
 
 ``Optimal'' in this appendix means: a bilevel feasible point in the sense of
 Definition~\ref{def:bilevel-feasible} (checked within the tolerances above)
-whose value equals a proven lower bound.
+whose value equals a proven lower bound. How rigorous the point and the bound
+are is given by their certificate class (Section~\ref{app:classes}): exact,
+solver-certified or benchmark-accepted.

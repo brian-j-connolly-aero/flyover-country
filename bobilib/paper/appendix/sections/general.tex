@@ -46,10 +46,14 @@ to an exact rational and checks the conditions of Theorem~\ref{thm:ray} in
 rational arithmetic, counting only follower variables in each follower row
 (leader variables enter those rows as constants). When rounding leaves tiny
 residuals, the direction is first projected onto the exact null space of its
-tight rows. This succeeds for \NumRayExact{} of the \NumNoFeasible{} open instances; for
+tight rows. This succeeds for \NumRayExact{} of the \NumNoFeasible{} open instances, whose
+certificates are therefore exact (class~(i), Section~\ref{app:classes}); for
 \texttt{supportcase42\_0\_100} and \texttt{supportcase42\_50\_50} residuals of
 about $10^{-12}$ (relative) remain, so those two certificates rest on floating
-point.
+point (class~(ii)).
+% ROUND2: update when results/rays has exact certificates for supportcase42_0_100 and
+% supportcase42_50_50 (exact.ray.json checked by scripts/verify_ray.py): then all
+% \NumNoFeasible{} are class (i) and the last clause goes.
 
 \subsection{The HPR bound and the MIPLIB optimum}
 
@@ -77,15 +81,29 @@ integrality requirements and objective (up to the objective's sense). For
 the five instances where it holds and a verified bilevel feasible point
 attains the bound (\texttt{pigeon-10\_0\_100}, \texttt{pigeon-10\_50\_50},
 \texttt{timtab1\_0\_100}, \texttt{noswot\_0\_100}, \texttt{noswot\_50\_50}),
-the point is optimal. The values $z^{*}$ are the optima in MIPLIB~2017's
-solution file: $-9{,}000$ for \texttt{pigeon-10}, which both points attain;
-$764{,}771.99999978$ for \texttt{timtab1} (printed as $764{,}772$ on the MIPLIB
-web pages), which the point attains with row violations below $10^{-12}$; and
-$-41.00000885$ for \texttt{noswot}, whose objective has integer coefficients
-on integer variables only, so that $\lceil z^{*}\rceil=-41$ is also a lower
-bound, attained by BOBILib's own points. The published optima were computed
-in floating point, so ``optimal'' means equal to the published optimum to its
-printed precision (after rounding up for \texttt{noswot}).
+the point is optimal by accepted benchmark conventions. The values $z^{*}$
+are the optima in MIPLIB~2017's solution file. They were computed by MILP
+solvers in floating point and are solver-certified numerical results
+(class~(ii), Section~\ref{app:classes}), not exact-arithmetic proofs, so the
+five optima are no more rigorous than these published values:
+\begin{itemize}
+\item \texttt{noswot}: $z^{*}=-41.00000885$. The objective has integer
+coefficients on integer variables only, so the HPR optimum is an integer, and
+a valid lower bound $L$ gives the lower bound $\lceil L\rceil$. The bound
+$\lceil z^{*}\rceil=-41$ therefore holds unless the published optimum
+overstates the HPR optimum by $0.99999$ or more (the HPR optimum would have to
+be $-42$ or less); BOBILib's own points attain it. Integrality rounding makes
+this the safest of the five.
+\item \texttt{pigeon-10}: $z^{*}=-9{,}000$, attained by both points; the bound
+inherits MIPLIB's optimal status for the instance.
+\item \texttt{timtab1}: $z^{*}=764{,}771.99999978$ (printed as $764{,}772$ on
+the MIPLIB web pages); the point attains it with row violations below
+$10^{-12}$, so the agreement of point and bound is numerical.
+\end{itemize}
+``Optimal'' for these five therefore means equal to the published optimum to
+its printed precision (after rounding up for \texttt{noswot}), as BOBILib and
+MIPLIB use the word; no exact-arithmetic proof of the bound is claimed. The
+model comparison is exact; the points are class~(ii) (Section~\ref{app:classes}).
 
 \subsection{Feasible points without coupling rows}
 
@@ -114,6 +132,33 @@ $P(\hat x)$ is feasible. The computations accept $f^{\top}y\le\varphi(\hat x)+10
 in the tie-break, well inside BOBILib's relative tolerance~\eqref{eq:bobilib-tol}.
 The pipeline handles continuous linking variables, which neither of
 BOBILib's two solvers accepts.
+
+\begin{sloppypar}
+The tie-break uses this slack. For this supplement the \NumGeneralFiles{} files
+of \texttt{results/general} were verified again with \texttt{bobi verify
+--generic} (HiGHS as the follower) and the follower value of each file
+compared with the follower optimum at the file's leader values. In 19 files
+the follower value lies more than $10^{-8}$ (relative) above that optimum:
+about $10^{-7}$ in 18 of them (\texttt{binkar10\_1}, \texttt{cmflsp50-24-8-8},
+\texttt{core2536-691}, \texttt{cost266-UUE}, \texttt{exp-1-500-5-5},
+\texttt{ic97\_potential}, \texttt{n4-3}, \texttt{n5-3}, \texttt{n9-3},
+\texttt{neos-2978193-inde}, \texttt{neos-5188808-nattai}, \texttt{neos-873061},
+\texttt{neos17}, \texttt{pg}, \texttt{pg5\_34}, \texttt{seymour1},
+\texttt{tr12-30}, \texttt{uct-subprob}, all \texttt{\_0\_100}) and one unit,
+$5\times10^{-8}$ relative, in \texttt{netdiversion\_0\_100}. These 19 files
+are benchmark-accepted points (class~(iii), Section~\ref{app:classes}). The
+instances themselves have bilevel feasible points with the same leader values,
+since without coupling rows every optimal follower response is feasible for
+the leader's rows (Proposition~\ref{prop:general-pipeline}); but the leader
+values stated in the 19 files are not shown to be attainable with an exactly
+optimal follower. The other files, among them the two optimal points of
+Table~\ref{tab:hpr}, have the follower within $10^{-8}$ of its optimum
+(class~(ii)).
+\end{sloppypar}
+% ROUND2: update when results/general records the follower error of each file
+% (or the 19 files are re-solved with an exactly optimal follower). The 19 and
+% the list come from a re-verification run for this supplement (bobi verify
+% --generic, time limit 120 s, on all 64 files), not from the data package.
 
 \subsection{Coupling rows}
 
@@ -173,9 +218,13 @@ the optimum; and the optimistic tie-break at the point's leader values within
 relative $10^{-5}$ by a proven bound. Each file then passes \texttt{bobi
 verify}.
 
+% ROUND2: update when the 9 coupled files in results/general-coupled are repaired or
+% re-classified (they are class (iii) until then).
 In \NumCoupledTolerance{} of the \NumCoupledFiles{} files with coupling rows the follower's value lies about
 $10^{-7}$ (relative) above its optimum, which BOBILib's
-test~\eqref{eq:bobilib-tol} accepts. For seven of them a point with the
+test~\eqref{eq:bobilib-tol} accepts; these files are benchmark-accepted points
+(class~(iii), Section~\ref{app:classes}), and the other files with coupling
+rows are class~(ii). For seven of them a point with the
 follower at its optimum (within $10^{-9}$ relative) exists at the same leader
 values with a slightly worse leader objective. For \texttt{pg\_50\_50} and
 \texttt{neos-2978193-inde\_50\_50} the coupling rows force the follower about
@@ -210,5 +259,6 @@ not bilevel feasible in the sense of Definition~\ref{def:bilevel-feasible}:
 with an exactly optimal follower response the leader's value at the same
 leader choice can differ. A value accepted only under a relative tolerance
 is therefore not proven attainable with an exactly optimal follower
-response.
+response: the file is the example of a benchmark-accepted point
+(class~(iii), Section~\ref{app:classes}).
 \end{remark}

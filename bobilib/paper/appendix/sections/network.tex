@@ -104,9 +104,17 @@ its value is the sum of the parts. The recursion maximises over exactly these
 choices, one child at a time. At the virtual root every child state is
 compatible, and the budget row is $q\le\Lambda$.
 \end{proof}
-\noindent Not formalised (tested against brute force over all $(a,x)$ on 300
-random forests, and compared at every attack with a separate C implementation
-written in the review session: 9,344,902 attacks on the 40 forests).
+\noindent Not formalised. The DP is tested against brute force over all
+$(a,x)$ on 300 random forests. A separate C implementation of a tree DP,
+written in the review session, was compared with ours value by value (through
+a hash of the sequence of values) at every attack of $0$ to $\Phi$ nodes on
+each of the \SuppNetForests{} \texttt{inter-fire} instances whose graph is a
+forest, once per instance: the \SuppNetTrees{} trees, with
+\SuppNetTreeAttacks{} attacks (Tables~\ref{tab:network}
+and~\ref{tab:network-trees}), and the \SuppNetRndForests{}
+\texttt{rndgraph-25} instances that are forests, with
+\SuppNetRndForestAttacks{} attacks; \SuppNetForestAttacks{} attacks in all,
+with no disagreement.
 
 \subsection{Exhaustive enumeration and the certificate}
 
@@ -127,10 +135,29 @@ $\mathrm{sv}(Y^{*})=\mathrm{dp}(Y^{*})$ shows it is attained.
 \noindent Not formalised.
 
 The certificate does not rest on the DP being optimal at any attack other
-than $Y^{*}$, where HiGHS re-solves the follower MILP built from the raw
-model. For \texttt{tree-50\_1-5-5\_006} and \texttt{\_010} the graph has 49
+than $Y^{*}$. There the follower's optimum is given by
+Proposition~\ref{prop:fire-dp}, HiGHS re-solves the follower MILP built from the raw
+model, and the review's brute force over every protection set of at most
+$\Lambda$ nodes (Lemma~\ref{lem:fire-closure}) gives the same value. For
+\texttt{tree-50\_1-5-5\_006} and \texttt{\_010} the graph has 49
 nodes and $\Phi=\Lambda=5$; the enumeration visits every $k$-subset for
 $k=0,\dots,5$ (the count per size is checked against $\binom{49}k$),
-$\sum_{k=0}^5\binom{49}k=2{,}138{,}410$ attacks per instance, and both optima are
+$\sum_{k=0}^5\binom{49}k=2{,}138{,}410$ attacks per instance
+(\SuppNetFullBudgetAttacks{} of them with exactly 5 nodes), and both optima are
 $26$. The review session obtained the same minima, the same number of optimal
-attacks and the same per-size minima with its own code.
+attacks and the same per-size minima with its own code. The attack counts of
+Tables~\ref{tab:network} and~\ref{tab:network-trees} are of this kind, every
+attack of $0$ to $\Phi$ nodes once per instance: \SuppNetTreeAttacks{} over the
+\SuppNetTrees{} trees (\SuppNetTableTreeAttacks{} over the 34 of
+Table~\ref{tab:network-trees}).
+
+These optima are exact certificates (class~(i), Section~\ref{app:classes}):
+every witness is a 0/1 point of a model with integer coefficients, checked
+against every row with no tolerance in play, and the follower's optimum at
+$Y^{*}$ rests on Proposition~\ref{prop:fire-dp} and on the review's exhaustive
+search; the HiGHS re-solve adds a solver check. The \NetworkRndSmall{}
+\texttt{rndgraph-25} values that \texttt{bobi fire} re-derives with HiGHS as the
+follower at every attack (\SuppNetHighsAttacks{} attacks on
+\SuppNetHighsInstances{} instances, trees included) are solver-certified
+(class~(ii)); the review's brute force re-derives them and \NetworkReviewOnly{} larger random
+graphs exactly.

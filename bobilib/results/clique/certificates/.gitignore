@@ -1,0 +1,3 @@
+# the repository ignores *.log; these two logs are part of the data package
+!check.log
+!selftest.log

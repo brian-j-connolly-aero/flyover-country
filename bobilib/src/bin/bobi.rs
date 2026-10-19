@@ -1,5 +1,5 @@
 use bobi::{
-    coupled::{Method, Search, SearchOpts},
+    coupled::{Method, Search, SearchOpts, Tolerance},
     kip::{Kip, SsConfig, SsOrder},
     mps,
     robust_ss::Outcome,
@@ -51,6 +51,18 @@ enum Cmd {
         /// where the exact knapsack oracle applies.
         #[arg(long)]
         generic: bool,
+        /// Tight follower test instead of BOBILib's relative 1e-4: the
+        /// follower's value within max(1e-6, 1e-9 |phi|) of every optimum phi
+        /// the solver's proof allows (zero relative gap); adds BOBILib's
+        /// verdict and the slack as two more columns.
+        #[arg(long)]
+        tight: bool,
+        /// With --tight: the absolute tolerance (default 1e-6).
+        #[arg(long)]
+        follower_abs_tol: Option<f64>,
+        /// With --tight: the relative tolerance (default 1e-9).
+        #[arg(long)]
+        follower_rel_tol: Option<f64>,
     },
     /// Carry Weninger and Fukasawa's published KIP optima over to BOBILib's
     /// instances and write a verified solution file for each.
@@ -159,7 +171,29 @@ enum Cmd {
         /// Keep searching after the first point for a better one.
         #[arg(long)]
         improve: bool,
+        /// Hold the follower to its optimum: zero relative gap, best responses
+        /// capped 1e-9 (absolute) above it, certified within 1e-6 (absolute)
+        /// instead of BOBILib's relative 1e-4.
+        #[arg(long)]
+        strict: bool,
         /// Write verified points here (BOBILib solution format).
+        #[arg(long)]
+        out: Option<PathBuf>,
+        #[arg(long)]
+        log: bool,
+    },
+    /// Re-derive a coupled solution file's point under the strict tolerance:
+    /// the follower solved at the file's leader values (zero relative gap),
+    /// then the optimistic tie-break with the follower's value at most 1e-9
+    /// above its optimum, every leader variable fixed or, if no such response
+    /// meets the coupling rows, only the linking ones. Prints one JSON line
+    /// per file; writes `<name>.res.json` into `--out` when certified.
+    CoupledTighten {
+        /// `MPS SOL` pairs.
+        files: Vec<PathBuf>,
+        /// Cap on one follower or tie-break solve.
+        #[arg(long, default_value_t = 600.0)]
+        follower_time: f64,
         #[arg(long)]
         out: Option<PathBuf>,
         #[arg(long)]
@@ -177,6 +211,10 @@ enum Cmd {
         solution: PathBuf,
         #[arg(long, default_value_t = 600.0)]
         follower_time: f64,
+        /// The strict standard: the follower's value at most 1e-6 (absolute)
+        /// above the proven bound on its optimum (zero relative gap).
+        #[arg(long)]
+        tight: bool,
     },
     /// Certify that the follower is unbounded for every leader choice.
     Ray {
@@ -419,6 +457,9 @@ enum Checked {
 }
 
 const VERIFY_HEADER: &str = "name\tresult\tfeasible\tmax_violation\tviolation_at\tobjective\tfile_objective\tobjective_match\tfollower_optimal\tphi_sol\tphi_check\tphi_bound\toracle\tseconds\tnote";
+/// Extra columns of `verify --tight`: BOBILib's verdict on the same solve,
+/// and phi_sol minus the proven bound on the follower's optimum.
+const VERIFY_TIGHT_HEADER: &str = "\tfollower_bobilib\tfollower_slack";
 
 /// Verify one solution file against `mps`, or in batch mode against the
 /// instance of the same name in `index` (preferring one in a directory of
@@ -430,9 +471,11 @@ fn verify_file(
     opts: &verify::Options,
 ) -> (Checked, Option<verify::Report>, String) {
     let blank = "\t-".repeat(12);
+    // The two columns `--tight` adds after the note.
+    let tail = if opts.tight.is_some() { "\t-\t-" } else { "" };
     let fallback = strip_suffixes(sol_path, &[".res.json"]);
     let error =
-        |name: &str, why: String| (Checked::Error, None, format!("{name}\tERROR{blank}\t{why}"));
+        |name: &str, why: String| (Checked::Error, None, format!("{name}\tERROR{blank}\t{why}{tail}"));
     let sol = match SolutionFile::read(sol_path) {
         Ok(s) => s,
         Err(e) => return error(&fallback, e),
@@ -453,7 +496,7 @@ fn verify_file(
         return (
             Checked::NoSolution,
             None,
-            format!("{}\tNOSOL{blank}\tstatus {status}, no point", sol.name),
+            format!("{}\tNOSOL{blank}\tstatus {status}, no point{tail}", sol.name),
         );
     }
     let m = match mps::read_instance(&mps) {
@@ -485,6 +528,12 @@ fn verify_file(
         r.seconds,
         if note.is_empty() { "-" } else { &note },
     );
+    let row = if opts.tight.is_some() {
+        let slack = r.phi_bound.map_or("-".into(), |b| format!("{:.3e}", r.phi_sol - b));
+        format!("{row}\t{}\t{slack}", r.follower_bobilib.as_str())
+    } else {
+        row
+    };
     let c = if r.passed() {
         Checked::Pass
     } else {
@@ -753,6 +802,7 @@ fn main() {
             master_frac,
             methods,
             improve,
+            strict,
             out,
             log,
         } => {
@@ -767,9 +817,34 @@ fn main() {
                 methods,
                 log,
                 improve,
+                tolerance: if strict {
+                    Tolerance::Strict
+                } else {
+                    Tolerance::Bobilib
+                },
             };
             for path in files {
                 run_coupled(&path, &opts, out.as_deref());
+            }
+        }
+        Cmd::CoupledTighten {
+            files,
+            follower_time,
+            out,
+            log,
+        } => {
+            if files.len() % 2 != 0 {
+                eprintln!("give MPS SOL pairs");
+                std::process::exit(2);
+            }
+            let mut failed = 0;
+            for pair in files.chunks(2) {
+                if !coupled_tighten(&pair[0], &pair[1], follower_time, log, out.as_deref()) {
+                    failed += 1;
+                }
+            }
+            if failed > 0 {
+                std::process::exit(1);
             }
         }
         Cmd::CoupledDiag { files, time } => {
@@ -782,6 +857,7 @@ fn main() {
                     methods: vec![],
                     log: false,
                     improve: false,
+                    tolerance: Tolerance::Bobilib,
                 };
                 let mut s = Search::new(&m, opts);
                 println!("{}: {} coupling rows", m.name, s.split.coupling.len());
@@ -794,12 +870,23 @@ fn main() {
             mps: path,
             solution,
             follower_time,
+            tight,
         } => {
             let m = mps::read_instance(&path).unwrap_or_else(|e| panic!("{e}"));
             let s = SolutionFile::read(&solution).unwrap_or_else(|e| panic!("{e}"));
-            let c = bobi::coupled::certify(&m, &s.values(&m), follower_time);
+            let tol = if tight {
+                Tolerance::Strict
+            } else {
+                Tolerance::Bobilib
+            };
+            let c = bobi::coupled::certify_with(&m, &s.values(&m), follower_time, tol);
+            let extra = if tight {
+                format!("\tslack={:.3e}\ttie_slack={:.3e}", c.slack, c.tie_slack)
+            } else {
+                String::new()
+            };
             println!(
-                "{}\t{}\tupper={}\tlower={}\tphi_bound={}\tphi_value={}\trel_error={:.2e}\ttie_bound={}\ttie_rel_error={:.2e}\tmax_violation={:.2e} {}",
+                "{}\t{}\tupper={}\tlower={}\tphi_bound={}\tphi_value={}\trel_error={:.2e}\ttie_bound={}\ttie_rel_error={:.2e}\tmax_violation={:.2e} {}{extra}",
                 m.name,
                 if c.ok { "VERIFIED" } else { "REJECTED" },
                 c.upper_obj,
@@ -1077,11 +1164,23 @@ fn main() {
             time_limit,
             jobs,
             generic,
+            tight,
+            follower_abs_tol,
+            follower_rel_tol,
         } => {
+            let tight = (tight || follower_abs_tol.is_some() || follower_rel_tol.is_some())
+                .then(|| {
+                    let d = verify::Tight::default();
+                    verify::Tight {
+                        abs: follower_abs_tol.unwrap_or(d.abs),
+                        rel: follower_rel_tol.unwrap_or(d.rel),
+                    }
+                });
             let opts = verify::Options {
                 time_limit,
                 threads: 1,
                 generic,
+                tight,
             };
             let mut index: HashMap<String, Vec<PathBuf>> = HashMap::new();
             let pairs: Vec<(Option<PathBuf>, PathBuf)> = match &dir {
@@ -1112,7 +1211,11 @@ fn main() {
                     .map(|(mps, sol)| verify_file(&index, mps.as_deref(), sol, &opts))
                     .collect()
             });
-            println!("{VERIFY_HEADER}");
+            if tight.is_some() {
+                println!("{VERIFY_HEADER}{VERIFY_TIGHT_HEADER}");
+            } else {
+                println!("{VERIFY_HEADER}");
+            }
             for (_, _, row) in &results {
                 println!("{row}");
             }
@@ -1132,6 +1235,15 @@ fn main() {
                 count(Checked::NoSolution),
                 count(Checked::Error),
             );
+            if tight.is_some() {
+                eprintln!(
+                    "tight tolerance: {} files fail only the tight follower test (BOBILib's relative 1e-4 accepts them)",
+                    reports
+                        .iter()
+                        .filter(|r| !r.passed() && r.benchmark_accepted())
+                        .count()
+                );
+            }
             if count(Checked::Fail) + count(Checked::Error) > 0 {
                 std::process::exit(1);
             }
@@ -1503,6 +1615,92 @@ fn run_fire(files: Vec<PathBuf>, o: &FireOpts) {
         }
         if let Some(p) = o.csv {
             std::fs::write(p, rows.join("\n") + "\n").unwrap();
+        }
+    }
+}
+
+/// The `coupled-tighten` command for one file; true when the point was
+/// certified under the strict tolerance.
+fn coupled_tighten(
+    path: &Path,
+    sol_path: &Path,
+    follower_time: f64,
+    log: bool,
+    out: Option<&Path>,
+) -> bool {
+    use serde_json::json;
+    let t = Instant::now();
+    let fail = |name: &str, why: String| {
+        println!("{}", json!({"name": name, "status": "failed", "why": why}));
+        false
+    };
+    let m = match mps::read_instance(path) {
+        Ok(m) => m,
+        Err(e) => return fail(&path.display().to_string(), e),
+    };
+    let sol = match SolutionFile::read(sol_path) {
+        Ok(s) => s,
+        Err(e) => return fail(&m.name, e),
+    };
+    let val = sol.values(&m);
+    let old = bobi::coupled::certify_with(&m, &val, follower_time, Tolerance::Strict);
+    let opts = SearchOpts {
+        // Two follower solves and up to four tie-break solves.
+        time: 8.0 * follower_time,
+        follower_time,
+        master_frac: 0.0,
+        methods: vec![],
+        log,
+        improve: false,
+        tolerance: Tolerance::Strict,
+    };
+    let mut s = Search::new(&m, opts);
+    let mut line = json!({
+        "name": m.name,
+        "old_upper": old.upper_obj,
+        "old_lower": old.lower_obj,
+        "old_slack": old.slack,
+        "old_strict_ok": old.ok,
+    });
+    let obj = line.as_object_mut().unwrap();
+    let found = s.at_leader(&val);
+    obj.insert("secs".into(), json!((t.elapsed().as_secs_f64() * 10.0).round() / 10.0));
+    match found {
+        Ok(f) => {
+            let c = &f.cert;
+            let mode = if f.free_leader {
+                "linking-fixed"
+            } else {
+                "all-fixed"
+            };
+            for (k, v) in [
+                ("status", json!("point")),
+                ("mode", json!(mode)),
+                ("upper", json!(c.upper_obj)),
+                ("lower", json!(c.lower_obj)),
+                ("phi_bound", json!(c.phi_bound)),
+                ("phi_value", json!(c.phi_value)),
+                ("slack", json!(c.slack)),
+                ("tie_bound", json!(c.tie_bound)),
+                ("tie_slack", json!(c.tie_slack)),
+                ("max_violation", json!(c.max_violation)),
+                ("worse_by", json!(c.upper_obj - old.upper_obj)),
+            ] {
+                obj.insert(k.into(), v);
+            }
+            if let Some(dir) = out {
+                SolutionFile::from_values(&m, "feasible", &f.values)
+                    .write(&dir.join(format!("{}.res.json", m.name)))
+                    .unwrap();
+            }
+            println!("{line}");
+            true
+        }
+        Err(why) => {
+            obj.insert("status".into(), json!("failed"));
+            obj.insert("why".into(), json!(why));
+            println!("{line}");
+            false
         }
     }
 }

@@ -104,56 +104,138 @@ zero-sum.
 \noindent Not formalised.
 
 For the OR instances with one follower knapsack (variant $-100$, $m=1$) the
-lower bound is $\lceil L-p_{\max}\rceil$. With several follower rows the width
+lower bound is $\lceil L-p_{\max}\rceil$, where $L$ is HiGHS's proven dual bound
+for the MILP of Proposition~\ref{prop:mkip-milp} as the solver returns it (in
+floating point, with no safety margin). The bracket's lower bound is therefore
+solver-certified (class~(ii), Section~\ref{app:classes}); it is the reported
+lower bound for \SuppOrLbMilp{} of the \NumOrOneKnapsack{} instances, and for
+the other \SuppOrLbOmega{} the merged-row online bound below is at least as
+strong. With several follower rows the width
 $m\,p_{\max}$ makes the lower bound weak, and only the upper bounds are used.
 
 \subsection{The merged-row online bound}
 
 Theorem~\ref{thm:online} needs one leader row and one follower row. For one
 follower row ($m=1$, weights $w_j=W_{1j}$, capacity $c=c_1$) and several leader
-rows, choose multipliers $\mu\in\mathbf{R}^{m_u}_{\ge 0}$ and scales
-$s_u,s_l>0$, and define the integer data
+rows, \texttt{mkip::omega\_root} merges the leader rows into one surrogate row
+and rescales both rows to small integers. Its inputs are multipliers
+$\mu\in\mathbf{R}^{m_u}_{\ge 0}$ and scales $s_u,s_l>0$, all double-precision
+numbers. For these numbers let
 \[
-  \gamma'_j=\Bigl\lfloor s_u\sum_i\mu_iG_{ij}\Bigr\rfloor,\quad
-  \beta'=\Bigl\lceil s_u\sum_i\mu_ig_i\Bigr\rceil,\quad
-  w'_j=\lceil s_lw_j\rceil,\quad
-  c'=\lfloor s_lc\rfloor .
+  a_j=s_u\sum_{i=1}^{m_u}\mu_iG_{ij}\quad(j\in N),\qquad b=s_u\sum_{i=1}^{m_u}\mu_ig_i
 \]
-Let $\Omega'$ be the value of the online game of Theorem~\ref{thm:online}
-with profits $p$, leader costs $\gamma'$, budget $\beta'$, follower weights $w'$
-and capacity $c'$, on any list of distinct items.
+be the exact real values. The code computes them in IEEE double precision
+(rounding to nearest): it forms the products $\mu_iG_{ij}$, adds them in the
+order of the rows and multiplies the sum by $s_u$; we write $\hat a_j$ and
+$\hat b$ for the computed values, and $\widehat{s_lw_j}$, $\widehat{s_lc}$ for
+the computed products of the follower data with $s_l$. It then sets
+\[
+  \gamma'_j=\lfloor\hat a_j\rfloor,\qquad
+  \beta'=\lceil\hat b\,\rceil,\qquad
+  w'_j=\lceil\widehat{s_lw_j}\rceil,\qquad
+  c'=\lfloor\widehat{s_lc}\rfloor,
+\]
+which are nonnegative integers for every $\mu\ge 0$ and $s_u,s_l>0$, since
+all the data are nonnegative: leader costs and follower capacity are rounded
+down, the leader budget and follower weights up. Finally it evaluates the
+online game of Theorem~\ref{thm:online} with profits $p$, leader costs
+$\gamma'$, budget $\beta'$, follower weights $w'$ and capacity $c'$ on the
+list $o$ of the items with $p_j>0$ in decreasing order of $p_j/w_j$ (ties:
+larger profit first), by the backward recursion of Section~\ref{app:kip} over
+a table of $(\beta'+1)(c'+1)$ entries per item in 64-bit integer arithmetic.
+Let $\Omega'=\Omega(o,\beta',c')$ be its value. Below,
+$u=2^{-53}$ is the unit roundoff of double precision and
+$\varepsilon_k=(1+u)^k-1$ (so $\varepsilon_k\le ku/(1-ku)$).
 
 \begin{theorem}[Merged-row online bound]\label{thm:mkip-omega}
-For all $\mu\ge 0$ and $s_u,s_l>0$: $\Omega'\le\mathrm{OPT}$.
+Let $p$, $G$, $g$, $w$ and $c$ be nonnegative integers, and $\mu\ge 0$,
+$s_u,s_l>0$.
+\begin{enumerate}
+\item[(a)] If the four rounded quantities are computed exactly
+($\hat a_j=a_j$, $\hat b=b$, $\widehat{s_lw_j}=s_lw_j$, $\widehat{s_lc}=s_lc$), then
+$\Omega'\le\mathrm{OPT}$.
+\item[(b)] If every entry of $G$, $g$, $w$ and $c$ is below $2^{53}$ (so it
+is a double), no product underflows, and
+\[
+  2\,\varepsilon_{m_u+1}\,b<1\qquad\text{and}\qquad 2uc<1-u,
+\]
+then $\Omega'\le\mathrm{OPT}$ for the data computed in double precision.
+\end{enumerate}
 \end{theorem}
 \begin{proof}
-\emph{The leader is relaxed.} If $Gx\le g$ then, as $x\ge 0$ and
-$\gamma'_j\le s_u\sum_i\mu_iG_{ij}$,
-\[
-  \sum_j\gamma'_jx_j\le s_u\sum_i\mu_i(Gx)_i\le s_u\sum_i\mu_ig_i\le\beta'.
-\]
-So every leader-feasible set is feasible for the merged row $(\gamma',\beta')$.
-\emph{The follower is restricted.} If $\sum_{j\in Y}w'_j\le c'$ then
-$s_l\,w(Y)\le\sum_{j\in Y}w'_j\le c'\le s_lc$, so $w(Y)\le c$. Hence every
-packing for $(w',c')$ is a packing for $(w,c)$, and the best packing
-$K'(T)$ of a set $T$ under $(w',c')$ satisfies $K'(T)\le K(T)$.
-\emph{Combine.} For every leader-feasible $X$, Theorem~\ref{thm:online} for
-the data $(p,\gamma',\beta',w',c')$ gives
-$\Omega'\le K'(N\setminus X)\le K(N\setminus X)=\Phi(X)$. Minimising over $X$ gives
-$\Omega'\le\mathrm{OPT}$.
+\emph{Two properties suffice.} Suppose the integer data satisfy
+\begin{enumerate}
+\item[(L)] $\gamma'(X)\le\beta'$ for every leader-feasible $X$ (that is,
+$G\mathbf{1}_X\le g$), and
+\item[(F)] $w(Y)\le c$ for every $Y\subseteq N$ with $w'(Y)\le c'$.
+\end{enumerate}
+By~(F) every packing for $(w',c')$ is a packing for $(w,c)$, so the best
+packings satisfy $K'(T)\le K(T)$ for every $T\subseteq N$. Let $X$ be
+leader-feasible. By~(L), $X$ fits the merged budget, so
+Theorem~\ref{thm:online} for the data $(p,\gamma',\beta',w',c')$ gives
+$\Omega'\le K'(o\setminus X)\le K(o\setminus X)\le K(N\setminus X)=\Phi(X)$.
+Minimising over $X$ gives $\Omega'\le\mathrm{OPT}$. Both properties use
+\begin{equation}\label{eq:merged-relax}
+  a(X)=s_u\sum_i\mu_i(G\mathbf{1}_X)_i\le s_u\sum_i\mu_ig_i=b\qquad\text{for leader-feasible }X,
+\end{equation}
+which holds because $\mu\ge 0$ and $s_u>0$, and the fact that $w(Y)$ and $c$
+are integers.
+
+\emph{(a)} By~\eqref{eq:merged-relax},
+$\gamma'(X)=\sum_{j\in X}\lfloor a_j\rfloor\le a(X)\le b\le\lceil b\rceil=\beta'$,
+which is~(L). If $w'(Y)\le c'$, then
+$s_lw(Y)\le\sum_{j\in Y}\lceil s_lw_j\rceil=w'(Y)\le c'=\lfloor s_lc\rfloor\le s_lc$,
+so $w(Y)\le c$, which is~(F).
+
+\emph{(b)} Each operation on doubles returns the exact result times a factor
+in $[1-u,1+u]$, and every quantity involved is nonnegative. A term
+$\mu_iG_{ij}$ of $a_j$ passes through at most $m_u+1$ roundings (its product,
+at most $m_u-1$ additions, the final product with $s_u$; adding the first
+term to zero is exact), so
+$(1-\varepsilon_{m_u+1})a_j\le\hat a_j\le(1+\varepsilon_{m_u+1})a_j$, using
+$1-(1-u)^k\le ku\le\varepsilon_k$; the same holds for $\hat b$ and $b$. The
+follower's products have one rounding each:
+$\widehat{s_lw_j}\ge(1-u)s_lw_j$ and $\widehat{s_lc}\le(1+u)s_lc$.
+For~(L), let $X$ be leader-feasible. By~\eqref{eq:merged-relax},
+$\gamma'(X)\le\sum_{j\in X}\hat a_j\le(1+\varepsilon_{m_u+1})\,a(X)\le(1+\varepsilon_{m_u+1})\,b$,
+and $\beta'\ge\hat b\ge(1-\varepsilon_{m_u+1})\,b$. If $\gamma'(X)\ge\beta'+1$,
+these inequalities give $2\varepsilon_{m_u+1}b\ge 1$, contrary to the
+hypothesis; as both sides are integers, $\gamma'(X)\le\beta'$. For~(F), if
+$w'(Y)\le c'$ then
+$(1-u)\,s_lw(Y)\le\sum_{j\in Y}\widehat{s_lw_j}\le w'(Y)\le c'\le\widehat{s_lc}\le(1+u)\,s_lc$,
+so $w(Y)\le c+2uc/(1-u)<c+1$, and $w(Y)\le c$ because both are integers.
 \end{proof}
 \noindent The online bound itself is formalised (Theorem~\ref{thm:online});
-the merging, scaling and rounding steps are not.
+properties~(L) and~(F), the rounding analysis and the code are not.
 
-Lowering leader costs and raising the leader's budget only enlarge the
-leader's options in the relaxed game, and raising follower weights and
-lowering its capacity only shrink the follower's options; both moves can only
-lower the value of the game, which is why the result stays a valid lower
-bound for any multipliers and scales. The choice of $\mu$ (coordinate ascent
-on a coarse table) and of the scales (which control the table size,
-$(\beta'+1)(c'+1)$ entries per item) affects only the strength of the bound.
-The code plays the items with positive profit in decreasing order of
-$p_j/w_j$.
+The proof needs only the directions of the roundings, not the size of the
+scales: lowering leader costs and raising the leader's budget enlarge the
+leader's options in the relaxed game, raising follower weights and lowering
+its capacity shrink the follower's options, and both moves can only lower the
+value of the game. In exact arithmetic $\beta'=\lfloor b\rfloor$ would also
+give~(L), because $\gamma'(X)$ is an integer; rounding the budget up leaves
+the margin that part~(b) uses when $b$ is computed as a number just below an
+integer.
+
+What the code chooses affects only the strength of the bound.
+\texttt{bobi bounds} starts from $\mu_i=1/g_i$ and improves $\mu$ by
+coordinate ascent (\texttt{mkip::tune\_mu}: each $\mu_i$ in turn is
+multiplied by $0$, $0.5$, $0.8$, $1.25$ or $2$ while the bound on a coarse
+table improves; at most two sweeps). With its default of $4\cdot 10^6$ table
+entries per item, \texttt{mkip::omega\_scales} gives $s_u=1000/\hat\sigma$,
+where $\hat\sigma$ is the computed value of $\sum_i\mu_ig_i$, and $s_l=4000/c$;
+so $b$ differs from $1000$ by less than $10^{-11}$, $\beta'\in\{1000,1001\}$
+and $c'\in\{3999,4000\}$. In the \NumOrOneKnapsack{} OR instances with one
+follower knapsack all data are integers (read from the instance files: the
+largest coefficient is $1{,}366$ and the largest right-hand side $200{,}032$),
+$m_u\le 29$ and no nonzero product comes near the underflow range, so
+$2\varepsilon_{m_u+1}b<10^{-11}$ and $2uc<10^{-10}$: the hypotheses of
+part~(b) hold with a wide margin, and every merged-row bound reported for
+them is a valid lower bound in exact arithmetic: a mathematical proof plus an
+integer computation, so an exact certificate (class~(i),
+Section~\ref{app:classes}). It gives \SuppOrBetterLbOmega{} of the
+\NumOrBetterLb{} lower bounds that improve on the published ones; the other
+\SuppOrBetterLbMilp{} come from the LP bracket.
 
 \subsection{Certified points}
 
@@ -179,7 +261,14 @@ item the follower uses, or swap a blocked item for one it uses, keeping
 every budget row) evaluates each candidate with the exact knapsack oracle, so
 every incumbent it reports is a certified point. Every point reported is
 checked again from its file by \texttt{bobi verify}
-(Section~\ref{app:verification}).
+(Section~\ref{app:verification}). The data are integers and the points are
+0/1 vectors, so the leader's rows hold exactly. With one follower knapsack the
+follower's optimum comes from the exact knapsack oracle, which works in
+integer arithmetic, and the \NumOrOneKnapsackPoints{} points are exact
+certificates (class~(i), Section~\ref{app:classes}); with several, it rests on
+HiGHS's dual bound, and the \NumOrSeveralPoints{} points are solver-certified
+(class~(ii)). The follower LP bound $U(\hat x)$, an upper bound in the gaps of
+Table~\ref{tab:or}, is a floating-point LP value (class~(ii)).
 
 \subsection{Published bounds of the OR set}\label{app:mkip-or}
 

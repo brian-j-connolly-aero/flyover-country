@@ -585,4 +585,10 @@ nonnegative integers that strictly decrease.
 
 For each of the \NumNewKip{} instances that were open in the literature the loop ended
 with ``safe'' at BOBILib's own value, so BOBILib's point was already optimal
-and the proof of optimality is new.
+and the proof of optimality is new. These proofs are computational proofs
+supported by formally verified lemmas, not formally verified solutions: Lean
+proves the pruning rules (Section~\ref{app:lean-map}), and the search that
+applies them, like the two integer-only provers that repeat it
+(Section~\ref{app:verification}), is an exhaustive computation in integer
+arithmetic whose code is tested but not verified. In the terms of
+Section~\ref{app:classes} they are exact certificates (class~(i)).

@@ -43,19 +43,15 @@ for k in S.ORDER[1:]:
     ax.plot([seg[k][0]] * 2, [Y1 - H1 / 2, Y1 + H1 / 2], color="white", lw=1.0,
             solid_capstyle="butt", zorder=3)
 
-# wide segments: labels inside
+# wide plain segments: labels inside (white on blue, dark grey on light grey)
 inside = {
     "lit": f"optimal in published work  {S.fmt(cnt['lit'])}",
-    "first": f"verified point,\nnone in BOBILib  {S.fmt(cnt['first'])}",
     "unchanged": f"unchanged  {S.fmt(cnt['unchanged'])}",
 }
 for k, txt in inside.items():
     l, w = seg[k]
-    box = None
-    if S.OUTCOMES[k][2]:  # textured face: put the label on a solid patch
-        box = dict(boxstyle="square,pad=0.25", facecolor=S.OUTCOMES[k][1], edgecolor="none")
     ax.text(l + w / 2, Y1, txt, ha="center", va="center", fontsize=7.5,
-            color=S.OUTCOMES[k][4], linespacing=1.0, zorder=4, bbox=box)
+            color=S.OUTCOMES[k][4], zorder=4)
 
 # narrow segments: labels above with short leader lines, one to each side
 top = Y1 + H1 / 2
@@ -73,6 +69,15 @@ yb = Y1 - H1 / 2 - 0.07
 ax.plot([0, 0, settled, settled], [yb + 0.05, yb, yb, yb + 0.05], color=S.INK2, lw=0.6)
 ax.text(settled / 2, yb - 0.03, f"settled  {S.fmt(settled)} ({100 * settled / N:.0f}%)",
         ha="center", va="top", fontsize=7)
+
+# the dotted orange segment: label below the bar, in black on white, with a leader line
+# (text on the orange face would sit on the dots)
+l, w = seg["first"]
+x = l + w / 2
+yl = yb - 0.075
+ax.plot([x, x, x + 12], [Y1 - H1 / 2 - 0.02, yl, yl], color=S.INK2, lw=0.5)
+ax.text(x + 18, yl, f"verified point, none in BOBILib  {S.fmt(cnt['first'])}",
+        ha="left", va="center", fontsize=7.5)
 
 # BOBILib's composition of the same 1,594
 fe, op = st["feasible"], st["open"]

@@ -50,6 +50,9 @@
 \setlength{\emergencystretch}{2em}
 
 \input{../generated/facts.tex}
+% Counts quoted only in this supplement (network attack counts, OR bound sources), written
+% by scripts/gen_appendix_tables.py with the tables.
+\input{generated/supp_facts.tex}
 
 \hypersetup{pdftitle={Supplementary material for: \papertitle},pdfauthor={Brian J. Connolly}}
 
@@ -69,7 +72,9 @@ Independent Researcher\par
 \noindent This document supplements the paper. It contains the proofs behind
 the paper's methods, the verification protocol, a map from each result to its
 machine-checked (Lean) proof, a description of the data package, and the
-per-instance tables. Notation follows the paper. Theorems, lemmas and
+per-instance tables. Section~\ref{app:classes} sorts every result into
+three certificate classes (exact certificates, solver-certified numerical
+results, benchmark-accepted points). Notation follows the paper. Theorems, lemmas and
 equations are numbered by section (Theorem~B.3, equation~(A.1)); tables are
 numbered S1, S2, \dots{} The counts quoted in the text are macros
 generated from the data package (\texttt{bobilib/results/}), and so are the

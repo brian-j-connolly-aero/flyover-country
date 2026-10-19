@@ -1,5 +1,5 @@
-% Verification protocol and threats to validity: the last two subsections of
-% Section A (input after notation.tex).
+% Verification protocol, certificate classes and threats to validity: the last
+% three subsections of Section A (input after notation.tex).
 \subsection{Verification protocol}\label{app:verification}
 
 Every claim in the paper rests on one or more of the following checks.
@@ -26,13 +26,16 @@ bound of one of these kinds: a published proof or published lower bound
 (cited; for \NumLitWithFile{} of the \NumLitOptimal{} published optima a verified
 solution file here has the published value, for the other \NumLitNoFile{} only
 the published value is used); the exact subset-sum search
-(Section~\ref{app:kip}), whose main pruning lemmas are proved in Lean; a theorem
-with a checkable certificate (Mantel, Brouwer and partitions for clique
-interdiction, Section~\ref{app:clique}; the HPR bound with an exact
-model comparison, Section~\ref{app:general}); or exhaustive enumeration with
-checked witnesses (Section~\ref{app:network}). ``No bilevel feasible point''
-rests on Theorem~\ref{thm:ray} with an exact rational check (\NumRayExact{} instances)
-or a floating-point check (\NumRayFloat{} instances).
+(Section~\ref{app:kip}), a computational proof supported by formally verified
+lemmas; a theorem with a checkable certificate (Mantel, Brouwer and partitions
+for clique interdiction, Section~\ref{app:clique}); exhaustive enumeration
+with checked witnesses (Section~\ref{app:network}); or the HPR bound, where
+the model comparison is exact but the bound is MIPLIB's published
+floating-point optimum (Section~\ref{app:general}). ``No bilevel feasible
+point'' rests on Theorem~\ref{thm:ray} with an exact rational check
+(\NumRayExact{} instances) or a floating-point check (\NumRayFloat{} instances).
+Section~\ref{app:classes} gives the certificate class of each.
+% ROUND2: update when the supportcase42 rays are exact (then \NumRayFloat{} = 0).
 
 \item \textbf{Separate provers for the subset-sum proofs.} Two Python
 provers that share no code with the Rust search, one written with the search
@@ -60,9 +63,13 @@ optimum.
 results were each re-derived in a separate review session with its own instance
 reader and different solvers or code: two exact maximum-clique searches,
 HiGHS and a branch and bound written in C for the part-size cases of
-Proposition~\ref{prop:clique-sizes}; a C implementation of the tree DP and a
-brute force based on Lemma~\ref{lem:fire-closure}, compared with ours at all
-9.3 million attacks; and a second reading of the coupled files with HiGHS's
+Proposition~\ref{prop:clique-sizes}; a C implementation of the tree DP,
+compared with ours at every attack of $0$ to $\Phi$ nodes on the
+\SuppNetForests{} \texttt{inter-fire} instances that are forests
+(\SuppNetForestAttacks{} attacks, each instance once: the \SuppNetTrees{}
+trees and \SuppNetRndForests{} \texttt{rndgraph-25} graphs,
+Section~\ref{app:network}), and a brute force based on
+Lemma~\ref{lem:fire-closure}; and a second reading of the coupled files with HiGHS's
 own MPS reader. The notes of each review and the corrections it led to are in
 the \texttt{README.md} of the folder concerned. All the software, the
 experiments and the review sessions were carried out with an AI coding agent
@@ -71,9 +78,13 @@ agent that wrote their own code (threat~\ref{it:common} below).
 
 \item \textbf{Exact arithmetic where it is cheap.} The clique inequalities
 (Mantel, Brouwer's threshold, the size vectors of
-Proposition~\ref{prop:clique-sizes}), the recession directions and the
-comparison of each HPR with its MIPLIB model are checked with integers or
-exact rationals.
+Proposition~\ref{prop:clique-sizes}) and the branch-and-bound certificates of
+the part-size cases (\texttt{scripts/check\_clique\_certificates.py}), the
+recession directions and the comparison of each HPR with its MIPLIB model are
+checked with integers or exact rationals. The subset-sum provers, the
+knapsack oracle, the network DP and the table of the merged-row online bound
+work in integer arithmetic.
+% ROUND2: update when check_clique_certificates.py has passed on all 170 cases.
 
 \item \textbf{Machine-checked lemmas.} The Lean project (Lean~4,\cite{moura2021lean} with Mathlib\cite{mathlib2020})
 proves the lemmas listed in Section~\ref{app:lean-map}. It contains no
@@ -82,29 +93,176 @@ proves the lemmas listed in Section~\ref{app:lean-map}. It contains no
 main theorem.
 \end{enumerate}
 
+\subsection{Certificate classes}\label{app:classes}
+
+The results of this supplement are established with different degrees of
+rigour. We sort them into three classes and use the classes throughout.
+
+\begin{definition}[Certificate classes]\label{def:classes}
+\leavevmode
+\begin{enumerate}
+\item[(i)] An \emph{exact certificate} is checked in exact rational or
+integer arithmetic, or consists of a mathematical proof together with an
+exhaustive computation in integer arithmetic. No tolerance enters it. It
+still relies on the code that carries out the computation, which is tested
+and, for its main lemmas, backed by machine-checked proofs, but is not itself
+verified.
+\item[(ii)] A \emph{solver-certified numerical result} rests on a
+floating-point LP, MILP or CP solver run with tolerances: a proven dual bound,
+an optimality or infeasibility verdict, or a point whose rows hold within
+$10^{-6}$ and whose follower value agrees with a solver's follower optimum
+at the point's leader values to within $10^{-8}$ (relative). It is correct if
+the solver's numerics are; it is not an exact-arithmetic proof.
+\item[(iii)] A \emph{benchmark-accepted point} passes BOBILib's
+tolerance-based checker (Section~\ref{app:tolerances}), and possibly
+\texttt{bobi verify}, only because of their tolerances: its follower value
+lies above the follower's optimum by more than solver precision (more than
+$10^{-8}$ relative) but within the relative $10^{-4}$ of
+test~\eqref{eq:bobilib-tol}, or its rows hold only within BOBILib's $10^{-4}$.
+It need not be bilevel feasible in the sense of
+Definition~\ref{def:bilevel-feasible}. BOBILib's own solution file of
+\texttt{general20-30-20-20-20-2} is the example (Remark~\ref{rem:tolerance}).
+\end{enumerate}
+\end{definition}
+
+A result is in the weakest class of the steps it uses. Results taken from
+the literature (the published optima, the published lower bounds of the OR
+instances with several follower knapsacks, Brouwer's theorem) are used as
+published and not re-certified; where a verified file has a published
+optimal value, the file is classified with its family below. By the
+conventions of BOBILib and MIPLIB, a point and a lower bound that agree,
+both of class~(ii), make a value ``optimal''; the paper and this supplement
+use the word in that sense, and say so where a bound is not exact. The
+subset-sum results are computational proofs supported by formally verified
+lemmas (Section~\ref{app:kip}), not formally verified solutions. The list
+below assigns each kind of result to its class.
+
+{\small\setlength{\tabcolsep}{4pt}\setlength{\LTcapwidth}{\linewidth}
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{2.35in}l>{\raggedright\arraybackslash}p{3.0in}@{}}
+\caption*{Certificate class of each kind of result (Definition~\ref{def:classes}).}\\
+\toprule
+Result & Class & Basis\\
+\midrule
+\endfirsthead
+\multicolumn{3}{@{}l}{\emph{(continued)}}\\
+\toprule
+Result & Class & Basis\\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\NumNewKip{} subset-sum KIP optima (lower bounds; Section~\ref{app:kip}) & (i) &
+computational proofs supported by formally verified lemmas: exhaustive integer
+search with Lean-proved pruning rules, repeated by two integer-only provers\\[2pt]
+Points with one follower knapsack: KIP files, the \NumNewKip{} subset-sum
+files, \NumOrOneKnapsackPoints{} OR points (Sections~\ref{app:kip}, \ref{app:mkip}) & (i) &
+integer data and 0/1 values, so no tolerance applies; follower optimum by the
+exact integer knapsack oracle\\[2pt]
+OR lower bounds, one follower knapsack, from the merged-row online bound
+(\SuppOrLbOmega{} instances; \SuppOrBetterLbOmega{} of the \NumOrBetterLb{}
+improved bounds) & (i) & Theorem~\ref{thm:mkip-omega}(b): integer data with a
+proven rounding direction, integer DP\\[2pt]
+OR lower bounds, one follower knapsack, from the LP bracket
+(\SuppOrLbMilp{} instances; \SuppOrBetterLbMilp{} improved bounds) & (ii) &
+HiGHS's dual bound (Theorem~\ref{thm:mkip-bracket})\\[2pt]
+OR points with several follower knapsacks (\NumOrSeveralPoints{}) & (ii) &
+leader rows exact; follower optimum by HiGHS's dual bound
+(Proposition~\ref{prop:mkip-point})\\[2pt]
+OR upper bounds $U(\hat x)$ (follower LP) in Table~\ref{tab:or} & (ii) &
+floating-point LP value\\[2pt]
+Clique: value at least 3 (Mantel), upper bounds 3 and 4 (partition files,
+\NumCliqueSet{} instances) & (i) & integer arithmetic, Lean
+(Theorem~\ref{thm:mantel}, Proposition~\ref{prop:clique-partition}); exact
+maximum-clique search for the follower\\[2pt]
+Clique: value at least 4 (30 instances at density 0.9) & (i) & Brouwer's
+published theorem (Theorem~\ref{thm:brouwer}) and the \NumCliquePartCases{}
+part-size cases, with certificates checked by the integer checker
+\texttt{scripts/check\_clique\_certificates.py}; the solver verdicts on the
+same cases are class~(ii)\\[2pt]
+% ROUND2: update when scripts/check_clique_certificates.py has checked all 170
+% case certificates; until then this row is class (ii).
+Network: the 2 optima and the 34 trees re-derived (Section~\ref{app:network}) &
+(i) & every attack enumerated, 0/1 witnesses checked against the model,
+follower optimum at the minimiser by the DP (Proposition~\ref{prop:fire-dp}) and the
+review's brute force\\[2pt]
+Network: \NetworkRndSmall{} \texttt{rndgraph-25} values re-derived with HiGHS at every attack & (ii) &
+HiGHS as the follower (the review's brute force re-derives them exactly)\\[2pt]
+No bilevel feasible point, \NumRayExact{} instances (Section~\ref{app:general}) & (i) &
+recession direction checked in rational arithmetic (Theorem~\ref{thm:ray})\\[2pt]
+No bilevel feasible point, \texttt{supportcase42\_0\_100} and
+\texttt{supportcase42\_50\_50} & (ii) & floating-point direction, residuals
+about $10^{-12}$\\[2pt]
+% ROUND2: update when results/rays has exact certificates for the two
+% supportcase42 directions (then they join the row above, class (i)).
+HPR equal to the MIPLIB model (Section~\ref{app:general}) & (i) &
+exact rational comparison of the two models\\[2pt]
+The \NumHprOptimal{} HPR-bound optima (Table~\ref{tab:hpr}) & (ii) & MIPLIB's
+published floating-point optima; optimal by accepted benchmark conventions,
+not by an exact-arithmetic proof (\texttt{noswot} safe by integrality rounding
+given the published bound, \texttt{pigeon-10} inherits MIPLIB's status,
+\texttt{timtab1} agrees numerically)\\[2pt]
+Points without coupling rows (\NumGeneralFiles{} files): 45 with the follower within $10^{-8}$ of its optimum & (ii) &
+rows within $10^{-6}$; follower optimum by HiGHS\\[2pt]
+Points without coupling rows: the other 19 files & (iii) & follower value
+about $10^{-7}$ relative (one file: one unit) above its optimum; the instances
+do have bilevel feasible points at the same leader values
+(Section~\ref{app:general})\\[2pt]
+% ROUND2: update when results/general records the follower error of each file
+% or the 19 files are repaired; 45/19 come from the re-verification described
+% in Section E.3, not from the data package.
+Points with coupling rows: \SuppCoupledExact{} of the \NumCoupledFiles{} files & (ii) &
+\texttt{bobi certify}: proven dual bounds, follower within $10^{-8}$ of its
+optimum\\[2pt]
+Points with coupling rows: the other \NumCoupledTolerance{} files & (iii) &
+follower value about $10^{-7}$ relative above its optimum, used by the
+leader (Section~\ref{app:general})\\[2pt]
+% ROUND2: update when the 9 coupled files in results/general-coupled are
+% repaired: then they move to class (ii) and this row goes.
+BOBILib's file of \texttt{general20-30-20-20-20-2} & (iii) & the example of
+Remark~\ref{rem:tolerance}; rejected by \texttt{bobi verify}\\[2pt]
+Lean lemmas (Section~\ref{app:lean-map}) & --- & machine-checked proofs about
+abstract models; they support class~(i) results and are not results on
+instances\\
+\end{longtable}
+}
+% longtable steps the table counter even without a numbered caption; keep S1, S2, ...
+\addtocounter{table}{-1}
+
 \subsection{Threats to validity}\label{app:threats}
 
 \begin{enumerate}
-\item \textbf{Trusted solvers.} Several verdicts come from MILP or CP solvers:
-follower optimality for followers with several rows and for general
-instances (HiGHS), the \NumCliquePartCases{} infeasibility verdicts behind $w_3(G)>k$ (each
-reproduced by five methods, two of them solver-free), the follower optimum
-at the minimising attack in the network proof (HiGHS), and the dual bounds
-in the OR bracket (Theorem~\ref{thm:mkip-bracket}). A solver bug that all
-methods share would go unnoticed.
+\item \textbf{Trusted solvers.} The class~(ii) results of
+Section~\ref{app:classes} come from MILP, LP or CP solvers: follower
+optimality for followers with several rows and for general instances
+(HiGHS), the dual bounds in the OR bracket (Theorem~\ref{thm:mkip-bracket}),
+the MIPLIB optima behind the HPR bounds and the two floating-point ray
+certificates. A solver bug would go unnoticed there. The \NumCliquePartCases{}
+part-size verdicts behind $w_3(G)>k$ and the follower optimum at the minimising
+attack in the network proof are also solver results, but each is repeated by
+exhaustive integer computations (the integer checker of the case
+certificates, the review's brute force).
+% ROUND2: update when the clique case certificates and the supportcase42 rays are final.
 
-\item \textbf{Floating point and tolerances.} Points are feasible within
-$10^{-6}$ and follower-optimal within BOBILib's relative $10^{-4}$, not
-exactly. \NumCoupledTolerance{} coupled points use that slack (marked $^{*}$ in
-Table~\ref{tab:general-points}), and two coupled files are feasible only
-within it (Section~\ref{app:general}). The MIPLIB optima behind the five HPR-bound optima are
-published floating-point values (Section~\ref{app:general}). Two of the \NumNoFeasible{} ray certificates are checked only in floating point.
-The merged-row online bound (Theorem~\ref{thm:mkip-omega}) and the LP
-bracket are evaluated in double precision, so their rounding steps are in
-the safe direction only up to floating-point error. The window rule of the
-subset-sum search uses a floating-point fractional bound; the 16 proofs are
-confirmed by the integer-only provers above, which do not use
+\item \textbf{Floating point and tolerances.} Points of the general
+families are feasible within $10^{-6}$ and follower-optimal within BOBILib's
+relative $10^{-4}$, not exactly. \NumCoupledTolerance{} coupled points use that
+slack (marked $^{*}$ in Table~\ref{tab:general-points}), two coupled files are
+feasible only within it, and 19 files without coupling rows use the tie-break
+slack of Proposition~\ref{prop:general-pipeline}; all of these are
+benchmark-accepted points (class~(iii), Section~\ref{app:general}). The MIPLIB
+optima behind the five HPR-bound optima are published floating-point values,
+so those optima hold by accepted benchmark conventions, not by an
+exact-arithmetic proof (Section~\ref{app:general}). Two of the
+\NumNoFeasible{} ray certificates are checked only in floating point. The
+merged-row online bound (Theorem~\ref{thm:mkip-omega}) computes its integer
+data in double precision; part~(b) of the theorem shows that the rounding
+error cannot break the bound for the OR data, with margins below $10^{-10}$.
+The LP bracket uses HiGHS's floating-point dual bound as returned. The window
+rule of the subset-sum search uses a floating-point fractional bound; the 16
+proofs are confirmed by the integer-only provers above, which do not use
 that rule.
+% ROUND2: update when the 9 coupled files, the 19 general files and the two
+% supportcase42 rays are final.
 
 \item \textbf{Scope of the Lean proofs.} Lean proves lemmas about abstract
 models, not the code. That the Rust loops compute the recursions, the range

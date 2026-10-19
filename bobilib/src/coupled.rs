@@ -36,6 +36,13 @@
 //! Every point returned is re-checked from scratch by [`certify`]: rows and
 //! bounds within 1e-6 and a fresh follower solve whose dual bound shows the
 //! point's follower value within BOBILib's relative 1e-4 of the optimum.
+//!
+//! [`Tolerance::Strict`] (`bobi coupled --strict`, `bobi coupled-tighten`,
+//! `bobi certify --tight`) holds the follower to its optimum instead: the
+//! follower is solved with zero relative gap, best responses cap its value
+//! at the optimum plus [`STRICT_CAP`] (absolute), and the certificate asks
+//! for the point's follower value at most [`STRICT_ABS`] above the proven
+//! bound, so the leader cannot use the relative slack BOBILib allows.
 
 use crate::milp::{Milp, MilpResult, MilpStatus, SolveOpts};
 use crate::model::{Bilevel, Row};
@@ -48,6 +55,46 @@ pub const ROW_TOL: f64 = 1e-6;
 pub const BOBILIB_REL: f64 = 1e-4;
 /// We certify follower optimality with a 10x margin on BOBILib's tolerance.
 const CERT_REL: f64 = 1e-5;
+/// Strict mode: the follower's value at most this far (absolute) above the
+/// proven lower bound on its optimum.
+pub const STRICT_ABS: f64 = 1e-6;
+/// Strict mode: the cap on the follower's value in a best response, above
+/// the follower's optimum (absolute), well inside [`STRICT_ABS`] so that
+/// rounding and polishing keep the final point within it.
+pub const STRICT_CAP: f64 = 1e-9;
+/// Strict mode: the leader's objective at most this far (relative, on top
+/// of [`STRICT_ABS`] absolute) above the proven tie-break bound.
+const STRICT_TIE_REL: f64 = 1e-9;
+
+/// Which follower-optimality standard points must meet.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum Tolerance {
+    /// BOBILib's relative 1e-4 (certified with a 10x margin); best responses
+    /// let the follower's value sit up to 1e-7 (1 + |phi|) above its optimum.
+    #[default]
+    Bobilib,
+    /// The follower's value within [`STRICT_ABS`] (absolute) of its optimum.
+    Strict,
+}
+
+impl Tolerance {
+    fn strict(self) -> bool {
+        self == Tolerance::Strict
+    }
+
+    /// Solver settings for the follower's problem at fixed leader values.
+    fn follower_opts(self, time: f64) -> SolveOpts {
+        let mut o = SolveOpts::new(time);
+        o.abs_gap = 1e-9;
+        if self.strict() {
+            o.rel_gap = 0.0;
+            o.feas_tol = Some(1e-9);
+        } else {
+            o.rel_gap = 1e-7;
+        }
+        o
+    }
+}
 
 /// Which variables and rows play which part.
 #[derive(Clone, Debug)]
@@ -160,12 +207,21 @@ fn round_integers(m: &Bilevel, v: &mut [f64]) {
 /// optimum lies in [bound, value], so the relative error BOBILib computes is
 /// at most (value - bound) / (1e-10 + min |p| over that interval).
 pub fn gap_certified(value: f64, bound: f64, ll_integral: bool) -> bool {
+    gap_ok(value, bound, ll_integral, Tolerance::Bobilib)
+}
+
+/// [`gap_certified`] under either tolerance; strict: at most [`STRICT_ABS`]
+/// (absolute) above the bound.
+pub fn gap_ok(value: f64, bound: f64, ll_integral: bool, tol: Tolerance) -> bool {
     let bound = if ll_integral {
         (bound - 1e-6).ceil()
     } else {
         bound
     };
-    worst_rel_error(value, bound) <= CERT_REL
+    match tol {
+        Tolerance::Bobilib => worst_rel_error(value, bound) <= CERT_REL,
+        Tolerance::Strict => value.is_finite() && bound.is_finite() && value - bound <= STRICT_ABS,
+    }
 }
 
 /// A follower response at some leader values.
@@ -184,6 +240,12 @@ pub struct Response {
 /// Solve the follower at `x`'s leader values (rows with follower variables
 /// that belong to the follower; coupling rows are ignored).
 pub fn follower_response(m: &Bilevel, x: &[f64], time: f64) -> Response {
+    follower_response_with(m, x, time, Tolerance::Bobilib)
+}
+
+/// [`follower_response`] with the solver settings of `tol` (strict: zero
+/// relative gap, feasibility tolerance 1e-9).
+pub fn follower_response_with(m: &Bilevel, x: &[f64], time: f64, tol: Tolerance) -> Response {
     let t = Instant::now();
     let fixed: Vec<Option<f64>> = m
         .vars
@@ -201,10 +263,7 @@ pub fn follower_response(m: &Bilevel, x: &[f64], time: f64) -> Response {
             secs: t.elapsed().as_secs_f64(),
         };
     }
-    let mut o = SolveOpts::new(time);
-    o.rel_gap = 1e-7;
-    o.abs_gap = 1e-9;
-    let r = sub.mp.solve_with(&o);
+    let r = sub.mp.solve_with(&tol.follower_opts(time));
     let has = matches!(r.status, MilpStatus::Optimal | MilpStatus::Feasible);
     let point = if has {
         let mut p = expand(&sub, &r.x, x);
@@ -242,6 +301,13 @@ pub struct Certificate {
     /// BOBILib's relative error of the point's leader objective against it.
     pub tie_bound: f64,
     pub tie_rel_error: f64,
+    /// The point's follower value minus the proven bound on the follower's
+    /// optimum (absolute), and the leader's objective minus the tie-break
+    /// bound.
+    pub slack: f64,
+    pub tie_slack: f64,
+    /// The standard the certificate applied.
+    pub tolerance: Tolerance,
 }
 
 /// BOBILib's relative error |v - p| / (1e-10 + |p|) maximised over the
@@ -275,18 +341,27 @@ fn integral_objective(m: &Bilevel, coef: impl Fn(&crate::model::Var) -> f64) -> 
 /// Both optimality checks use proven dual bounds with a 10x margin on
 /// BOBILib's relative 1e-4.
 pub fn certify(m: &Bilevel, val: &[f64], time: f64) -> Certificate {
+    certify_with(m, val, time, Tolerance::Bobilib)
+}
+
+/// [`certify`] under either tolerance. Strict: the follower solved with zero
+/// relative gap and its value at most [`STRICT_ABS`] above the proven bound;
+/// the tie-break over follower values at most the point's own (plus 1e-9,
+/// absolute), solved to a relative gap of 1e-9, with the leader's objective
+/// at most [`STRICT_ABS`] + 1e-9 |F| above its bound.
+pub fn certify_with(m: &Bilevel, val: &[f64], time: f64, tol: Tolerance) -> Certificate {
     let (viol, worst) = m.max_violation(val);
     let ll = m.lower_obj(val);
     let upper = m.upper_obj(val);
     let ll_integral = integral_objective(m, |v| v.ll_obj);
-    let f = follower_response(m, val, time);
+    let f = follower_response_with(m, val, time, tol);
     let mut bound = f.bound;
     if ll_integral && bound.is_finite() {
         bound = (bound - 1e-6).ceil();
     }
     let rel_error = worst_rel_error(ll, bound);
     let opt_ok = matches!(f.status, MilpStatus::Optimal | MilpStatus::Feasible)
-        && gap_certified(ll, f.bound, ll_integral);
+        && gap_ok(ll, f.bound, ll_integral, tol);
     // The optimistic tie-break at the point's leader values.
     let fixed: Vec<Option<f64>> = m
         .vars
@@ -302,11 +377,18 @@ pub fn certify(m: &Bilevel, val: &[f64], time: f64) -> Certificate {
         .filter(|(_, v)| v.lower && v.ll_obj != 0.0)
         .map(|(j, v)| (sub.col[j], v.ll_obj))
         .collect();
-    sub.mp
-        .add_row(ll_terms, f64::NEG_INFINITY, ll + 1e-9 * (1.0 + ll.abs()));
+    let cap = if tol.strict() {
+        1e-9
+    } else {
+        1e-9 * (1.0 + ll.abs())
+    };
+    sub.mp.add_row(ll_terms, f64::NEG_INFINITY, ll + cap);
     let mut o = SolveOpts::new(time);
-    o.rel_gap = 1e-7;
+    o.rel_gap = if tol.strict() { STRICT_TIE_REL } else { 1e-7 };
     o.abs_gap = 1e-9;
+    if tol.strict() {
+        o.feas_tol = Some(1e-9);
+    }
     let t = sub.mp.solve_with(&o);
     let fixed_part: f64 = m.obj_offset
         + m.vars
@@ -324,7 +406,11 @@ pub fn certify(m: &Bilevel, val: &[f64], time: f64) -> Certificate {
         tie_bound = (tie_bound - 1e-6).ceil();
     }
     let tie_rel_error = worst_rel_error(upper, tie_bound);
-    let tie_ok = tie_rel_error <= CERT_REL;
+    let tie_slack = upper - tie_bound;
+    let tie_ok = match tol {
+        Tolerance::Bobilib => tie_rel_error <= CERT_REL,
+        Tolerance::Strict => tie_slack <= STRICT_ABS + STRICT_TIE_REL * upper.abs(),
+    };
     Certificate {
         ok: viol <= ROW_TOL && opt_ok && tie_ok,
         max_violation: viol,
@@ -336,6 +422,9 @@ pub fn certify(m: &Bilevel, val: &[f64], time: f64) -> Certificate {
         rel_error,
         tie_bound,
         tie_rel_error,
+        slack: ll - bound,
+        tie_slack,
+        tolerance: tol,
     }
 }
 
@@ -417,6 +506,8 @@ pub struct SearchOpts {
     /// Keep searching after the first point for this many seconds of the
     /// budget, keeping the best leader objective (0 stops at the first).
     pub improve: bool,
+    /// The follower-optimality standard of best responses and certificates.
+    pub tolerance: Tolerance,
 }
 
 /// Outcome of a leader choice.
@@ -686,15 +777,25 @@ impl<'a> Search<'a> {
             .filter(|(_, v)| v.lower && v.ll_obj != 0.0)
             .map(|(j, v)| (sub.col[j], v.ll_obj))
             .collect();
+        let strict = self.opts.tolerance.strict();
         let tol = if self.split.ll_integral {
             1e-6
+        } else if strict {
+            STRICT_CAP
         } else {
             1e-7 * (1.0 + phi.abs())
         };
         sub.mp.add_row(ll, f64::NEG_INFINITY, phi + tol);
         let mut o = SolveOpts::new(time);
-        o.feas_tol = Some(1e-8);
-        o.rel_gap = 1e-6;
+        if strict {
+            // The optimistic tie-break proper, not just a feasible response.
+            o.feas_tol = Some(1e-9);
+            o.rel_gap = STRICT_TIE_REL;
+            o.abs_gap = 1e-9;
+        } else {
+            o.feas_tol = Some(1e-8);
+            o.rel_gap = 1e-6;
+        }
         let r = sub.mp.solve_with(&o);
         if matches!(r.status, MilpStatus::Optimal | MilpStatus::Feasible) {
             let full = expand(&sub, &r.x, x);
@@ -721,10 +822,11 @@ impl<'a> Search<'a> {
         };
         let mut val = clean(val);
         let time = self.opts.follower_time.min(self.left().max(30.0));
+        let tol = self.opts.tolerance;
         if !tied {
-            let resp = follower_response(m, &val, time);
+            let resp = follower_response_with(m, &val, time, tol);
             if matches!(resp.status, MilpStatus::Optimal | MilpStatus::Feasible)
-                && gap_certified(resp.value, resp.bound, self.split.ll_integral)
+                && gap_ok(resp.value, resp.bound, self.split.ll_integral, tol)
             {
                 let b = self.best_response(&val, resp.value, false, time);
                 if matches!(b.status, MilpStatus::Optimal | MilpStatus::Feasible) {
@@ -736,7 +838,7 @@ impl<'a> Search<'a> {
                 }
             }
         }
-        let cert = certify(m, &val, time);
+        let cert = certify_with(m, &val, time, tol);
         if !cert.ok {
             self.log(&format!(
                 "candidate rejected: violation {:.2e} ({}), follower {} vs bound {}, leader {} vs tie-break bound {}",
@@ -790,8 +892,12 @@ impl<'a> Search<'a> {
             .collect();
         if !ll.is_empty() {
             let target = m.lower_obj(val) - fixed_ll;
-            sub.mp
-                .add_row(ll, f64::NEG_INFINITY, target + 1e-9 * (1.0 + target.abs()));
+            let slack = if self.opts.tolerance.strict() {
+                1e-9
+            } else {
+                1e-9 * (1.0 + target.abs())
+            };
+            sub.mp.add_row(ll, f64::NEG_INFINITY, target + slack);
         }
         let mut o = SolveOpts::new(self.left().clamp(5.0, 60.0));
         o.feas_tol = Some(1e-9);
@@ -819,7 +925,7 @@ impl<'a> Search<'a> {
             if let Some(resp) = prev {
                 let ll = m.lower_obj(&x);
                 if ll <= resp.value + 1e-6 * (1.0 + resp.value.abs())
-                    && gap_certified(ll, resp.bound, self.split.ll_integral)
+                    && gap_ok(ll, resp.bound, self.split.ll_integral, self.opts.tolerance)
                 {
                     if let Some(f) = self.finish(x.clone(), method, false, false) {
                         return Eval::Point(Box::new(f));
@@ -830,9 +936,10 @@ impl<'a> Search<'a> {
         }
         self.current.leaders += 1;
         let ft = self.opts.follower_time.min(self.left());
-        let resp = follower_response(m, &x, ft);
+        let tol = self.opts.tolerance;
+        let resp = follower_response_with(m, &x, ft, tol);
         let proven = matches!(resp.status, MilpStatus::Optimal | MilpStatus::Feasible)
-            && gap_certified(resp.value, resp.bound, self.split.ll_integral);
+            && gap_ok(resp.value, resp.bound, self.split.ll_integral, tol);
         if !proven {
             let why = format!("follower {:?} after {:.1}s", resp.status, resp.secs);
             self.log(&why);
@@ -878,6 +985,29 @@ impl<'a> Search<'a> {
             Eval::Blocked(Box::new(resp))
         } else {
             Eval::Unresolved(last, Some(Box::new(resp)))
+        }
+    }
+
+    /// The point the search makes of `val`'s leader values: the follower
+    /// solved there, then the optimistic tie-break with every leader variable
+    /// fixed or, when no follower response within the tolerance meets the
+    /// coupling rows that way, with only the linking variables fixed (the
+    /// other leader variables re-optimised; the follower's problem is the
+    /// same). `bobi coupled-tighten` uses it to re-derive a solution file's
+    /// point under [`Tolerance::Strict`].
+    pub fn at_leader(&mut self, val: &[f64]) -> Result<Found, String> {
+        self.current = MethodReport {
+            name: "file".into(),
+            ..Default::default()
+        };
+        match self.evaluate(val, "file") {
+            Eval::Point(f) => Ok(*f),
+            Eval::Blocked(r) => Err(format!(
+                "blocked: no follower response within the tolerance of {} meets the coupling rows, with only the linking variables fixed either",
+                r.value
+            )),
+            Eval::Unresolved(why, _) => Err(why),
+            Eval::Seen => Err("leader values seen before".into()),
         }
     }
 
@@ -1808,10 +1938,80 @@ mod tests {
                 methods,
                 log: false,
                 improve: false,
+                tolerance: Tolerance::Bobilib,
             },
         );
         s.run();
         s.best
+    }
+
+    /// The follower minimises y subject to y >= x (x = 1e4 at the leader's
+    /// values, so phi = 1e4); the leader minimises -y - z, z is a leader
+    /// variable outside the follower's rows, and the coupling row y >= z.
+    /// BOBILib's tolerance lets y sit 1e-7 (1 + 1e4) = 1e-3 above phi.
+    fn slack_toy() -> Bilevel {
+        Bilevel {
+            name: "slack".into(),
+            vars: vec![
+                var("x", 2e4, false, 0.0, false, 0.0),
+                var("z", 2e4, false, -1.0, false, 0.0),
+                var("y", 2e4, false, -1.0, true, 1.0),
+            ],
+            rows: vec![
+                Row {
+                    name: "follower".into(),
+                    lo: 0.0,
+                    hi: f64::INFINITY,
+                    lower: true,
+                    coefs: vec![(2, 1.0), (0, -1.0)],
+                },
+                Row {
+                    name: "coupling".into(),
+                    lo: 0.0,
+                    hi: f64::INFINITY,
+                    lower: false,
+                    coefs: vec![(2, 1.0), (1, -1.0)],
+                },
+            ],
+            obj_offset: 0.0,
+        }
+    }
+
+    fn at_leader(m: &Bilevel, val: &[f64], tolerance: Tolerance) -> Result<Found, String> {
+        let opts = SearchOpts {
+            time: 60.0,
+            follower_time: 10.0,
+            master_frac: 0.3,
+            methods: vec![],
+            log: false,
+            improve: false,
+            tolerance,
+        };
+        Search::new(m, opts).at_leader(val)
+    }
+
+    #[test]
+    fn strict_mode_leaves_the_leader_no_follower_slack() {
+        let m = slack_toy();
+        // z = 1e4 + 5e-4 needs y above the follower's optimum.
+        let file = [1e4, 1e4 + 5e-4, 0.0];
+        let loose = at_leader(&m, &file, Tolerance::Bobilib).unwrap();
+        assert!(!loose.free_leader && loose.cert.ok);
+        assert!(loose.values[2] >= 1e4 + 5e-4 - 1e-9, "{:?}", loose.values);
+        // That point fails the strict certificate ...
+        let c = certify_with(&m, &loose.values, 10.0, Tolerance::Strict);
+        assert!(!c.ok && c.slack > 1e-4, "{c:?}");
+        // ... and strict mode re-optimises z with x fixed: y = z = phi.
+        let tight = at_leader(&m, &file, Tolerance::Strict).unwrap();
+        assert!(tight.free_leader && tight.cert.ok, "{:?}", tight.cert);
+        assert_eq!(tight.cert.tolerance, Tolerance::Strict);
+        assert!(tight.cert.slack <= STRICT_ABS, "{:?}", tight.cert);
+        assert!((tight.values[2] - 1e4).abs() <= STRICT_ABS);
+        assert!(tight.values[1] <= tight.values[2] + ROW_TOL);
+        // Without the coupling row's pull the leader values stay fixed.
+        let tight = at_leader(&m, &[1e4, 0.0, 0.0], Tolerance::Strict).unwrap();
+        assert!(!tight.free_leader && tight.cert.ok);
+        assert_eq!(tight.values[1], 0.0);
     }
 
     #[test]
@@ -1866,5 +2066,12 @@ mod tests {
         assert!(gap_certified(0.0, -1e-7, true));
         assert!(!gap_certified(0.0, -1e-7, false));
         assert!(!gap_certified(1.0, -1.0, false));
+        // Strict: absolute 1e-6 whatever the size of the value.
+        let s = Tolerance::Strict;
+        assert!(gap_ok(1e8 + 5e-7, 1e8, false, s));
+        assert!(!gap_ok(1e8 + 1.0, 1e8, false, s));
+        assert!(gap_certified(1e8 + 1.0, 1e8, false));
+        assert!(gap_ok(7.0, 6.9999999, true, s));
+        assert!(!gap_ok(7.0, f64::NEG_INFINITY, false, s));
     }
 }

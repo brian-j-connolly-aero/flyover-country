@@ -28,7 +28,8 @@ Path & Contents\\
 \texttt{kip/} & \NumKipFiles{} knapsack interdiction solution files at the published optima of Weninger and Fukasawa\cite{weninger2025fast}\\
 \texttt{ss/} & the \NumNewKip{} subset-sum optima proven here; \texttt{proofs.csv} (optimum, nodes, CPU seconds, nodes of the second prover, budget and capacity)\\
 \texttt{or/} & \NumOrPoints{} verified points for the \NumOr{} OR instances; the bounds of each instance; \texttt{compare.csv} (published bounds, BOBILib's value, ours, gaps)\\
-\texttt{clique/} & \NumCliqueSet{} partition certificates, solver logs of the part-size proofs, the separate review\\
+% ROUND2: update when results/clique/certificates/ is final (branch-and-bound certificates of the 170 cases).
+\texttt{clique/} & \NumCliqueSet{} partition certificates, branch-and-bound certificates of the part-size cases (\texttt{certificates/}), solver logs of the part-size proofs, the separate review\\
 \texttt{network/} & \NumVerifyNetwork{} attack-protect trees certified by enumeration; \texttt{summary.csv}; the review\\
 \texttt{rays/} & \NumRayFiles{} recession directions (the \NumNoFeasible{} open instances and one that BOBILib lists as infeasible); \texttt{ray\_verify.jsonl} (exact checks)\\
 \texttt{general/} & \NumGeneralFiles{} points for MIPLIB-derived instances without coupling rows (nine files over 1\,MB in \texttt{large\_points.tar.gz}); \texttt{hpr\_optimal.csv}\\
@@ -62,7 +63,7 @@ Column & Meaning\\
 \texttt{source} & citation key of the published result (Table~\ref{tab:source-keys}), \texttt{this work}, or \texttt{ThuraufEtAl2026} (BOBILib's own value)\\
 \texttt{method} & how the status or value was obtained\\
 \texttt{certificate} & path, relative to \texttt{results/}, of the solution or certificate file; \texttt{ARCHIVE.tar.gz:FILE} names a member of an archive\\
-\texttt{verified} & \texttt{yes}: the certificate passed its check (\texttt{bobi verify}, or the exact ray check); \texttt{no}: checked in floating point only (the two \texttt{supportcase42} directions); \texttt{na}: no certificate in this package\\
+\texttt{verified} & \texttt{yes}: the certificate passed its check (\texttt{bobi verify}, or the exact ray check); \texttt{no}: checked in floating point only (the two \texttt{supportcase42} directions); \texttt{na}: no certificate in this package. The column says whether a check passed, not how rigorous it is; Section~\ref{app:classes} gives the certificate class of each kind of result\\
 \texttt{notes} & free text, separated by semicolons\\
 \bottomrule
 \end{tabular}
@@ -156,7 +157,12 @@ clique of the remainder. \texttt{clique/summary.csv} gives per instance $n$, the
 density, $m$, $k$, BOBILib's value, the lower bound with its argument (Mantel,
 or Brouwer's theorem with the part-size proofs) and the upper bound with its
 partition. The logs of the solver runs behind the \NumCliquePartCases{}
-part-size proofs are in \texttt{clique/logs/lb\_solver\_logs.tar.gz}.
+part-size proofs are in \texttt{clique/logs/lb\_solver\_logs.tar.gz}, and the
+branch-and-bound certificates of the same cases, one file per density-0.9
+instance, are in \texttt{clique/certificates/}; the integer checker
+\texttt{scripts/check\_clique\_certificates.py} verifies them from the instance
+files alone (Section~\ref{app:clique}).
+% ROUND2: update when the clique case certificates and check.log are final.
 
 \paragraph{Subset-sum proofs.} A proof of $\mathrm{OPT}\ge\ell$ is a
 computation, not a file. \texttt{ss/proofs.csv} records, per instance, the
@@ -198,7 +204,10 @@ D=data/collection
 python3 -I scripts/verify_ray.py INSTANCE.mps.gz INSTANCE.aux results/rays/INSTANCE.ray.json
 python3 -I scripts/ss_check.py INSTANCE.mps.gz INSTANCE.aux - OPTIMUM
 python3 -I scripts/compare_hpr.py INSTANCE.mps.gz INSTANCE.aux MIPLIB.mps.gz
+python3 -I scripts/check_clique_certificates.py \
+    $D/interdiction/clique-interdiction/clique results/clique/certificates
 \end{verbatim}
+% ROUND2: check the command line of check_clique_certificates.py when it is final.
 \end{minipage}
 \end{center}
 The nine large general points are checked after unpacking

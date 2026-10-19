@@ -3,7 +3,7 @@
 
 {\footnotesize\sisetup{group-separator={,},group-minimum-digits=4,group-digits=integer}\setlength{\tabcolsep}{4pt}\setlength{\LTcapwidth}{\linewidth}
 \begin{longtable}{@{}l S[table-format=2.0] S[table-format=2.0] S[table-format=1.0] S[table-format=1.0] S[table-format=7.0] S[table-format=2.0] S[table-format=2.0] S[table-format=2.0] S[table-format=2.0]@{}}
-\caption{The two attack-protect games (\texttt{inter-fire}) BOBILib lists as feasible, proven optimal by enumerating every attack of at most $\Phi$ nodes, with the follower (protect at most $\Lambda$ nodes) solved exactly by a tree dynamic program and the minimiser re-solved by HiGHS. Time: wall seconds of the enumeration on one thread of a loaded machine.}\label{tab:network}\\
+\caption{The two attack-protect games (\texttt{inter-fire}) BOBILib lists as feasible, proven optimal by enumerating every attack of at most $\Phi$ nodes, with the follower (protect at most $\Lambda$ nodes) solved exactly by a tree dynamic program and the minimiser re-solved by HiGHS. Attacks: every attack of $0$ to $\Phi$ nodes, $\sum_{k=0}^{\Phi}\binom{49}{k}=\num{2138410}$ per instance (\num{1906884} of them with exactly $\Phi=5$ nodes), each enumerated once. Optimal attacks: attacks at which the follower saves only the optimum. Time: wall seconds of the enumeration on one thread of a loaded machine. The optima are exact certificates (class (i) of Section~\ref{app:classes}).}\label{tab:network}\\
 \toprule
 Instance & {Nodes} & {Edges} & {$\Phi$} & {$\Lambda$} & {Attacks} & {Optimum} & {\shortstack{Optimal\\attacks}} & {BOBILib} & {Time (s)} \\
 \midrule
@@ -25,30 +25,32 @@ tree-50\_1-5-5\_010 & 49 & 44 & 5 & 5 & 2138410 & 26 & 28 & 26 & 70 \\
 
 
 {\footnotesize\sisetup{group-separator={,},group-minimum-digits=4,group-digits=integer}\setlength{\tabcolsep}{4pt}\setlength{\LTcapwidth}{\linewidth}
-\begin{longtable}{@{}l S[table-format=1.0] S[table-format=2.0] S[table-format=1.0] S[table-format=1.0] S[table-format=7.0] l l@{}}
-\caption{The 34 tree instances BOBILib lists as optimal, re-derived by the same enumeration: instances per group, nodes (after removing the vaccinated ones), budgets, attacks per instance, the optimal values found, and how many equal BOBILib's value with a certified solution file.}\label{tab:network-trees}\\
+\begin{longtable}{@{}l S[table-format=2.0] S[table-format=2.0] S[table-format=1.0] S[table-format=1.0] S[table-format=7.0] S[table-format=7.0] l l@{}}
+\caption{The 34 tree instances BOBILib lists as optimal, re-derived by the same enumeration: instances per group, nodes (after removing the vaccinated ones), budgets, attacks (every attack of $0$ to $\Phi$ nodes, $\sum_{k=0}^{\Phi}\binom{n}{k}$ for $n$ nodes) per instance and in all over the group's instances, the optimal values found, and how many equal BOBILib's value with a certified solution file. The 34 trees have \num{5063940} attacks; with the two trees of Table~\ref{tab:network} the 36 trees have \num{9340760}, and with the 4 \texttt{rndgraph-25} instances that are forests (\num{4142} attacks) the 40 forests of \texttt{inter-fire} have \num{9344902}, the attacks at which the review compared its dynamic program with ours (Section~\ref{app:network}).}\label{tab:network-trees}\\
 \toprule
-Group & {Inst.} & {Nodes} & {$\Phi$} & {$\Lambda$} & {Attacks} & Optima & Agree \\
+Group & {Inst.} & {Nodes} & {$\Phi$} & {$\Lambda$} & {\shortstack{Attacks per\\instance}} & {\shortstack{Attacks\\in all}} & Optima & Agree \\
 \midrule
 \endfirsthead
-\multicolumn{8}{l}{\emph{(continued)}}\\
+\multicolumn{9}{l}{\emph{(continued)}}\\
 \toprule
-Group & {Inst.} & {Nodes} & {$\Phi$} & {$\Lambda$} & {Attacks} & Optima & Agree \\
+Group & {Inst.} & {Nodes} & {$\Phi$} & {$\Lambda$} & {\shortstack{Attacks per\\instance}} & {\shortstack{Attacks\\in all}} & Optima & Agree \\
 \midrule
 \endhead
 \midrule
-\multicolumn{8}{r}{\emph{continued on the next page}}\\
+\multicolumn{9}{r}{\emph{continued on the next page}}\\
 \endfoot
 \bottomrule
 \endlastfoot
-tree-25\_1-3-3 & 4 & 24 & 3 & 3 & 2325 & 12, 13, 13, 13 & 4/4 \\
-tree-25\_2-2-2 & 4 & 23 & 2 & 2 & 277 & 17, 17, 17, 18 & 4/4 \\
-tree-25\_3-3-3 & 4 & 22 & 3 & 3 & 1794 & 15, 16, 16, 17 & 4/4 \\
-tree-50\_1-3-3 & 4 & 49 & 3 & 3 & 19650 & 28, 28, 30, 32 & 4/4 \\
-tree-50\_1-5-5 & 2 & 49 & 5 & 5 & 2138410 & 24, 25 & 2/2 \\
-tree-50\_3-3-1 & 4 & 47 & 3 & 1 & 17344 & 26, 27, 30, 31 & 4/4 \\
-tree-80\_2-2-2 & 4 & 78 & 2 & 2 & 3082 & 56, 57, 61, 63 & 4/4 \\
-tree-80\_3-3-1 & 4 & 77 & 3 & 1 & 76154 & 45, 45, 48, 48 & 4/4 \\
-tree-80\_3-3-3 & 4 & 77 & 3 & 3 & 76154 & 55, 56, 56, 58 & 4/4 \\
+tree-25\_1-3-3 & 4 & 24 & 3 & 3 & 2325 & 9300 & 12, 13, 13, 13 & 4/4 \\
+tree-25\_2-2-2 & 4 & 23 & 2 & 2 & 277 & 1108 & 17, 17, 17, 18 & 4/4 \\
+tree-25\_3-3-3 & 4 & 22 & 3 & 3 & 1794 & 7176 & 15, 16, 16, 17 & 4/4 \\
+tree-50\_1-3-3 & 4 & 49 & 3 & 3 & 19650 & 78600 & 28, 28, 30, 32 & 4/4 \\
+tree-50\_1-5-5 & 2 & 49 & 5 & 5 & 2138410 & 4276820 & 24, 25 & 2/2 \\
+tree-50\_3-3-1 & 4 & 47 & 3 & 1 & 17344 & 69376 & 26, 27, 30, 31 & 4/4 \\
+tree-80\_2-2-2 & 4 & 78 & 2 & 2 & 3082 & 12328 & 56, 57, 61, 63 & 4/4 \\
+tree-80\_3-3-1 & 4 & 77 & 3 & 1 & 76154 & 304616 & 45, 45, 48, 48 & 4/4 \\
+tree-80\_3-3-3 & 4 & 77 & 3 & 3 & 76154 & 304616 & 55, 56, 56, 58 & 4/4 \\
+\midrule
+Total & 34 &  &  &  &  & 5063940 &  & 34/34 \\
 \end{longtable}
 }

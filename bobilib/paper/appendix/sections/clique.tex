@@ -197,11 +197,24 @@ SCIP\cite{hojny2025scip} on two different models, an exact
 solver-free depth-first search (tested against brute force), and, in a
 separate review session with its own code, HiGHS on a third model with an explicit budget row and
 a separate exact branch and bound written in C (tested against brute force
-on 450 random graphs and on planted instances). With
-Theorem~\ref{thm:clique-lb4} and Proposition~\ref{prop:clique-partition}
-(4-partitions with at most $k$ inside edges), all 30 density-0.9 instances
-have value exactly~$4$. These solver verdicts are computations, not
+on 450 random graphs and on planted instances). The three solver verdicts are
+solver-certified (class~(ii), Section~\ref{app:classes}). For an exact
+certificate, each case also has a branch-and-bound tree
+(\texttt{results/clique/certificates/}), checked by the integer checker
+\texttt{scripts/check\_clique\_certificates.py}: it reads the instance files
+itself, re-derives the graph, $n$, $m$ and $k$ from the rows, checks the
+hypothesis $m-k\ge t_3(n)-\lfloor n/3\rfloor+2$, enumerates the size vectors
+with $b(s)\ge 0$, and verifies at every leaf of each tree a lower bound on
+$\mathrm{cut}_{\overline G}$ above $b(s)$, using only Python's integers and
+no project code. With Theorem~\ref{thm:clique-lb4} and
+Proposition~\ref{prop:clique-partition} (4-partitions with at most $k$ inside
+edges), all 30 density-0.9 instances have value exactly~$4$: an exact
+certificate (class~(i)) resting on Brouwer's published theorem, which is
+neither formalised nor reproved here. The case computations are not
 formalised proofs.
+% ROUND2: update when scripts/check_clique_certificates.py has checked the
+% certificates of all 170 cases (results/clique/certificates/check.log): until
+% then the density-0.9 lower bounds are class (ii) and this paragraph must say so.
 
 \subsection{The three open instances}
 
