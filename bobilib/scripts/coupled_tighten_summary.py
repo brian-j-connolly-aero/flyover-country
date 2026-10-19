@@ -1,15 +1,17 @@
-"""Fold the strict re-derivation of coupled points into summary.csv.
+"""Fold the strict re-derivation of points into a folder's summary table.
 
 usage: python3 -I scripts/coupled_tighten_summary.py SUMMARY.csv TIGHTEN.jsonl CERTIFY_TIGHT.tsv
 
+SUMMARY.csv: results/general-coupled/summary.csv or results/general/points.csv.
 TIGHTEN.jsonl: the output of scripts/tighten_coupled.sh (`bobi coupled-tighten`),
 one JSON line per re-derived file. CERTIFY_TIGHT.tsv: `bobi certify --tight` on
 every file of the folder. Rows of re-derived files get the new point's
-objectives, errors and free_leader; every row with a point gets
-`tightened` (all-fixed / linking-fixed, empty when the file was kept),
-`follower_slack` (the point's follower value minus the proven bound on the
-follower's optimum, absolute) and `tight_certified` (yes / no). SUMMARY.csv
-is rewritten in place.
+objectives (and, where the table has those columns, errors and free_leader);
+every row with a solution file (status `point`, and `verified` True where the
+table has that column) gets `tightened` (all-fixed / linking-fixed, empty when
+the file was kept), `follower_slack` (the point's follower value minus the
+proven bound on the follower's optimum, absolute) and `tight_certified`
+(yes / no). SUMMARY.csv is rewritten in place.
 """
 import csv
 import json
@@ -49,18 +51,19 @@ def main():
         n = r["name"]
         for c in ("tightened", "follower_slack", "tight_certified"):
             r.setdefault(c, "")
-        if r["status"] != "point":
+        if r["status"] != "point" or r.get("verified", "True") != "True":
             continue
         if n in tight:
             t = tight[n]
             assert t["status"] == "point", n
             c = cert[n]
             assert abs(float(c["upper"]) - t["upper"]) <= 1e-9 * max(1.0, abs(t["upper"])), n
-            r.update(upper_obj=repr(t["upper"]), lower_obj=repr(t["lower"]),
-                     rel_error=c["rel_error"], tie_rel_error=c["tie_rel_error"],
-                     max_violation=repr(t["max_violation"]),
-                     free_leader=str(t["mode"] == "linking-fixed"),
-                     tightened=t["mode"])
+            new = dict(upper_obj=repr(t["upper"]), lower_obj=repr(t["lower"]),
+                       rel_error=c["rel_error"], tie_rel_error=c["tie_rel_error"],
+                       max_violation=repr(t["max_violation"]),
+                       free_leader=str(t["mode"] == "linking-fixed"),
+                       tightened=t["mode"])
+            r.update({k: v for k, v in new.items() if k in cols})
         c = cert.get(n)
         assert c is not None, f"no certify --tight line for {n}"
         r["follower_slack"] = c["slack"]
@@ -69,7 +72,7 @@ def main():
         w = csv.DictWriter(f, cols, lineterminator="\n")
         w.writeheader()
         w.writerows(rows)
-    pts = [r for r in rows if r["status"] == "point"]
+    pts = [r for r in rows if r["status"] == "point" and r.get("verified", "True") == "True"]
     print(f"{len(pts)} points, {sum(r['tight_certified'] == 'yes' for r in pts)} tight-certified, "
           f"{sum(bool(r['tightened']) for r in pts)} re-derived")
 

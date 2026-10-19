@@ -96,6 +96,18 @@ EXTRA_NOTES = {
                                "(notes/general20-30-20-20-20-2.verify.tsv)",
     "timtab1_50_50": "HPR is exactly MIPLIB's timtab1 (optimum 764772), a lower bound; this point is 764774 "
                      "(general-coupled/README.md)",
+    # Lefebvre and Schmidt's run files (notes/lefebvre_schmidt.md, sections 1 and 3).
+    "ex10_0_100": "Lefebvre and Schmidt's (2025) MILP and MILP-First run files report the same optimum, 100 "
+                  "(Optimal/Proved, about 624 s); their paper does not state it, so it is not counted as a published "
+                  "optimum (notes/lefebvre_schmidt.md)",
+    "ex10_50_50": "HPR is exactly MIPLIB's ex10 (scripts/compare_hpr.py), so MIPLIB's optimum 100 is a lower bound; "
+                  "Lefebvre and Schmidt's (2025) MILP and MILP-First run files report Optimal/Proved 100, not verified "
+                  "here, and no point is known here (notes/lefebvre_schmidt.md)",
+    "highschool1-aigio_0_100": "Lefebvre and Schmidt's (2025) PADM run file lists a point of value 0 (Feasible/Proved, "
+                               "results-PADM.csv lines 789 and 794), and their paper counts the instance among the open "
+                               "ones where PADM found a feasible point; it cannot be bilevel feasible: the exact recession "
+                               "direction here leaves the follower without an optimal response for every leader choice "
+                               "(notes/lefebvre_schmidt.md)",
 }
 
 # Published points for general instances that are not in miblp_literature_status.csv: they appear only
@@ -106,7 +118,7 @@ EXTRA_PUBLISHED = {
     "rmine6_0_100": (-3.11093, "Lefebvre and Schmidt (2025), PADM run files"),
     "rmine6_50_50": (-3.11093, "Lefebvre and Schmidt (2025), PADM run files"),
     "ex10_0_100": (100, "Lefebvre and Schmidt (2025), MILP run files, reported there as optimal"),
-    "neos-631710_0_100": (556, "Lefebvre and Schmidt (2025), MILP run files"),
+    "neos-631710_0_100": (556, "Lefebvre and Schmidt (2025), MILP-First run file"),
 }
 
 # OR instances proven optimal in Lozano, Bergman and Cire's published data although the lower
@@ -121,9 +133,10 @@ OR_BC_CLOSED = {
 # Authoritative counts (paper spec). The script fails if the data disagree.
 EXPECT = dict(
     instances=2654, bobilib_optimal=1027, bobilib_infeasible=33, bobilib_feasible=1175, bobilib_open=419,
-    unsolved=1594, literature=528, new_optimal=80, infeasible_bilevel=40, first_point=230, unchanged=716,
-    settled=648, optimal_now=608, packing=1254,
+    unsolved=1594, literature=528, new_optimal=82, infeasible_bilevel=40, first_point=228, unchanged=716,
+    settled=650, optimal_now=610, packing=1254,
 )
+CLASSES = ("exact", "numerical", "benchmark")  # certificate classes (i), (ii), (iii) of the appendix
 
 
 def die(msg):
@@ -176,9 +189,13 @@ def load_tsv_results(path):
 
 
 def res_objectives(res):
-    """Objective of every BOBILib solution file under results/ (including archive members)."""
+    """Objective of every current BOBILib solution file under results/ (including archive members).
+
+    The tolerance/ folders hold superseded files (benchmark-accepted points replaced by tight ones,
+    general/README.md and general-coupled/README.md, "Strict tolerance"); they are not current."""
     files = {}
-    for root, _, names in os.walk(res):
+    for root, dirs, names in os.walk(res):
+        dirs[:] = [d for d in dirs if d != "tolerance"]
         for n in names:
             p = os.path.join(root, n)
             rel = os.path.relpath(p, res)
@@ -260,12 +277,36 @@ def main():
     hpr = {r["name"]: r for r in load_csv(f"{R}/general/hpr_optimal.csv")}
     gpts = {r["name"]: r for r in load_csv(f"{R}/general/points.csv")}
     cpl = {r["name"]: r for r in load_csv(f"{R}/general-coupled/summary.csv")}
+    # bobi verify --tight over every current solution file (notes/tight_verify.md): folder -> name -> class
+    tight = collections.defaultdict(dict)
+    for r in load_csv(f"{R}/notes/tight_verify.tsv", "\t"):
+        tight[r["folder"]][r["name"]] = r
+    # Lefebvre and Schmidt's run files against this package (notes/lefebvre_schmidt.md): instance -> categories
+    ls_notes = collections.defaultdict(list)
+    for r in load_csv(f"{R}/notes/lefebvre_schmidt_discrepancies.tsv", "\t"):
+        if r["category"] not in ls_notes[r["instance"]]:
+            ls_notes[r["instance"]].append(r["category"])
     small_clique = {}
     for p in ("small_bcpins.jsonl", "small_plusbcpins.jsonl"):
         for line in open(f"{R}/clique/runs/{p}"):
             if line.startswith("{"):
                 d = json.loads(line)
                 small_clique[d["inst"]] = d
+    # Case certificates of w3(G) > k (clique/certificates/check.log of scripts/check_clique_certificates.py):
+    # instance -> number of part-size cases certified; only instances whose check passed.
+    clique_certs, cur, ok_cases = {}, None, 0
+    log = open(f"{R}/clique/certificates/check.log").read()
+    check("\nRESULT PASS\n" in log, "clique case certificates: check.log has no RESULT PASS")
+    for line in log.splitlines():
+        m = re.match(r"(normalClique\S+): n=\d+ .* (\d+) with b\(s\) >= 0$", line)
+        if m:
+            cur, want_cases, ok_cases = m.group(1), int(m.group(2)), 0
+        elif re.match(r"  sizes \(.*\) b=\d+: tree OK", line):
+            ok_cases += 1
+        elif line.startswith("  PASS: w3(G) > k") and cur:
+            check(ok_cases == want_cases, f"case count of {cur}")
+            clique_certs[cur] = ok_cases
+            cur = None
     rays = {}
     for line in open(f"{R}/rays/ray_verify.jsonl"):
         if line.startswith("{"):
@@ -308,8 +349,14 @@ def main():
     # Who published the best OR point (compare.csv's lit_ub): Lozano, Bergman and Cire, whose
     # repository holds a solution file for it, or Lefebvre and Schmidt (value only).
     or_pub_src = {}
+    # Lefebvre and Schmidt's values from runs stopped at the time limit (scripts/ls_mkip_points.py):
+    # not counted as published points, as in their own analysis; noted where one would be the best.
+    or_ls_timelimit = {}
     if a.mkip_lit:
         for r in load_csv(a.mkip_lit):
+            tl = num(r.get("lefebvre_schmidt_ub_timelimit"))
+            if r["set"] == "or" and tl is not None and (num(r["best_known_ub"]) is None or tl < num(r["best_known_ub"])):
+                or_ls_timelimit[r["name"]] = tl
             if r["set"] != "or" or num(r["best_known_ub"]) is None:
                 continue
             b, dd, ls_ = num(r["best_known_ub"]), num(r["dd_lcb2026_ub"]), num(r["lefebvre_schmidt_ub"])
@@ -377,7 +424,7 @@ def main():
         files = by_name.get(n, {})
         row = dict(instance=n, collection=b["collection"], family=fam, bobilib_status=b["status"],
                    bobilib_value=b["value"], new_status="", primal_value=None, dual_bound=None, source="",
-                   method="", certificate="", verified="na", notes=[])
+                   method="", certificate="", verified="na", certificate_class="na", notes=[])
         notes = row["notes"]
         outcome, src = s["outcome"], s["source"]
         bval = b["value"]
@@ -386,6 +433,27 @@ def main():
             row["certificate"] = rel
             v = verified.get(rel) if ok is None else ok
             row["verified"] = "yes" if v else "no"
+
+        def tight_class(rel):
+            """numerical if the file passes bobi verify --tight, benchmark if only BOBILib's tolerance."""
+            folder, _, member = rel.partition(":")
+            folder = folder if member else os.path.dirname(rel)
+            t = tight[folder][n]
+            check(t["result"] == "PASS" or t["class"] == "benchmark-accepted", f"tight verification of {rel}")
+            return "numerical" if t["class"] == "pass" else "benchmark"
+
+        def tightened_note(r, folder):
+            if r.get("tightened"):
+                how = {"all-fixed": "every leader value kept", "linking-fixed": "linking variables kept"}[r["tightened"]]
+                old = tight[f"{folder}/tolerance"][n]
+                what = ("a benchmark-accepted point" if old["class"] == "benchmark-accepted" else
+                        f"which already passed the tight test (follower slack {float(old['follower_slack']):.1e})")
+                notes.append(f"re-derived with the follower within 1e-9 of its optimum (bobi coupled-tighten, {how}); "
+                             f"the superseded file, {what}, is in {folder}/tolerance/")
+            if r.get("tight_certified") == "no":
+                notes.append("passes bobi verify --tight; bobi certify --tight gets no follower bound (the follower's "
+                             "problem at these leader values is infeasible at its feasibility tolerance 1e-9, "
+                             "general/README.md)")
 
         def own_file(prefix=None):
             """Our verified solution file for n (best objective), optionally within one folder."""
@@ -429,7 +497,8 @@ def main():
         elif outcome == "optimal" and src in LIT_KEYS:
             key = LIT_KEYS[src]
             val, lnote = lit[n]
-            row.update(new_status="optimal", primal_value=val, dual_bound=val, source=key, method=LIT_METHOD[key])
+            row.update(new_status="optimal", primal_value=val, dual_bound=val, source=key, method=LIT_METHOD[key],
+                       certificate_class="numerical")  # a published optimum, used as published
             if lnote:
                 notes.append(lnote)
             obj, rel = own_file()
@@ -451,6 +520,7 @@ def main():
                 r = ss[n]
                 val = num(r["optimum"])
                 cert(f"ss/{r['file']}")
+                row["certificate_class"] = "exact"
                 row["method"] = "robust subset-sum search (bobi ss-solve)"
                 notes.append(f"{int(r['nodes']):,} nodes, {r['cpu_seconds']} s CPU; lower bound re-proved by "
                              f"scripts/ss_check.py ({int(r['independent_check_nodes']):,} nodes)")
@@ -459,14 +529,22 @@ def main():
                 val = num(r["upper_bound"])
                 check(r["status"] == "optimal" and num(r["lower_bound"]) == val, f"clique {n}")
                 cert(f"clique/{n}.res.json")
-                row["method"] = ("Mantel's theorem + 3-partition" if r["lb_argument"].startswith("Mantel")
-                                 else "Brouwer 1981 Thm 2 + w3(G) > k (exact solver proofs) + 4-partition")
+                row["certificate_class"] = "exact"
+                if r["lb_argument"].startswith("Mantel"):
+                    row["method"] = "Mantel's theorem + 3-partition"
+                else:
+                    check(n in clique_certs, f"case certificates of {n}")
+                    row["method"] = "Brouwer 1981 Thm 2 + w3(G) > k (case certificates, integer checker) + 4-partition"
                 notes.append(f"lower bound: {r['lb_argument']}; upper bound: {r['ub_certificate']}")
+                if n in clique_certs:
+                    notes.append(f"w3(G) > k: {clique_certs[n]} part-size cases certified by branch-and-bound trees, "
+                                 f"checked by scripts/check_clique_certificates.py (clique/certificates/{n}.cert.jsonl.gz)")
             elif fam == "network":
                 r = net[n]
                 val = num(r["value"])
                 check(r["certified"] == "true", f"network {n}")
                 cert(f"network/{n}.res.json")
+                row["certificate_class"] = "exact"
                 row["method"] = "every attack enumerated, follower by exact tree DP (bobi fire)"
                 notes.append(f"{int(r['attacks']):,} attacks, {r['optimal_attacks']} optimal; "
                              f"re-derived by the independent review (network/review.tsv)")
@@ -474,12 +552,14 @@ def main():
                 r = orc[n]
                 val = num(r["our_point"])
                 cert(f"or/{n}.res.json")
+                row["certificate_class"] = "numerical"
                 row["method"] = "follower LP at the bracket minimiser, follower solved exactly (bobi upper-multi)"
                 notes.append(f"point meets the published branch-and-cut bound {fmt(val)}; the published lower bound "
                              f"{fmt(num(r['lit_lb']))} comes from runs its authors flag as numerically inconsistent")
             else:  # general: point meets the MIPLIB optimum of the HPR
                 r = hpr[n]
                 val = num(r["optimum"])
+                row["certificate_class"] = "numerical"  # MIPLIB's published floating-point optimum
                 row["method"] = "point meets the MIPLIB optimum of the HPR (HPR = MIPLIB model, scripts/compare_hpr.py)"
                 m = re.search(r"\(results/(.*)\)", r["point_from"])
                 if m:
@@ -504,8 +584,10 @@ def main():
             row.update(new_status="infeasible_bilevel", source="this work",
                        method="recession direction of the follower (Meyer 1974)")
             cert(rel, d["verified"])
+            row["certificate_class"] = "exact" if d["verified"] else "numerical"
             if d["verified"]:
-                notes.append(f"f^T d = {d['objective_along_d']:g} on {d['support']} variables, checked in exact "
+                notes.append(f"f^T d = {d['objective_along_d']:g} on {d['support']} "
+                             f"variable{'s' if d['support'] != 1 else ''}, checked in exact "
                              f"rational arithmetic (scripts/verify_ray.py)")
             else:
                 notes.append(f"f^T d = {d['objective_along_d']:g} on {d['support']} variables; floating point only: "
@@ -517,6 +599,8 @@ def main():
                 obj, rel = own_file("or/")
                 check(num(r["our_point"]) == obj, f"OR point {n}")
                 cert(rel)
+                # one follower knapsack: integer data, exact knapsack oracle; several: HiGHS's dual bound
+                row["certificate_class"] = "exact" if r["variant"] == "100" else "numerical"
                 row["method"] = "follower LP at the bracket minimiser, follower solved exactly (bobi upper-multi)"
                 lu = num(r["lit_ub"])
                 if lu is None:
@@ -531,6 +615,8 @@ def main():
             elif n in gpts and gpts[n]["status"] == "point":
                 obj, rel = own_file("general/")
                 cert(rel)
+                row["certificate_class"] = tight_class(rel)
+                tightened_note(gpts[n], "general")
                 row["method"] = "HPR, follower, optimistic tie-break (bobi general)"
                 if n in gen_pub:
                     pv, who = gen_pub[n]
@@ -543,6 +629,8 @@ def main():
                 r = cpl[n]
                 obj, rel = own_file("general-coupled/")
                 cert(rel)
+                row["certificate_class"] = tight_class(rel)
+                tightened_note(r, "general-coupled")
                 row["method"] = f"bobi coupled, method {r['method']}"
                 if n in gen_pub:
                     pv, who = gen_pub[n]
@@ -600,6 +688,16 @@ def main():
                                                  else "not attempted (batch budget spent)"))
         if n in EXTRA_NOTES:
             notes.append(EXTRA_NOTES[n])
+        if n in or_ls_timelimit:
+            notes.append(f"Lefebvre and Schmidt's (2025) run files also hold the value {fmt(or_ls_timelimit[n])} from a "
+                         f"run stopped at the time limit; their own analysis does not count such rows, and it is not "
+                         f"used as a published point here (literature/mkip_literature_status.csv, "
+                         f"column lefebvre_schmidt_ub_timelimit)")
+        if n in ls_notes and "Lefebvre and Schmidt" not in EXTRA_NOTES.get(n, ""):
+            notes.append(f"Lefebvre and Schmidt's (2025) run files: {', '.join(ls_notes[n])} "
+                         f"(notes/lefebvre_schmidt_discrepancies.tsv)")
+        check((row["certificate_class"] == "na") == (row["new_status"] not in ("optimal", "infeasible_bilevel", "feasible")),
+              f"certificate class of {n}")
         rows.append(row)
 
     fam_rank = {f: i for i, f in enumerate(FAMILY_ORDER)}
@@ -638,23 +736,55 @@ def main():
           and fam_unch["general-pure"] + fam_unch["general-mixed"] == 123, f"unchanged per family {fam_unch}")
     gen = [r for r in unsolved if r["family"].startswith("general-") and r["bobilib_status"] != "infeasible"]
     gc = C((r["new_status"], r["source"] == "this work") for r in gen)
-    check(len(gen) == 266 and gc[("optimal", False)] == 8 and gc[("optimal", True)] == 5
-          and gc[("infeasible_bilevel", True)] == 40 and gc[("feasible", True)] == 90, f"general outcomes {gc}")
+    check(len(gen) == 266 and gc[("optimal", False)] == 8 and gc[("optimal", True)] == len(hpr) - 1
+          and gc[("infeasible_bilevel", True)] == 40 and gc[("feasible", True)] == 88, f"general outcomes {gc}")
     check(sum(1 for r in rows if r["family"] == "general-pure" and r["bobilib_status"] != "optimal") == 131
           and sum(1 for r in rows if r["family"] == "general-mixed" and r["bobilib_status"] != "optimal") == 168,
           "general pure 131 / mixed 168")
     ray_rows = [r for r in rows if r["new_status"] == "infeasible_bilevel"]
-    check(sum(r["verified"] == "yes" for r in ray_rows) == 38 and
-          sorted(r["instance"] for r in ray_rows if r["verified"] == "no") == ["supportcase42_0_100", "supportcase42_50_50"],
-          "38 exact + 2 floating-point rays")
+    check(all(r["verified"] == "yes" and r["certificate_class"] == "exact" for r in ray_rows),
+          "every recession direction checked in exact arithmetic")
+    check(all(r["certificate"].endswith(".exact.ray.json") for r in ray_rows if r["instance"].startswith("supportcase42")),
+          "supportcase42: the exact directions")
     first = C(("OR" if r["family"] == "multidim-knapsack" else
                "general coupled" if r["certificate"].startswith("general-coupled/") else "general")
               + (" first anywhere" if "first point anywhere" in "; ".join(r["notes"]) else " published point")
               for r in rows if r["new_status"] == "feasible")
-    check(first == {"OR first anywhere": 88, "OR published point": 52, "general first anywhere": 53,
-                    "general published point": 9, "general coupled first anywhere": 27,
+    check(first == {"OR first anywhere": 88, "OR published point": 52, "general first anywhere": 52,
+                    "general published point": 8, "general coupled first anywhere": 27,
                     "general coupled published point": 1}, f"first points {first}")
     got["first_anywhere"] = sum(v for k, v in first.items() if k.endswith("first anywhere"))
+    # Certificate classes (appendix, Definition of certificate classes): every row with a result has one.
+    cls = C((r["new_status"], r["certificate_class"]) for r in rows)
+    for c in CLASSES:
+        got[f"class_{c}"] = sum(v for (_, k), v in cls.items() if k == c)
+    check(sum(got[f"class_{c}"] for c in CLASSES) == got["settled"] + got["first_point"], f"classes {cls}")
+    check(all(r["bobilib_status"] in ("feasible", "open") for r in rows if r["certificate_class"] != "na"),
+          "classes only on rows that BOBILib does not list as optimal or infeasible")
+    exact_parts = (sum(1 for r in new_opt if r["family"] in ("knapsack", "clique", "network"))
+                   + ns["infeasible_bilevel"]
+                   + sum(1 for r in rows if r["new_status"] == "feasible" and r["family"] == "multidim-knapsack"
+                         and orc[r["instance"]]["variant"] == "100"))
+    check(got["class_exact"] == exact_parts, f"exact class {got['class_exact']} != {exact_parts}")
+    check(all(r["certificate_class"] == "numerical" for r in lit_rows), "published optima: numerical")
+    got["class_by_status"] = {f"{st_} {c}": v for (st_, c), v in sorted(cls.items()) if c != "na"}
+
+    def kind(r):
+        if r["new_status"] == "infeasible_bilevel":
+            return "no bilevel feasible point (recession direction)"
+        if r["new_status"] == "optimal" and r["source"] != "this work":
+            return "published optimum"
+        if r["new_status"] == "optimal":
+            return {"knapsack": "knapsack interdiction optimum (subset-sum search)",
+                    "clique": "clique interdiction optimum", "network": "attack-protect optimum",
+                    "multidim-knapsack": "OR optimum"}.get(r["family"], "optimum at the MIPLIB bound of the HPR")
+        if r["family"] == "multidim-knapsack":
+            return ("OR point, one follower knapsack" if orc[r["instance"]]["variant"] == "100"
+                    else "OR point, several follower knapsacks")
+        return ("point with coupling rows" if r["certificate"].startswith("general-coupled/")
+                else "point without coupling rows")
+    got["class_kinds"] = sorted(C((kind(r), r["certificate_class"]) for r in rows if r["certificate_class"] != "na").items(),
+                                key=lambda kv: (CLASSES.index(kv[0][1]), -kv[1]))
     got["lit_no_file"] = sum(1 for r in lit_rows if r["verified"] == "na")
     got["or_inconsistent"] = sum(1 for r in orc.values() if num(r["lit_lb"]) is not None and num(r["lit_ub"]) is not None
                                  and num(r["lit_lb"]) > num(r["lit_ub"]))
@@ -672,7 +802,7 @@ def main():
 
     # ---- instances.csv ---------------------------------------------------------------------
     cols = ["instance", "collection", "family", "bobilib_status", "bobilib_value", "new_status", "primal_value",
-            "dual_bound", "source", "method", "certificate", "verified", "notes"]
+            "dual_bound", "source", "method", "certificate", "verified", "certificate_class", "notes"]
     buf = io.StringIO()
     w = csv.DictWriter(buf, fieldnames=cols, lineterminator="\n")
     w.writeheader()
@@ -705,8 +835,9 @@ def main():
             lines.append(f"=bestdual= {n}  {fmt(r['dual_bound'])}")
             tally["bestdual"] += 1
             tally["bestdual " + r["family"]] += 1
-    check(tally["opt"] == 608 and tally["inf"] == 40, f"solu tally {tally}")
-    check(tally["opt literature"] == 528 and tally["opt this work"] == 80, "solu optimal split")
+    check(tally["opt"] == EXPECT["optimal_now"] and tally["inf"] == EXPECT["infeasible_bilevel"], f"solu tally {tally}")
+    check(tally["opt literature"] == EXPECT["literature"] and tally["opt this work"] == EXPECT["new_optimal"],
+          "solu optimal split")
     lit_counts = C(r["source"] for r in lit_rows)
     header = [
         "# bobilib_update.solu: status update for BOBILib (https://bobilib.org) in the MIPLIB/SCIP .solu format.",
@@ -734,16 +865,25 @@ def main():
     header += [
         "#   this work: every other line; the certificate of each is named in instances.csv (column 'certificate').",
         "#",
-        f"# Of the =inf= lines, {sum(r['verified'] == 'yes' for r in ray_rows)} rest on recession directions checked in exact "
-        f"rational arithmetic; {', '.join(sorted(r['instance'] for r in ray_rows if r['verified'] != 'yes'))}",
-        "# rest on directions checked in floating point only (residuals of about 1e-12 relative remain).",
-        "#",
     ]
+    float_rays = sorted(r["instance"] for r in ray_rows if r["verified"] != "yes")
+    header += ([f"# Of the =inf= lines, {len(ray_rows) - len(float_rays)} rest on recession directions checked in exact "
+                f"rational arithmetic; {', '.join(float_rays)}",
+                "# rest on directions checked in floating point only."] if float_rays else
+               [f"# Every =inf= line ({len(ray_rows)}) rests on a recession direction checked in exact rational arithmetic."])
+    header += ["# instances.csv, column 'certificate_class', gives the certificate class of every =opt= and =inf= line.", "#"]
     write(f"{R}/bobilib_update.solu", "\n".join(header + lines) + "\n")
 
     # ---- README.md ---------------------------------------------------------------------------
     folder_counts = C(rel.split("/")[0] for rel in objs)
     nrays = len([f for f in os.listdir(f"{R}/rays") if f.endswith(".ray.json") and ".exact." not in f])
+    cur_tight = [t for f, d in tight.items() if not f.endswith("/tolerance") for t in d.values()]
+    check(len(cur_tight) == len(objs), f"tight verification covers {len(cur_tight)} of {len(objs)} files")
+    got["tight_files"], got["tight_pass"] = len(cur_tight), sum(t["class"] == "pass" for t in cur_tight)
+    got["tight_superseded"] = sum(len(d) for f, d in tight.items() if f.endswith("/tolerance"))
+    got["tight_superseded_bench"] = sum(t["class"] == "benchmark-accepted" for f, d in tight.items()
+                                        if f.endswith("/tolerance") for t in d.values())
+    got["clique_cert_instances"], got["clique_cert_cases"] = len(clique_certs), sum(clique_certs.values())
     write(f"{R}/README.md", readme(got, tally, lit_counts, folder_counts, nrays, ns))
 
     # ---- SHA256SUMS --------------------------------------------------------------------------
@@ -826,6 +966,15 @@ certificate, a partition certificate) or by a published optimum (cited); for
 {got['lit_no_file']} of the {got['literature']} published optima there is no solution file here
 (`verified` = `na`), and only the published value is used.
 
+Certificate classes (column `certificate_class`, defined below): of the
+{got['settled'] + got['first_point']} rows with a result (optimal, no bilevel feasible point, or a verified point),
+{got['class_exact']} are `exact`, {got['class_numerical']} `numerical` and {got['class_benchmark']} `benchmark`.
+All {got['tight_files']:,} current solution files pass `bobi verify --tight`
+(`notes/tight_verify.md`): the follower's value is within max(1e-6, 1e-9 |phi|) of
+its proven optimum, not only within BOBILib's relative 1e-4. The
+{got['tight_superseded']} files they replace ({got['tight_superseded_bench']} of them benchmark-accepted points) are kept in
+`general/tolerance/` and `general-coupled/tolerance/` for the record.
+
 ## Data
 
 ```
@@ -843,6 +992,10 @@ results/
   rays/                 {nrays} recession directions: the follower is infeasible or unbounded for every leader choice
   general/              {folder_counts['general']} points for MIPLIB-derived instances without coupling rows; HPR-bound optima
   general-coupled/      {folder_counts['general-coupled']} points for MIPLIB-derived instances with coupling rows
+  */tolerance/          superseded points (follower within BOBILib's tolerance only), replaced by tight ones
+  literature/           published bounds and optima per instance (inputs of compare.csv and of this index)
+  notes/                tight re-verification of every file, Lefebvre and Schmidt's run files checked against
+                        this package, BOBILib's general20-30-20-20-20-2 file, instance structure of the general sets
 ```
 
 Each folder has its own README with the method, the columns of its tables,
@@ -873,7 +1026,13 @@ vertices (at most k of them), so the remainder is r-partite and its clique
 number is at most r; the follower part is a maximum clique of the remainder.
 `clique/summary.csv` gives, per instance, n, density, m, k, BOBILib's value,
 the lower bound with its argument (Mantel, or Brouwer's Theorem 2 with the
-exact solver proofs of w3(G) > k) and the upper bound with its partition.
+proofs of w3(G) > k) and the upper bound with its partition.
+
+**Clique case certificates (`clique/certificates/*.cert.jsonl.gz`)** prove
+w3(G) > k for the {got['clique_cert_instances']} density-0.9 instances: one explicit branch-and-bound
+tree per part-size case ({got['clique_cert_cases']} cases), checked from the instance files alone by
+`scripts/check_clique_certificates.py` in integer arithmetic (`check.log`; format
+and proof in `clique/certificates/README.md`).
 
 **`instances.csv`** (UTF-8, comma separated, one header row):
 
@@ -889,10 +1048,42 @@ exact solver proofs of w3(G) > k) and the upper bound with its partition.
 | `source` | citation key of the published result (see below), `this work`, or `{BOBILIB_KEY}` (BOBILib's own value) |
 | `method` | how the status or value was obtained |
 | `certificate` | path, relative to `results/`, of the solution or certificate file; `ARCHIVE.tar.gz:FILE` names an archive member |
-| `verified` | `yes`: the certificate passed its check (`bobi verify`, or the exact ray check); `no`: it did not or was only checked in floating point; `na`: no certificate |
+| `verified` | `yes`: the certificate passed its check (`bobi verify`, or the exact ray check); `no`: it did not; `na`: no certificate. It says whether a check passed, not how rigorous it is (see `certificate_class`) |
+| `certificate_class` | how rigorous the result of the row is (classes (i)-(iii) of the paper's appendix, "Certificate classes"): `exact`, `numerical`, `benchmark` for every row with `new_status` `optimal`, `infeasible_bilevel` or `feasible`; `na` otherwise |
 | `notes` | free text, `;`-separated |
 
 Rows per `new_status`: {', '.join(f'{k} {v:,}' for k, v in sorted(ns.items()))}.
+
+**Certificate classes.** A result is in the weakest class of the steps it uses.
+
+* `exact` (class (i)): checked in exact rational or integer arithmetic, or a
+  mathematical proof together with an exhaustive integer computation; no
+  tolerance enters. Rows: the subset-sum KIP optima (exhaustive integer search,
+  re-proved by two integer-only provers), the clique optima (Mantel or
+  Brouwer's theorem with the integer-checked case certificates, and the
+  partition files), the network optima (every attack enumerated, exact tree
+  DP), the recession directions (exact rational check), and OR points with one
+  follower knapsack (integer data, exact knapsack oracle).
+* `numerical` (class (ii)): rests on a floating-point LP, MILP or CP solver run
+  with tolerances, or on a published optimum used as published. Rows: the
+  {got['literature']} published optima (not re-certified here), the optima at the MIPLIB
+  bound of the HPR (MIPLIB's published floating-point optima; optimal by
+  accepted benchmark conventions), OR points with several follower knapsacks
+  (follower optimum by HiGHS), and the points for the general instances (rows
+  within 1e-6, follower optimum by HiGHS, and the follower's value within
+  max(1e-6, 1e-9 |phi|) of the proven bound: they pass `bobi verify --tight`).
+* `benchmark` (class (iii)): a point that passes BOBILib's tolerance-based
+  checker only because of its tolerances: its follower value is above the
+  follower's optimum by more than `bobi verify --tight` allows but within
+  BOBILib's relative 1e-4, or its rows hold only within BOBILib's 1e-4. No
+  current row is of this class; the superseded files in `*/tolerance/` and
+  BOBILib's own file of general20-30-20-20-20-2 (`notes/`) are examples.
+
+Rows per class and kind of result:
+
+| Kind of result | Class | Rows |
+| --- | --- | ---: |
+{chr(10).join(f"| {k} | `{c}` | {v:,} |" for (k, c), v in got['class_kinds'])}
 
 Other tables (columns in each folder's README): `kip/summary.csv` (published KIP
 optima and the leader-vector source), `ss/proofs.csv` (optimum, nodes, CPU
@@ -929,6 +1120,8 @@ D=data/collection
 ./target/release/bobi verify --instances $D --generic results/clique results/general results/general-coupled
 mkdir -p /tmp/large && tar xzf results/general/large_points.tar.gz -C /tmp/large
 ./target/release/bobi verify --instances $D --generic /tmp/large
+./target/release/bobi verify --instances $D --tight --time-limit 1200 -j 2 results/general /tmp/large   # any folder
+python3 -I scripts/check_clique_certificates.py $D/interdiction/clique-interdiction/clique results/clique/certificates
 python3 -I scripts/verify_ray.py INSTANCE.mps.gz INSTANCE.aux results/rays/INSTANCE.ray.json
 python3 -I scripts/ss_check.py INSTANCE.mps.gz INSTANCE.aux - OPTIMUM   # second KIP lower-bound prover
 python3 -I scripts/compare_hpr.py INSTANCE.mps.gz INSTANCE.aux MIPLIB.mps.gz   # HPR = MIPLIB model
@@ -937,23 +1130,34 @@ python3 -I scripts/compare_hpr.py INSTANCE.mps.gz INSTANCE.aux MIPLIB.mps.gz   #
 `bobi verify` checks a file the way BOBILib's feasibility checker does: rows,
 bounds and integrality within 1e-6, the stated objective, and the follower
 re-solved with the leader fixed (exact knapsack oracle for one follower row,
-a HiGHS MILP otherwise) and found optimal within BOBILib's relative 1e-4. It
-is separate from BOBILib's solvers but not from this work's code: it is part
+a HiGHS MILP otherwise) and found optimal within BOBILib's relative 1e-4.
+`bobi verify --tight` holds the follower to max(1e-6, 1e-9 |phi|) of its
+proven optimum instead; all {got['tight_files']:,} current files pass it
+(`notes/tight_verify.md`, `notes/tight_verify.tsv`). `bobi verify` is
+separate from BOBILib's solvers but not from this work's code: it is part
 of the same crate as the solvers and shares their instance reader and
 knapsack oracle. Code that shares nothing with the solvers re-checks the
 subset-sum lower bounds (`scripts/ss_check.py` and a second prover), the
-recession directions (`scripts/verify_ray.py`) and the HPR comparisons
-(`scripts/compare_hpr.py`); the clique, network and coupled results were
-re-derived with separate code in separate review sessions (see the folder
-READMEs). The software, the experiments and these reviews were carried out
-with an AI coding agent directed by the author; the reviews ran in separate
-sessions that wrote their own code. Caveats: the two supportcase42
-directions are checked in floating point only; nine coupled points use
-BOBILib's 1e-4 tolerance on the follower's value (about 1e-7 relative); OR
-lower bounds for several follower knapsacks are the literature's; the
-published OR points include values of Lefebvre and Schmidt (2025) that are
-not verified, and for {got['or_inconsistent']} OR instances a published lower bound exceeds a
-published point (`notes` of `instances.csv`).
+recession directions (`scripts/verify_ray.py`), the HPR comparisons
+(`scripts/compare_hpr.py`), the clique case certificates
+(`scripts/check_clique_certificates.py`) and the re-derived tight general
+and coupled points where its solves finished in time
+(`scripts/coupled_tight_check.py`, HiGHS through highspy,
+`*/tolerance/pycheck_tight.tsv`); the clique,
+network and coupled results were also re-derived with separate code in
+separate review sessions (see the folder READMEs). The software, the
+experiments and these reviews were carried out with an AI coding agent
+directed by the author; the reviews ran in separate sessions that wrote
+their own code. Caveats: the optima at the MIPLIB bound rest on MIPLIB's
+published floating-point optima; the OR lower bounds from the LP bracket rest
+on HiGHS's dual bound (with a safety margin of 1e-6 relative); OR lower bounds
+for several follower knapsacks are the literature's; the published OR points
+include values of Lefebvre and Schmidt (2025) that are not verified, taken
+only from runs that ended before the time limit, as in their own analysis
+(their run files are checked against this package in
+`notes/lefebvre_schmidt.md`); for {'one' if got['or_inconsistent'] == 1 else got['or_inconsistent']} OR
+instance{'s' if got['or_inconsistent'] != 1 else ''} a published lower bound exceeds a published point
+(`notes` of `instances.csv`{'; OR10x100-0.75_4.dat-0, closed by the published branch-and-cut bound' if got['or_inconsistent'] == 1 else ''}).
 
 ## Replicating
 
@@ -966,7 +1170,19 @@ make all                                  # also figures, paper and appendix
 `make data` runs `scripts/build_data_package.py` (add `MKIP_LIT=`, `MIBLP_LIT=`
 and `LBC_OPTIMAL=` to re-read the published optima from the literature tables;
 without them, and without `META=`, they are read back from `instances.csv`),
-then `scripts/gen_facts.py` and `scripts/gen_appendix_tables.py`. The
+then `scripts/gen_facts.py` and `scripts/gen_appendix_tables.py`.
+`summary.json` is written by `python3 -I scripts/summarize.py --meta collection.json
+--mkip-lit results/literature/mkip_literature_status.csv --miblp-lit
+results/literature/miblp_literature_status.csv --lbc-optimal optimal.csv
+--runs runs --results results` (from `bobilib/`; `optimal.csv` is
+`solution_files/optimal.csv` of Lozano, Bergman and Cire's repository; it reads
+the OR bounds and ray checks from this package and the `bobi general` runs from `runs/`).
+`notes/instance_structure.csv` (the structure of the general and assignment
+instances that the paper describes: variable and row split, coupling rows,
+continuous linking variables, follower objective against the leader's) is
+read from BOBILib's instance files by
+`python3 -I scripts/instance_structure.py --meta collection.json --collection data/collection
+--out results/notes/instance_structure.csv` (run from `bobilib/`; about 4 minutes on 2 threads). The
 computations behind each folder are listed in its README and in
 `bobilib/REPORT.md`; times were measured on a shared, often oversubscribed
 4-core machine and are indicative only.

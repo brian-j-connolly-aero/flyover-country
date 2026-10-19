@@ -3,7 +3,7 @@
 
 {\footnotesize\sisetup{group-separator={,},group-minimum-digits=4,group-digits=integer}\setlength{\tabcolsep}{4pt}\setlength{\LTcapwidth}{\linewidth}
 \begin{longtable}{@{}l l l r r l@{}}
-\caption{Five MIPLIB-derived instances whose high point relaxation is exactly the MIPLIB model they were built from (checked in exact arithmetic by \texttt{scripts/compare\_hpr.py}), so the published MIPLIB optimum (MIPLIB 2017's solution file) is a lower bound; a verified bilevel feasible point at that value is optimal by accepted benchmark conventions. The MIPLIB optima are floating-point results of MILP solvers (class (ii) of Section~\ref{app:classes}), not exact-arithmetic proofs: the objective of noswot takes integer values only, so its published bound rounds up to $-41$ and the result is safe if that bound is valid; pigeon-10 inherits MIPLIB's optimal status; for timtab1 the agreement of point and bound is numerical. Status: BOBILib's before this work. (neos-950242\_0\_100 meets its bound too, but was already listed as optimal in an earlier BOBILib release and is counted as published.)}\label{tab:hpr}\\
+\caption{Seven MIPLIB-derived instances whose high point relaxation is exactly the MIPLIB model they were built from (checked in exact arithmetic by \texttt{scripts/compare\_hpr.py}), so the published MIPLIB optimum (MIPLIB 2017's solution file) is a lower bound; a verified bilevel feasible point at that value is optimal by accepted benchmark conventions. The MIPLIB optima are floating-point results of MILP solvers (class (ii) of Section~\ref{app:classes}), not exact-arithmetic proofs: the objectives of noswot, ex10 and neos-1445765 take integer values only (integer coefficients on integer variables), and those of pigeon-10 multiples of 1,000 only, so their published bounds round up to $-41$, $100$, $-17{,}783$ and $-9{,}000$ and the results are safe if those bounds are valid; for timtab1 the agreement of point and bound is numerical. BOBILib: the instance's status before this work. Lefebvre and Schmidt's run files also report ex10\_0\_100 optimal at 100; their paper does not state it, so it is not counted as published. (neos-950242\_0\_100 meets its bound too, but was already listed as optimal in an earlier BOBILib release and is counted as published.)}\label{tab:hpr}\\
 \toprule
 Instance & BOBILib & MIPLIB instance & MIPLIB optimum & Bilevel optimum & Point from \\
 \midrule
@@ -23,5 +23,7 @@ noswot\_50\_50 & feasible & noswot & \num{-41.00000885} & \num{-41} & BOBILib's 
 pigeon-10\_0\_100 & open & pigeon-10 & \num{-9000} & \num{-9000} & \texttt{bobi general} \\
 timtab1\_0\_100 & open & timtab1 & \num{764771.99999978} & \num{764771.99999978} & \texttt{bobi general} \\
 pigeon-10\_50\_50 & open & pigeon-10 & \num{-9000} & \num{-9000} & \texttt{bobi coupled} \\
+ex10\_0\_100 & open & ex10 & \num{100} & \num{100} & \texttt{bobi general} \\
+neos-1445765\_0\_100 & open & neos-1445765 & \num{-17783} & \num{-17783} & \texttt{bobi general} \\
 \end{longtable}
 }

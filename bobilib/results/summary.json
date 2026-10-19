@@ -14229,8 +14229,8 @@
   "ex10_0_100": {
    "family": "general-pure",
    "bobilib": "open",
-   "outcome": "feasible",
-   "source": "this work (HPR, follower, tie-break)"
+   "outcome": "optimal",
+   "source": "this work (point meets the MIPLIB optimum of the HPR)"
   },
   "mushroom-best_0_100": {
    "family": "general-mixed",
@@ -14368,7 +14368,7 @@
    "family": "general-mixed",
    "bobilib": "open",
    "outcome": "no bilevel feasible point",
-   "source": "this work (recession ray, floating point)"
+   "source": "this work (recession ray, exact)"
   },
   "neos-4722843-widden_50_50": {
    "family": "general-mixed",
@@ -14392,7 +14392,7 @@
    "family": "general-mixed",
    "bobilib": "open",
    "outcome": "no bilevel feasible point",
-   "source": "this work (recession ray, floating point)"
+   "source": "this work (recession ray, exact)"
   },
   "mas76_0_100": {
    "family": "general-mixed",
@@ -14751,8 +14751,8 @@
   "neos-1445765_0_100": {
    "family": "general-mixed",
    "bobilib": "open",
-   "outcome": "feasible",
-   "source": "this work (HPR, follower, tie-break)"
+   "outcome": "optimal",
+   "source": "this work (point meets the MIPLIB optimum of the HPR)"
   },
   "cvs16r128-89_50_50": {
    "family": "general-pure",
@@ -15958,20 +15958,20 @@
    "unchanged": 102,
    "optimal / literature (Fischetti et al. 2017)": 1,
    "optimal / literature (Lozano et al. 2026)": 5,
-   "feasible / this work (HPR, follower, tie-break)": 12,
+   "feasible / this work (HPR, follower, tie-break)": 11,
    "optimal / literature (Vasquez et al. 2025)": 1,
    "feasible / this work (bobi coupled)": 3,
+   "optimal / this work (point meets the MIPLIB optimum of the HPR)": 1,
    "optimal / literature (an earlier BOBILib release)": 1,
    "no bilevel feasible point / this work (recession ray, exact)": 6
   },
   "general-mixed": {
    "not optimal in BOBILib": 168,
    "feasible / this work (bobi coupled)": 25,
-   "feasible / this work (HPR, follower, tie-break)": 50,
-   "optimal / this work (point meets the MIPLIB optimum of the HPR)": 5,
+   "feasible / this work (HPR, follower, tie-break)": 49,
+   "optimal / this work (point meets the MIPLIB optimum of the HPR)": 6,
    "unchanged": 54,
-   "no bilevel feasible point / this work (recession ray, exact)": 32,
-   "no bilevel feasible point / this work (recession ray, floating point)": 2
+   "no bilevel feasible point / this work (recession ray, exact)": 34
   }
  }
 }

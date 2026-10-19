@@ -1,9 +1,10 @@
 % sections/problems.tex: the section "The Problems" of the BOBILib paper, for readers
-% outside the field.  It replaces Sections 2.1 and 2.2 of main.tex (from \section{Background}
-% to the end of the families table); "What the Literature Had Solved" can follow it as its
-% last subsection.  It keeps the labels eq:bilevel, eq:packing, fig:kip and tab:families,
-% and carries sec:background as a second label, so the rest of the paper compiles unchanged.
-% Counts are macros of generated/facts.tex; a count without a macro is marked "TODO macro".
+% outside the field, included by main.tex (\input{sections/problems}); main.tex adds the
+% subsection "What Published Work Had Solved" (sec:literature) after it.  It defines the
+% labels eq:bilevel, eq:packing, fig:kip, fig:clique, fig:network and tab:families, and carries
+% sec:background as a second label.
+% Counts are macros of generated/facts.tex (the structural counts come from
+% results/notes/instance_structure.csv, written by scripts/instance_structure.py).
 % Typed numbers are instance parameters (sizes, densities, budgets, generator settings);
 % each was checked against BOBILib's instance files (MPS and AUX).
 % Name patterns: \pat{...} with placeholders \ph{...}; unlike \inst, a pattern may break
@@ -28,7 +29,8 @@ themselves are random, or derived from benchmark problems. In the instance names
 \centering
 \includegraphics{figures/fig_family_map}
 \caption{BOBILib at a glance: one tile per family, with its number of instances and the
-number BOBILib lists as feasible or open (unsolved; the bar shows their share). In all,
+number BOBILib lists as feasible or open (unsolved; the bar shows their share). In the glyphs,
+blue marks the leader, orange the follower, and grey with a cross what the leader blocks. In all,
 \NumInstances{} instances, \NumUnsolved{} of them unsolved; BOBILib's other
 \NumBobiInfeasible{} non-optimal instances are proven infeasible and all belong to the general
 families.}\label{fig:familymap}
@@ -36,7 +38,8 @@ families.}\label{fig:familymap}
 
 \subsection{Bilevel Problems in BOBILib Form}\label{sec:prob-form}
 
-BOBILib writes every instance with a minimizing leader:
+BOBILib writes every instance with a minimizing leader; as in mathematical programming, a
+\emph{row} is a linear constraint:
 \begin{equation}\label{eq:bilevel}
 \min_{x,y}\ c\T x+d\T y\quad\text{s.t.}\quad Ax+By\ge a,\qquad
 y\in\operatorname*{arg\,min}_{y'}\bigl\{f\T y' : Cx+Dy'\ge b\bigr\},
@@ -45,8 +48,9 @@ with integrality requirements on some of the leader's variables $x$ and the foll
 $y$. For a fixed $x$ the follower solves $P(x)=\min\{f\T y: Cx+Dy\ge b\}$ (with its integrality
 requirements); $x$ enters it only through the right-hand side. A point $(x,y)$ is \emph{bilevel
 feasible} if it satisfies the leader's rows and integrality requirements and $y$ is optimal for
-$P(x)$. When the follower has several optimal answers, the one best for the leader is assumed
-(the optimistic convention, which BOBILib uses throughout). An upper-level row with a nonzero
+$P(x)$, so checking a single point already means solving the follower's problem to optimality.
+When the follower has several optimal answers, the one best for the leader is assumed (the
+optimistic convention, which BOBILib uses throughout). An upper-level row with a nonzero
 coefficient on a follower variable is a \emph{coupling row}; a leader variable that appears in
 the follower's rows is a \emph{linking variable}. The \emph{high point relaxation} (HPR) drops the
 follower's optimality and keeps every row of both levels,
@@ -71,21 +75,21 @@ many BOBILib lists as feasible or open (unsolved), and the ranges of the numbers
 follower variables and rows (rows without the objective; BOBILib's metadata, checked against
 the instance files). The general families contain MIPLIB models of every size.}\label{tab:sizes}
 \centering\footnotesize
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}l >{\raggedright\arraybackslash}p{1.08in} r r l r r r r@{}}
+\setlength{\tabcolsep}{2.6pt}
+\begin{tabular}{@{}l >{\raggedright\arraybackslash\ttfamily}p{1.17in} r r l r r r r@{}}
 \toprule
  & & & & & \multicolumn{2}{c}{Variables} & \multicolumn{2}{c}{Rows}\\
 \cmidrule(lr){6-7}\cmidrule(l){8-9}
-Family & Sets & Inst. & Unsolved & Size & Leader & Follower & Leader & Follower\\
+Family & \textrm{Sets} & Instances & Unsolved & Size & Leader & Follower & Leader & Follower\\
 \midrule
-Knapsack interdiction & \code{kp}, \code{cclw}, \code{inter-kp} & \FamKipAll & \FamKipUnsolved & 10--500 items & 10--500 & 10--500 & 1 & 11--501\\
-Multidim.\ knapsack interdiction & \code{or}, \code{imkp} & \FamMkipAll & \FamMkipUnsolved & 10--500 items & 10--500 & 10--500 & 1--29 & 11--529\\
-Edge clique interdiction & \code{clique}, \code{bcpins}, \code{plusbcpins} & \FamCliqueAll & \FamCliqueUnsolved & 8--60 vertices & 19--1{,}593 & 8--1{,}653 & 1 & 28--3{,}363\\
-Network (attack-protect) & \code{inter-fire} & \FamNetworkAll & \FamNetworkUnsolved & 22--79 nodes & 22--79 & 44--158 & 1 & 41--974\\
-Generalized interdiction & \code{generalized} & \FamGeneralizedAll & \FamGeneralizedUnsolved & $n_x,n_y\in\{20,30\}$ & 40--50 & 40--50 & 20 & 30--50\\
-Assignment interdiction & \code{inter-assig} & \FamAssignmentAll & \FamAssignmentUnsolved & $5\times5$ & 25 & 25 & 1 & 45\\
-General, pure integer & \code{miplib2010}, \code{miplib2017}, \code{miplib3}, \code{denegre}, \code{zhang}, \code{misc} & \FamGenPureAll & \FamGenPureUnsolved & MILPs & 1--714{,}549 & 1--714{,}549 & 0--84{,}788 & 3--169{,}576\\
-General, mixed integer & \code{miplib2010}, \code{miplib2017}, \code{xuwang}, \code{xularge} & \FamGenMixedAll & \FamGenMixedUnsolved & MILPs & 10--399{,}808 & 10--399{,}808 & 0--480{,}585 & 4--961{,}170\\
+Knapsack interdiction & kp, cclw, inter-kp & \FamKipAll & \FamKipUnsolved & 10--500 items & 10--500 & 10--500 & 1 & 11--501\\
+Multidim.\ knapsack interdiction & or, imkp & \FamMkipAll & \FamMkipUnsolved & 10--500 items & 10--500 & 10--500 & 1--29 & 11--529\\
+Edge clique interdiction & clique, bcpins, plusbcpins & \FamCliqueAll & \FamCliqueUnsolved & 8--60 vertices & 19--1{,}593 & 8--1{,}653 & 1 & 28--3{,}363\\
+Network interdiction & inter-fire & \FamNetworkAll & \FamNetworkUnsolved & 22--79 nodes & 22--79 & 44--158 & 1 & 41--974\\
+Generalized interdiction & generalized & \FamGeneralizedAll & \FamGeneralizedUnsolved & $n_x,n_y\in\{20,30\}$ & 40--50 & 40--50 & 20 & 30--50\\
+Assignment interdiction & inter-assig & \FamAssignmentAll & \FamAssignmentUnsolved & $5\times5$ & 25 & 25 & 1 & 45\\
+General, pure integer & miplib2010/2017, miplib3, denegre, zhang, misc & \FamGenPureAll & \FamGenPureUnsolved & MILPs & 1--714{,}549 & 1--714{,}549 & 0--84{,}788 & 3--169{,}576\\
+General, mixed integer & miplib2010/2017, xuwang, xularge & \FamGenMixedAll & \FamGenMixedUnsolved & MILPs & 10--399{,}808 & 10--399{,}808 & 0--480{,}585 & 4--961{,}170\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -95,9 +99,7 @@ General, mixed integer & \code{miplib2010}, \code{miplib2017}, \code{xuwang}, \c
 Published: optimal in published work (for \NumLitNoFile{} of them only the published value is
 used; Section~\ref{sec:verify}). Here: proven optimal in this work. No point: no bilevel feasible
 point exists. New point: a verified bilevel feasible point where BOBILib lists none (for
-\NumPointPublishedBefore{} of them a point had been published; Section~\ref{sec:res-overview}).
-The total includes BOBILib's \FamAssignmentAll{} assignment interdiction instances, which it lists
-as optimal.}\label{tab:families}
+\NumPointPublishedBefore{} of them a point had been published; Section~\ref{sec:res-overview}).}\label{tab:families}
 \centering\small
 \begin{tabular}{@{}l r r r r r r r@{}}
 \toprule
@@ -105,11 +107,12 @@ as optimal.}\label{tab:families}
 \cmidrule(l){4-8}
 Family & Instances & or open & Published & Here & No point & New point & Unchanged\\
 \midrule
-Knapsack interdiction (KIP) & \FamKipAll & \FamKipUnsolved & \FamKipLit & \FamKipNew & \FamKipNoFeas & \FamKipFirst & \FamKipUnchanged\\
-Multidim.\ knapsack interdiction (MKIP) & \FamMkipAll & \FamMkipUnsolved & \FamMkipLit$^{\dagger}$ & \FamMkipNew & \FamMkipNoFeas & \FamMkipFirst & \FamMkipUnchanged\\
+Knapsack interdiction & \FamKipAll & \FamKipUnsolved & \FamKipLit & \FamKipNew & \FamKipNoFeas & \FamKipFirst & \FamKipUnchanged\\
+Multidim.\ knapsack interdiction & \FamMkipAll & \FamMkipUnsolved & \FamMkipLit$^{\dagger}$ & \FamMkipNew & \FamMkipNoFeas & \FamMkipFirst & \FamMkipUnchanged\\
 Edge clique interdiction & \FamCliqueAll & \FamCliqueUnsolved & \FamCliqueLit & \FamCliqueNew & \FamCliqueNoFeas & \FamCliqueFirst & \FamCliqueUnchanged\\
 Network interdiction & \FamNetworkAll & \FamNetworkUnsolved & \FamNetworkLit & \FamNetworkNew & \FamNetworkNoFeas & \FamNetworkFirst & \FamNetworkUnchanged\\
 Generalized interdiction & \FamGeneralizedAll & \FamGeneralizedUnsolved & \FamGeneralizedLit & \FamGeneralizedNew & \FamGeneralizedNoFeas & \FamGeneralizedFirst & \FamGeneralizedUnchanged\\
+Assignment interdiction & \FamAssignmentAll & \FamAssignmentUnsolved & \FamAssignmentLit & \FamAssignmentNew & \FamAssignmentNoFeas & \FamAssignmentFirst & \FamAssignmentUnchanged\\
 General, pure integer & \FamGenPureAll & \FamGenPureUnsolved & \FamGenPureLit & \FamGenPureNew & \FamGenPureNoFeas & \FamGenPureFirst & \FamGenPureUnchanged\\
 General, mixed integer & \FamGenMixedAll & \FamGenMixedUnsolved & \FamGenMixedLit & \FamGenMixedNew & \FamGenMixedNoFeas & \FamGenMixedFirst & \FamGenMixedUnchanged\\
 \midrule
@@ -135,10 +138,10 @@ left:
 \Phi(x)=\max\bigl\{p\T y : Wy\le c,\ y\le \mathbf{1}-x,\ y\in\{0,1\}^n\bigr\},\qquad
 \OPT=\min\bigl\{\Phi(x): Gx\le g,\ x\in\{0,1\}^n\bigr\},
 \end{equation}
-with nonnegative integer profits $p$, weights $W$ and capacities $c$ (from here on, $c$ denotes
-capacities, not the cost vector of~\eqref{eq:bilevel}). The knapsack interdiction problem (KIP)
-has one leader row, $a\T x\le\beta$ with costs $a$ and budget $\beta$, and one follower row,
-$w\T y\le c$ with weights $w$ and capacity $c$; the multidimensional KIP (MKIP,
+with nonnegative integer profits $p$, weights $W$ and capacities $c$ (in Sections~\ref{sec:prob-kip}, \ref{sec:prob-mkip}, \ref{sec:kip}
+and~\ref{sec:mkip}, $c$ denotes capacities, not the cost vector of~\eqref{eq:bilevel}). The knapsack interdiction problem (KIP) has one leader row,
+$\gamma\T x\le\beta$ with costs $\gamma$ and budget $\beta$, and one follower row, $w\T y\le c$ with
+weights $w$ and capacity $c$; the multidimensional KIP (MKIP,
 Section~\ref{sec:prob-mkip}) has several of either. In BOBILib form the leader minimizes $p\T y$
 and the follower minimizes $-p\T y$. In the files the rows are the budget, the capacity and the
 $n$ interdiction rows $x_j+y_j\le 1$, so an instance with $n$ items has $2n$ variables and $n+2$
@@ -157,24 +160,28 @@ does as well.}\label{fig:kip}
 
 \textbf{The instances.} BOBILib has three KIP sets.
 \begin{itemize}\setlength{\emergencystretch}{3em}
-\item \code{kp} (450 instances; % TODO macro
+\item \code{kp} (\NumSetKp{} instances;
 Fischetti, Monaci and Sinnl\cite{fischetti2018dynamic}), named
 \pat{interKP-\ph{n}-\ph{R}-\ph{t}-\ph{I}}, for example \inst{interKP-200-100-6-3}: $n\in\{100,200,\dots,500\}$
 items, coefficient range $R=100$, item class $t\in\{1,\dots,9\}$ and instance number
-$I\in\{1,\dots,10\}$. The follower's weights and profits come from the knapsack generator of
+$I\in\{1,\dots,10\}$. The ten instances with the same $n$ and $t$ share one set of items and
+differ only in $I$, which sets the capacity and with it the budget. The follower's weights and
+profits come from the knapsack generator of
 Martello, Pisinger and Toth\cite{martello1999dynamic} in class $t$: 1~uncorrelated, 2~weakly
 correlated, 3~strongly correlated, 4~inverse strongly correlated, 5~almost strongly correlated,
 6~subset sum ($p=w$), 7~even-odd subset sum ($p=w$, even weights), 8~even-odd strongly
 correlated, 9~uncorrelated with similar weights. The instance number sets the capacity,
 $c=\lfloor I\sum_j w_j/11\rfloor$ (in classes 7 and 8 raised to the next odd number when even),
 so it grows from about 9\% to 91\% of the total weight. The leader's costs are integers between
-0 and $R$, and its budget $\beta$ lies within 10 of $c$. In class~9 the budget exceeds the sum of
-all leader costs, so the leader can block every item; Fischetti et al.\ left these instances out
+0 and $R$, and its budget $\beta$ is set within 10 of $c$, as in Caprara et~al.'s
+instances.\cite{dellacroce2020exact} In class~9 the budget exceeds the sum of
+all leader costs, so the leader can block every item; Fischetti et~al.\ left these instances out
 as trivial, BOBILib keeps them.
-\item \code{cclw} (50 instances; % TODO macro
+\item \code{cclw} (\NumSetCclw{} instances;
 Caprara, Carvalho, Lodi and Woeginger\cite{caprara2016bilevel}), named
-\pat{interdiction\ph{n}-\ph{I}}: the same construction with uncorrelated items, $n\in\{35,40,\dots,55\}$.
-\item \code{inter-kp} (99 instances; % TODO macro
+\pat{interdiction\ph{n}-\ph{I}}: the same construction with uncorrelated items between 1 and
+100, $n\in\{35,40,\dots,55\}$; here the leader's costs are drawn anew for each~$I$.
+\item \code{inter-kp} (\NumSetInterKp{} instances;
 DeNegre\cite{denegre2011thesis}), named \pat{K50\ph{n}W\ph{i}.KNP}: $n\in\{10,20,\dots,50\}$ items,
 instance $i\in\{1,\dots,20\}$ (\inst{K5010W01} is missing), built from bicriteria knapsack
 instances, whose first objective gives the follower's profits and whose second gives the
@@ -192,10 +199,20 @@ class~7, where every sum of weights is even and $c$ is odd), as in all \NumNewKi
 the literature left open, and a proof must show that no leader choice within the budget prevents
 a fill that close.
 
-\textbf{What was known.} BOBILib lists \FamKipUnsolved{} KIP instances as not optimal.
-Weninger and Fukasawa's combinatorial branch and bound\cite{weninger2025fast} solves
-\NumLitKip{} of them; the \NumNewKip{} it leaves open, all in classes~6 and~7 with 200 or more
-items, are solved in Section~\ref{sec:kip}.
+\textbf{What was known.} Exact algorithms for KIP go back to Caprara
+et~al.\cite{caprara2016bilevel} and Della Croce and Scatamacchia.\cite{dellacroce2020exact} BOBILib
+lists \FamKipUnsolved{} KIP instances as not optimal, and at \NumKipBobiAbove{} of its KIP
+instances its value is above the optimum, by a median of \KipBobiExcessMedian\% and up to
+\KipBobiExcessMax\%. Weninger and Fukasawa's combinatorial branch and
+bound,\cite{weninger2023fast,weninger2025fast} the state of the art, solves \NumLitKip{} of the
+\FamKipUnsolved{}. The \NumNewKip{} it leaves open in runs with 16 threads and a one-hour limit
+are all in classes~6 and~7, with \KipOpenItemsMin{} to \KipOpenItemsMax{} items. Weninger and
+Fukasawa's runs of Della Croce and Scatamacchia's algorithm leave them open too, and the best
+published lower bounds, in Weninger and Fukasawa's run records, lie \KipPubLbGapMin{} to
+\KipPubLbGapMax{} units below BOBILib's values;\cite{weninger_bkpsolver} two-hour runs of Lozano,
+Bergman and Cire's decision diagrams, in those authors' repository,\cite{lozano_dbo_repo} give
+weaker bounds.
+Section~\ref{sec:kip} solves them.
 
 % --------------------------------------------------------------------------------------
 \subsection{Multidimensional Knapsack Interdiction}\label{sec:prob-mkip}
@@ -248,10 +265,14 @@ used capacities, and the linear programming (LP) relaxation, on which most bound
 overestimate the follower's value by up to the profit of one item per follower row
 (Theorem~\ref{thm:bracket}). The largest OR instances have 500 items and 30 rows.
 
-\textbf{What was known.} Fischetti et al.\ solved all \NumImkp{} imkp instances, but BOBILib lists
-\NumLitImkp{} of them as only feasible. No OR instance is optimal in BOBILib; Lozano, Bergman and
-Cire\cite{lozano2026network} proved \NumLitOr{} optimal and published bounds for most of the
-others.
+\textbf{What was known.} Fischetti et~al.\ solved all \NumImkp{} imkp instances with
+interdiction cuts, but BOBILib lists \NumLitImkp{} of them as only feasible, with values up to
+\ImkpBobiExcessMax\% above the optimum. No OR instance is optimal in BOBILib. Lozano, Bergman and
+Cire\cite{lozano2026network} proved \NumLitOrClaimed{} of them optimal, one more is closed by their
+published point and a branch-and-cut bound in their run data (Section~\ref{sec:res-or}), and they
+published lower bounds and points for most of the others;\cite{lozano_dbo_repo} Lefebvre and
+Schmidt\cite{lefebvre2025dantzig} published further points; \NumOrNoPublished{} OR instances had
+no published point.
 
 % --------------------------------------------------------------------------------------
 \subsection{Edge Clique Interdiction}\label{sec:prob-clique}
@@ -268,17 +289,27 @@ size of a largest clique of the remaining graph. BOBILib's \code{clique} instanc
 follower's problem with a variable $y^V_v$ per vertex and $y^E_e$ per edge, and the leader's with
 $x_e$ per edge:\cite{fischetti2018dynamic,tang2016class}
 \[
-\min_{x\in\{0,1\}^E}\Bigl\{\max\textstyle\sum_{v\in V}y^V_v :
+\min_{x\in\{0,1\}^E}\Bigl\{\max_{y}\ \sum_{v\in V}y^V_v :
 y^V_u+y^V_v\le 1\ (\{u,v\}\notin E),\
 y^V_u+y^V_v-y^E_{uv}\le 1,\ x_{uv}+y^E_{uv}\le 1\ (\{u,v\}\in E)\Bigr\}
-\quad\text{s.t.}\ \textstyle\sum_{e\in E}x_e\le k,
+\quad\text{s.t.}\ \sum_{e\in E}x_e\le k,
 \]
 with binary $y$. An edge the leader deletes cannot be used ($y^E_e=0$), and two vertices that are
 not joined by a usable edge cannot both be in the clique. So a \code{clique} instance has $m$
 leader variables, $n+m$ follower variables, one leader row and $n(n-1)/2+m$ follower rows.
-Figure~\ref{fig:clique} (Section~\ref{sec:clique}) shows a small instance.
+Figure~\ref{fig:clique} shows a small instance and why its optimum is 3.
 
-\textbf{The instances.}
+\begin{figure}[t]
+\centering
+\includegraphics{figures/fig_clique_interdiction}
+\caption{Clique interdiction on an 8-vertex graph with budget 5. (a)~A deletion that still
+leaves a 4-clique. (b)~Why the optimum is 3: deleting the 5 edges inside the groups $V_1$ to
+$V_3$ leaves a 3-partite graph, so no 4-clique survives, and any 5 deletions leave more than
+$\lfloor 8^2/4\rfloor$ edges, so by Mantel's theorem a triangle survives (Section~\ref{sec:clique},
+Theorem~\ref{thm:clique}).}\label{fig:clique}
+\end{figure}
+
+\textbf{The instances.} BOBILib has three sets of edge clique interdiction instances.
 \begin{itemize}\setlength{\emergencystretch}{3em}
 \item \code{clique} (\NumCliqueSet{} instances; Fischetti, Monaci and Sinnl\cite{fischetti2018dynamic}),
 named \pat{normalClique\ph{n}-\ph{100d}-\ph{i}}, for example \inst{normalClique60-70-2}: random graphs with
@@ -286,7 +317,7 @@ $n\in\{40,50,60\}$ vertices and edge density $d\in\{0.7,0.9\}$, that is
 $m=\lfloor d\,n(n-1)/2\rfloor$ edges chosen at random, budget $k=\lfloor m/4\rfloor$, and ten
 graphs $i$ for each $n$ and $d$.
 \item \code{bcpins} and \code{plusbcpins} (Tang, Richard and Smith\cite{tang2016class}; Fischetti
-et al.\cite{fischetti2018dynamic}), named \pat{BCPIns\_\ph{n}\_\ph{10d}\_\ph{i}.txt\_trad.txt\_K\ph{k}} and
+et~al.\cite{fischetti2018dynamic}), named \pat{BCPIns\_\ph{n}\_\ph{10d}\_\ph{i}.txt\_trad.txt\_K\ph{k}} and
 \pat{plusBCPIns\_\ph{n}\_\ph{10d}\_\ph{i}}: smaller random graphs, $n\in\{8,10,12,15\}$, the same densities,
 budget $k=\lceil m/4\rceil$ and ten graphs for each $n$ and $d$. The \code{bcpins} files use a
 compact follower model with vertex variables only, one row per pair of vertices; the
@@ -302,8 +333,12 @@ relaxation is worth at least $n/2$, 20 to 30 here, while every value BOBILib lis
 true value by branching over these choices. As for knapsack interdiction, the HPR is worth 0.
 
 \textbf{What was known.} BOBILib lists all \NumCliqueSet{} \code{clique} instances as feasible, with
-values \CliqueBobiMin{} to \CliqueBobiMax; Fischetti et al.\ used them to test heuristics, and no
-optimum had been published. Section~\ref{sec:clique} proves \NumNewClique{} of them optimal.
+values \CliqueBobiMin{} to \CliqueBobiMax; Fischetti et~al.\ used them to test heuristics. Furini
+et~al.\ gave exact algorithms for vertex and edge clique
+interdiction,\cite{furini2019maximum,furini2021branch} and deciding whether at most $k$ deletions
+bring the clique number down to a given value is the edge blocker clique
+problem,\cite{mahdavipajouh2020minimum} but no optimum of these \NumCliqueSet{} instances had been
+published. Section~\ref{sec:clique} proves \NumNewClique{} of them optimal.
 
 % --------------------------------------------------------------------------------------
 \subsection{Network Interdiction: The Attack-Protect Game}\label{sec:prob-network}
@@ -313,14 +348,23 @@ spreads along its links. An attacker, the leader, chooses up to $\Phi$ nodes to 
 defender, the follower, then protects up to $\Lambda$ nodes. The fire spreads from the attacked
 nodes to every neighbor that is not protected, and from there on; a node is saved if the fire
 never reaches it. The defender maximizes the number of saved nodes and the attacker minimizes
-it (Figure~\ref{fig:network}, Section~\ref{sec:network}). (Here $\Phi$ is a budget, as in BOBILib's
-row names, not the value function of~\eqref{eq:packing}.)
+it (Figure~\ref{fig:network}). (Here $\Phi$ is a budget, as in BOBILib's row names, not the value
+function of~\eqref{eq:packing}, and the vaccination budget $\Omega$ below is not the online game
+value of Section~\ref{sec:kip}.)
+
+\begin{figure}[t]
+\centering
+\includegraphics{figures/fig_network_attack_protect}
+\caption{The attack-protect game on a toy tree: the leader attacks, the follower then
+protects, and the attack spreads through unprotected neighbors. Against the optimal attack
+shown, the follower's best protection saves 8 of the 15 nodes.}\label{fig:network}
+\end{figure}
 
 \textbf{The model.} The instances come from the multilevel critical node problem of Baggio,
 Carvalho, Lodi and Tramontani,\cite{baggio2021multilevel} a three-level game in which a defender
 first vaccinates $\Omega$ nodes, the attacker then attacks and the defender then protects.
 BOBILib keeps the last two levels, the attack-protect game, on the graph without the vaccinated
-nodes, as used by Fischetti et al.\cite{fischetti2017new} With $x_v=1$ for an attacked node,
+nodes, as used by Fischetti et~al.\cite{fischetti2017new} With $x_v=1$ for an attacked node,
 $z_v=1$ for a protected node and $s_v=1$ for a saved node (all binary),
 \[
 \min_{x}\Bigl\{\max_{z,s}\textstyle\sum_v s_v :
@@ -347,8 +391,8 @@ attack, and the leader has many attacks to choose from: \NetworkAttacks{} sets o
 the follower may save nothing, is worth 0.
 
 \textbf{What was known.} BOBILib lists \NetworkBobiOptimal{} of the \FamNetworkAll{} instances as
-optimal; the other \FamNetworkUnsolved{}, two trees with \NetworkNodes{} nodes and
-$\Phi=\Lambda=\NetworkPhi$, are solved in Section~\ref{sec:network}.
+optimal; the other \FamNetworkUnsolved{}, two forests with \NetworkNodes{} nodes (a tree of 50 nodes
+without its one vaccinated node) and $\Phi=\Lambda=\NetworkPhi$, are solved in Section~\ref{sec:network}.
 
 % --------------------------------------------------------------------------------------
 \subsection{Generalized Interdiction}\label{sec:prob-generalized}
@@ -360,25 +404,27 @@ cost and constraints depend on what the firm does. Unlike in the families above,
 objectives are not opposite.
 
 \textbf{The model.} Fischetti, Monaci and Sinnl's generalized interdiction
-problem\cite{fischetti2018dynamic} (Figure~\ref{fig:generalized}) is
+problem\cite{fischetti2018dynamic} (Figure~\ref{fig:generalized}) is, in the notation
+of~\eqref{eq:bilevel},
 \[
-\min_{x,y}\ c_x\T x+c_y\T y\quad\text{s.t.}\quad G_xx+G_yy\le G_0,\quad
-y\in\operatorname*{arg\,max}_{y'}\bigl\{d\T y' : By'\le b,\ y'_j\le 1-x_j\ (j\in N),\ y'\ge 0,\
+\min_{x,y}\ c\T x+d\T y\quad\text{s.t.}\quad Ax+By\ge a,\quad
+y\in\operatorname*{arg\,min}_{y'}\bigl\{f\T y' : Dy'\ge b,\ x_j+y'_j\le 1\ (j\in N),\ y'\ge 0,\
 \text{integrality}\bigr\},
 \]
-with binary leader variables. The set $N$ pairs some leader variables with follower variables:
-$x_j=1$ forbids $y_j$. The leader's rows contain the follower's variables (they are coupling
-rows), so the follower's answer can violate them; the follower's rows contain no leader
-variables except in the interdiction rows.
+with binary leader variables and a follower objective $f$ unrelated to $d$. The set $N$ pairs some
+leader variables with follower variables: $x_j=1$ forbids $y_j$. The leader's rows contain the
+follower's variables (coupling rows, $B\ne 0$), so the follower's answer can violate them; the
+follower's rows contain leader variables only in the interdiction rows.
 
 \textbf{The instances.} The set \code{generalized} has \FamGeneralizedAll{} random
 instances,\cite{fischetti2018dynamic} named \pat{general\ph{n_x}-\ph{n_y}-\ph{|N|}-20-20-\ph{i}}, for example
 \inst{general20-30-20-20-20-2}: $n_x\in\{20,30\}$ binary leader variables, $n_y\in\{20,30\}$ binary
 follower variables, $|N|\in\{10,20,30\}$ interdiction pairs ($|N|\le\min\{n_x,n_y\}$), 20 leader
 rows and 20 follower rows, and ten instances for each allowed combination. The coefficients are
-random integers between $-50$ and $50$. Each leader row has a binary slack variable that costs the
-leader 100,000, and each follower row a continuous slack variable that costs the follower 100,000,
-so every row can always be satisfied, at a price. With the slacks and the interdiction rows, an
+random integers between $-50$ and $50$. Each leader row has a binary switch variable that relaxes
+the row by 100,000 and costs the leader 100,000, and each follower row a continuous, unbounded
+slack variable that costs the follower 100,000 per unit, so every row can always be satisfied, at a
+price. With the slacks and the interdiction rows, an
 instance has $n_x+20$ leader variables, $n_y+20$ follower variables, 20 leader rows and $20+|N|$
 follower rows.
 
@@ -387,28 +433,11 @@ apply, and because of the coupling rows the follower's optimal answer can push t
 paying for slack. The penalties also make objective values large next to coefficients of at most
 50; in \inst{general20-30-20-20-20-2} the follower's optimum at BOBILib's leader choice is
 \GenTolPhiOpt, and at that scale a relative tolerance hides absolute errors of many units
-(Section~\ref{sec:discussion}).
+(Section~\ref{sec:verify}).
 
 \textbf{What was known.} BOBILib lists \FamGeneralizedUnsolved{} of the \FamGeneralizedAll{}
 instances as feasible and the rest as optimal; Lozano, Bergman and Cire\cite{lozano2026network}
 proved \NumLitGeneralized{} of the \FamGeneralizedUnsolved{} optimal.
-
-% --------------------------------------------------------------------------------------
-\subsection{Assignment Interdiction}\label{sec:prob-assignment}
-
-\textbf{The story and the model.} A dispatcher, the follower, assigns 5 workers to 5 jobs, one
-job each, at the least total cost. Beforehand the leader, within a budget, forbids some
-worker-job pairs, to make the dispatcher's cheapest assignment as expensive as possible
-(Figure~\ref{fig:assignment}). The follower has a binary variable per pair, 20 rows that give
-every worker exactly one job and every job exactly one worker, and 25 interdiction rows; the
-leader has one budget row.
-
-\textbf{The instances.} The set \code{inter-assig} has \FamAssignmentAll{} instances,
-\inst{2AP05-1} to \inst{2AP05-25} without \inst{2AP05-12}, which BOBILib left out as invalid. DeNegre
-built them from bicriteria assignment problems:\cite{denegre2011thesis} the first objective is
-the follower's cost, the second gives the leader's costs in the budget row. In 19 of the files % TODO macro
-the leader's objective is exactly the negated follower cost; in the other five it differs. % TODO macro
-BOBILib lists all of them as optimal, and this work does not consider them further.
 
 \begin{figure}[t]
 \centering
@@ -423,14 +452,32 @@ BOBILib lists all of them as optimal, and this work does not consider them furth
 \begin{minipage}[t]{0.47\textwidth}
 \caption{Generalized interdiction: the leader's variables $x$ and the follower's $y$; for the
 interdiction pairs, $x_j=1$ forces $y_j=0$. The leader's rows contain $x$ and $y$, the
-follower's only $y$, and the two objectives differ.}\label{fig:generalized}
+follower's $y$ and, in the interdiction rows, $x$; the two objectives differ.}\label{fig:generalized}
 \end{minipage}\hfill
 \begin{minipage}[t]{0.47\textwidth}
-\caption{Assignment interdiction on a toy instance (row = worker, column = job, number = cost).
-The leader bans two pairs; the follower's cheapest assignment of the rest costs 21 instead of
-8.}\label{fig:assignment}
+\caption{Assignment interdiction on a toy instance with 4 workers and 4 jobs (row = worker,
+column = job, number = cost). The leader bans two pairs; the follower's cheapest assignment of the
+rest costs 21 instead of 8.}\label{fig:assignment}
 \end{minipage}
 \end{figure}
+
+% --------------------------------------------------------------------------------------
+\subsection{Assignment Interdiction}\label{sec:prob-assignment}
+
+\textbf{The story and the model.} A dispatcher, the follower, assigns 5 workers to 5 jobs, one
+job each, at the least total cost. Beforehand the leader, within a budget, forbids some
+worker-job pairs, to make the dispatcher's cheapest assignment as expensive as possible
+(Figure~\ref{fig:assignment} shows a smaller example). The follower has a binary variable per pair,
+20 inequality rows, mostly pairs that form equations, which give every worker exactly one job and
+every job exactly one worker, and 25 interdiction rows; the leader has one budget row.
+
+\textbf{The instances.} The set \code{inter-assig} has \FamAssignmentAll{} instances,
+\inst{2AP05-1} to \inst{2AP05-25} without \inst{2AP05-12}, which BOBILib left out as invalid. DeNegre
+built them from bicriteria assignment problems:\cite{denegre2011thesis} the first objective is
+the follower's cost, the second gives the leader's costs in the budget row. In \NumAssignNegated{} of the files
+the leader's objective is exactly the negated follower cost, a zero-sum game; in the other
+\NumAssignOther{} it differs on some of the pairs.
+BOBILib lists all of them as optimal, and this work does not consider them further.
 
 % --------------------------------------------------------------------------------------
 \subsection{General Instances from MIPLIB and Other MILPs}\label{sec:prob-general}
@@ -443,7 +490,7 @@ it. The first party, the leader, now has to plan for the worst reply of the seco
 \textbf{The construction.} A MILP $\min\{c\T z: \text{rows},\ \text{integrality}\}$ with $n$
 variables and $m$ rows becomes a bilevel instance by splitting its variables and rows between the
 two levels and giving the follower an objective (Figure~\ref{fig:miplib}). BOBILib has three
-constructions; the following was checked on every one of its 389 % TODO macro
+constructions; the following was checked on every one of its \NumMiplibDerived{}
 MIPLIB-derived instances.
 \begin{itemize}\setlength{\emergencystretch}{3em}
 \item \code{miplib2010} and \code{miplib2017} (Kleinert and Schmidt;\cite{kleinert2021computing}
@@ -451,20 +498,20 @@ from MIPLIB~2010 and MIPLIB~2017\cite{koch2011miplib,gleixner2021miplib}), named
 with a suffix: the leader gets the first $\lceil n/2\rceil$ variables in the order of the file,
 and the follower the rest. In \pat{\ph{X}\_0\_100} all rows are the follower's (0\% at the leader,
 100\% at the follower); in \pat{\ph{X}\_50\_50} the first $\lceil m/2\rceil$ rows are the leader's
-and the rest the follower's. In all but two of the \inst{\_50\_50} instances some leader row % TODO macro
+and the rest the follower's. In all but \NumFiftyFiftyUncoupled{} of the \inst{\_50\_50} instances some leader row
 contains follower variables, so they have coupling rows; the \inst{\_0\_100} instances have none.
 The third variant, with every row at the leader, leaves the follower without rows and so
 without linking variables; BOBILib excludes such instances, as it excludes MILPs that are
 infeasible or have range rows or a zero follower objective, and MIPLIB~2017 models already in
 MIPLIB~2010.\cite{thurauf2026bobilib}
-\item \code{miplib3} (Fischetti et al.;\cite{fischetti2016intersection,fischetti2018intersection}
-from MIPLIB~3,\cite{bixby1998miplib} 20 binary models, three instances each), % TODO macro
+\item \code{miplib3} (Fischetti et~al.;\cite{fischetti2016intersection,fischetti2018intersection}
+from MIPLIB~3,\cite{bixby1998miplib} \NumMiplibThreeModels{} binary models, \NumMiplibThreePerModel{} instances each),
 named \pat{\ph{X}-\ph{k}} with $k\in\{0.100000,0.500000,0.900000\}$, for example \inst{air03-0.100000}:
 the follower gets the first $\lfloor kn\rfloor$ variables and the leader the rest; all rows are
 the follower's, so the leader has no rows at all.
 \end{itemize}
 In all three the leader keeps the MILP's objective $c$ on all variables, and the follower
-minimizes $-c$ on its own variables (in the AUX files of 90 instances these coefficients are % TODO macro
+minimizes $-c$ on its own variables (in the AUX files of \NumAuxRounded{} instances these coefficients are
 rounded to six significant digits, for example 83.2776 for $-c_j=83.2776042$ in
 \inst{gen-ip002\_0\_100}). So for a fixed leader choice the follower makes the leader's cost on
 its variables as high as it can, and the HPR is the original MILP. BOBILib calls an instance
@@ -483,25 +530,27 @@ negation on its own variables.}\label{fig:miplib}
 \end{figure}
 
 \textbf{The other general sets.} The other general instances are random or small: \code{denegre}
-(110 random pure integer instances made with DeNegre's generator,\cite{denegre2011thesis} % TODO macro
-50 of them from his thesis), \code{zhang} % TODO macro
-(30 pure integer instances of {\"O}zaltin and Zhang\cite{ozaltin2017branch}), \code{misc} (6 small % TODO macro
+(\NumSetDenegre{} random pure integer instances made with DeNegre's generator,\cite{denegre2011thesis}
+\NumSetDenegreTagged{} of them from his thesis), \code{zhang}
+(\NumSetZhang{} pure integer instances of {\"O}zalt{\i}n and Zhang\cite{ozaltin2017branch}), \code{misc} (\NumSetMisc{} small
 examples from the literature, among them two of Moore and Bard\cite{moore1990mixed}),
-\code{xuwang} (100 mixed integer instances of Xu and Wang,\cite{xu2014exact} with 10 to 460 % TODO macro
-variables per level) and \code{xularge} (60 larger ones, 500 to 1,000 variables per level, built % TODO macro
-the same way by Fischetti et al.\cite{fischetti2017new}). BOBILib lists all of them as optimal
-except one in \code{misc}, \inst{milp\_10\_20\_50\_2310}, which is feasible. % TODO macro: one
+\code{xuwang} (\NumSetXuwang{} mixed integer instances of Xu and Wang,\cite{xu2014exact} with 10 to 460
+variables per level) and \code{xularge} (\NumSetXularge{} larger ones, 500 to 1,000 variables per level, built
+the same way by Fischetti et~al.\cite{fischetti2017new}). BOBILib lists all of them as optimal
+except \NumSmallSetsFeasible{} in \code{misc}, \inst{\SmallSetsFeasibleName}, which is feasible.
 
 \textbf{What makes them hard.} The HPR alone is a MIPLIB model, and some of these are hard MILPs
 in their own right; the largest bilevel instances have hundreds of thousands of variables and
 rows (Table~\ref{tab:sizes}). Checking a single point requires solving the follower's MILP to
 optimality. Linking variables can be continuous, which BOBILib's two solvers do not handle
-(Section~\ref{sec:general}); all 137 instances with continuous linking variables are % TODO macro
+(Section~\ref{sec:general}); all \NumContLinking{} instances with continuous linking variables are
 MIPLIB-derived and unsolved in BOBILib. In \inst{\_50\_50} instances the coupling rows can make the
 follower's best answer infeasible for the leader; and in some instances the follower's problem
-is infeasible or unbounded for every leader choice, so no bilevel feasible point exists at all
-(Section~\ref{sec:general}).
+is infeasible or unbounded for every leader choice, so no bilevel feasible point exists at all.
+This can happen because the follower maximizes the MILP's objective on its own variables, a
+direction that the MILP's rows need not bound, and in \inst{\_50\_50} instances some of the rows that do
+bound it have gone to the leader (Section~\ref{sec:general}).
 
 \textbf{What was known.} Almost all of the \NumGeneralUnsolved{} unsolved general instances are
 MIPLIB-derived. Their statuses come from BOBILib's one-hour solver runs, and published work had
-solved \NumLitMiplib{} of them (Section~\ref{sec:general} and the next subsection).
+solved \NumLitMiplib{} of them (Section~\ref{sec:literature}).

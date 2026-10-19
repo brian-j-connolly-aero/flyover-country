@@ -28,12 +28,13 @@ Path & Contents\\
 \texttt{kip/} & \NumKipFiles{} knapsack interdiction solution files at the published optima of Weninger and Fukasawa\cite{weninger2025fast}\\
 \texttt{ss/} & the \NumNewKip{} subset-sum optima proven here; \texttt{proofs.csv} (optimum, nodes, CPU seconds, nodes of the second prover, budget and capacity)\\
 \texttt{or/} & \NumOrPoints{} verified points for the \NumOr{} OR instances; the bounds of each instance; \texttt{compare.csv} (published bounds, BOBILib's value, ours, gaps)\\
-% ROUND2: update when results/clique/certificates/ is final (branch-and-bound certificates of the 170 cases).
-\texttt{clique/} & \NumCliqueSet{} partition certificates, branch-and-bound certificates of the part-size cases (\texttt{certificates/}), solver logs of the part-size proofs, the separate review\\
+\texttt{clique/} & \NumCliqueSet{} partition certificates, branch-and-bound certificates of the \CliqueCertCases{} part-size cases (\texttt{certificates/}, with the checker's \texttt{check.log}), solver logs of the part-size proofs, the separate review\\
 \texttt{network/} & \NumVerifyNetwork{} attack-protect trees certified by enumeration; \texttt{summary.csv}; the review\\
 \texttt{rays/} & \NumRayFiles{} recession directions (the \NumNoFeasible{} open instances and one that BOBILib lists as infeasible); \texttt{ray\_verify.jsonl} (exact checks)\\
-\texttt{general/} & \NumGeneralFiles{} points for MIPLIB-derived instances without coupling rows (nine files over 1\,MB in \texttt{large\_points.tar.gz}); \texttt{hpr\_optimal.csv}\\
+\texttt{general/} & \NumGeneralFiles{} points for MIPLIB-derived instances without coupling rows (nine files over 1\,MB in \texttt{large\_points.tar.gz}); \texttt{hpr\_optimal.csv}; \texttt{points.csv}\\
 \texttt{general-coupled/} & \NumCoupledFiles{} points for MIPLIB-derived instances with coupling rows; \texttt{summary.csv}\\
+\texttt{*/tolerance/} & the \NumTightSuperseded{} superseded files of \texttt{general/} and \texttt{general-coupled/} (\NumTightSupersededBench{} of them benchmark-accepted), replaced by points with the follower within $10^{-9}$ of its optimum, and the checks of the new files\\
+\texttt{notes/} & \texttt{bobi verify -{}-tight} on every file (\texttt{tight\_verify.md}, \texttt{.tsv}); Lefebvre and Schmidt's run files checked against this package; BOBILib's file of \texttt{general20-30-20-20-20-2}; \texttt{instance\_structure.csv}, the structure of the general and assignment instances that the paper describes\\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -63,7 +64,8 @@ Column & Meaning\\
 \texttt{source} & citation key of the published result (Table~\ref{tab:source-keys}), \texttt{this work}, or \texttt{ThuraufEtAl2026} (BOBILib's own value)\\
 \texttt{method} & how the status or value was obtained\\
 \texttt{certificate} & path, relative to \texttt{results/}, of the solution or certificate file; \texttt{ARCHIVE.tar.gz:FILE} names a member of an archive\\
-\texttt{verified} & \texttt{yes}: the certificate passed its check (\texttt{bobi verify}, or the exact ray check); \texttt{no}: checked in floating point only (the two \texttt{supportcase42} directions); \texttt{na}: no certificate in this package. The column says whether a check passed, not how rigorous it is; Section~\ref{app:classes} gives the certificate class of each kind of result\\
+\texttt{verified} & \texttt{yes}: the certificate passed its check (\texttt{bobi verify}, or the exact ray check); \texttt{no}: it did not (no row); \texttt{na}: no certificate in this package. The column says whether a check passed, not how rigorous it is\\
+\texttt{certificate\_class} & the certificate class of the row's result (Definition~\ref{def:classes}): \texttt{exact}, \texttt{numerical} or \texttt{benchmark} for every row with \texttt{new\_status} \texttt{optimal}, \texttt{infeasible\_bilevel} or \texttt{feasible}, \texttt{na} for the others; a published optimum counts as \texttt{numerical}\\
 \texttt{notes} & free text, separated by semicolons\\
 \bottomrule
 \end{tabular}
@@ -75,8 +77,14 @@ Column & Meaning\\
 and \NumUnchanged{} \texttt{unchanged}. The \NumOptimalNow{} optimal rows are the
 \NumLitOptimal{} published optima and the \NumNewOptimal{} proven here; together
 with the \NumNoFeasible{} rows without a bilevel feasible point they are the
-\NumSettled{} settled instances. The keys of the \texttt{source} column map to
-the references as follows.
+\NumSettled{} settled instances. Of the \NumClassRows{} rows with a result,
+\NumClassExact{} are \texttt{exact} (the \NumClassExactNew{} new optima of the
+subset-sum, clique and network families and the \NumNoFeasible{} recession
+directions), \NumClassNumerical{} \texttt{numerical} (the \NumLitOptimal{}
+published optima, the \NumNewHpr{} optima at the MIPLIB bound and the
+\NumFirstPoint{} verified points, all of which pass \texttt{bobi verify -{}-tight})
+and \NumClassBenchmark{} \texttt{benchmark}. The keys of the \texttt{source}
+column map to the references as follows.
 
 \begin{table}[ht]
 \centering
@@ -120,9 +128,9 @@ can have both a \texttt{=best=} and a \texttt{=bestdual=} line. Every value is
 the upper-level objective $c^{\top}x+d^{\top}y$ of the minimising leader under
 the optimistic convention, printed at full precision (integers without a
 decimal point, other values as the shortest decimal that reads back as the
-same double). Comment lines start with \texttt{\#}; the header names the
-\NumRayFloat{} \texttt{=inf=} lines whose recession directions are checked only in
-floating point.
+same double). Comment lines start with \texttt{\#}; the header gives the counts
+and states that every \texttt{=inf=} line rests on a recession direction checked
+in exact rational arithmetic.
 
 \subsection{Solution files}
 
@@ -161,8 +169,8 @@ part-size proofs are in \texttt{clique/logs/lb\_solver\_logs.tar.gz}, and the
 branch-and-bound certificates of the same cases, one file per density-0.9
 instance, are in \texttt{clique/certificates/}; the integer checker
 \texttt{scripts/check\_clique\_certificates.py} verifies them from the instance
-files alone (Section~\ref{app:clique}).
-% ROUND2: update when the clique case certificates and check.log are final.
+files alone (Section~\ref{app:clique}; its output is \texttt{check.log}, and
+\texttt{certificates/README.md} gives the format and the tests).
 
 \paragraph{Subset-sum proofs.} A proof of $\mathrm{OPT}\ge\ell$ is a
 computation, not a file. \texttt{ss/proofs.csv} records, per instance, the
@@ -206,8 +214,8 @@ python3 -I scripts/ss_check.py INSTANCE.mps.gz INSTANCE.aux - OPTIMUM
 python3 -I scripts/compare_hpr.py INSTANCE.mps.gz INSTANCE.aux MIPLIB.mps.gz
 python3 -I scripts/check_clique_certificates.py \
     $D/interdiction/clique-interdiction/clique results/clique/certificates
+./target/release/bobi verify --instances $D --tight --time-limit 1200 -j 2 DIR
 \end{verbatim}
-% ROUND2: check the command line of check_clique_certificates.py when it is final.
 \end{minipage}
 \end{center}
 The nine large general points are checked after unpacking

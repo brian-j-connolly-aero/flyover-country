@@ -39,7 +39,7 @@ expect = {
 for f, e in expect.items():
     S.check(dict(cnt[f]), e, f"outcomes, {f}")
 gen = cnt["general-pure"] + cnt["general-mixed"]
-S.check(dict(gen), {"lit": 8, "new": 5, "none": 40, "first": 90, "unchanged": 123},
+S.check(dict(gen), {"lit": 8, "new": 7, "none": 40, "first": 88, "unchanged": 123},
         "outcomes, MIPLIB-derived (266)")
 S.check(sum(sum(c.values()) for c in cnt.values()), 1594, "total")
 

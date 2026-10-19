@@ -104,13 +104,20 @@ zero-sum.
 \noindent Not formalised.
 
 For the OR instances with one follower knapsack (variant $-100$, $m=1$) the
-lower bound is $\lceil L-p_{\max}\rceil$, where $L$ is HiGHS's proven dual bound
-for the MILP of Proposition~\ref{prop:mkip-milp} as the solver returns it (in
-floating point, with no safety margin). The bracket's lower bound is therefore
-solver-certified (class~(ii), Section~\ref{app:classes}); it is the reported
-lower bound for \SuppOrLbMilp{} of the \NumOrOneKnapsack{} instances, and for
-the other \SuppOrLbOmega{} the merged-row online bound below is at least as
-strong. With several follower rows the width
+lower bound is $\lceil L-p_{\max}-10^{-6}\max(1,|L|)\rceil$, where $L$ is HiGHS's
+proven dual bound for the MILP of Proposition~\ref{prop:mkip-milp}. The code
+(\texttt{mkip::bracket\_lower\_bound}) uses $L$ only when it is finite; otherwise
+there is no bracket bound (the solver's incumbent value is an upper bound on
+$U^{*}$, not a lower one). The margin $10^{-6}\max(1,|L|)$ keeps the
+floating-point error of $L$ from rounding the bound up past an integer: a dual
+bound such as $13{,}322.000000000024$ gives $13{,}322-p_{\max}$, not one more.
+A unit test checks the bound by brute force on random instances. The bracket's
+lower bound is solver-certified (class~(ii), Section~\ref{app:classes}): it rests
+on HiGHS's dual bound within that margin. It is the reported lower bound for
+\SuppOrLbMilp{} of the \NumOrOneKnapsack{} instances, all re-run with this code and
+a 120~s limit: every run had a finite dual bound, and \SuppOrBracketOptimal{} of
+the MILPs were solved to optimality. For the other \SuppOrLbOmega{} the merged-row
+online bound below is at least as strong. With several follower rows the width
 $m\,p_{\max}$ makes the lower bound weak, and only the upper bounds are used.
 
 \subsection{The merged-row online bound}
@@ -275,16 +282,17 @@ Table~\ref{tab:or}, is a floating-point LP value (class~(ii)).
 The paper compares this work's bounds with the published ones. The published
 lower bounds of the OR instances are Lozano, Bergman and
 Cire's;\cite{lozano2026network} the best published point of an instance is the
-better of theirs (with a solution file in their repository\cite{lozano_dbo_repo})
-and Lefebvre and Schmidt's.\cite{lefebvre2025dantzig} The published points are
-not verified here. For \NumOrInconsistent{} instances a published lower bound
-exceeds the best published point (Table~\ref{tab:or-conflicts}); the paper's
-paired median gaps leave them out. In three of them the point is one of
-Lefebvre and Schmidt's, from runs stopped at a time or solution limit, and it
-lies below Lozano et al.'s lower bound; at least one of the two published
-values is wrong, and the points of this work do not decide which.
+best of theirs (with a solution file in their repository\cite{lozano_dbo_repo}),
+Lefebvre and Schmidt's\cite{lefebvre2025dantzig} and BOBILib's. Lefebvre and
+Schmidt's values count only from runs that ended before the time limit, the
+rule of their own analysis (Section~\ref{app:ls}); for \NumOrLsTimeLimitBest{}
+OR instances a value from a run stopped at the limit would otherwise be the best
+published point, and for \NumOrLsTimeLimitBelowLb{} of them it lies below Lozano,
+Bergman and Cire's lower bound (Table~\ref{tab:or-conflicts}). The published
+points are not verified here.
 
-The fourth, \texttt{\OrClosureName}, is closed in the published data. Lozano et
+For one instance a published lower bound exceeds the best published point.
+\texttt{\OrClosureName} is closed in the published data. Lozano et
 al.\ publish a point of value \OrClosureValue{} and a lower bound of
 \OrClosureLitLb{} from runs they flag as numerically inconsistent; their
 repository also records a branch-and-cut bound of \OrClosureValue{}, which with

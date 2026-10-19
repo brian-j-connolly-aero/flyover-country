@@ -11,7 +11,7 @@
 %  * Objectives (every one of the 389): the leader keeps the MILP's objective c on all
 %    variables; the follower's objective in the AUX file is -c on its own variables
 %    (in 90 files written with six significant digits).
-% Build: pdflatex fig_miplib_split.tex   (6.5 in x 2.0 in)
+% Build: pdflatex fig_miplib_split.tex   (6.5 in x 1.7 in)
 \documentclass[tikz,border=2pt]{standalone}
 \pdfinfoomitdate=1 \pdftrailerid{} \pdfsuppressptexinfo=-1 % byte-identical rebuilds
 \usepackage{mathptmx}
@@ -53,8 +53,8 @@
   \end{scope}}
 \begin{document}
 \begin{tikzpicture}
-  % fixed page: 6.5 in x 2.0 in including the 2 pt border
-  \useasboundingbox (0,0) rectangle (16.37,4.939);
+  % fixed page: 6.5 in x 1.7 in including the 2 pt border
+  \useasboundingbox (0,0.70) rectangle (16.37,4.939);
   \def\Ttop{4.62}
 
   % ---------------- (a) the MILP ----------------
@@ -66,7 +66,7 @@
 
   % ---------------- (b) X_0_100 ----------------
   \def\xb{4.65}
-  \node[ttl] at (\xb-0.38,\Ttop-0.25) {\textbf{(b)} \texttt{X\_0\_100}};
+  \node[ttl] at (\xb-0.38,\Ttop-0.25) {\textbf{(b)} $\langle X\rangle$\_0\_100};
   \body{\xb}
   \colstrip{\xb}{0}{0.5}{leader}{leader $x$}{white}
   \colstrip{\xb}{0.5}{1}{follower}{follower $y$}{ink}
@@ -76,7 +76,7 @@
 
   % ---------------- (c) X_50_50 ----------------
   \def\xc{8.85}
-  \node[ttl] at (\xc-0.38,\Ttop-0.25) {\textbf{(c)} \texttt{X\_50\_50}};
+  \node[ttl] at (\xc-0.38,\Ttop-0.25) {\textbf{(c)} $\langle X\rangle$\_50\_50};
   \body{\xc}
   \hatch{\xc+0.5*\MW}{\my+0.5*\MH}{\xc+\MW}{\my+\MH}
   \node[lab, fill=white, inner sep=1.5pt] at (\xc+0.75*\MW,\my+0.75*\MH) {coupling};
@@ -89,7 +89,7 @@
 
   % ---------------- (d) MIPLIB 3: X-k ----------------
   \def\xd{13.05}
-  \node[ttl] at (\xd-0.38,\Ttop-0.25) {\textbf{(d)} MIPLIB 3: \texttt{X-0.100000}};
+  \node[ttl] at (\xd-0.38,\Ttop-0.25) {\textbf{(d)} MIPLIB 3: $\langle X\rangle$-$\langle k\rangle$};
   \body{\xd}
   \colstrip{\xd}{0}{0.1}{follower}{$y$}{ink}
   \colstrip{\xd}{0.1}{1}{leader}{leader $x$}{white}
@@ -101,9 +101,6 @@
   \node[lab, anchor=north, text=ink2, align=center] at (\xd+0.5*\MW,\my-0.12)
     {follower: first $\lfloor kn\rfloor$ variables\\($k=0.1, 0.5, 0.9$) and every row};
 
-  % ---------------- objectives ----------------
-  \node at (8.18,0.20)
-    {In (b)--(d): \textcolor{leader}{\bfseries leader} $\min\, c^\top(x,y)$, the MILP's objective;
-     \ \textcolor{follower}{\bfseries follower} $\min\, -c_y^\top y$ over its own variables $y$.};
+  % the objectives (leader: the MILP's c; follower: -c on its own variables) are in the caption
 \end{tikzpicture}
 \end{document}

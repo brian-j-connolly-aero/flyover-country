@@ -1,7 +1,10 @@
 # BOBILib: what can be solved, and approaches that resolve many instances at once
 
-*Status as of 2026-10-18. `scripts/summarize.py` regenerates every count from
-the files in `results/` and `runs/`; `results/summary.json` is its output.*
+*Status as of 2026-10-19. `scripts/summarize.py` regenerates every count from
+the files in `results/` and `runs/`; `results/summary.json` is its output.
+`results/instances.csv` gives every instance's outcome and the certificate
+class of each result (exact, numerical or benchmark-accepted; see
+`results/README.md`).*
 
 ## The question
 
@@ -23,13 +26,13 @@ Yes. Of the 1,594:
 | Outcome | Instances |
 | --- | ---: |
 | already proven optimal in published work (BOBILib's labels are stale) | 528 |
-| proven optimal here for the first time | 80 |
+| proven optimal here for the first time | 82 |
 | proven here to have no bilevel feasible point at all | 40 |
-| verified point here where BOBILib lists none (168 of them the first anywhere) | 230 |
+| verified point here where BOBILib lists none (167 of them the first anywhere) | 228 |
 | status unchanged (many with better points, see below) | 716 |
 
-So 648 (41%) are now settled, 608 of them optimal. On top of the status
-changes, 469 instances of the OR set get a verified point strictly better
+So 650 (41%) are now settled, 610 of them optimal. On top of the status
+changes, 474 instances of the OR set get a verified point strictly better
 than every published value.
 
 Two observations carry most of the weight.
@@ -53,13 +56,13 @@ The approaches that resolve whole families rather than single instances:
 | Approach | Family | Effect |
 | --- | --- | --- |
 | Robust subset-sum search (count formulation, online tables in threshold form, rebuilt at every node from its decided sums) | knapsack interdiction, subset-sum and even-odd classes | all 16 instances unsolved anywhere proven optimal (8 even-odd, 8 subset-sum), each in about 10 s of CPU time or less on one thread, and checked by an independent prover |
-| Dualised follower linear program (LP) bracket and a merged-row online bound | multidimensional knapsack interdiction (OR set), one follower knapsack | paired median gap 24% → 4.1% (budget 25%) and 34% → 7.1% (budget 50%); 191 better lower bounds |
+| Dualised follower linear program (LP) bracket and a merged-row online bound | multidimensional knapsack interdiction (OR set), one follower knapsack | paired median gap 24% → 4.0% (budget 25%) and 34% → 7.1% (budget 50%); 191 better lower bounds |
 | Certified points from the follower LP | OR set, several follower knapsacks | all 360 instances with budget 50% or 75% certified; 88 first points anywhere |
 | Extremal graph theory (Mantel 1907, Brouwer 1981) plus partition certificates | edge clique interdiction | 57 of 60 proven optimal at 3 or 4, where BOBILib lists 5 to 13 |
 | Exhaustive attacks with an exact tree dynamic program (DP) | attack-protect network interdiction | both non-optimal instances proven optimal |
-| Recession-ray certificates | MIPLIB-derived | 40 open instances have no bilevel feasible point (38 checked in exact arithmetic) |
-| High point relaxation (HPR), then the follower, then an optimistic tie-break; a portfolio for coupling rows | MIPLIB-derived | 93 verified points where BOBILib lists none (64 without coupling rows, 29 with), 3 of them optimal; for 10 of the others a published point already existed |
-| HPR bound = published MIPLIB optimum | MIPLIB-derived | 5 proven optimal (3 of them open, with no point known before) |
+| Recession-ray certificates | MIPLIB-derived | 40 open instances have no bilevel feasible point (all 40 checked in exact arithmetic) |
+| High point relaxation (HPR), then the follower, then an optimistic tie-break; a portfolio for coupling rows | MIPLIB-derived | 93 verified points where BOBILib lists none (64 without coupling rows, 29 with), 5 of them optimal; for 9 of the others a published point already existed |
+| HPR bound = published MIPLIB optimum | MIPLIB-derived | 7 proven optimal (5 of them open, with no point known before) |
 
 What stays hard: 3 clique instances (value 3 or 4), OR instances with
 several follower knapsacks at budget 25% (120 still without a certified
@@ -169,8 +172,8 @@ instances with 20 or more linking bits, and 123 MIPLIB-derived instances.
 
   | Budget | Literature | Now |
   | --- | ---: | ---: |
-  | 25% | 24.0% | 4.1% |
-  | 50% | 34.0% | 7.1% |
+  | 25% | 24.0% | 4.0% |
+  | 50% | 34.0% | 7.2% |
   | 75% | 0.14% | 0.14% |
 
 * **New, several follower knapsacks (540).** The follower's LP at the
@@ -185,15 +188,18 @@ instances with 20 or more linking bits, and 123 MIPLIB-derived instances.
   | --- | ---: | ---: | ---: |
   | -0, 25% | 33.3% | 31.4% | 0 of 31 |
   | -0, 50% | 36.6% | 29.1% | 31 of 31 |
-  | -0, 75% | 5.1% | 0.04% | 27 of 27 |
-  | -50, 25% | 29.6% | 28.2% | 0 of 20 |
-  | -50, 50% | 41.3% | 34.8% | 20 of 20 |
+  | -0, 75% | 5.3% | 0.05% | 27 of 27 |
+  | -50, 25% | 30.6% | 28.3% | 0 of 20 |
+  | -50, 50% | 41.3% | 35.0% | 20 of 20 |
   | -50, 75% | 11.8% | 1.4% | 10 of 10 |
 
   (Medians are over the instances with both a published lower and upper
-  bound.)
+  bound, without OR10x100-0.75_4.dat-0, whose published bounds conflict.
+  Lefebvre and Schmidt's values count as published points only from runs
+  that ended before the time limit, as in their own analysis;
+  `scripts/ls_mkip_points.py`.)
 
-* Over all 810: 690 verified points, 469 strictly better than every
+* Over all 810: 690 verified points, 474 strictly better than every
   published value (BOBILib's included), 88 the first anywhere
   (`results/or/compare.csv` per instance, next to the solution files).
 * OR10x100-0.75_4.dat-0 is optimal in the published data: the lower bound
@@ -220,9 +226,10 @@ values are 5 to 13. With m edges, m - k remain after any deletion:
   Brouwer's theorem (A. E. Brouwer, *Some lotto numbers from an extension
   of Turán's theorem*, Mathematisch Centrum ZW 152/81, 1981, Theorem 2; n >=
   2r + 1 holds) a K4-free remainder would be 3-partite, and the deletion
-  would contain every inside edge of some 3-partition. Exact solver runs
-  show every 3-partition has more than k inside edges, so value >= 4; a
-  4-partition gives <= 4.
+  would contain every inside edge of some 3-partition. Every 3-partition
+  has more than k inside edges (170 part-size cases, each decided by solver
+  runs and certified by an explicit branch-and-bound tree that a short
+  integer-only checker verifies), so value >= 4; a 4-partition gives <= 4.
 * **Open:** normalClique60-70-2, -3 and -5, between 3 and 4. Value 3 needs a
   set of at most 309 edges meeting every K4; the best found has 310-311,
   and LP bounds on that set stop near 296.
@@ -230,7 +237,7 @@ values are 5 to 13. With m edges, m - k remain after any deletion:
   `plusbcpins` sets.
 
 `results/clique/` holds the 60 solution files, the partitions, the solver
-logs and an independent review.
+logs, the case certificates (`certificates/`) and an independent review.
 
 ### Network interdiction (72; 2 not optimal)
 
@@ -270,9 +277,11 @@ hours per instance, so the other 8 need a pruned search.
   variables only shift right-hand sides, so d is a recession direction for
   every leader choice, and with rational data a feasible mixed-integer
   follower whose LP relaxation is unbounded is itself unbounded (Meyer
-  1974): no leader choice has an optimal response. 38 directions are checked
-  in exact rational arithmetic (`scripts/verify_ray.py`), 2 (supportcase42)
-  only in floating point (`results/rays/`).
+  1974): no leader choice has an optimal response. All 40 directions are
+  checked in exact rational arithmetic (`scripts/verify_ray.py`); for the
+  two supportcase42 instances the direction is a single continuous follower
+  variable, found in exact arithmetic by `scripts/exact_ray.py`
+  (`results/rays/`).
 * **First feasible points without coupling rows (64).** Solve the HPR (the
   rows of both levels with the leader's objective, without the follower's
   optimality), fix the leader, solve the follower to optimality, and break
@@ -284,16 +293,24 @@ hours per instance, so the other 8 need a pruned search.
   of the linking variables with one MILP and searches for a usable one: 21
   points at the HPR's own values, 5 from a penalised HPR, 3 from
   best-response dynamics, out of 52 candidates run
-  (`results/general-coupled/`). In 9 of these files the follower's value
-  uses BOBILib's tolerance (up to 1e-7 relative above its optimum); all
-  pass BOBILib's 1e-4 check.
-* **Optimal at the MIPLIB bound (5).** The HPR of these instances is the
+  (`results/general-coupled/`).
+* **Strict tolerance.** In 26 of the 93 files (17 without coupling rows, 9
+  with) the follower's value had used BOBILib's tolerance (up to 1e-7
+  relative above its optimum), and 25 of them failed the tight test of `bobi
+  verify --tight`. All 26 were re-derived with the follower within 1e-9 of
+  its optimum (`bobi coupled-tighten`), each leader value worse than before
+  by the old slack; the superseded files are in `results/*/tolerance/`. All
+  1,478 solution files of the package now pass `bobi verify --tight`
+  (`results/notes/tight_verify.md`).
+* **Optimal at the MIPLIB bound (7).** The HPR of these instances is the
   MIPLIB problem they were built from (checked in exact arithmetic by
   `scripts/compare_hpr.py`), so its published optimum bounds the bilevel
-  optimum from below. pigeon-10_0_100, pigeon-10_50_50 (-9,000) and
-  timtab1_0_100 (764,772), all open, get points at that bound;
-  BOBILib's own points for noswot_0_100 and noswot_50_50 (-41) already met
-  it.
+  optimum from below. pigeon-10_0_100, pigeon-10_50_50 (-9,000),
+  timtab1_0_100 (764,772), ex10_0_100 (100) and neos-1445765_0_100
+  (-17,783), all open, get points at that bound; BOBILib's own points for
+  noswot_0_100 and noswot_50_50 (-41) already met it. Lefebvre and
+  Schmidt's run files also report ex10_0_100 optimal at 100; their paper
+  does not state it (`results/notes/lefebvre_schmidt.md`).
 
 ## How the results are checked
 
@@ -312,10 +329,16 @@ hours per instance, so the other 8 need a pruned search.
   implementation of the tree DP compared at all 9.3 M attacks). The
   reviewers found only wording errors, now fixed; their notes are in each
   `results/*/README.md`.
+* **Tight re-verification.** `bobi verify --tight` holds the follower to
+  max(1e-6, 1e-9 |phi|) of its proven optimum instead of BOBILib's relative
+  1e-4: all 1,478 solution files pass (`results/notes/tight_verify.md`).
 * **Optimality proofs** are published (cited), ours by an exact search
   whose pruning rules are proved in Lean (subset sum), arguments with
   checkable certificates (clique, rays, MIPLIB bounds), or exhaustive
-  enumeration (network).
+  enumeration (network). The 170 part-size cases behind the density-0.9
+  clique bounds each have a branch-and-bound certificate, checked by a
+  short integer-only script (`scripts/check_clique_certificates.py`,
+  `results/clique/certificates/`).
 
 ## Proofs in Lean
 
@@ -374,8 +397,10 @@ Clique scripts and commands are in `results/clique/README.md`.
   (Weninger and Fukasawa's answer files, Fischetti et al.'s tables, Lozano
   et al.'s solution files); where only a value is published, the instance
   is counted as solved but its file here is ours.
-* Two of the 40 no-feasible-point certificates (supportcase42) are checked
-  only in floating point.
+* The 7 optima at the MIPLIB bound rest on MIPLIB's published
+  floating-point optima (optimal by accepted benchmark conventions), and
+  the OR lower bounds from the LP bracket on HiGHS's dual bound (with a
+  safety margin); `results/instances.csv` marks such results `numerical`.
 * The OR medians compare instances that have both a published lower and
   upper bound; instances without a published point are counted separately.
 * Machine: 4 shared cores, often oversubscribed, so times are indicative

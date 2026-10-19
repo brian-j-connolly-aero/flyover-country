@@ -35,14 +35,14 @@ for k, v in G.items():
     cnt[b][S.outcome_class(v)] += 1
 
 S.check(sum(cnt["open-cpl"].values()), 87, "open instances with coupling rows")
-S.check(cnt["open-nocpl"]["first"], 62, "first points without coupling rows")
+S.check(cnt["open-nocpl"]["first"], 60, "first points without coupling rows")
 S.check(cnt["open-cpl"]["first"], 28, "first points with coupling rows")
 tot = sum(cnt.values(), collections.Counter())
-S.check(dict(tot), {"lit": 8, "new": 5, "none": 40, "first": 90, "unchanged": 123},
+S.check(dict(tot), {"lit": 8, "new": 7, "none": 40, "first": 88, "unchanged": 123},
         "outcomes of the 266")
 
 fig, ax = S.plt.subplots(figsize=(S.HALF, 1.75))
-H = 0.56
+H = 0.46  # thinner bars leave room for the labels of narrow segments above them
 XMAX = max(sum(c.values()) for c in cnt.values())
 per_in = 1.75 / XMAX  # approximate inches per instance, for the label fit test
 for i, (b, _) in enumerate(BARS):
@@ -67,9 +67,10 @@ for i, (b, _) in enumerate(BARS):
         else:
             above.append((left + w / 2, w))
         left += w
-    for x, w in above:  # narrow segments: count above the bar, on a short leader tick
-        ax.plot([x, x], [y + H / 2, y + H / 2 + 0.09], color=S.INK2, lw=0.5)
-        ax.text(x, y + H / 2 + 0.09, str(w), ha="center", va="bottom", fontsize=7, zorder=4)
+    for x, w in above:  # narrow segments: count above the bar, on a leader line from the segment
+        ax.plot([x, x + 1.2], [y + H / 2 - 0.02, y + H / 2 + 0.13], color=S.INK, lw=0.7,
+                solid_capstyle="butt", zorder=4)
+        ax.text(x + 1.4, y + H / 2 + 0.09, str(w), ha="left", va="bottom", fontsize=7, zorder=4)
     ax.text(left + 1.5, y, str(left), ha="left", va="center", fontsize=7, color=S.INK2)
 
 ax.set_yticks(range(len(BARS)))

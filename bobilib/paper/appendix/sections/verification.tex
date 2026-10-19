@@ -15,9 +15,15 @@ by BOBILib's relative test~\eqref{eq:bobilib-tol}. This covers the \NumKipFiles{
 imported KIP files, the \NumNewKip{} subset-sum files, the \NumOrPoints{} OR files (\NumVerifyOrOne{} with one
 follower knapsack, \NumVerifyOrSeveral{} with several), the \NumGeneralFiles{} general files, the \NumCoupledFiles{} files with
 coupling rows, the \NumVerifyClique{} clique files and the \NumVerifyNetwork{} network files; all of
-them passed again when this supplement was assembled. The points with
-coupling rows also pass \texttt{bobi certify} (proven dual bounds, relative
-$10^{-5}$, optimistic tie-break). \texttt{bobi verify} is separate from
+them passed again when this supplement was assembled. All \NumTightFiles{}
+files also pass the tight test~\eqref{eq:tight-tol} (\texttt{bobi verify
+-{}-tight}), which holds the follower's value to $\max(10^{-6},10^{-9}|\varphi|)$ of
+its proven optimum instead of BOBILib's relative $10^{-4}$; the
+\NumTightSuperseded{} files they replace, kept for the record, include
+\NumTightSupersededBench{} benchmark-accepted points. The points with
+coupling rows and \NumGeneralTightCertified{} of the \NumGeneralFiles{} without
+also pass \texttt{bobi certify -{}-tight} (proven dual bounds, optimistic
+tie-break; Section~\ref{app:general}). \texttt{bobi verify} is separate from
 BOBILib's solvers but not from this work's code: it belongs to the same Rust
 crate as the solvers and shares their instance reader and knapsack oracle.
 
@@ -33,9 +39,8 @@ with checked witnesses (Section~\ref{app:network}); or the HPR bound, where
 the model comparison is exact but the bound is MIPLIB's published
 floating-point optimum (Section~\ref{app:general}). ``No bilevel feasible
 point'' rests on Theorem~\ref{thm:ray} with an exact rational check
-(\NumRayExact{} instances) or a floating-point check (\NumRayFloat{} instances).
-Section~\ref{app:classes} gives the certificate class of each.
-% ROUND2: update when the supportcase42 rays are exact (then \NumRayFloat{} = 0).
+(all \NumRayExact{} instances). Section~\ref{app:classes} gives the certificate
+class of each.
 
 \item \textbf{Separate provers for the subset-sum proofs.} Two Python
 provers that share no code with the Rust search, one written with the search
@@ -45,7 +50,7 @@ per-node rule (Theorem~\ref{thm:node-rule}), in integer arithmetic; both
 compare themselves with brute force on random small instances. Two other
 designs of the search, built separately, prove
 \texttt{interKP-200-100-6-3}, and one of them all four instances of class~6
-with budget index~3.
+with instance number $I=3$.
 The review session compared every search binary with exhaustive enumeration on
 \KipBruteForceInstances{} random small instances (no mismatch).
 
@@ -83,8 +88,9 @@ the part-size cases (\texttt{scripts/check\_clique\_certificates.py}), the
 recession directions and the comparison of each HPR with its MIPLIB model are
 checked with integers or exact rationals. The subset-sum provers, the
 knapsack oracle, the network DP and the table of the merged-row online bound
-work in integer arithmetic.
-% ROUND2: update when check_clique_certificates.py has passed on all 170 cases.
+work in integer arithmetic. The clique checker passes on all
+\CliqueCertCases{} case certificates (\CliqueCertNodes{} tree nodes, about
+\CliqueCertSeconds{}~s).
 
 \item \textbf{Machine-checked lemmas.} The Lean project (Lean~4,\cite{moura2021lean} with Mathlib\cite{mathlib2020})
 proves the lemmas listed in Section~\ref{app:lean-map}. It contains no
@@ -110,14 +116,15 @@ verified.
 \item[(ii)] A \emph{solver-certified numerical result} rests on a
 floating-point LP, MILP or CP solver run with tolerances: a proven dual bound,
 an optimality or infeasibility verdict, or a point whose rows hold within
-$10^{-6}$ and whose follower value agrees with a solver's follower optimum
-at the point's leader values to within $10^{-8}$ (relative). It is correct if
-the solver's numerics are; it is not an exact-arithmetic proof.
+$10^{-6}$ and whose follower value lies within solver precision of a solver's
+proven bound on the follower optimum at the point's leader values, that is,
+it passes the tight test~\eqref{eq:tight-tol}. It is correct if the solver's
+numerics are; it is not an exact-arithmetic proof.
 \item[(iii)] A \emph{benchmark-accepted point} passes BOBILib's
 tolerance-based checker (Section~\ref{app:tolerances}), and possibly
 \texttt{bobi verify}, only because of their tolerances: its follower value
-lies above the follower's optimum by more than solver precision (more than
-$10^{-8}$ relative) but within the relative $10^{-4}$ of
+lies above the follower's optimum by more than solver precision (it fails the
+tight test~\eqref{eq:tight-tol}) but within the relative $10^{-4}$ of
 test~\eqref{eq:bobilib-tol}, or its rows hold only within BOBILib's $10^{-4}$.
 It need not be bilevel feasible in the sense of
 Definition~\ref{def:bilevel-feasible}. BOBILib's own solution file of
@@ -135,7 +142,12 @@ both of class~(ii), make a value ``optimal''; the paper and this supplement
 use the word in that sense, and say so where a bound is not exact. The
 subset-sum results are computational proofs supported by formally verified
 lemmas (Section~\ref{app:kip}), not formally verified solutions. The list
-below assigns each kind of result to its class.
+below assigns each kind of result to its class; the column
+\texttt{certificate\_class} of \texttt{instances.csv} (Section~\ref{app:data-csv})
+gives the class of each instance's result, and there a published optimum,
+used as published, counts as class~(ii). Of the \NumClassRows{} instances with a
+result, \NumClassExact{} are class~(i), \NumClassNumerical{} class~(ii) and
+\NumClassBenchmark{} class~(iii).
 
 {\small\setlength{\tabcolsep}{4pt}\setlength{\LTcapwidth}{\linewidth}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{2.35in}l>{\raggedright\arraybackslash}p{3.0in}@{}}
@@ -164,7 +176,8 @@ improved bounds) & (i) & Theorem~\ref{thm:mkip-omega}(b): integer data with a
 proven rounding direction, integer DP\\[2pt]
 OR lower bounds, one follower knapsack, from the LP bracket
 (\SuppOrLbMilp{} instances; \SuppOrBetterLbMilp{} improved bounds) & (ii) &
-HiGHS's dual bound (Theorem~\ref{thm:mkip-bracket})\\[2pt]
+HiGHS's dual bound (Theorem~\ref{thm:mkip-bracket}), used only when finite and
+lowered by a safety margin before rounding up\\[2pt]
 OR points with several follower knapsacks (\NumOrSeveralPoints{}) & (ii) &
 leader rows exact; follower optimum by HiGHS's dual bound
 (Proposition~\ref{prop:mkip-point})\\[2pt]
@@ -174,50 +187,42 @@ Clique: value at least 3 (Mantel), upper bounds 3 and 4 (partition files,
 \NumCliqueSet{} instances) & (i) & integer arithmetic, Lean
 (Theorem~\ref{thm:mantel}, Proposition~\ref{prop:clique-partition}); exact
 maximum-clique search for the follower\\[2pt]
-Clique: value at least 4 (30 instances at density 0.9) & (i) & Brouwer's
+Clique: value at least 4 (\CliqueCertInstances{} instances at density 0.9) & (i) & Brouwer's
 published theorem (Theorem~\ref{thm:brouwer}) and the \NumCliquePartCases{}
-part-size cases, with certificates checked by the integer checker
-\texttt{scripts/check\_clique\_certificates.py}; the solver verdicts on the
-same cases are class~(ii)\\[2pt]
-% ROUND2: update when scripts/check_clique_certificates.py has checked all 170
-% case certificates; until then this row is class (ii).
+part-size cases, each with a branch-and-bound certificate that the integer checker
+\texttt{scripts/check\_clique\_certificates.py} verifies (all pass); the solver
+verdicts on the same cases are class~(ii)\\[2pt]
 Network: the 2 optima and the 34 trees re-derived (Section~\ref{app:network}) &
 (i) & every attack enumerated, 0/1 witnesses checked against the model,
 follower optimum at the minimiser by the DP (Proposition~\ref{prop:fire-dp}) and the
 review's brute force\\[2pt]
 Network: \NetworkRndSmall{} \texttt{rndgraph-25} values re-derived with HiGHS at every attack & (ii) &
 HiGHS as the follower (the review's brute force re-derives them exactly)\\[2pt]
-No bilevel feasible point, \NumRayExact{} instances (Section~\ref{app:general}) & (i) &
-recession direction checked in rational arithmetic (Theorem~\ref{thm:ray})\\[2pt]
-No bilevel feasible point, \texttt{supportcase42\_0\_100} and
-\texttt{supportcase42\_50\_50} & (ii) & floating-point direction, residuals
-about $10^{-12}$\\[2pt]
-% ROUND2: update when results/rays has exact certificates for the two
-% supportcase42 directions (then they join the row above, class (i)).
+No bilevel feasible point, all \NumRayExact{} instances (Section~\ref{app:general}) & (i) &
+recession direction checked in rational arithmetic (Theorem~\ref{thm:ray});
+for \texttt{supportcase42\_0\_100} and \texttt{supportcase42\_50\_50} a unit
+direction found in exact arithmetic\\[2pt]
 HPR equal to the MIPLIB model (Section~\ref{app:general}) & (i) &
 exact rational comparison of the two models\\[2pt]
 The \NumHprOptimal{} HPR-bound optima (Table~\ref{tab:hpr}) & (ii) & MIPLIB's
 published floating-point optima; optimal by accepted benchmark conventions,
-not by an exact-arithmetic proof (\texttt{noswot} safe by integrality rounding
-given the published bound, \texttt{pigeon-10} inherits MIPLIB's status,
+not by an exact-arithmetic proof (\texttt{noswot}, \texttt{ex10} and
+\texttt{neos-1445765} safe by integrality rounding given the published bound,
+\texttt{pigeon-10} likewise, its values being multiples of 1,000;
 \texttt{timtab1} agrees numerically)\\[2pt]
-Points without coupling rows (\NumGeneralFiles{} files): 45 with the follower within $10^{-8}$ of its optimum & (ii) &
-rows within $10^{-6}$; follower optimum by HiGHS\\[2pt]
-Points without coupling rows: the other 19 files & (iii) & follower value
-about $10^{-7}$ relative (one file: one unit) above its optimum; the instances
-do have bilevel feasible points at the same leader values
-(Section~\ref{app:general})\\[2pt]
-% ROUND2: update when results/general records the follower error of each file
-% or the 19 files are repaired; 45/19 come from the re-verification described
-% in Section E.3, not from the data package.
-Points with coupling rows: \SuppCoupledExact{} of the \NumCoupledFiles{} files & (ii) &
-\texttt{bobi certify}: proven dual bounds, follower within $10^{-8}$ of its
-optimum\\[2pt]
-Points with coupling rows: the other \NumCoupledTolerance{} files & (iii) &
-follower value about $10^{-7}$ relative above its optimum, used by the
-leader (Section~\ref{app:general})\\[2pt]
-% ROUND2: update when the 9 coupled files in results/general-coupled are
-% repaired: then they move to class (ii) and this row goes.
+Points without coupling rows (\NumGeneralFiles{} files, \NumGeneralTightened{} of them
+re-derived under the strict tolerance) & (ii) & rows within $10^{-6}$; follower
+optimum by HiGHS; all pass the tight test~\eqref{eq:tight-tol}, and
+\NumGeneralTightCertified{} also \texttt{bobi certify -{}-tight}\\[2pt]
+Points with coupling rows (\NumCoupledFiles{} files,
+\NumCoupledTightened{} of them re-derived) & (ii) & all \SuppCoupledExact{} pass
+\texttt{bobi certify -{}-tight}: proven dual bounds, follower within the tight test
+of its optimum, optimistic tie-break\\[2pt]
+\NumTightSupersededBench{} of the \NumTightSuperseded{} superseded files (\texttt{*/tolerance/}) & (iii) &
+fail the tight test and pass BOBILib's (follower about $10^{-7}$ relative above
+its optimum); kept for the record, not used for any result\\[2pt]
+Published optima (\NumLitOptimal{}) & --- & used as published, not re-certified;
+counted as class~(ii) in \texttt{instances.csv}\\[2pt]
 BOBILib's file of \texttt{general20-30-20-20-20-2} & (iii) & the example of
 Remark~\ref{rem:tolerance}; rejected by \texttt{bobi verify}\\[2pt]
 Lean lemmas (Section~\ref{app:lean-map}) & --- & machine-checked proofs about
@@ -234,35 +239,33 @@ instances\\
 \item \textbf{Trusted solvers.} The class~(ii) results of
 Section~\ref{app:classes} come from MILP, LP or CP solvers: follower
 optimality for followers with several rows and for general instances
-(HiGHS), the dual bounds in the OR bracket (Theorem~\ref{thm:mkip-bracket}),
-the MIPLIB optima behind the HPR bounds and the two floating-point ray
-certificates. A solver bug would go unnoticed there. The \NumCliquePartCases{}
-part-size verdicts behind $w_3(G)>k$ and the follower optimum at the minimising
-attack in the network proof are also solver results, but each is repeated by
-exhaustive integer computations (the integer checker of the case
-certificates, the review's brute force).
-% ROUND2: update when the clique case certificates and the supportcase42 rays are final.
+(HiGHS), the dual bounds in the OR bracket (Theorem~\ref{thm:mkip-bracket})
+and the MIPLIB optima behind the HPR bounds. A solver bug would go unnoticed
+there. The \NumCliquePartCases{} part-size verdicts behind $w_3(G)>k$ and the
+follower optimum at the minimising attack in the network proof are also solver
+results, but neither depends on a solver any more: each part-size case has a
+branch-and-bound certificate checked by the integer checker, and the network
+optimum is re-derived by the review's brute force.
 
 \item \textbf{Floating point and tolerances.} Points of the general
-families are feasible within $10^{-6}$ and follower-optimal within BOBILib's
-relative $10^{-4}$, not exactly. \NumCoupledTolerance{} coupled points use that
-slack (marked $^{*}$ in Table~\ref{tab:general-points}), two coupled files are
-feasible only within it, and 19 files without coupling rows use the tie-break
-slack of Proposition~\ref{prop:general-pipeline}; all of these are
-benchmark-accepted points (class~(iii), Section~\ref{app:general}). The MIPLIB
-optima behind the five HPR-bound optima are published floating-point values,
-so those optima hold by accepted benchmark conventions, not by an
-exact-arithmetic proof (Section~\ref{app:general}). Two of the
-\NumNoFeasible{} ray certificates are checked only in floating point. The
-merged-row online bound (Theorem~\ref{thm:mkip-omega}) computes its integer
-data in double precision; part~(b) of the theorem shows that the rounding
-error cannot break the bound for the OR data, with margins below $10^{-10}$.
-The LP bracket uses HiGHS's floating-point dual bound as returned. The window
+families are feasible within $10^{-6}$ and follower-optimal within the tight
+test~\eqref{eq:tight-tol}, not exactly. The \NumTightSupersededGeneral{} files
+without coupling rows and \NumTightSupersededCoupledBench{} with coupling rows
+whose follower had used BOBILib's relative $10^{-4}$ (benchmark-accepted
+points) were replaced by points re-derived under the strict tolerance
+(Section~\ref{app:general}); no current file is benchmark-accepted. The MIPLIB
+optima behind the \NumHprOptimal{} HPR-bound optima are published floating-point
+values, so those optima hold by accepted benchmark conventions, not by an
+exact-arithmetic proof (Section~\ref{app:general}). All \NumNoFeasible{} ray
+certificates are checked in exact rational arithmetic. The merged-row online
+bound (Theorem~\ref{thm:mkip-omega}) computes its integer data in double
+precision; part~(b) of the theorem shows that the rounding error cannot break
+the bound for the OR data, with margins below $10^{-10}$. The LP bracket uses
+HiGHS's floating-point dual bound only when it is finite, lowered by
+$10^{-6}\max(1,|L|)$ before rounding up (Section~\ref{app:mkip}). The window
 rule of the subset-sum search uses a floating-point fractional bound; the 16
 proofs are confirmed by the integer-only provers above, which do not use
 that rule.
-% ROUND2: update when the 9 coupled files, the 19 general files and the two
-% supportcase42 rays are final.
 
 \item \textbf{Scope of the Lean proofs.} Lean proves lemmas about abstract
 models, not the code. That the Rust loops compute the recursions, the range
@@ -287,8 +290,9 @@ the published value is verified here; for \NumLitNoFile{}
 (\NumLitNoFileImkp{} imkp, \NumLitNoFileOr{} OR, \NumLitNoFileMiplib{}
 MIPLIB-derived, \NumLitNoFileGeneralized{} generalized) only the published value
 is used. The published OR points include values of Lefebvre and
-Schmidt\cite{lefebvre2025dantzig} that are not verified and, for three
-instances, contradict published lower bounds (Section~\ref{app:mkip-or}).
+Schmidt\cite{lefebvre2025dantzig} that are not verified; they are taken only
+from runs that ended before the time limit, as in their own analysis
+(Sections~\ref{app:mkip-or} and~\ref{app:ls}).
 
 \item \label{it:common}\textbf{Common-mode errors.} The solvers, the verifier,
 the second prover and the review sessions were all written with the same AI
@@ -310,3 +314,40 @@ parsers of the review sessions).
 with four cores that was often oversubscribed; they are indicative only and
 do not affect any proof.
 \end{enumerate}
+
+\subsection{Lefebvre and Schmidt's run files}\label{app:ls}
+
+Lefebvre and Schmidt publish per-instance run files for their Dantzig--Wolfe
+reformulation and its heuristics on most of BOBILib.\cite{lefebvre2025dantzig}
+The comparison of all their rows with this package is in
+\texttt{lefebvre\_schmidt.md} and, with file and line numbers, in
+\texttt{lefebvre\_schmidt\_discrepancies.tsv} (both in \texttt{results/notes/}).
+Most rows agree with everything
+proven here, and none of the following concerns their reformulation itself.
+\begin{itemize}
+\item Rows that end at the time limit can carry the status ``optimal'' with a
+value that no bilevel feasible point has: \LsOrZeroOptimal{} OR instances get the
+value~0, which published and elementary lower bounds rule out. It appears to be
+the value of the high point relaxation, kept as the incumbent when the
+bilevel-feasibility separation ran out of time. Their own analysis treats such
+rows as unsolved, so only their best-of-all-methods comparison (their Figure~6)
+is affected. This package does the same: their values count as published
+points only from runs that ended before the time limit (and, for their
+heuristic PADM, with status \texttt{Feasible}), and never as optima
+(\texttt{scripts/ls\_mkip\_points.py}; Table~\ref{tab:or-conflicts} lists the
+OR instances where a time-limit value would otherwise be the best published
+point).
+\item In the other direction, \LsInfeasibleVerifiedPoint{} instances with a
+verified point are reported infeasible, and \LsWrongOptima{} reported optima are
+worse than verified points; these runs enter their paper's counts of solved
+instances.
+\item Their heuristic point on \texttt{\LsBadPadmName}, which their paper counts
+among its feasible points for open instances, cannot be bilevel feasible: the
+instance has none (an exact recession direction, Section~\ref{app:general}). The
+instance violates the boundedness assumption of their method.
+\item Their exact runs report \texttt{ex10\_0\_100} optimal at
+\ExTenOptimum{}, which is correct (Section~\ref{app:general}); their paper does not
+state it, so it is counted as optimal by this work, at the MIPLIB bound, not as
+published.
+\end{itemize}
+

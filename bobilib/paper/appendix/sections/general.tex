@@ -46,14 +46,20 @@ to an exact rational and checks the conditions of Theorem~\ref{thm:ray} in
 rational arithmetic, counting only follower variables in each follower row
 (leader variables enter those rows as constants). When rounding leaves tiny
 residuals, the direction is first projected onto the exact null space of its
-tight rows. This succeeds for \NumRayExact{} of the \NumNoFeasible{} open instances, whose
-certificates are therefore exact (class~(i), Section~\ref{app:classes}); for
-\texttt{supportcase42\_0\_100} and \texttt{supportcase42\_50\_50} residuals of
-about $10^{-12}$ (relative) remain, so those two certificates rest on floating
-point (class~(ii)).
-% ROUND2: update when results/rays has exact certificates for supportcase42_0_100 and
-% supportcase42_50_50 (exact.ray.json checked by scripts/verify_ray.py): then all
-% \NumNoFeasible{} are class (i) and the last clause goes.
+tight rows. This succeeds for all open instances but \texttt{supportcase42\_0\_100}
+and \texttt{supportcase42\_50\_50}, whose floating-point directions (support
+9{,}733) keep residuals of about $10^{-12}$ (relative). For these two a second
+script (\texttt{scripts/exact\_ray.py}) first tries every unit direction
+$r=\pm e_j$ in exact arithmetic and finds one of support one: the continuous
+follower variable \texttt{C9734}, with bounds $[0,\infty)$ and follower
+objective coefficient $-1$, occurs in a single follower row, a $\le$ row with
+coefficient $-1$, so $r=e_{\texttt{C9734}}$ meets every condition of
+Theorem~\ref{thm:ray} with $f^{\top}r=-1$ (here even without Meyer's theorem:
+from any feasible follower point, increasing \texttt{C9734} stays feasible
+and lowers the follower's objective without bound). \texttt{scripts/verify\_ray.py}
+checks these two directions like the others. All \NumRayExact{} certificates
+of the \NumNoFeasible{} open instances are therefore exact (class~(i),
+Section~\ref{app:classes}).
 
 \subsection{The HPR bound and the MIPLIB optimum}
 
@@ -78,29 +84,43 @@ Lemma~\ref{lem:hpr}. This is not assumed: a script reads the bilevel
 instance and the MIPLIB~2017 model and checks in exact rational arithmetic
 that they have the same variables, rows, coefficients, sides, bounds,
 integrality requirements and objective (up to the objective's sense). For
-the five instances where it holds and a verified bilevel feasible point
+the \NumHprOptimal{} instances where it holds and a verified bilevel feasible point
 attains the bound (\texttt{pigeon-10\_0\_100}, \texttt{pigeon-10\_50\_50},
-\texttt{timtab1\_0\_100}, \texttt{noswot\_0\_100}, \texttt{noswot\_50\_50}),
+\texttt{timtab1\_0\_100}, \texttt{noswot\_0\_100}, \texttt{noswot\_50\_50},
+\texttt{ex10\_0\_100}, \texttt{neos-1445765\_0\_100}; Table~\ref{tab:hpr}),
 the point is optimal by accepted benchmark conventions. The values $z^{*}$
 are the optima in MIPLIB~2017's solution file. They were computed by MILP
 solvers in floating point and are solver-certified numerical results
-(class~(ii), Section~\ref{app:classes}), not exact-arithmetic proofs, so the
-five optima are no more rigorous than these published values:
+(class~(ii), Section~\ref{app:classes}), not exact-arithmetic proofs, so these
+optima are no more rigorous than the published values:
 \begin{itemize}
 \item \texttt{noswot}: $z^{*}=-41.00000885$. The objective has integer
 coefficients on integer variables only, so the HPR optimum is an integer, and
 a valid lower bound $L$ gives the lower bound $\lceil L\rceil$. The bound
 $\lceil z^{*}\rceil=-41$ therefore holds unless the published optimum
 overstates the HPR optimum by $0.99999$ or more (the HPR optimum would have to
-be $-42$ or less); BOBILib's own points attain it. Integrality rounding makes
-this the safest of the five.
-\item \texttt{pigeon-10}: $z^{*}=-9{,}000$, attained by both points; the bound
-inherits MIPLIB's optimal status for the instance.
+be $-42$ or less); BOBILib's own points attain it.
+\item \texttt{ex10}: $z^{*}=\ExTenOptimum{}$; the objective is the all-ones vector on
+binary variables, so the same integrality argument applies, and the point of
+\texttt{bobi general} attains it. Lefebvre and Schmidt's run
+files\cite{lefebvre2025dantzig} report the same optimum for \texttt{ex10\_0\_100}
+(an exact MILP run that ended well before its time limit); their paper does not state
+it, so it is not counted as a published optimum
+(\texttt{results/notes/lefebvre\_schmidt.md}).
+\item \texttt{neos-1445765}: $z^{*}=\NeosFourteenOptimum{}$; the objective has integer
+coefficients on integer variables only, so the same argument applies, and the point
+of \texttt{bobi general} attains it.
+Integrality rounding makes these three, and \texttt{pigeon-10} below, the
+safest of the HPR-bound optima.
+\item \texttt{pigeon-10}: $z^{*}=-9{,}000$, attained by both points. The
+objective is $-1{,}000$ on ten integer variables and zero elsewhere, so every
+value is a multiple of $1{,}000$, and the bound holds unless the published
+optimum overstates the HPR optimum by $1{,}000$ or more.
 \item \texttt{timtab1}: $z^{*}=764{,}771.99999978$ (printed as $764{,}772$ on
 the MIPLIB web pages); the point attains it with row violations below
 $10^{-12}$, so the agreement of point and bound is numerical.
 \end{itemize}
-``Optimal'' for these five therefore means equal to the published optimum to
+``Optimal'' for the HPR-bound optima therefore means equal to the published optimum to
 its printed precision (after rounding up for \texttt{noswot}), as BOBILib and
 MIPLIB use the word; no exact-arithmetic proof of the bound is claimed. The
 model comparison is exact; the points are class~(ii) (Section~\ref{app:classes}).
@@ -134,31 +154,37 @@ The pipeline handles continuous linking variables, which neither of
 BOBILib's two solvers accepts.
 
 \begin{sloppypar}
-The tie-break uses this slack. For this supplement the \NumGeneralFiles{} files
-of \texttt{results/general} were verified again with \texttt{bobi verify
---generic} (HiGHS as the follower) and the follower value of each file
-compared with the follower optimum at the file's leader values. In 19 files
-the follower value lies more than $10^{-8}$ (relative) above that optimum:
-about $10^{-7}$ in 18 of them (\texttt{binkar10\_1}, \texttt{cmflsp50-24-8-8},
-\texttt{core2536-691}, \texttt{cost266-UUE}, \texttt{exp-1-500-5-5},
-\texttt{ic97\_potential}, \texttt{n4-3}, \texttt{n5-3}, \texttt{n9-3},
-\texttt{neos-2978193-inde}, \texttt{neos-5188808-nattai}, \texttt{neos-873061},
-\texttt{neos17}, \texttt{pg}, \texttt{pg5\_34}, \texttt{seymour1},
-\texttt{tr12-30}, \texttt{uct-subprob}, all \texttt{\_0\_100}) and one unit,
-$5\times10^{-8}$ relative, in \texttt{netdiversion\_0\_100}. These 19 files
-are benchmark-accepted points (class~(iii), Section~\ref{app:classes}). The
-instances themselves have bilevel feasible points with the same leader values,
-since without coupling rows every optimal follower response is feasible for
-the leader's rows (Proposition~\ref{prop:general-pipeline}); but the leader
-values stated in the 19 files are not shown to be attainable with an exactly
-optimal follower. The other files, among them the two optimal points of
-Table~\ref{tab:hpr}, have the follower within $10^{-8}$ of its optimum
-(class~(ii)).
+The tie-break used this slack. All solution files were therefore checked again
+with \texttt{bobi verify -{}-tight} (Section~\ref{app:tolerances}), which holds the
+follower's value to $\max(10^{-6},10^{-9}|\varphi|)$ of its proven optimum. Of
+the original files without coupling rows, \NumTightSupersededGeneral{} failed
+it: their follower values lay $5\times10^{-8}$ to $10^{-7}$ (relative) above the
+optimum, within BOBILib's tolerance, so they were benchmark-accepted points
+(class~(iii), Section~\ref{app:classes}). Without coupling rows every optimal
+follower response is feasible for the leader's rows
+(Proposition~\ref{prop:general-pipeline}), so the same leader values admit an
+exactly optimal response. \texttt{bobi coupled-tighten} computed one: it solves
+$P(\hat x)$ at the old file's leader values with zero relative gap (absolute gap
+and feasibility tolerance $10^{-9}$), giving $\varphi^{*}$, and then the tie-break
+with $f^{\top}y\le\varphi^{*}+10^{-9}$ and every leader variable fixed. The new files
+replace the old ones (kept in \texttt{results/general/tolerance/}); each new leader
+value is worse than the old one by the old follower slack, as it must be, since
+the old leader used that slack. All \NumGeneralFiles{} files now pass the tight
+test; \NumTightRelAbove{} of them keep a slack above $10^{-8}$ relative but below
+the test's absolute $10^{-6}$, and every other file's follower lies at most
+\TightMaxSlackOther{} above the proven bound. \texttt{bobi certify -{}-tight}, a
+re-certification from scratch with proven bounds, accepts \NumGeneralTightCertified{}
+of the \NumGeneralFiles{}; for the other \NumGeneralTightNoBound{}
+(\texttt{neos-3627168-kasai\_0\_100} and \texttt{neos-3754480-nidda\_0\_100}) the
+follower's problem at the files' leader values is infeasible at its feasibility
+tolerance of $10^{-9}$, so it gives no follower bound; at HiGHS's default
+tolerance the follower is optimal and the rows hold within $10^{-6}$. An
+independent check with HiGHS through its Python interface and its own reader of
+the files confirmed \NumGeneralPycheckDone{} of the \NumGeneralPycheck{} re-derived
+files (for the others it did not finish within 600~s). All \NumGeneralFiles{} files,
+among them the \NumGeneralFilesOptimal{} optimal points of Table~\ref{tab:hpr}, are solver-certified
+points (class~(ii)).
 \end{sloppypar}
-% ROUND2: update when results/general records the follower error of each file
-% (or the 19 files are re-solved with an exactly optimal follower). The 19 and
-% the list come from a re-verification run for this supplement (bobi verify
-% --generic, time limit 120 s, on all 64 files), not from the data package.
 
 \subsection{Coupling rows}
 
@@ -218,20 +244,23 @@ the optimum; and the optimistic tie-break at the point's leader values within
 relative $10^{-5}$ by a proven bound. Each file then passes \texttt{bobi
 verify}.
 
-% ROUND2: update when the 9 coupled files in results/general-coupled are repaired or
-% re-classified (they are class (iii) until then).
-In \NumCoupledTolerance{} of the \NumCoupledFiles{} files with coupling rows the follower's value lies about
-$10^{-7}$ (relative) above its optimum, which BOBILib's
-test~\eqref{eq:bobilib-tol} accepts; these files are benchmark-accepted points
-(class~(iii), Section~\ref{app:classes}), and the other files with coupling
-rows are class~(ii). For seven of them a point with the
-follower at its optimum (within $10^{-9}$ relative) exists at the same leader
-values with a slightly worse leader objective. For \texttt{pg\_50\_50} and
-\texttt{neos-2978193-inde\_50\_50} the coupling rows force the follower about
-$10^{-7}$ above its optimum at the files' leader values; with the non-linking
-leader variables free, exactly optimal responses exist, so both instances do
-have bilevel feasible points, but the two files are feasible only within the
-tolerance.
+In \NumCoupledTightened{} of the files with coupling rows the follower's value had
+been about $10^{-7}$ (relative) above its optimum, which BOBILib's
+test~\eqref{eq:bobilib-tol} accepts; \NumTightSupersededCoupledBench{} of these
+files failed the tight test (benchmark-accepted points, class~(iii)). All
+\NumCoupledTightened{} were re-derived as above. For seven of them every leader
+value was kept. For \texttt{pg\_50\_50} and \texttt{neos-2978193-inde\_50\_50} the
+coupling rows force the follower about $10^{-7}$ above its optimum at the old
+files' leader values, so only the linking variables were kept and the other
+leader variables re-optimised in the same tie-break, which is
+$\mathrm{BR}(\bar x_L)$ of Proposition~\ref{prop:coupled} with the follower's value
+capped at $\varphi^{*}+10^{-9}$. All \NumCoupledFiles{} files with coupling rows now
+pass \texttt{bobi verify -{}-tight} and \texttt{bobi certify -{}-tight} (the follower
+within $10^{-6}$ of the proven bound on its optimum, the leader's objective within
+$10^{-6}+10^{-9}|F|$ of the proven tie-break bound), and the independent HiGHS check
+confirmed the \NumCoupledTightened{} new ones: they are solver-certified points
+(class~(ii)). The superseded files are kept in
+\texttt{results/general-coupled/tolerance/}.
 
 \paragraph{Few binary linking variables.} If the linking variables are
 binary and few, Proposition~\ref{prop:coupled} gives the exact optimum by

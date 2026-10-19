@@ -33,9 +33,11 @@ pub struct CegarResult {
 
 #[derive(Clone, Debug)]
 pub struct LpFollowerBound {
-    /// min over leader choices of the follower's LP value (as solved: the
-    /// HiGHS dual bound, so a valid lower bound on that minimum).
-    pub min_lp: f64,
+    /// A lower bound on min over leader choices of the follower's LP value:
+    /// HiGHS's dual bound on the bracket MILP. None when HiGHS reports no
+    /// finite dual bound (the incumbent's value is an upper bound on that
+    /// minimum, not a lower one), and then the bracket gives no lower bound.
+    pub min_lp: Option<f64>,
     /// The follower's LP value at the leader choice found (an upper bound on OPT).
     pub lp_at_x: f64,
     /// The leader choice the MILP found and the follower's value there.
@@ -44,7 +46,30 @@ pub struct LpFollowerBound {
     pub value_at_x: i64,
     pub follower_proven: bool,
     pub follower_bound: i64,
+    /// True when HiGHS solved the bracket MILP to optimality.
     pub proven_min: bool,
+}
+
+/// Relative safety margin on the bracket's floating-point dual bound.
+pub const BRACKET_MARGIN: f64 = 1e-6;
+
+/// The bracket's lower bound on the follower's integer optimum over all
+/// leader choices, from a lower bound `min_lp` on min_x U(x) and at most
+/// `k` fractional items of profit at most `pmax`:
+/// ceil(min_lp - k pmax - 1e-6 max(1, |min_lp|)). The margin absorbs the
+/// floating-point error of the solver's dual bound, so a bound that sits
+/// a hair above an integer is not rounded up past it.
+pub fn bracket_lower_bound(min_lp: f64, k: usize, pmax: i64) -> i64 {
+    let margin = BRACKET_MARGIN * min_lp.abs().max(1.0);
+    (min_lp - (k as i64 * pmax) as f64 - margin).ceil() as i64
+}
+
+impl LpFollowerBound {
+    /// [`bracket_lower_bound`] of this bracket, None without a finite dual
+    /// bound.
+    pub fn lower_bound(&self, k: usize, pmax: i64) -> Option<i64> {
+        self.min_lp.map(|v| bracket_lower_bound(v, k, pmax))
+    }
 }
 
 impl PackingInterdiction {
@@ -109,7 +134,9 @@ impl PackingInterdiction {
         let x: Vec<bool> = xs.iter().map(|&v| r.x[v] > 0.5).collect();
         let f = self.follower(&x, follower_time);
         Some(LpFollowerBound {
-            min_lp: if r.bound.is_finite() { r.bound } else { r.obj },
+            // HiGHS's dual bound only: the incumbent's value r.obj bounds
+            // the minimum from above, so it is no lower bound.
+            min_lp: r.bound.is_finite().then_some(r.bound),
             lp_at_x: r.obj,
             x,
             value_at_x: f.value,
@@ -566,4 +593,82 @@ pub fn tune_mu(pi: &PackingInterdiction, bu: usize, cl: usize, sweeps: usize) ->
 pub fn omega_scales(cells: f64) -> (usize, usize) {
     let bu = (cells / 4.0).sqrt().max(10.0) as usize;
     (bu, 4 * bu)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn kip(profit: Vec<i64>, cost: Vec<i64>, budget: i64, w: Vec<i64>, cap: i64) -> PackingInterdiction {
+        let n = profit.len();
+        PackingInterdiction {
+            name: "test".into(),
+            n,
+            profit,
+            lead_w: vec![cost],
+            lead_cap: vec![budget],
+            foll_w: vec![w],
+            foll_cap: vec![cap],
+            x_var: (0..n).collect(),
+            y_var: (n..2 * n).collect(),
+            scale: 1.0,
+            offset: 0.0,
+        }
+    }
+
+    #[test]
+    fn bracket_margin_keeps_near_integers() {
+        // A dual bound a hair above an integer is not rounded up past it.
+        assert_eq!(bracket_lower_bound(22343.0 + 1e-7, 1, 0), 22343);
+        assert_eq!(bracket_lower_bound(22343.0 - 1e-7, 1, 0), 22343);
+        assert_eq!(bracket_lower_bound(22343.5, 1, 100), 22244);
+        // The margin is at least 1e-6 absolute.
+        assert_eq!(bracket_lower_bound(5.0 + 5e-7, 1, 2), 3);
+        assert_eq!(bracket_lower_bound(5.0 + 1e-5, 1, 2), 4);
+        assert_eq!(bracket_lower_bound(10.0, 2, 3), 4);
+    }
+
+    /// Brute force: the bracket's lower bound never exceeds the bilevel
+    /// optimum, and its LP value at its leader choice is at least the
+    /// follower's optimum there.
+    #[test]
+    fn bracket_is_a_valid_bound() {
+        let mut seed = 12345u64;
+        let mut next = |m: i64| {
+            seed = seed.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+            ((seed >> 33) % m as u64) as i64
+        };
+        for _ in 0..40 {
+            let n = 4 + next(5) as usize;
+            let profit: Vec<i64> = (0..n).map(|_| 1 + next(30)).collect();
+            let cost: Vec<i64> = (0..n).map(|_| 1 + next(10)).collect();
+            let w: Vec<i64> = (0..n).map(|_| 1 + next(20)).collect();
+            let budget = cost.iter().sum::<i64>() / 3;
+            let cap = w.iter().sum::<i64>() / 2;
+            let pi = kip(profit.clone(), cost.clone(), budget, w.clone(), cap);
+            let mut opt = i64::MAX;
+            for xm in 0u32..(1 << n) {
+                let x: Vec<bool> = (0..n).map(|j| xm >> j & 1 == 1).collect();
+                if !pi.leader_feasible(&x) {
+                    continue;
+                }
+                let mut best = 0;
+                for ym in 0u32..(1 << n) {
+                    let ok = (0..n).all(|j| ym >> j & 1 == 0 || !x[j]);
+                    let wt: i64 = (0..n).filter(|&j| ym >> j & 1 == 1).map(|j| w[j]).sum();
+                    if ok && wt <= cap {
+                        best = best.max((0..n).filter(|&j| ym >> j & 1 == 1).map(|j| profit[j]).sum());
+                    }
+                }
+                opt = opt.min(best);
+            }
+            let b = pi.lp_follower_bound(30.0, 30.0).unwrap();
+            assert!(b.proven_min);
+            let pmax = *profit.iter().max().unwrap();
+            let lb = b.lower_bound(1, pmax).unwrap();
+            assert!(lb <= opt, "lb {lb} > opt {opt}");
+            assert!(b.value_at_x >= opt);
+            assert!(b.lp_at_x + 1e-6 >= b.value_at_x as f64);
+        }
+    }
 }

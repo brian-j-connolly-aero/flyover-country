@@ -116,7 +116,8 @@ paper by Th\"urauf, Kleinert, Ljubi\'c, Ralphs and Schmidt,\cite{thurauf2026bobi
 and distributed with the library as a script) accepts a
 solution file in three steps: (i)~the HPR is feasible; (ii)~the file's point
 passes the MIPLIB~2017 solution checker\cite{gleixner2021miplib} (version~1.0.3) on the HPR with
-tolerance $10^{-4}$ for the linear rows and $10^{-4}$ for integrality, and the
+tolerance $10^{-4}$ for the linear rows, scaled by the size of the row (a relative test), and
+$10^{-4}$ for integrality, and the
 stated leader objective matches; (iii)~the follower's problem with the
 leader's variables fixed to the file's values is solved to optimality (by
 Gurobi with feasibility tolerance $10^{-6}$), giving $\varphi_{\mathrm{check}}$,
@@ -141,6 +142,22 @@ rows, as in BOBILib's checker; coupling rows constrain the leader. Our
 re-certification \texttt{bobi certify} (used for the points with coupling
 rows) adds the optimistic tie-break test, and both of its optimality tests
 use proven dual bounds and the relative tolerance $10^{-5}$.
+
+The \emph{tight test} \texttt{bobi verify -{}-tight} keeps (a) and (b) but
+replaces the relative test~\eqref{eq:bobilib-tol} in (c) by
+\begin{equation}\label{eq:tight-tol}
+  \varphi_{\mathrm{sol}}-\varphi\le\max\bigl(10^{-6},\,10^{-9}|\varphi|\bigr)
+  \quad\text{for every follower optimum $\varphi$ the solver's proof allows,}
+\end{equation}
+with the follower solved to zero relative gap and absolute gap $10^{-9}$ (for an
+integer-valued follower objective the bound is rounded up). A file that passes
+BOBILib's test but not~\eqref{eq:tight-tol} uses BOBILib's tolerance on the
+follower's value; it is a benchmark-accepted point (Section~\ref{app:classes}).
+All \NumTightFiles{} solution files of the data package pass the tight test
+(\texttt{results/notes/tight\_verify.md}). \texttt{bobi certify -{}-tight} applies
+the same bound with proven dual bounds and also bounds the tie-break: the
+leader's objective within $10^{-6}+10^{-9}|F|$ of the proven optimistic
+tie-break value.
 
 ``Optimal'' in this appendix means: a bilevel feasible point in the sense of
 Definition~\ref{def:bilevel-feasible} (checked within the tolerances above)

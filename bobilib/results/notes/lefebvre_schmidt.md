@@ -259,6 +259,13 @@ For this paper and data package:
    worse 61 to 59, inconsistent 4 to 1 (the OR10x100-0.75_4.dat-0 closure). If all
    time-limit values are dropped: 474 better, 56 worse. The paired medians should be
    recomputed either way.
+   *Applied:* `scripts/ls_mkip_points.py` now recompiles `lefebvre_schmidt_ub` from the
+   four run files with the authors' rule (time below 3,600 s; PADM status `Feasible`).
+   Result: 474 better, 56 worse, 1 inconsistent (the closure); the paired medians are
+   recomputed (`or/compare.csv`). The recompilation also adds 95 OR values from runs that
+   ended in time which the earlier compilation lacked; none is better than the best
+   published point. Values from time-limit rows that lie below the best counted point
+   (21 OR instances) are kept for reference in `lefebvre_schmidt_ub_timelimit`.
 3. Small correction: neos-631710_0_100's published 556 is in the MILP-First file
    (242.9 s; MILP reaches 556 only at the limit). `build_data_package.py` says "MILP run
    files".

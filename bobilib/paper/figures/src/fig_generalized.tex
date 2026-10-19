@@ -1,10 +1,11 @@
 % fig_generalized: the generalized interdiction problem of BOBILib's set "generalized"
 % (Fischetti, Monaci and Sinnl 2018), drawn schematically.
 % Leader variables x (squares), follower variables y (circles).  For the first N pairs,
-% x_j = 1 forces y_j = 0 (the follower's rows x_j + y_j <= 1).  The leader's rows
-% G_x x + G_y y <= G_0 contain both x and y (coupling rows); the follower's own rows
-% By <= b contain y only.  The objectives differ: the leader minimises c_x'x + c_y'y,
-% the follower maximises d'y.  Shown: x_1 = 1 blocks y_1; x_4 = 1 is a leader decision
+% x_j = 1 forces y_j = 0 (the follower's rows x_j + y_j <= 1).  In the notation of the
+% paper's model (1): the leader's rows Ax + By >= a contain both x and y (coupling rows);
+% the follower's own rows Dy >= b contain y only, and x enters the follower's rows only in
+% x_j + y_j <= 1.  The objectives differ: the leader minimises c'x + d'y, the follower
+% minimises f'y.  Shown: x_1 = 1 blocks y_1; x_4 = 1 is a leader decision
 % that blocks nothing; the follower takes y_2 and y_5.  Schematic, no data.
 % (In the files: rows inter<j> are x_j + y_j <= 1, rows leaderCons<i> are the leader's,
 % rows followerCons<i> the follower's; each row also has a slack variable with a
@@ -61,8 +62,8 @@
   \node[text=follower, font=\fontsize{9}{10}\selectfont] at (0.62,\yy) {$y$};
 
   % objectives
-  \node[anchor=west] at (0.10,0.70) {\textcolor{leader}{\bfseries leader} minimizes $c_x^\top x + c_y^\top y$};
-  \node[anchor=west] at (0.10,0.22) {\textcolor{follower}{\bfseries follower} maximizes $d^\top y$};
+  \node[anchor=west] at (0.10,0.70) {\textcolor{leader}{\bfseries leader} minimizes $c^\top x + d^\top y$};
+  \node[anchor=west] at (0.10,0.22) {\textcolor{follower}{\bfseries follower} minimizes $f^\top y$};
 
   % key
   \begin{scope}[shift={(5.30,0)}, small]
@@ -71,7 +72,7 @@
     \draw[lbox] (0.0,2.40) rectangle (0.25,2.80);
     \node[anchor=west, align=left] at (0.30,2.60) {leader's rows:\\$x$ and $y$};
     \draw[fbox] (0.0,1.53) rectangle (0.25,1.93);
-    \node[anchor=west, align=left] at (0.30,1.73) {follower's rows:\\$y$ only};
+    \node[anchor=west, align=left] at (0.30,1.73) {follower's rows: $y$;\\$x$ only in $x_j+y_j\le 1$};
   \end{scope}
 \end{tikzpicture}
 \end{document}

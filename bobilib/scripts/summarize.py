@@ -10,13 +10,15 @@ Inputs (all optional except --meta; missing ones are skipped):
   results/kip/summary.csv         KIP optima from Weninger and Fukasawa (verified files)
   results/ss/proofs.csv            our subset-sum optima (bobi ss-solve, verified files)
   runs/ss_*.tsv                    further local subset-sum runs (bobi ss-solve)
-  runs/or_compare.csv              OR bounds vs literature (scripts/compare_or.py)
+  results/or/compare.csv           OR bounds vs literature (scripts/compare_or.py; runs/or_compare.csv
+                                   if the package copy is missing)
   results/clique/summary.csv      clique interdiction certificates
   results/network/summary.csv     attack-protect certificates (bobi fire)
   results/general/hpr_optimal.csv general points meeting the HPR bound
   runs/general.jsonl               general feasible points (bobi general)
   results/general-coupled/summary.csv  feasible points with coupling rows (bobi coupled)
-  runs/ray_verify.jsonl            exact unbounded-follower certificates
+  results/rays/ray_verify.jsonl    exact unbounded-follower certificates (runs/ray_verify.jsonl if the
+                                   package copy is missing)
 """
 import argparse
 import collections
@@ -86,7 +88,8 @@ def main():
             if len(t) >= 3 and t[1] == "OPTIMAL" and t[0] in status and status[t[0]]["outcome"] is None:
                 status[t[0]].update(outcome="optimal", source="this work (robust subset-sum search)")
     # This work: OR closures and first points.
-    for r in load_csv(f"{a.runs}/or_compare.csv"):
+    p = f"{a.results}/or/compare.csv"
+    for r in load_csv(p if os.path.exists(p) else f"{a.runs}/or_compare.csv"):
         n = r["name"]
         if n not in status or status[n]["outcome"]:
             continue
@@ -105,7 +108,9 @@ def main():
         if r.get("certified") == "true" and r["name"] in status and status[r["name"]]["outcome"] is None:
             status[r["name"]].update(outcome="optimal", source="this work (every attack, follower by tree DP)")
     # This work: unbounded followers (no bilevel feasible point).
-    p = f"{a.runs}/ray_verify.jsonl"
+    p = f"{a.results}/rays/ray_verify.jsonl"
+    if not os.path.exists(p):
+        p = f"{a.runs}/ray_verify.jsonl"
     if os.path.exists(p):
         for line in open(p):
             if not line.startswith("{"):

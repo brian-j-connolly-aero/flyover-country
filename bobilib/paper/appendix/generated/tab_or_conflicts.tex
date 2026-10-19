@@ -2,25 +2,43 @@
 % Needs booktabs, longtable, siunitx (v3) and multicol in the preamble.
 
 {\footnotesize\sisetup{group-separator={,},group-minimum-digits=4,group-digits=integer}\setlength{\tabcolsep}{4pt}\setlength{\LTcapwidth}{\linewidth}
-\begin{longtable}{@{}l S[table-format=5.0] S[table-format=6.0] l S[table-format=6.0] S[table-format=5.0] l@{}}
-\caption{The OR instances whose published lower bound (Lozano, Bergman and Cire) exceeds the best published point. Point source: who published that point; Lozano et al.'s point: their own published point; our point: the verified solution file of this work (blank: none). Lefebvre and Schmidt's three values come from runs that stopped at a time or solution limit and lie below a published lower bound; they are not verified here. The paper's paired median gaps leave these instances out.}\label{tab:or-conflicts}\\
+\begin{longtable}{@{}l S[table-format=6.0] S[table-format=6.0] S[table-format=6.0] S[table-format=6.0] l@{}}
+\caption{OR instances whose published bounds need care. Publ.\ LB: Lozano, Bergman and Cire's lower bound; L\&S, time limit: the smallest value in Lefebvre and Schmidt's run files from a run stopped at the time limit, a kind of row their own analysis does not count and that can carry a relaxation value; it would be the best published point if it counted (blank: none). Best publ.\ point: the best published point used in the paper (Lozano, Bergman and Cire's, Lefebvre and Schmidt's from a run that ended in time, or BOBILib's). Our point: the verified solution file of this work (blank: none). For \texttt{OR10x100-0.75\_4.dat-0} the published lower bound exceeds the published point; it is closed at 8,813 and left out of the paired median gaps.}\label{tab:or-conflicts}\\
 \toprule
-Instance & {\shortstack{Publ.\\LB}} & {\shortstack{Publ.\\point}} & Point source & {\shortstack{Lozano\\et al.}} & {\shortstack{Our\\point}} & Here \\
+Instance & {\shortstack{Publ.\\LB}} & {\shortstack{L\&S,\\time limit}} & {\shortstack{Best publ.\\point}} & {\shortstack{Our\\point}} & Note \\
 \midrule
 \endfirsthead
-\multicolumn{7}{l}{\emph{(continued)}}\\
+\multicolumn{6}{l}{\emph{(continued)}}\\
 \toprule
-Instance & {\shortstack{Publ.\\LB}} & {\shortstack{Publ.\\point}} & Point source & {\shortstack{Lozano\\et al.}} & {\shortstack{Our\\point}} & Here \\
+Instance & {\shortstack{Publ.\\LB}} & {\shortstack{L\&S,\\time limit}} & {\shortstack{Best publ.\\point}} & {\shortstack{Our\\point}} & Note \\
 \midrule
 \endhead
 \midrule
-\multicolumn{7}{r}{\emph{continued on the next page}}\\
+\multicolumn{6}{r}{\emph{continued on the next page}}\\
 \endfoot
 \bottomrule
 \endlastfoot
-OR5x100-0.25\_8.dat-0 & 15874 & 10859 & Lefebvre--Schmidt & 20050 & 19849 & not in the paired medians \\
-OR5x100-0.25\_7.dat-50 & 17106 & 16951 & Lefebvre--Schmidt & 22366 & 22125 & not in the paired medians \\
-OR10x100-0.75\_4.dat-0 & 8814 & 8813 & Lozano et al. & 8813 & 8813 & closed (Section~\ref{app:mkip-or}); not paired \\
-OR10x500-0.25\_5.dat-50 & 67175 & 20909 & Lefebvre--Schmidt & 112086 &  & not in the paired medians \\
+OR5x100-0.25\_7.dat-50 & 17106 & 16951 & 22366 & 22125 & below the published LB \\
+OR5x100-0.25\_8.dat-0 & 15874 & 10859 & 20050 & 19849 & below the published LB \\
+OR10x100-0.25\_10.dat-50 & 14825 & 16399 & 20264 & 19924 & not counted \\
+OR10x100-0.25\_4.dat-50 & 15804 & 8090 & 20754 &  & below the published LB \\
+OR10x100-0.25\_5.dat-100 & 20096 & 23151 & 23916 & 23417 & not counted \\
+OR10x100-0.25\_6.dat-0 & 14875 & 7726 & 19330 & 19372 & below the published LB \\
+OR10x100-0.25\_8.dat-0 & 14546 & 17533 & 18738 & 18854 & not counted \\
+OR10x100-0.75\_4.dat-0 & 8814 & 45902 & 8813 & 8813 & LB above point; closed (Section~\ref{app:mkip-or}) \\
+OR10x250-0.25\_4.dat-50 & 35545 & 40735 & 54623 &  & not counted \\
+OR10x250-0.25\_7.dat-50 & 35749 & 36279 & 55317 &  & not counted \\
+OR10x250-0.50\_3.dat-0 & 37856 & 6575 & 61853 & 54326 & below the published LB \\
+OR10x250-0.50\_3.dat-50 & 45192 & 46801 & 80303 & 71263 & not counted \\
+OR10x250-0.50\_7.dat-0 & 37201 & 52992 & 61372 & 53302 & not counted \\
+OR10x500-0.25\_2.dat-50 & 67265 & 7083 & 112795 &  & below the published LB \\
+OR10x500-0.25\_5.dat-50 & 67175 & 20909 & 112086 &  & below the published LB \\
+OR30x100-0.25\_2.dat-50 & 13955 & 4917 & 19468 &  & below the published LB \\
+OR30x100-0.25\_5.dat-50 & 14772 & 13127 & 20202 &  & below the published LB \\
+OR30x100-0.25\_6.dat-50 & 14488 & 14393 & 19788 &  & below the published LB \\
+OR30x100-0.25\_8.dat-50 & 14328 & 16674 & 19699 &  & not counted \\
+OR30x100-0.25\_9.dat-50 & 15173 & 19139 & 20935 &  & not counted \\
+OR30x100-0.50\_7.dat-0 & 15351 & 16014 & 24028 & 21739 & not counted \\
+OR30x250-0.50\_1.dat-100 & 47439 & 66391 & 76643 & 71552 & not counted \\
 \end{longtable}
 }

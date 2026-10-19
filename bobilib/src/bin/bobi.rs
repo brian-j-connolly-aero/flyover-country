@@ -120,6 +120,10 @@ enum Cmd {
         /// Write certified solutions here.
         #[arg(long)]
         out: Option<PathBuf>,
+        /// Only the LP-follower bracket: no online bound, no local search,
+        /// no solution files.
+        #[arg(long)]
+        milp_only: bool,
     },
     /// Upper bounds (follower LP at the LP-follower minimiser) and, when the
     /// follower can be solved exactly, certified points, for any number of
@@ -955,7 +959,14 @@ fn main() {
             ls_time,
             cells,
             out,
-        } => run_bounds(files, milp_time, ls_time, cells, out.as_deref()),
+            milp_only,
+        } => {
+            if milp_only {
+                run_bracket(files, milp_time)
+            } else {
+                run_bounds(files, milp_time, ls_time, cells, out.as_deref())
+            }
+        }
         Cmd::Survey { dir, max_bytes } => {
             let files = instances(&dir);
             let lines: Vec<String> = files
@@ -1030,10 +1041,13 @@ fn main() {
                             }
                         }
                         let pmax = *pi.profit.iter().max().unwrap();
-                        let lb = (b.min_lp - (pi.foll_w.len() as i64 * pmax) as f64).max(0.0);
+                        // No lower bound without a finite dual bound.
+                        let show = |v: Option<String>| v.unwrap_or_else(|| "none".into());
+                        let lb = b.lower_bound(pi.foll_w.len(), pmax).map(|v| v.max(0));
                         println!(
-                            "{}\tmin_lp={:.1}\tlb={:.1}\tlp_at_x={:.1}\tvalue_at_x={}\tfollower_proven={}\tfollower_bound={}\tproven_min={}\tfrows={}\t{:.1}s",
-                            m.name, b.min_lp, lb, b.lp_at_x, b.value_at_x, b.follower_proven, b.follower_bound, b.proven_min,
+                            "{}\tmin_lp={}\tlb={}\tlp_at_x={:.1}\tvalue_at_x={}\tfollower_proven={}\tfollower_bound={}\tproven_min={}\tfrows={}\t{:.1}s",
+                            m.name, show(b.min_lp.map(|v| format!("{v:.1}"))), show(lb.map(|v| v.to_string())),
+                            b.lp_at_x, b.value_at_x, b.follower_proven, b.follower_bound, b.proven_min,
                             pi.foll_w.len(), t.elapsed().as_secs_f64()
                         );
                         if let Some(dir) = &out {
@@ -1318,10 +1332,11 @@ fn run_bounds(files: Vec<PathBuf>, milp_time: f64, ls_time: f64, cells: f64, out
             bobi::mkip::omega_root(&pi, &mu, bu as f64 / cap, cl as f64 / pi.foll_cap[0] as f64);
         let t_omega = t.elapsed().as_secs_f64();
         let pmax = *pi.profit.iter().max().unwrap();
-        let (mut lb_milp, mut x, mut y, mut ub) =
-            (0i64, vec![false; pi.n], vec![false; pi.n], i64::MAX);
+        let (mut lb_milp, mut milp_optimal, mut x, mut y, mut ub) =
+            (None, false, vec![false; pi.n], vec![false; pi.n], i64::MAX);
         if let Some(b) = pi.lp_follower_bound(milp_time, 60.0) {
-            lb_milp = (b.min_lp - pmax as f64).ceil() as i64;
+            lb_milp = b.lower_bound(1, pmax);
+            milp_optimal = b.proven_min;
             if b.follower_proven {
                 x = b.x;
                 y = b.y;
@@ -1341,15 +1356,17 @@ fn run_bounds(files: Vec<PathBuf>, milp_time: f64, ls_time: f64, cells: f64, out
             ub = lf.value;
         }
         assert!(pi.leader_feasible(&x) && pi.follower_feasible(&x, &y));
-        let lb = omega.max(lb_milp);
+        let lb = lb_milp.map_or(omega, |v| omega.max(v));
         println!(
-            "{{\"name\":\"{}\",\"n\":{},\"leader_rows\":{},\"lb\":{},\"lb_omega\":{},\"lb_milp\":{},\"ub\":{},\"gap\":{:.5},\"omega_secs\":{:.1},\"secs\":{:.1}}}",
+            "{{\"name\":\"{}\",\"n\":{},\"leader_rows\":{},\"lb\":{},\"lb_omega\":{},\"lb_milp\":{},\"lb_milp_proven\":{},\"milp_optimal\":{},\"ub\":{},\"gap\":{:.5},\"omega_secs\":{:.1},\"secs\":{:.1}}}",
             m.name,
             pi.n,
             pi.lead_w.len(),
             lb,
             omega,
-            lb_milp,
+            lb_milp.map_or("null".to_string(), |v| v.to_string()),
+            lb_milp.is_some(),
+            milp_optimal,
             ub,
             (ub - lb) as f64 / ub.max(1) as f64,
             t_omega,
@@ -1362,6 +1379,48 @@ fn run_bounds(files: Vec<PathBuf>, milp_time: f64, ls_time: f64, cells: f64, out
                 .write(&dir.join(format!("{}.res.json", m.name)))
                 .unwrap();
         }
+    }
+}
+
+/// `bobi bounds --milp-only`: the LP-follower bracket alone, one JSON line
+/// per single-follower-row instance. `lb_milp` is
+/// ceil(min_lp - pmax - 1e-6 max(1, |min_lp|)) from HiGHS's dual bound
+/// `min_lp_bound`, or null when HiGHS reported no finite dual bound
+/// (`lb_milp_proven` false); `milp_optimal` says whether the bracket MILP
+/// was solved to optimality; `ub_at_x` is the follower's proven optimum at
+/// the MILP's leader choice (null if not proven).
+fn run_bracket(files: Vec<PathBuf>, milp_time: f64) {
+    use serde_json::json;
+    for path in files {
+        let m = mps::read_instance(&path).unwrap_or_else(|e| panic!("{e}"));
+        let pi = structure::packing_interdiction(&m).unwrap_or_else(|e| panic!("{e}"));
+        if pi.foll_w.len() != 1 {
+            println!(
+                "{}",
+                json!({"name": m.name, "skip": format!("follower has {} rows", pi.foll_w.len())})
+            );
+            continue;
+        }
+        let t = Instant::now();
+        let pmax = *pi.profit.iter().max().unwrap();
+        let b = pi.lp_follower_bound(milp_time, 60.0);
+        let lb_milp = b.as_ref().and_then(|b| b.lower_bound(1, pmax));
+        println!(
+            "{}",
+            json!({
+                "name": m.name,
+                "n": pi.n,
+                "leader_rows": pi.lead_w.len(),
+                "lb_milp": lb_milp,
+                "lb_milp_proven": lb_milp.is_some(),
+                "milp_optimal": b.as_ref().is_some_and(|b| b.proven_min),
+                "min_lp_bound": b.as_ref().and_then(|b| b.min_lp),
+                "lp_at_x": b.as_ref().map(|b| b.lp_at_x),
+                "ub_at_x": b.as_ref().and_then(|b| b.follower_proven.then_some(b.value_at_x)),
+                "milp_time": milp_time,
+                "secs": (t.elapsed().as_secs_f64() * 10.0).round() / 10.0,
+            })
+        );
     }
 }
 
@@ -1381,11 +1440,11 @@ fn run_upper_multi(files: Vec<PathBuf>, milp_time: f64, follower_time: f64, out:
             .follower_lp(&b.x, 60.0)
             .map(|v| (v + 1e-6).floor() as i64);
         println!(
-            "{{\"name\":\"{}\",\"n\":{},\"follower_rows\":{},\"min_lp_bound\":{:.1},\"ub_lp\":{},\"follower_value\":{},\"follower_bound\":{},\"certified\":{},\"secs\":{:.1}}}",
+            "{{\"name\":\"{}\",\"n\":{},\"follower_rows\":{},\"min_lp_bound\":{},\"ub_lp\":{},\"follower_value\":{},\"follower_bound\":{},\"certified\":{},\"secs\":{:.1}}}",
             m.name,
             pi.n,
             pi.foll_w.len(),
-            b.min_lp,
+            b.min_lp.map_or("null".to_string(), |v| format!("{v:.1}")),
             ub_lp.map_or("null".to_string(), |v| v.to_string()),
             b.value_at_x,
             if b.follower_bound == i64::MAX { "null".to_string() } else { b.follower_bound.to_string() },

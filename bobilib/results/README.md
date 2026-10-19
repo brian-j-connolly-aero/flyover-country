@@ -34,19 +34,28 @@ BOBILib lists 1,027 instances as optimal, 33 as infeasible,
 | Outcome | Instances |
 | --- | ---: |
 | already optimal in published work | 528 |
-| proven optimal here | 80 |
+| proven optimal here | 82 |
 | no bilevel feasible point (proven here) | 40 |
-| verified point here, where BOBILib has none | 230 |
+| verified point here, where BOBILib has none | 228 |
 | status unchanged | 716 |
 
-So 648 (41%) are settled, 608 of them optimal.
-Of the 230 verified points where BOBILib has none, 168 are the first point
-anywhere; for the other 62 a published point existed (named in `notes`).
+So 650 (41%) are settled, 610 of them optimal.
+Of the 228 verified points where BOBILib has none, 167 are the first point
+anywhere; for the other 61 a published point existed (named in `notes`).
 Every claim is backed by a file in this package (a solution in BOBILib's
 format that passes BOBILib-style verification, a recession-direction
 certificate, a partition certificate) or by a published optimum (cited); for
 82 of the 528 published optima there is no solution file here
 (`verified` = `na`), and only the published value is used.
+
+Certificate classes (column `certificate_class`, defined below): of the
+878 rows with a result (optimal, no bilevel feasible point, or a verified point),
+115 are `exact`, 763 `numerical` and 0 `benchmark`.
+All 1,478 current solution files pass `bobi verify --tight`
+(`notes/tight_verify.md`): the follower's value is within max(1e-6, 1e-9 |phi|) of
+its proven optimum, not only within BOBILib's relative 1e-4. The
+26 files they replace (25 of them benchmark-accepted points) are kept in
+`general/tolerance/` and `general-coupled/tolerance/` for the record.
 
 ## Data
 
@@ -65,6 +74,10 @@ results/
   rays/                 41 recession directions: the follower is infeasible or unbounded for every leader choice
   general/              64 points for MIPLIB-derived instances without coupling rows; HPR-bound optima
   general-coupled/      29 points for MIPLIB-derived instances with coupling rows
+  */tolerance/          superseded points (follower within BOBILib's tolerance only), replaced by tight ones
+  literature/           published bounds and optima per instance (inputs of compare.csv and of this index)
+  notes/                tight re-verification of every file, Lefebvre and Schmidt's run files checked against
+                        this package, BOBILib's general20-30-20-20-20-2 file, instance structure of the general sets
 ```
 
 Each folder has its own README with the method, the columns of its tables,
@@ -95,7 +108,13 @@ vertices (at most k of them), so the remainder is r-partite and its clique
 number is at most r; the follower part is a maximum clique of the remainder.
 `clique/summary.csv` gives, per instance, n, density, m, k, BOBILib's value,
 the lower bound with its argument (Mantel, or Brouwer's Theorem 2 with the
-exact solver proofs of w3(G) > k) and the upper bound with its partition.
+proofs of w3(G) > k) and the upper bound with its partition.
+
+**Clique case certificates (`clique/certificates/*.cert.jsonl.gz`)** prove
+w3(G) > k for the 30 density-0.9 instances: one explicit branch-and-bound
+tree per part-size case (170 cases), checked from the instance files alone by
+`scripts/check_clique_certificates.py` in integer arithmetic (`check.log`; format
+and proof in `clique/certificates/README.md`).
 
 **`instances.csv`** (UTF-8, comma separated, one header row):
 
@@ -111,10 +130,50 @@ exact solver proofs of w3(G) > k) and the upper bound with its partition.
 | `source` | citation key of the published result (see below), `this work`, or `ThuraufEtAl2026` (BOBILib's own value) |
 | `method` | how the status or value was obtained |
 | `certificate` | path, relative to `results/`, of the solution or certificate file; `ARCHIVE.tar.gz:FILE` names an archive member |
-| `verified` | `yes`: the certificate passed its check (`bobi verify`, or the exact ray check); `no`: it did not or was only checked in floating point; `na`: no certificate |
+| `verified` | `yes`: the certificate passed its check (`bobi verify`, or the exact ray check); `no`: it did not; `na`: no certificate. It says whether a check passed, not how rigorous it is (see `certificate_class`) |
+| `certificate_class` | how rigorous the result of the row is (classes (i)-(iii) of the paper's appendix, "Certificate classes"): `exact`, `numerical`, `benchmark` for every row with `new_status` `optimal`, `infeasible_bilevel` or `feasible`; `na` otherwise |
 | `notes` | free text, `;`-separated |
 
-Rows per `new_status`: bobilib_infeasible 33, bobilib_optimal 1,027, feasible 230, infeasible_bilevel 40, optimal 608, unchanged 716.
+Rows per `new_status`: bobilib_infeasible 33, bobilib_optimal 1,027, feasible 228, infeasible_bilevel 40, optimal 610, unchanged 716.
+
+**Certificate classes.** A result is in the weakest class of the steps it uses.
+
+* `exact` (class (i)): checked in exact rational or integer arithmetic, or a
+  mathematical proof together with an exhaustive integer computation; no
+  tolerance enters. Rows: the subset-sum KIP optima (exhaustive integer search,
+  re-proved by two integer-only provers), the clique optima (Mantel or
+  Brouwer's theorem with the integer-checked case certificates, and the
+  partition files), the network optima (every attack enumerated, exact tree
+  DP), the recession directions (exact rational check), and OR points with one
+  follower knapsack (integer data, exact knapsack oracle).
+* `numerical` (class (ii)): rests on a floating-point LP, MILP or CP solver run
+  with tolerances, or on a published optimum used as published. Rows: the
+  528 published optima (not re-certified here), the optima at the MIPLIB
+  bound of the HPR (MIPLIB's published floating-point optima; optimal by
+  accepted benchmark conventions), OR points with several follower knapsacks
+  (follower optimum by HiGHS), and the points for the general instances (rows
+  within 1e-6, follower optimum by HiGHS, and the follower's value within
+  max(1e-6, 1e-9 |phi|) of the proven bound: they pass `bobi verify --tight`).
+* `benchmark` (class (iii)): a point that passes BOBILib's tolerance-based
+  checker only because of its tolerances: its follower value is above the
+  follower's optimum by more than `bobi verify --tight` allows but within
+  BOBILib's relative 1e-4, or its rows hold only within BOBILib's 1e-4. No
+  current row is of this class; the superseded files in `*/tolerance/` and
+  BOBILib's own file of general20-30-20-20-20-2 (`notes/`) are examples.
+
+Rows per class and kind of result:
+
+| Kind of result | Class | Rows |
+| --- | --- | ---: |
+| clique interdiction optimum | `exact` | 57 |
+| no bilevel feasible point (recession direction) | `exact` | 40 |
+| knapsack interdiction optimum (subset-sum search) | `exact` | 16 |
+| attack-protect optimum | `exact` | 2 |
+| published optimum | `numerical` | 528 |
+| OR point, several follower knapsacks | `numerical` | 140 |
+| point without coupling rows | `numerical` | 60 |
+| point with coupling rows | `numerical` | 28 |
+| optimum at the MIPLIB bound of the HPR | `numerical` | 7 |
 
 Other tables (columns in each folder's README): `kip/summary.csv` (published KIP
 optima and the leader-vector source), `ss/proofs.csv` (optimum, nodes, CPU
@@ -132,7 +191,7 @@ optimal), `=inf= NAME` (no bilevel feasible point), `=best= NAME VALUE` (best
 verified point, not proven) and `=bestdual= NAME VALUE` (best proven lower
 bound, where this work proves a better one than any published: 191 OR
 instances with one follower knapsack and the 3 open clique instances). It has
-608 `=opt=`, 40 `=inf=`, 695 `=best=` and 194 `=bestdual=` lines.
+610 `=opt=`, 40 `=inf=`, 693 `=best=` and 194 `=bestdual=` lines.
 Values are upper-level objectives of the minimising leader, at full precision.
 
 Citation keys in `source`:
@@ -157,6 +216,8 @@ D=data/collection
 ./target/release/bobi verify --instances $D --generic results/clique results/general results/general-coupled
 mkdir -p /tmp/large && tar xzf results/general/large_points.tar.gz -C /tmp/large
 ./target/release/bobi verify --instances $D --generic /tmp/large
+./target/release/bobi verify --instances $D --tight --time-limit 1200 -j 2 results/general /tmp/large   # any folder
+python3 -I scripts/check_clique_certificates.py $D/interdiction/clique-interdiction/clique results/clique/certificates
 python3 -I scripts/verify_ray.py INSTANCE.mps.gz INSTANCE.aux results/rays/INSTANCE.ray.json
 python3 -I scripts/ss_check.py INSTANCE.mps.gz INSTANCE.aux - OPTIMUM   # second KIP lower-bound prover
 python3 -I scripts/compare_hpr.py INSTANCE.mps.gz INSTANCE.aux MIPLIB.mps.gz   # HPR = MIPLIB model
@@ -165,23 +226,34 @@ python3 -I scripts/compare_hpr.py INSTANCE.mps.gz INSTANCE.aux MIPLIB.mps.gz   #
 `bobi verify` checks a file the way BOBILib's feasibility checker does: rows,
 bounds and integrality within 1e-6, the stated objective, and the follower
 re-solved with the leader fixed (exact knapsack oracle for one follower row,
-a HiGHS MILP otherwise) and found optimal within BOBILib's relative 1e-4. It
-is separate from BOBILib's solvers but not from this work's code: it is part
+a HiGHS MILP otherwise) and found optimal within BOBILib's relative 1e-4.
+`bobi verify --tight` holds the follower to max(1e-6, 1e-9 |phi|) of its
+proven optimum instead; all 1,478 current files pass it
+(`notes/tight_verify.md`, `notes/tight_verify.tsv`). `bobi verify` is
+separate from BOBILib's solvers but not from this work's code: it is part
 of the same crate as the solvers and shares their instance reader and
 knapsack oracle. Code that shares nothing with the solvers re-checks the
 subset-sum lower bounds (`scripts/ss_check.py` and a second prover), the
-recession directions (`scripts/verify_ray.py`) and the HPR comparisons
-(`scripts/compare_hpr.py`); the clique, network and coupled results were
-re-derived with separate code in separate review sessions (see the folder
-READMEs). The software, the experiments and these reviews were carried out
-with an AI coding agent directed by the author; the reviews ran in separate
-sessions that wrote their own code. Caveats: the two supportcase42
-directions are checked in floating point only; nine coupled points use
-BOBILib's 1e-4 tolerance on the follower's value (about 1e-7 relative); OR
-lower bounds for several follower knapsacks are the literature's; the
-published OR points include values of Lefebvre and Schmidt (2025) that are
-not verified, and for 4 OR instances a published lower bound exceeds a
-published point (`notes` of `instances.csv`).
+recession directions (`scripts/verify_ray.py`), the HPR comparisons
+(`scripts/compare_hpr.py`), the clique case certificates
+(`scripts/check_clique_certificates.py`) and the re-derived tight general
+and coupled points where its solves finished in time
+(`scripts/coupled_tight_check.py`, HiGHS through highspy,
+`*/tolerance/pycheck_tight.tsv`); the clique,
+network and coupled results were also re-derived with separate code in
+separate review sessions (see the folder READMEs). The software, the
+experiments and these reviews were carried out with an AI coding agent
+directed by the author; the reviews ran in separate sessions that wrote
+their own code. Caveats: the optima at the MIPLIB bound rest on MIPLIB's
+published floating-point optima; the OR lower bounds from the LP bracket rest
+on HiGHS's dual bound (with a safety margin of 1e-6 relative); OR lower bounds
+for several follower knapsacks are the literature's; the published OR points
+include values of Lefebvre and Schmidt (2025) that are not verified, taken
+only from runs that ended before the time limit, as in their own analysis
+(their run files are checked against this package in
+`notes/lefebvre_schmidt.md`); for one OR
+instance a published lower bound exceeds a published point
+(`notes` of `instances.csv`; OR10x100-0.75_4.dat-0, closed by the published branch-and-cut bound).
 
 ## Replicating
 
@@ -194,7 +266,19 @@ make all                                  # also figures, paper and appendix
 `make data` runs `scripts/build_data_package.py` (add `MKIP_LIT=`, `MIBLP_LIT=`
 and `LBC_OPTIMAL=` to re-read the published optima from the literature tables;
 without them, and without `META=`, they are read back from `instances.csv`),
-then `scripts/gen_facts.py` and `scripts/gen_appendix_tables.py`. The
+then `scripts/gen_facts.py` and `scripts/gen_appendix_tables.py`.
+`summary.json` is written by `python3 -I scripts/summarize.py --meta collection.json
+--mkip-lit results/literature/mkip_literature_status.csv --miblp-lit
+results/literature/miblp_literature_status.csv --lbc-optimal optimal.csv
+--runs runs --results results` (from `bobilib/`; `optimal.csv` is
+`solution_files/optimal.csv` of Lozano, Bergman and Cire's repository; it reads
+the OR bounds and ray checks from this package and the `bobi general` runs from `runs/`).
+`notes/instance_structure.csv` (the structure of the general and assignment
+instances that the paper describes: variable and row split, coupling rows,
+continuous linking variables, follower objective against the leader's) is
+read from BOBILib's instance files by
+`python3 -I scripts/instance_structure.py --meta collection.json --collection data/collection
+--out results/notes/instance_structure.csv` (run from `bobilib/`; about 4 minutes on 2 threads). The
 computations behind each folder are listed in its README and in
 `bobilib/REPORT.md`; times were measured on a shared, often oversubscribed
 4-core machine and are indicative only.

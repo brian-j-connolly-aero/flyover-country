@@ -5,16 +5,16 @@ ss	interKP-200-100-7-2	pass	-	PASS	0.0e0	-	1872	1872	yes	yes	-1872	-1872	-1872	0
 ss	interKP-200-100-7-3	pass	-	PASS	0.0e0	-	2808	2808	yes	yes	-2808	-2808	-2808	0.000e0	0.000e+00	kp	0.02	-
 ss	interKP-300-100-6-2	pass	-	PASS	0.0e0	-	2868	2868	yes	yes	-2868	-2868	-2868	0.000e0	0.000e+00	kp	0.00	-
 ss	interKP-300-100-6-3	pass	-	PASS	0.0e0	-	4302	4302	yes	yes	-4302	-4302	-4302	0.000e0	0.000e+00	kp	0.00	-
-ss	interKP-300-100-7-2	pass	-	PASS	0.0e0	-	2894	2894	yes	yes	-2894	-2894	-2894	0.000e0	0.000e+00	kp	0.03	-
-ss	interKP-300-100-7-3	pass	-	PASS	0.0e0	-	4340	4340	yes	yes	-4340	-4340	-4340	0.000e0	0.000e+00	kp	0.03	-
+ss	interKP-300-100-7-2	pass	-	PASS	0.0e0	-	2894	2894	yes	yes	-2894	-2894	-2894	0.000e0	0.000e+00	kp	0.02	-
+ss	interKP-300-100-7-3	pass	-	PASS	0.0e0	-	4340	4340	yes	yes	-4340	-4340	-4340	0.000e0	0.000e+00	kp	0.02	-
 ss	interKP-400-100-6-2	pass	-	PASS	0.0e0	-	3832	3832	yes	yes	-3832	-3832	-3832	0.000e0	0.000e+00	kp	0.00	-
 ss	interKP-400-100-6-3	pass	-	PASS	0.0e0	-	5748	5748	yes	yes	-5748	-5748	-5748	0.000e0	0.000e+00	kp	0.00	-
-ss	interKP-400-100-7-2	pass	-	PASS	0.0e0	-	3866	3866	yes	yes	-3866	-3866	-3866	0.000e0	0.000e+00	kp	0.01	-
+ss	interKP-400-100-7-2	pass	-	PASS	0.0e0	-	3866	3866	yes	yes	-3866	-3866	-3866	0.000e0	0.000e+00	kp	0.02	-
 ss	interKP-400-100-7-3	pass	-	PASS	0.0e0	-	5800	5800	yes	yes	-5800	-5800	-5800	0.000e0	0.000e+00	kp	0.02	-
 ss	interKP-500-100-6-2	pass	-	PASS	0.0e0	-	4651	4651	yes	yes	-4651	-4651	-4651	0.000e0	0.000e+00	kp	0.00	-
 ss	interKP-500-100-6-3	pass	-	PASS	0.0e0	-	6976	6976	yes	yes	-6976	-6976	-6976	0.000e0	0.000e+00	kp	0.00	-
-ss	interKP-500-100-7-2	pass	-	PASS	0.0e0	-	4694	4694	yes	yes	-4694	-4694	-4694	0.000e0	0.000e+00	kp	0.04	-
-ss	interKP-500-100-7-3	pass	-	PASS	0.0e0	-	7042	7042	yes	yes	-7042	-7042	-7042	0.000e0	0.000e+00	kp	0.03	-
+ss	interKP-500-100-7-2	pass	-	PASS	0.0e0	-	4694	4694	yes	yes	-4694	-4694	-4694	0.000e0	0.000e+00	kp	0.02	-
+ss	interKP-500-100-7-3	pass	-	PASS	0.0e0	-	7042	7042	yes	yes	-7042	-7042	-7042	0.000e0	0.000e+00	kp	0.02	-
 kip	K5010W02.KNP	pass	-	PASS	0.0e0	-	1060	1060	yes	yes	-1060	-1060	-1060	0.000e0	0.000e+00	kp	0.00	-
 kip	K5010W03.KNP	pass	-	PASS	0.0e0	-	526	526	yes	yes	-526	-526	-526	0.000e0	0.000e+00	kp	0.00	-
 kip	K5010W04.KNP	pass	-	PASS	0.0e0	-	1533	1533	yes	yes	-1533	-1533	-1533	0.000e0	0.000e+00	kp	0.00	-
@@ -138,7 +138,7 @@ kip	interKP-100-100-3-1	pass	-	PASS	0.0e0	-	596	596	yes	yes	-596	-596	-596	0.000
 kip	interKP-100-100-3-10	pass	-	PASS	0.0e0	-	263	263	yes	yes	-263	-263	-263	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-100-100-3-2	pass	-	PASS	0.0e0	-	1082	1082	yes	yes	-1082	-1082	-1082	0.000e0	0.000e+00	kp	0.03	-
 kip	interKP-100-100-3-3	pass	-	PASS	0.0e0	-	1548	1548	yes	yes	-1548	-1548	-1548	0.000e0	0.000e+00	kp	0.03	-
-kip	interKP-100-100-3-4	pass	-	PASS	0.0e0	-	1994	1994	yes	yes	-1994	-1994	-1994	0.000e0	0.000e+00	kp	0.02	-
+kip	interKP-100-100-3-4	pass	-	PASS	0.0e0	-	1994	1994	yes	yes	-1994	-1994	-1994	0.000e0	0.000e+00	kp	0.03	-
 kip	interKP-100-100-3-5	pass	-	PASS	0.0e0	-	1616	1616	yes	yes	-1616	-1616	-1616	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-100-100-3-6	pass	-	PASS	0.0e0	-	1273	1273	yes	yes	-1273	-1273	-1273	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-100-100-3-7	pass	-	PASS	0.0e0	-	965	965	yes	yes	-965	-965	-965	0.000e0	0.000e+00	kp	0.00	-
@@ -146,7 +146,7 @@ kip	interKP-100-100-3-8	pass	-	PASS	0.0e0	-	694	694	yes	yes	-694	-694	-694	0.000
 kip	interKP-100-100-3-9	pass	-	PASS	0.0e0	-	449	449	yes	yes	-449	-449	-449	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-100-100-4-1	pass	-	PASS	0.0e0	-	447	447	yes	yes	-447	-447	-447	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-100-100-4-10	pass	-	PASS	0.0e0	-	0	0	yes	yes	0	0	0	0.000e0	0.000e+00	kp	0.00	-
-kip	interKP-100-100-4-2	pass	-	PASS	0.0e0	-	864	864	yes	yes	-864	-864	-864	0.000e0	0.000e+00	kp	0.02	-
+kip	interKP-100-100-4-2	pass	-	PASS	0.0e0	-	864	864	yes	yes	-864	-864	-864	0.000e0	0.000e+00	kp	0.03	-
 kip	interKP-100-100-4-3	pass	-	PASS	0.0e0	-	1241	1241	yes	yes	-1241	-1241	-1241	0.000e0	0.000e+00	kp	0.01	-
 kip	interKP-100-100-4-4	pass	-	PASS	0.0e0	-	1232	1232	yes	yes	-1232	-1232	-1232	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-100-100-4-5	pass	-	PASS	0.0e0	-	888	888	yes	yes	-888	-888	-888	0.000e0	0.000e+00	kp	0.00	-
@@ -157,7 +157,7 @@ kip	interKP-100-100-4-9	pass	-	PASS	0.0e0	-	52	52	yes	yes	-52	-52	-52	0.000e0	0.
 kip	interKP-100-100-5-1	pass	-	PASS	0.0e0	-	671	671	yes	yes	-671	-671	-671	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-100-100-5-10	pass	-	PASS	0.0e0	-	57	57	yes	yes	-57	-57	-57	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-100-100-5-2	pass	-	PASS	0.0e0	-	1192	1192	yes	yes	-1192	-1192	-1192	0.000e0	0.000e+00	kp	0.01	-
-kip	interKP-100-100-5-3	pass	-	PASS	0.0e0	-	1693	1693	yes	yes	-1693	-1693	-1693	0.000e0	0.000e+00	kp	0.02	-
+kip	interKP-100-100-5-3	pass	-	PASS	0.0e0	-	1693	1693	yes	yes	-1693	-1693	-1693	0.000e0	0.000e+00	kp	0.01	-
 kip	interKP-100-100-5-4	pass	-	PASS	0.0e0	-	1964	1964	yes	yes	-1964	-1964	-1964	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-100-100-5-5	pass	-	PASS	0.0e0	-	1491	1491	yes	yes	-1491	-1491	-1491	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-100-100-5-6	pass	-	PASS	0.0e0	-	1069	1069	yes	yes	-1069	-1069	-1069	0.000e0	0.000e+00	kp	0.00	-
@@ -177,18 +177,18 @@ kip	interKP-100-100-6-9	pass	-	PASS	0.0e0	-	275	275	yes	yes	-275	-275	-275	0.000
 kip	interKP-100-100-7-1	pass	-	PASS	0.0e0	-	420	420	yes	yes	-420	-420	-420	0.000e0	0.000e+00	kp	0.01	-
 kip	interKP-100-100-7-10	pass	-	PASS	0.0e0	-	144	144	yes	yes	-144	-144	-144	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-100-100-7-2	pass	-	PASS	0.0e0	-	840	840	yes	yes	-840	-840	-840	0.000e0	0.000e+00	kp	0.02	-
-kip	interKP-100-100-7-3	pass	-	PASS	0.0e0	-	1262	1262	yes	yes	-1262	-1262	-1262	0.000e0	0.000e+00	kp	0.02	-
+kip	interKP-100-100-7-3	pass	-	PASS	0.0e0	-	1262	1262	yes	yes	-1262	-1262	-1262	0.000e0	0.000e+00	kp	0.01	-
 kip	interKP-100-100-7-4	pass	-	PASS	0.0e0	-	1536	1536	yes	yes	-1536	-1536	-1536	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-100-100-7-5	pass	-	PASS	0.0e0	-	1198	1198	yes	yes	-1198	-1198	-1198	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-100-100-7-6	pass	-	PASS	0.0e0	-	916	916	yes	yes	-916	-916	-916	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-100-100-7-7	pass	-	PASS	0.0e0	-	670	670	yes	yes	-670	-670	-670	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-100-100-7-8	pass	-	PASS	0.0e0	-	454	454	yes	yes	-454	-454	-454	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-100-100-7-9	pass	-	PASS	0.0e0	-	268	268	yes	yes	-268	-268	-268	0.000e0	0.000e+00	kp	0.00	-
-kip	interKP-100-100-8-1	pass	-	PASS	0.0e0	-	600	600	yes	yes	-600	-600	-600	0.000e0	0.000e+00	kp	0.02	-
+kip	interKP-100-100-8-1	pass	-	PASS	0.0e0	-	600	600	yes	yes	-600	-600	-600	0.000e0	0.000e+00	kp	0.01	-
 kip	interKP-100-100-8-10	pass	-	PASS	0.0e0	-	254	254	yes	yes	-254	-254	-254	0.000e0	0.000e+00	kp	0.00	-
-kip	interKP-100-100-8-2	pass	-	PASS	0.0e0	-	1090	1090	yes	yes	-1090	-1090	-1090	0.000e0	0.000e+00	kp	0.02	-
-kip	interKP-100-100-8-3	pass	-	PASS	0.0e0	-	1562	1562	yes	yes	-1562	-1562	-1562	0.000e0	0.000e+00	kp	0.03	-
-kip	interKP-100-100-8-4	pass	-	PASS	0.0e0	-	2012	2012	yes	yes	-2012	-2012	-2012	0.000e0	0.000e+00	kp	0.02	-
+kip	interKP-100-100-8-2	pass	-	PASS	0.0e0	-	1090	1090	yes	yes	-1090	-1090	-1090	0.000e0	0.000e+00	kp	0.01	-
+kip	interKP-100-100-8-3	pass	-	PASS	0.0e0	-	1562	1562	yes	yes	-1562	-1562	-1562	0.000e0	0.000e+00	kp	0.01	-
+kip	interKP-100-100-8-4	pass	-	PASS	0.0e0	-	2012	2012	yes	yes	-2012	-2012	-2012	0.000e0	0.000e+00	kp	0.01	-
 kip	interKP-100-100-8-5	pass	-	PASS	0.0e0	-	1620	1620	yes	yes	-1620	-1620	-1620	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-100-100-8-6	pass	-	PASS	0.0e0	-	1270	1270	yes	yes	-1270	-1270	-1270	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-100-100-8-7	pass	-	PASS	0.0e0	-	960	960	yes	yes	-960	-960	-960	0.000e0	0.000e+00	kp	0.00	-
@@ -226,8 +226,8 @@ kip	interKP-200-100-2-8	pass	-	PASS	0.0e0	-	404	404	yes	yes	-404	-404	-404	0.000
 kip	interKP-200-100-2-9	pass	-	PASS	0.0e0	-	138	138	yes	yes	-138	-138	-138	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-200-100-3-1	pass	-	PASS	0.0e0	-	1287	1287	yes	yes	-1287	-1287	-1287	0.000e0	0.000e+00	kp	0.01	-
 kip	interKP-200-100-3-10	pass	-	PASS	0.0e0	-	44	44	yes	yes	-44	-44	-44	0.000e0	0.000e+00	kp	0.00	-
-kip	interKP-200-100-3-2	pass	-	PASS	0.0e0	-	2315	2315	yes	yes	-2315	-2315	-2315	0.000e0	0.000e+00	kp	0.02	-
-kip	interKP-200-100-3-3	pass	-	PASS	0.0e0	-	3312	3312	yes	yes	-3312	-3312	-3312	0.000e0	0.000e+00	kp	0.02	-
+kip	interKP-200-100-3-2	pass	-	PASS	0.0e0	-	2315	2315	yes	yes	-2315	-2315	-2315	0.000e0	0.000e+00	kp	0.01	-
+kip	interKP-200-100-3-3	pass	-	PASS	0.0e0	-	3312	3312	yes	yes	-3312	-3312	-3312	0.000e0	0.000e+00	kp	0.01	-
 kip	interKP-200-100-3-4	pass	-	PASS	0.0e0	-	3984	3984	yes	yes	-3984	-3984	-3984	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-200-100-3-5	pass	-	PASS	0.0e0	-	3006	3006	yes	yes	-3006	-3006	-3006	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-200-100-3-6	pass	-	PASS	0.0e0	-	2159	2159	yes	yes	-2159	-2159	-2159	0.000e0	0.000e+00	kp	0.00	-
@@ -236,7 +236,7 @@ kip	interKP-200-100-3-8	pass	-	PASS	0.0e0	-	857	857	yes	yes	-857	-857	-857	0.000
 kip	interKP-200-100-3-9	pass	-	PASS	0.0e0	-	374	374	yes	yes	-374	-374	-374	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-200-100-4-1	pass	-	PASS	0.0e0	-	989	989	yes	yes	-989	-989	-989	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-200-100-4-10	pass	-	PASS	0.0e0	-	0	0	yes	yes	0	0	0	0.000e0	0.000e+00	kp	0.00	-
-kip	interKP-200-100-4-2	pass	-	PASS	0.0e0	-	1928	1928	yes	yes	-1928	-1928	-1928	0.000e0	0.000e+00	kp	0.02	-
+kip	interKP-200-100-4-2	pass	-	PASS	0.0e0	-	1928	1928	yes	yes	-1928	-1928	-1928	0.000e0	0.000e+00	kp	0.01	-
 kip	interKP-200-100-4-3	pass	-	PASS	0.0e0	-	2758	2758	yes	yes	-2758	-2758	-2758	0.000e0	0.000e+00	kp	0.02	-
 kip	interKP-200-100-4-4	pass	-	PASS	0.0e0	-	2437	2437	yes	yes	-2437	-2437	-2437	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-200-100-4-5	pass	-	PASS	0.0e0	-	1574	1574	yes	yes	-1574	-1574	-1574	0.000e0	0.000e+00	kp	0.00	-
@@ -244,7 +244,7 @@ kip	interKP-200-100-4-6	pass	-	PASS	0.0e0	-	927	927	yes	yes	-927	-927	-927	0.000
 kip	interKP-200-100-4-7	pass	-	PASS	0.0e0	-	402	402	yes	yes	-402	-402	-402	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-200-100-4-8	pass	-	PASS	0.0e0	-	69	69	yes	yes	-69	-69	-69	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-200-100-4-9	pass	-	PASS	0.0e0	-	0	0	yes	yes	0	0	0	0.000e0	0.000e+00	kp	0.00	-
-kip	interKP-200-100-5-1	pass	-	PASS	0.0e0	-	1301	1301	yes	yes	-1301	-1301	-1301	0.000e0	0.000e+00	kp	0.02	-
+kip	interKP-200-100-5-1	pass	-	PASS	0.0e0	-	1301	1301	yes	yes	-1301	-1301	-1301	0.000e0	0.000e+00	kp	0.01	-
 kip	interKP-200-100-5-10	pass	-	PASS	0.0e0	-	32	32	yes	yes	-32	-32	-32	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-200-100-5-2	pass	-	PASS	0.0e0	-	2332	2332	yes	yes	-2332	-2332	-2332	0.000e0	0.000e+00	kp	0.01	-
 kip	interKP-200-100-5-3	pass	-	PASS	0.0e0	-	3324	3324	yes	yes	-3324	-3324	-3324	0.000e0	0.000e+00	kp	0.01	-
@@ -272,7 +272,7 @@ kip	interKP-200-100-7-8	pass	-	PASS	0.0e0	-	526	526	yes	yes	-526	-526	-526	0.000
 kip	interKP-200-100-7-9	pass	-	PASS	0.0e0	-	190	190	yes	yes	-190	-190	-190	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-200-100-8-1	pass	-	PASS	0.0e0	-	1286	1286	yes	yes	-1286	-1286	-1286	0.000e0	0.000e+00	kp	0.01	-
 kip	interKP-200-100-8-10	pass	-	PASS	0.0e0	-	26	26	yes	yes	-26	-26	-26	0.000e0	0.000e+00	kp	0.00	-
-kip	interKP-200-100-8-2	pass	-	PASS	0.0e0	-	2332	2332	yes	yes	-2332	-2332	-2332	0.000e0	0.000e+00	kp	0.01	-
+kip	interKP-200-100-8-2	pass	-	PASS	0.0e0	-	2332	2332	yes	yes	-2332	-2332	-2332	0.000e0	0.000e+00	kp	0.02	-
 kip	interKP-200-100-8-3	pass	-	PASS	0.0e0	-	3338	3338	yes	yes	-3338	-3338	-3338	0.000e0	0.000e+00	kp	0.01	-
 kip	interKP-200-100-8-4	pass	-	PASS	0.0e0	-	3980	3980	yes	yes	-3980	-3980	-3980	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-200-100-8-5	pass	-	PASS	0.0e0	-	2994	2994	yes	yes	-2994	-2994	-2994	0.000e0	0.000e+00	kp	0.00	-
@@ -330,10 +330,10 @@ kip	interKP-300-100-4-6	pass	-	PASS	0.0e0	-	1029	1029	yes	yes	-1029	-1029	-1029	
 kip	interKP-300-100-4-7	pass	-	PASS	0.0e0	-	406	406	yes	yes	-406	-406	-406	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-300-100-4-8	pass	-	PASS	0.0e0	-	45	45	yes	yes	-45	-45	-45	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-300-100-4-9	pass	-	PASS	0.0e0	-	0	0	yes	yes	0	0	0	0.000e0	0.000e+00	kp	0.00	-
-kip	interKP-300-100-5-1	pass	-	PASS	0.0e0	-	1977	1977	yes	yes	-1977	-1977	-1977	0.000e0	0.000e+00	kp	0.01	-
+kip	interKP-300-100-5-1	pass	-	PASS	0.0e0	-	1977	1977	yes	yes	-1977	-1977	-1977	0.000e0	0.000e+00	kp	0.02	-
 kip	interKP-300-100-5-10	pass	-	PASS	0.0e0	-	98	98	yes	yes	-98	-98	-98	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-300-100-5-2	pass	-	PASS	0.0e0	-	3505	3505	yes	yes	-3505	-3505	-3505	0.000e0	0.000e+00	kp	0.01	-
-kip	interKP-300-100-5-3	pass	-	PASS	0.0e0	-	4982	4982	yes	yes	-4982	-4982	-4982	0.000e0	0.000e+00	kp	0.01	-
+kip	interKP-300-100-5-3	pass	-	PASS	0.0e0	-	4982	4982	yes	yes	-4982	-4982	-4982	0.000e0	0.000e+00	kp	0.02	-
 kip	interKP-300-100-5-4	pass	-	PASS	0.0e0	-	5534	5534	yes	yes	-5534	-5534	-5534	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-300-100-5-5	pass	-	PASS	0.0e0	-	4138	4138	yes	yes	-4138	-4138	-4138	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-300-100-5-6	pass	-	PASS	0.0e0	-	2921	2921	yes	yes	-2921	-2921	-2921	0.000e0	0.000e+00	kp	0.00	-
@@ -348,7 +348,7 @@ kip	interKP-300-100-6-6	pass	-	PASS	0.0e0	-	1940	1940	yes	yes	-1940	-1940	-1940	
 kip	interKP-300-100-6-7	pass	-	PASS	0.0e0	-	1125	1125	yes	yes	-1125	-1125	-1125	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-300-100-6-8	pass	-	PASS	0.0e0	-	555	555	yes	yes	-555	-555	-555	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-300-100-6-9	pass	-	PASS	0.0e0	-	159	159	yes	yes	-159	-159	-159	0.000e0	0.000e+00	kp	0.00	-
-kip	interKP-300-100-7-1	pass	-	PASS	0.0e0	-	1446	1446	yes	yes	-1446	-1446	-1446	0.000e0	0.000e+00	kp	0.01	-
+kip	interKP-300-100-7-1	pass	-	PASS	0.0e0	-	1446	1446	yes	yes	-1446	-1446	-1446	0.000e0	0.000e+00	kp	0.02	-
 kip	interKP-300-100-7-10	pass	-	PASS	0.0e0	-	0	0	yes	yes	0	0	0	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-300-100-7-4	pass	-	PASS	0.0e0	-	4320	4320	yes	yes	-4320	-4320	-4320	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-300-100-7-5	pass	-	PASS	0.0e0	-	2992	2992	yes	yes	-2992	-2992	-2992	0.000e0	0.000e+00	kp	0.00	-
@@ -356,10 +356,10 @@ kip	interKP-300-100-7-6	pass	-	PASS	0.0e0	-	1928	1928	yes	yes	-1928	-1928	-1928	
 kip	interKP-300-100-7-7	pass	-	PASS	0.0e0	-	1108	1108	yes	yes	-1108	-1108	-1108	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-300-100-7-8	pass	-	PASS	0.0e0	-	538	538	yes	yes	-538	-538	-538	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-300-100-7-9	pass	-	PASS	0.0e0	-	148	148	yes	yes	-148	-148	-148	0.000e0	0.000e+00	kp	0.00	-
-kip	interKP-300-100-8-1	pass	-	PASS	0.0e0	-	2016	2016	yes	yes	-2016	-2016	-2016	0.000e0	0.000e+00	kp	0.01	-
+kip	interKP-300-100-8-1	pass	-	PASS	0.0e0	-	2016	2016	yes	yes	-2016	-2016	-2016	0.000e0	0.000e+00	kp	0.03	-
 kip	interKP-300-100-8-10	pass	-	PASS	0.0e0	-	0	0	yes	yes	0	0	0	0.000e0	0.000e+00	kp	0.00	-
-kip	interKP-300-100-8-2	pass	-	PASS	0.0e0	-	3624	3624	yes	yes	-3624	-3624	-3624	0.000e0	0.000e+00	kp	0.01	-
-kip	interKP-300-100-8-3	pass	-	PASS	0.0e0	-	5160	5160	yes	yes	-5160	-5160	-5160	0.000e0	0.000e+00	kp	0.01	-
+kip	interKP-300-100-8-2	pass	-	PASS	0.0e0	-	3624	3624	yes	yes	-3624	-3624	-3624	0.000e0	0.000e+00	kp	0.02	-
+kip	interKP-300-100-8-3	pass	-	PASS	0.0e0	-	5160	5160	yes	yes	-5160	-5160	-5160	0.000e0	0.000e+00	kp	0.02	-
 kip	interKP-300-100-8-4	pass	-	PASS	0.0e0	-	5586	5586	yes	yes	-5586	-5586	-5586	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-300-100-8-5	pass	-	PASS	0.0e0	-	4032	4032	yes	yes	-4032	-4032	-4032	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-300-100-8-6	pass	-	PASS	0.0e0	-	2758	2758	yes	yes	-2758	-2758	-2758	0.000e0	0.000e+00	kp	0.00	-
@@ -416,7 +416,7 @@ kip	interKP-400-100-4-6	pass	-	PASS	0.0e0	-	1599	1599	yes	yes	-1599	-1599	-1599	
 kip	interKP-400-100-4-7	pass	-	PASS	0.0e0	-	630	630	yes	yes	-630	-630	-630	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-400-100-4-8	pass	-	PASS	0.0e0	-	90	90	yes	yes	-90	-90	-90	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-400-100-4-9	pass	-	PASS	0.0e0	-	0	0	yes	yes	0	0	0	0.000e0	0.000e+00	kp	0.00	-
-kip	interKP-400-100-5-1	pass	-	PASS	0.0e0	-	2625	2625	yes	yes	-2625	-2625	-2625	0.000e0	0.000e+00	kp	0.02	-
+kip	interKP-400-100-5-1	pass	-	PASS	0.0e0	-	2625	2625	yes	yes	-2625	-2625	-2625	0.000e0	0.000e+00	kp	0.01	-
 kip	interKP-400-100-5-10	pass	-	PASS	0.0e0	-	312	312	yes	yes	-312	-312	-312	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-400-100-5-2	pass	-	PASS	0.0e0	-	4631	4631	yes	yes	-4631	-4631	-4631	0.000e0	0.000e+00	kp	0.02	-
 kip	interKP-400-100-5-3	pass	-	PASS	0.0e0	-	6547	6547	yes	yes	-6547	-6547	-6547	0.000e0	0.000e+00	kp	0.02	-
@@ -434,7 +434,7 @@ kip	interKP-400-100-6-6	pass	-	PASS	0.0e0	-	2897	2897	yes	yes	-2897	-2897	-2897	
 kip	interKP-400-100-6-7	pass	-	PASS	0.0e0	-	1740	1740	yes	yes	-1740	-1740	-1740	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-400-100-6-8	pass	-	PASS	0.0e0	-	857	857	yes	yes	-857	-857	-857	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-400-100-6-9	pass	-	PASS	0.0e0	-	274	274	yes	yes	-274	-274	-274	0.000e0	0.000e+00	kp	0.00	-
-kip	interKP-400-100-7-1	pass	-	PASS	0.0e0	-	1932	1932	yes	yes	-1932	-1932	-1932	0.000e0	0.000e+00	kp	0.02	-
+kip	interKP-400-100-7-1	pass	-	PASS	0.0e0	-	1932	1932	yes	yes	-1932	-1932	-1932	0.000e0	0.000e+00	kp	0.01	-
 kip	interKP-400-100-7-10	pass	-	PASS	0.0e0	-	4	4	yes	yes	-4	-4	-4	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-400-100-7-4	pass	-	PASS	0.0e0	-	6154	6154	yes	yes	-6154	-6154	-6154	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-400-100-7-5	pass	-	PASS	0.0e0	-	4352	4352	yes	yes	-4352	-4352	-4352	0.000e0	0.000e+00	kp	0.00	-
@@ -442,7 +442,7 @@ kip	interKP-400-100-7-6	pass	-	PASS	0.0e0	-	2886	2886	yes	yes	-2886	-2886	-2886	
 kip	interKP-400-100-7-7	pass	-	PASS	0.0e0	-	1716	1716	yes	yes	-1716	-1716	-1716	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-400-100-7-8	pass	-	PASS	0.0e0	-	832	832	yes	yes	-832	-832	-832	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-400-100-7-9	pass	-	PASS	0.0e0	-	254	254	yes	yes	-254	-254	-254	0.000e0	0.000e+00	kp	0.00	-
-kip	interKP-400-100-8-1	pass	-	PASS	0.0e0	-	2672	2672	yes	yes	-2672	-2672	-2672	0.000e0	0.000e+00	kp	0.01	-
+kip	interKP-400-100-8-1	pass	-	PASS	0.0e0	-	2672	2672	yes	yes	-2672	-2672	-2672	0.000e0	0.000e+00	kp	0.02	-
 kip	interKP-400-100-8-10	pass	-	PASS	0.0e0	-	24	24	yes	yes	-24	-24	-24	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-400-100-8-2	pass	-	PASS	0.0e0	-	4846	4846	yes	yes	-4846	-4846	-4846	0.000e0	0.000e+00	kp	0.02	-
 kip	interKP-400-100-8-3	pass	-	PASS	0.0e0	-	6920	6920	yes	yes	-6920	-6920	-6920	0.000e0	0.000e+00	kp	0.02	-
@@ -492,7 +492,7 @@ kip	interKP-500-100-3-6	pass	-	PASS	0.0e0	-	5705	5705	yes	yes	-5705	-5705	-5705	
 kip	interKP-500-100-3-7	pass	-	PASS	0.0e0	-	3847	3847	yes	yes	-3847	-3847	-3847	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-500-100-3-8	pass	-	PASS	0.0e0	-	2315	2315	yes	yes	-2315	-2315	-2315	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-500-100-3-9	pass	-	PASS	0.0e0	-	1148	1148	yes	yes	-1148	-1148	-1148	0.000e0	0.000e+00	kp	0.00	-
-kip	interKP-500-100-4-1	pass	-	PASS	0.0e0	-	2480	2480	yes	yes	-2480	-2480	-2480	0.000e0	0.000e+00	kp	0.01	-
+kip	interKP-500-100-4-1	pass	-	PASS	0.0e0	-	2480	2480	yes	yes	-2480	-2480	-2480	0.000e0	0.000e+00	kp	0.02	-
 kip	interKP-500-100-4-10	pass	-	PASS	0.0e0	-	0	0	yes	yes	0	0	0	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-500-100-4-2	pass	-	PASS	0.0e0	-	4860	4860	yes	yes	-4860	-4860	-4860	0.000e0	0.000e+00	kp	0.02	-
 kip	interKP-500-100-4-3	pass	-	PASS	0.0e0	-	6940	6940	yes	yes	-6940	-6940	-6940	0.000e0	0.000e+00	kp	0.02	-
@@ -520,7 +520,7 @@ kip	interKP-500-100-6-6	pass	-	PASS	0.0e0	-	4106	4106	yes	yes	-4106	-4106	-4106	
 kip	interKP-500-100-6-7	pass	-	PASS	0.0e0	-	2573	2573	yes	yes	-2573	-2573	-2573	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-500-100-6-8	pass	-	PASS	0.0e0	-	1412	1412	yes	yes	-1412	-1412	-1412	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-500-100-6-9	pass	-	PASS	0.0e0	-	592	592	yes	yes	-592	-592	-592	0.000e0	0.000e+00	kp	0.00	-
-kip	interKP-500-100-7-1	pass	-	PASS	0.0e0	-	2346	2346	yes	yes	-2346	-2346	-2346	0.000e0	0.000e+00	kp	0.02	-
+kip	interKP-500-100-7-1	pass	-	PASS	0.0e0	-	2346	2346	yes	yes	-2346	-2346	-2346	0.000e0	0.000e+00	kp	0.03	-
 kip	interKP-500-100-7-10	pass	-	PASS	0.0e0	-	72	72	yes	yes	-72	-72	-72	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-500-100-7-4	pass	-	PASS	0.0e0	-	7942	7942	yes	yes	-7942	-7942	-7942	0.000e0	0.000e+00	kp	0.00	-
 kip	interKP-500-100-7-5	pass	-	PASS	0.0e0	-	5892	5892	yes	yes	-5892	-5892	-5892	0.000e0	0.000e+00	kp	0.00	-
@@ -598,35 +598,35 @@ kip	interdiction55-6	pass	-	PASS	0.0e0	-	462	462	yes	yes	-462	-462	-462	0.000e0	
 kip	interdiction55-7	pass	-	PASS	0.0e0	-	370	370	yes	yes	-370	-370	-370	0.000e0	0.000e+00	kp	0.00	-
 kip	interdiction55-8	pass	-	PASS	0.0e0	-	387	387	yes	yes	-387	-387	-387	0.000e0	0.000e+00	kp	0.00	-
 kip	interdiction55-9	pass	-	PASS	0.0e0	-	104	104	yes	yes	-104	-104	-104	0.000e0	0.000e+00	kp	0.00	-
-or	OR10x100-0.25_1.dat-0	pass	-	PASS	0.0e0	-	18761	18761	yes	yes	-18761	-18761	-18761	0.000e0	0.000e+00	mkp-milp	1.42	-
+or	OR10x100-0.25_1.dat-0	pass	-	PASS	0.0e0	-	18761	18761	yes	yes	-18761	-18761	-18761	0.000e0	0.000e+00	mkp-milp	1.52	-
 or	OR10x100-0.25_1.dat-100	pass	-	PASS	0.0e0	-	24994	24994	yes	yes	-24994	-24994	-24994	0.000e0	0.000e+00	kp	0.00	-
-or	OR10x100-0.25_1.dat-50	pass	-	PASS	0.0e0	-	20673	20673	yes	yes	-20673	-20673	-20673	0.000e0	0.000e+00	mkp-milp	1.49	-
-or	OR10x100-0.25_10.dat-0	pass	-	PASS	0.0e0	-	18565	18565	yes	yes	-18565	-18565	-18565	0.000e0	0.000e+00	mkp-milp	10.61	-
+or	OR10x100-0.25_1.dat-50	pass	-	PASS	0.0e0	-	20673	20673	yes	yes	-20673	-20673	-20673	0.000e0	0.000e+00	mkp-milp	1.72	-
+or	OR10x100-0.25_10.dat-0	pass	-	PASS	0.0e0	-	18565	18565	yes	yes	-18565	-18565	-18565	0.000e0	0.000e+00	mkp-milp	10.52	-
 or	OR10x100-0.25_10.dat-100	pass	-	PASS	0.0e0	-	24599	24599	yes	yes	-24599	-24599	-24599	0.000e0	0.000e+00	kp	0.00	-
-or	OR10x100-0.25_10.dat-50	pass	-	PASS	0.0e0	-	19924	19924	yes	yes	-19924	-19924	-19924	0.000e0	0.000e+00	mkp-milp	14.34	-
+or	OR10x100-0.25_10.dat-50	pass	-	PASS	0.0e0	-	19924	19924	yes	yes	-19924	-19924	-19924	0.000e0	0.000e+00	mkp-milp	14.02	-
 or	OR10x100-0.25_2.dat-100	pass	-	PASS	0.0e0	-	24767	24767	yes	yes	-24767	-24767	-24767	0.000e0	0.000e+00	kp	0.00	-
-or	OR10x100-0.25_2.dat-50	pass	-	PASS	0.0e0	-	20000	20000	yes	yes	-20000	-20000	-20000	0.000e0	0.000e+00	mkp-milp	0.90	-
-or	OR10x100-0.25_3.dat-0	pass	-	PASS	0.0e0	-	18323	18323	yes	yes	-18323	-18323	-18323	0.000e0	0.000e+00	mkp-milp	6.22	-
+or	OR10x100-0.25_2.dat-50	pass	-	PASS	0.0e0	-	20000	20000	yes	yes	-20000	-20000	-20000	0.000e0	0.000e+00	mkp-milp	0.97	-
+or	OR10x100-0.25_3.dat-0	pass	-	PASS	0.0e0	-	18323	18323	yes	yes	-18323	-18323	-18323	0.000e0	0.000e+00	mkp-milp	6.60	-
 or	OR10x100-0.25_3.dat-100	pass	-	PASS	0.0e0	-	24515	24515	yes	yes	-24515	-24515	-24515	0.000e0	0.000e+00	kp	0.00	-
-or	OR10x100-0.25_3.dat-50	pass	-	PASS	0.0e0	-	19736	19736	yes	yes	-19736	-19736	-19736	0.000e0	0.000e+00	mkp-milp	6.11	-
-or	OR10x100-0.25_4.dat-0	pass	-	PASS	0.0e0	-	19703	19703	yes	yes	-19703	-19703	-19703	0.000e0	0.000e+00	mkp-milp	1.46	-
+or	OR10x100-0.25_3.dat-50	pass	-	PASS	0.0e0	-	19736	19736	yes	yes	-19736	-19736	-19736	0.000e0	0.000e+00	mkp-milp	6.38	-
+or	OR10x100-0.25_4.dat-0	pass	-	PASS	0.0e0	-	19703	19703	yes	yes	-19703	-19703	-19703	0.000e0	0.000e+00	mkp-milp	1.54	-
 or	OR10x100-0.25_4.dat-100	pass	-	PASS	0.0e0	-	23239	23239	yes	yes	-23239	-23239	-23239	0.000e0	0.000e+00	kp	0.00	-
 or	OR10x100-0.25_5.dat-100	pass	-	PASS	0.0e0	-	23417	23417	yes	yes	-23417	-23417	-23417	0.000e0	0.000e+00	kp	0.00	-
-or	OR10x100-0.25_5.dat-50	pass	-	PASS	0.0e0	-	20480	20480	yes	yes	-20480	-20480	-20480	0.000e0	0.000e+00	mkp-milp	8.02	-
-or	OR10x100-0.25_6.dat-0	pass	-	PASS	0.0e0	-	19372	19372	yes	yes	-19372	-19372	-19372	0.000e0	0.000e+00	mkp-milp	17.17	-
+or	OR10x100-0.25_5.dat-50	pass	-	PASS	0.0e0	-	20480	20480	yes	yes	-20480	-20480	-20480	0.000e0	0.000e+00	mkp-milp	8.77	-
+or	OR10x100-0.25_6.dat-0	pass	-	PASS	0.0e0	-	19372	19372	yes	yes	-19372	-19372	-19372	0.000e0	0.000e+00	mkp-milp	15.63	-
 or	OR10x100-0.25_6.dat-100	pass	-	PASS	0.0e0	-	25612	25612	yes	yes	-25612	-25612	-25612	0.000e0	0.000e+00	kp	0.00	-
-or	OR10x100-0.25_6.dat-50	pass	-	PASS	0.0e0	-	21121	21121	yes	yes	-21121	-21121	-21121	0.000e0	0.000e+00	mkp-milp	4.65	-
+or	OR10x100-0.25_6.dat-50	pass	-	PASS	0.0e0	-	21121	21121	yes	yes	-21121	-21121	-21121	0.000e0	0.000e+00	mkp-milp	4.72	-
 or	OR10x100-0.25_7.dat-100	pass	-	PASS	0.0e0	-	23787	23787	yes	yes	-23787	-23787	-23787	0.000e0	0.000e+00	kp	0.00	-
-or	OR10x100-0.25_7.dat-50	pass	-	PASS	0.0e0	-	19009	19009	yes	yes	-19009	-19009	-19009	0.000e0	0.000e+00	mkp-milp	6.74	-
-or	OR10x100-0.25_8.dat-0	pass	-	PASS	0.0e0	-	18854	18854	yes	yes	-18854	-18854	-18854	0.000e0	0.000e+00	mkp-milp	16.12	-
+or	OR10x100-0.25_7.dat-50	pass	-	PASS	0.0e0	-	19009	19009	yes	yes	-19009	-19009	-19009	0.000e0	0.000e+00	mkp-milp	7.53	-
+or	OR10x100-0.25_8.dat-0	pass	-	PASS	0.0e0	-	18854	18854	yes	yes	-18854	-18854	-18854	0.000e0	0.000e+00	mkp-milp	15.58	-
 or	OR10x100-0.25_8.dat-100	pass	-	PASS	0.0e0	-	25403	25403	yes	yes	-25403	-25403	-25403	0.000e0	0.000e+00	kp	0.00	-
-or	OR10x100-0.25_8.dat-50	pass	-	PASS	0.0e0	-	19872	19872	yes	yes	-19872	-19872	-19872	0.000e0	0.000e+00	mkp-milp	1.52	-
-or	OR10x100-0.25_9.dat-0	pass	-	PASS	0.0e0	-	18154	18154	yes	yes	-18154	-18154	-18154	0.000e0	0.000e+00	mkp-milp	5.19	-
+or	OR10x100-0.25_8.dat-50	pass	-	PASS	0.0e0	-	19872	19872	yes	yes	-19872	-19872	-19872	0.000e0	0.000e+00	mkp-milp	1.50	-
+or	OR10x100-0.25_9.dat-0	pass	-	PASS	0.0e0	-	18154	18154	yes	yes	-18154	-18154	-18154	0.000e0	0.000e+00	mkp-milp	5.29	-
 or	OR10x100-0.25_9.dat-100	pass	-	PASS	0.0e0	-	22525	22525	yes	yes	-22525	-22525	-22525	0.000e0	0.000e+00	kp	0.00	-
-or	OR10x100-0.25_9.dat-50	pass	-	PASS	0.0e0	-	19106	19106	yes	yes	-19106	-19106	-19106	0.000e0	0.000e+00	mkp-milp	0.66	-
+or	OR10x100-0.25_9.dat-50	pass	-	PASS	0.0e0	-	19106	19106	yes	yes	-19106	-19106	-19106	0.000e0	0.000e+00	mkp-milp	0.76	-
 or	OR10x100-0.50_1.dat-0	pass	-	PASS	0.0e0	-	20476	20476	yes	yes	-20476	-20476	-20476	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR10x100-0.50_1.dat-100	pass	-	PASS	0.0e0	-	27500	27500	yes	yes	-27500	-27500	-27500	0.000e0	0.000e+00	kp	0.00	-
-or	OR10x100-0.50_1.dat-50	pass	-	PASS	0.0e0	-	25614	25614	yes	yes	-25614	-25614	-25614	0.000e0	0.000e+00	mkp-milp	0.03	-
+or	OR10x100-0.50_1.dat-50	pass	-	PASS	0.0e0	-	25614	25614	yes	yes	-25614	-25614	-25614	0.000e0	0.000e+00	mkp-milp	0.06	-
 or	OR10x100-0.50_10.dat-0	pass	-	PASS	0.0e0	-	19557	19557	yes	yes	-19557	-19557	-19557	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR10x100-0.50_10.dat-100	pass	-	PASS	0.0e0	-	26650	26650	yes	yes	-26650	-26650	-26650	0.000e0	0.000e+00	kp	0.00	-
 or	OR10x100-0.50_10.dat-50	pass	-	PASS	0.0e0	-	26340	26340	yes	yes	-26340	-26340	-26340	0.000e0	0.000e+00	mkp-milp	0.02	-
@@ -638,7 +638,7 @@ or	OR10x100-0.50_3.dat-100	pass	-	PASS	0.0e0	-	29356	29356	yes	yes	-29356	-29356
 or	OR10x100-0.50_3.dat-50	pass	-	PASS	0.0e0	-	28340	28340	yes	yes	-28340	-28340	-28340	0.000e0	0.000e+00	mkp-milp	0.04	-
 or	OR10x100-0.50_4.dat-0	pass	-	PASS	0.0e0	-	24455	24455	yes	yes	-24455	-24455	-24455	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR10x100-0.50_4.dat-100	pass	-	PASS	0.0e0	-	29876	29876	yes	yes	-29876	-29876	-29876	0.000e0	0.000e+00	kp	0.00	-
-or	OR10x100-0.50_4.dat-50	pass	-	PASS	0.0e0	-	29808	29808	yes	yes	-29808	-29808	-29808	0.000e0	0.000e+00	mkp-milp	0.04	-
+or	OR10x100-0.50_4.dat-50	pass	-	PASS	0.0e0	-	29808	29808	yes	yes	-29808	-29808	-29808	0.000e0	0.000e+00	mkp-milp	0.05	-
 or	OR10x100-0.50_5.dat-0	pass	-	PASS	0.0e0	-	20730	20730	yes	yes	-20730	-20730	-20730	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR10x100-0.50_5.dat-100	pass	-	PASS	0.0e0	-	27632	27632	yes	yes	-27632	-27632	-27632	0.000e0	0.000e+00	kp	0.00	-
 or	OR10x100-0.50_5.dat-50	pass	-	PASS	0.0e0	-	27197	27197	yes	yes	-27197	-27197	-27197	0.000e0	0.000e+00	mkp-milp	0.01	-
@@ -647,7 +647,7 @@ or	OR10x100-0.50_6.dat-100	pass	-	PASS	0.0e0	-	28708	28708	yes	yes	-28708	-28708
 or	OR10x100-0.50_6.dat-50	pass	-	PASS	0.0e0	-	27518	27518	yes	yes	-27518	-27518	-27518	0.000e0	0.000e+00	mkp-milp	0.04	-
 or	OR10x100-0.50_7.dat-0	pass	-	PASS	0.0e0	-	22981	22981	yes	yes	-22981	-22981	-22981	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR10x100-0.50_7.dat-100	pass	-	PASS	0.0e0	-	29565	29565	yes	yes	-29565	-29565	-29565	0.000e0	0.000e+00	kp	0.00	-
-or	OR10x100-0.50_7.dat-50	pass	-	PASS	0.0e0	-	27821	27821	yes	yes	-27821	-27821	-27821	0.000e0	0.000e+00	mkp-milp	0.06	-
+or	OR10x100-0.50_7.dat-50	pass	-	PASS	0.0e0	-	27821	27821	yes	yes	-27821	-27821	-27821	0.000e0	0.000e+00	mkp-milp	0.05	-
 or	OR10x100-0.50_8.dat-0	pass	-	PASS	0.0e0	-	21906	21906	yes	yes	-21906	-21906	-21906	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR10x100-0.50_8.dat-100	pass	-	PASS	0.0e0	-	28648	28648	yes	yes	-28648	-28648	-28648	0.000e0	0.000e+00	kp	0.00	-
 or	OR10x100-0.50_8.dat-50	pass	-	PASS	0.0e0	-	26704	26704	yes	yes	-26704	-26704	-26704	0.000e0	0.000e+00	mkp-milp	0.03	-
@@ -696,31 +696,31 @@ or	OR10x250-0.25_8.dat-100	pass	-	PASS	0.0e0	-	57691	57691	yes	yes	-57691	-57691
 or	OR10x250-0.25_9.dat-100	pass	-	PASS	0.0e0	-	59446	59446	yes	yes	-59446	-59446	-59446	0.000e0	0.000e+00	kp	0.00	-
 or	OR10x250-0.50_1.dat-0	pass	-	PASS	0.0e0	-	57818	57818	yes	yes	-57818	-57818	-57818	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR10x250-0.50_1.dat-100	pass	-	PASS	0.0e0	-	75854	75854	yes	yes	-75854	-75854	-75854	0.000e0	0.000e+00	kp	0.00	-
-or	OR10x250-0.50_1.dat-50	pass	-	PASS	0.0e0	-	73119	73119	yes	yes	-73119	-73119	-73119	0.000e0	0.000e+00	mkp-milp	0.38	-
+or	OR10x250-0.50_1.dat-50	pass	-	PASS	0.0e0	-	73119	73119	yes	yes	-73119	-73119	-73119	0.000e0	0.000e+00	mkp-milp	0.58	-
 or	OR10x250-0.50_10.dat-0	pass	-	PASS	0.0e0	-	49964	49964	yes	yes	-49964	-49964	-49964	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR10x250-0.50_10.dat-100	pass	-	PASS	0.0e0	-	67988	67988	yes	yes	-67988	-67988	-67988	0.000e0	0.000e+00	kp	0.00	-
-or	OR10x250-0.50_10.dat-50	pass	-	PASS	0.0e0	-	67139	67139	yes	yes	-67139	-67139	-67139	0.000e0	0.000e+00	mkp-milp	0.24	-
+or	OR10x250-0.50_10.dat-50	pass	-	PASS	0.0e0	-	67139	67139	yes	yes	-67139	-67139	-67139	0.000e0	0.000e+00	mkp-milp	0.31	-
 or	OR10x250-0.50_2.dat-0	pass	-	PASS	0.0e0	-	54748	54748	yes	yes	-54748	-54748	-54748	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR10x250-0.50_2.dat-100	pass	-	PASS	0.0e0	-	70788	70788	yes	yes	-70788	-70788	-70788	0.000e0	0.000e+00	kp	0.00	-
-or	OR10x250-0.50_2.dat-50	pass	-	PASS	0.0e0	-	71142	71142	yes	yes	-71142	-71142	-71142	0.000e0	0.000e+00	mkp-milp	0.04	-
+or	OR10x250-0.50_2.dat-50	pass	-	PASS	0.0e0	-	71142	71142	yes	yes	-71142	-71142	-71142	0.000e0	0.000e+00	mkp-milp	0.05	-
 or	OR10x250-0.50_3.dat-0	pass	-	PASS	0.0e0	-	54326	54326	yes	yes	-54326	-54326	-54326	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR10x250-0.50_3.dat-100	pass	-	PASS	0.0e0	-	70219	70219	yes	yes	-70219	-70219	-70219	0.000e0	0.000e+00	kp	0.00	-
-or	OR10x250-0.50_3.dat-50	pass	-	PASS	0.0e0	-	71263	71263	yes	yes	-71263	-71263	-71263	0.000e0	0.000e+00	mkp-milp	0.20	-
+or	OR10x250-0.50_3.dat-50	pass	-	PASS	0.0e0	-	71263	71263	yes	yes	-71263	-71263	-71263	0.000e0	0.000e+00	mkp-milp	0.23	-
 or	OR10x250-0.50_4.dat-0	pass	-	PASS	0.0e0	-	52717	52717	yes	yes	-52717	-52717	-52717	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR10x250-0.50_4.dat-100	pass	-	PASS	0.0e0	-	72297	72297	yes	yes	-72297	-72297	-72297	0.000e0	0.000e+00	kp	0.00	-
-or	OR10x250-0.50_4.dat-50	pass	-	PASS	0.0e0	-	72536	72536	yes	yes	-72536	-72536	-72536	0.000e0	0.000e+00	mkp-milp	0.11	-
+or	OR10x250-0.50_4.dat-50	pass	-	PASS	0.0e0	-	72536	72536	yes	yes	-72536	-72536	-72536	0.000e0	0.000e+00	mkp-milp	0.12	-
 or	OR10x250-0.50_5.dat-0	pass	-	PASS	0.0e0	-	58115	58115	yes	yes	-58115	-58115	-58115	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR10x250-0.50_5.dat-100	pass	-	PASS	0.0e0	-	72938	72938	yes	yes	-72938	-72938	-72938	0.000e0	0.000e+00	kp	0.00	-
-or	OR10x250-0.50_5.dat-50	pass	-	PASS	0.0e0	-	69837	69837	yes	yes	-69837	-69837	-69837	0.000e0	0.000e+00	mkp-milp	0.20	-
+or	OR10x250-0.50_5.dat-50	pass	-	PASS	0.0e0	-	69837	69837	yes	yes	-69837	-69837	-69837	0.000e0	0.000e+00	mkp-milp	0.27	-
 or	OR10x250-0.50_6.dat-0	pass	-	PASS	0.0e0	-	56345	56345	yes	yes	-56345	-56345	-56345	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR10x250-0.50_6.dat-100	pass	-	PASS	0.0e0	-	71923	71923	yes	yes	-71923	-71923	-71923	0.000e0	0.000e+00	kp	0.00	-
 or	OR10x250-0.50_6.dat-50	pass	-	PASS	0.0e0	-	71000	71000	yes	yes	-71000	-71000	-71000	0.000e0	0.000e+00	mkp-milp	0.05	-
 or	OR10x250-0.50_7.dat-0	pass	-	PASS	0.0e0	-	53302	53302	yes	yes	-53302	-53302	-53302	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR10x250-0.50_7.dat-100	pass	-	PASS	0.0e0	-	69311	69311	yes	yes	-69311	-69311	-69311	0.000e0	0.000e+00	kp	0.00	-
-or	OR10x250-0.50_7.dat-50	pass	-	PASS	0.0e0	-	68581	68581	yes	yes	-68581	-68581	-68581	0.000e0	0.000e+00	mkp-milp	0.26	-
+or	OR10x250-0.50_7.dat-50	pass	-	PASS	0.0e0	-	68581	68581	yes	yes	-68581	-68581	-68581	0.000e0	0.000e+00	mkp-milp	0.19	-
 or	OR10x250-0.50_8.dat-0	pass	-	PASS	0.0e0	-	52577	52577	yes	yes	-52577	-52577	-52577	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR10x250-0.50_8.dat-100	pass	-	PASS	0.0e0	-	68763	68763	yes	yes	-68763	-68763	-68763	0.000e0	0.000e+00	kp	0.00	-
-or	OR10x250-0.50_8.dat-50	pass	-	PASS	0.0e0	-	68859	68859	yes	yes	-68859	-68859	-68859	0.000e0	0.000e+00	mkp-milp	0.07	-
+or	OR10x250-0.50_8.dat-50	pass	-	PASS	0.0e0	-	68859	68859	yes	yes	-68859	-68859	-68859	0.000e0	0.000e+00	mkp-milp	0.06	-
 or	OR10x250-0.50_9.dat-0	pass	-	PASS	0.0e0	-	49519	49519	yes	yes	-49519	-49519	-49519	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR10x250-0.50_9.dat-100	pass	-	PASS	0.0e0	-	74526	74526	yes	yes	-74526	-74526	-74526	0.000e0	0.000e+00	kp	0.00	-
 or	OR10x250-0.50_9.dat-50	pass	-	PASS	0.0e0	-	70068	70068	yes	yes	-70068	-70068	-70068	0.000e0	0.000e+00	mkp-milp	0.05	-
@@ -772,19 +772,19 @@ or	OR10x500-0.50_10.dat-100	pass	-	PASS	0.0e0	-	146691	146691	yes	yes	-146691	-1
 or	OR10x500-0.50_10.dat-50	pass	-	PASS	0.0e0	-	144345	144345	yes	yes	-144345	-144345	-144345	0.000e0	0.000e+00	mkp-milp	0.22	-
 or	OR10x500-0.50_2.dat-0	pass	-	PASS	0.0e0	-	108994	108994	yes	yes	-108994	-108994	-108994	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR10x500-0.50_2.dat-100	pass	-	PASS	0.0e0	-	144228	144228	yes	yes	-144228	-144228	-144228	0.000e0	0.000e+00	kp	0.00	-
-or	OR10x500-0.50_2.dat-50	pass	-	PASS	0.0e0	-	144652	144652	yes	yes	-144652	-144652	-144652	0.000e0	0.000e+00	mkp-milp	0.07	-
+or	OR10x500-0.50_2.dat-50	pass	-	PASS	0.0e0	-	144652	144652	yes	yes	-144652	-144652	-144652	0.000e0	0.000e+00	mkp-milp	0.05	-
 or	OR10x500-0.50_3.dat-0	pass	-	PASS	0.0e0	-	109258	109258	yes	yes	-109258	-109258	-109258	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR10x500-0.50_3.dat-100	pass	-	PASS	0.0e0	-	141697	141697	yes	yes	-141697	-141697	-141697	0.000e0	0.000e+00	kp	0.00	-
-or	OR10x500-0.50_3.dat-50	pass	-	PASS	0.0e0	-	142099	142099	yes	yes	-142099	-142099	-142099	0.000e0	0.000e+00	mkp-milp	0.44	-
+or	OR10x500-0.50_3.dat-50	pass	-	PASS	0.0e0	-	142099	142099	yes	yes	-142099	-142099	-142099	0.000e0	0.000e+00	mkp-milp	0.35	-
 or	OR10x500-0.50_4.dat-0	pass	-	PASS	0.0e0	-	109277	109277	yes	yes	-109277	-109277	-109277	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR10x500-0.50_4.dat-100	pass	-	PASS	0.0e0	-	139035	139035	yes	yes	-139035	-139035	-139035	0.000e0	0.000e+00	kp	0.00	-
-or	OR10x500-0.50_4.dat-50	pass	-	PASS	0.0e0	-	138428	138428	yes	yes	-138428	-138428	-138428	0.000e0	0.000e+00	mkp-milp	0.15	-
+or	OR10x500-0.50_4.dat-50	pass	-	PASS	0.0e0	-	138428	138428	yes	yes	-138428	-138428	-138428	0.000e0	0.000e+00	mkp-milp	0.16	-
 or	OR10x500-0.50_5.dat-0	pass	-	PASS	0.0e0	-	109764	109764	yes	yes	-109764	-109764	-109764	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR10x500-0.50_5.dat-100	pass	-	PASS	0.0e0	-	140684	140684	yes	yes	-140684	-140684	-140684	0.000e0	0.000e+00	kp	0.00	-
-or	OR10x500-0.50_5.dat-50	pass	-	PASS	0.0e0	-	141199	141199	yes	yes	-141199	-141199	-141199	0.000e0	0.000e+00	mkp-milp	0.14	-
+or	OR10x500-0.50_5.dat-50	pass	-	PASS	0.0e0	-	141199	141199	yes	yes	-141199	-141199	-141199	0.000e0	0.000e+00	mkp-milp	0.13	-
 or	OR10x500-0.50_6.dat-0	pass	-	PASS	0.0e0	-	109294	109294	yes	yes	-109294	-109294	-109294	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR10x500-0.50_6.dat-100	pass	-	PASS	0.0e0	-	139239	139239	yes	yes	-139239	-139239	-139239	0.000e0	0.000e+00	kp	0.00	-
-or	OR10x500-0.50_6.dat-50	pass	-	PASS	0.0e0	-	140895	140895	yes	yes	-140895	-140895	-140895	0.000e0	0.000e+00	mkp-milp	0.32	-
+or	OR10x500-0.50_6.dat-50	pass	-	PASS	0.0e0	-	140895	140895	yes	yes	-140895	-140895	-140895	0.000e0	0.000e+00	mkp-milp	0.26	-
 or	OR10x500-0.50_7.dat-0	pass	-	PASS	0.0e0	-	108537	108537	yes	yes	-108537	-108537	-108537	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR10x500-0.50_7.dat-100	pass	-	PASS	0.0e0	-	141572	141572	yes	yes	-141572	-141572	-141572	0.000e0	0.000e+00	kp	0.00	-
 or	OR10x500-0.50_7.dat-50	pass	-	PASS	0.0e0	-	142685	142685	yes	yes	-142685	-142685	-142685	0.000e0	0.000e+00	mkp-milp	0.03	-
@@ -832,7 +832,7 @@ or	OR30x100-0.25_4.dat-100	pass	-	PASS	0.0e0	-	23073	23073	yes	yes	-23073	-23073
 or	OR30x100-0.25_5.dat-100	pass	-	PASS	0.0e0	-	24955	24955	yes	yes	-24955	-24955	-24955	0.000e0	0.000e+00	kp	0.00	-
 or	OR30x100-0.25_6.dat-100	pass	-	PASS	0.0e0	-	24116	24116	yes	yes	-24116	-24116	-24116	0.000e0	0.000e+00	kp	0.00	-
 or	OR30x100-0.25_7.dat-100	pass	-	PASS	0.0e0	-	26993	26993	yes	yes	-26993	-26993	-26993	0.000e0	0.000e+00	kp	0.00	-
-or	OR30x100-0.25_7.dat-50	pass	-	PASS	0.0e0	-	19443	19443	yes	yes	-19443	-19443	-19443	0.000e0	0.000e+00	mkp-milp	18.20	-
+or	OR30x100-0.25_7.dat-50	pass	-	PASS	0.0e0	-	19443	19443	yes	yes	-19443	-19443	-19443	0.000e0	0.000e+00	mkp-milp	17.01	-
 or	OR30x100-0.25_8.dat-100	pass	-	PASS	0.0e0	-	23319	23319	yes	yes	-23319	-23319	-23319	0.000e0	0.000e+00	kp	0.00	-
 or	OR30x100-0.25_9.dat-100	pass	-	PASS	0.0e0	-	26760	26760	yes	yes	-26760	-26760	-26760	0.000e0	0.000e+00	kp	0.00	-
 or	OR30x100-0.50_1.dat-0	pass	-	PASS	0.0e0	-	20246	20246	yes	yes	-20246	-20246	-20246	0.000e0	0.000e+00	mkp-milp	0.00	-
@@ -849,7 +849,7 @@ or	OR30x100-0.50_3.dat-100	pass	-	PASS	0.0e0	-	28282	28282	yes	yes	-28282	-28282
 or	OR30x100-0.50_3.dat-50	pass	-	PASS	0.0e0	-	27358	27358	yes	yes	-27358	-27358	-27358	0.000e0	0.000e+00	mkp-milp	0.02	-
 or	OR30x100-0.50_4.dat-0	pass	-	PASS	0.0e0	-	22792	22792	yes	yes	-22792	-22792	-22792	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR30x100-0.50_4.dat-100	pass	-	PASS	0.0e0	-	27529	27529	yes	yes	-27529	-27529	-27529	0.000e0	0.000e+00	kp	0.00	-
-or	OR30x100-0.50_4.dat-50	pass	-	PASS	0.0e0	-	26504	26504	yes	yes	-26504	-26504	-26504	0.000e0	0.000e+00	mkp-milp	0.02	-
+or	OR30x100-0.50_4.dat-50	pass	-	PASS	0.0e0	-	26504	26504	yes	yes	-26504	-26504	-26504	0.000e0	0.000e+00	mkp-milp	0.03	-
 or	OR30x100-0.50_5.dat-0	pass	-	PASS	0.0e0	-	20805	20805	yes	yes	-20805	-20805	-20805	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR30x100-0.50_5.dat-100	pass	-	PASS	0.0e0	-	29571	29571	yes	yes	-29571	-29571	-29571	0.000e0	0.000e+00	kp	0.00	-
 or	OR30x100-0.50_5.dat-50	pass	-	PASS	0.0e0	-	27982	27982	yes	yes	-27982	-27982	-27982	0.000e0	0.000e+00	mkp-milp	0.05	-
@@ -919,22 +919,22 @@ or	OR30x250-0.50_3.dat-100	pass	-	PASS	0.0e0	-	72226	72226	yes	yes	-72226	-72226
 or	OR30x250-0.50_3.dat-50	pass	-	PASS	0.0e0	-	69324	69324	yes	yes	-69324	-69324	-69324	0.000e0	0.000e+00	mkp-milp	0.09	-
 or	OR30x250-0.50_4.dat-0	pass	-	PASS	0.0e0	-	53794	53794	yes	yes	-53794	-53794	-53794	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR30x250-0.50_4.dat-100	pass	-	PASS	0.0e0	-	70800	70800	yes	yes	-70800	-70800	-70800	0.000e0	0.000e+00	kp	0.00	-
-or	OR30x250-0.50_4.dat-50	pass	-	PASS	0.0e0	-	70897	70897	yes	yes	-70897	-70897	-70897	0.000e0	0.000e+00	mkp-milp	0.08	-
+or	OR30x250-0.50_4.dat-50	pass	-	PASS	0.0e0	-	70897	70897	yes	yes	-70897	-70897	-70897	0.000e0	0.000e+00	mkp-milp	0.06	-
 or	OR30x250-0.50_5.dat-0	pass	-	PASS	0.0e0	-	51556	51556	yes	yes	-51556	-51556	-51556	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR30x250-0.50_5.dat-100	pass	-	PASS	0.0e0	-	71547	71547	yes	yes	-71547	-71547	-71547	0.000e0	0.000e+00	kp	0.00	-
 or	OR30x250-0.50_5.dat-50	pass	-	PASS	0.0e0	-	68846	68846	yes	yes	-68846	-68846	-68846	0.000e0	0.000e+00	mkp-milp	0.03	-
 or	OR30x250-0.50_6.dat-0	pass	-	PASS	0.0e0	-	54634	54634	yes	yes	-54634	-54634	-54634	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR30x250-0.50_6.dat-100	pass	-	PASS	0.0e0	-	71874	71874	yes	yes	-71874	-71874	-71874	0.000e0	0.000e+00	kp	0.00	-
-or	OR30x250-0.50_6.dat-50	pass	-	PASS	0.0e0	-	71186	71186	yes	yes	-71186	-71186	-71186	0.000e0	0.000e+00	mkp-milp	0.27	-
+or	OR30x250-0.50_6.dat-50	pass	-	PASS	0.0e0	-	71186	71186	yes	yes	-71186	-71186	-71186	0.000e0	0.000e+00	mkp-milp	0.25	-
 or	OR30x250-0.50_7.dat-0	pass	-	PASS	0.0e0	-	52579	52579	yes	yes	-52579	-52579	-52579	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR30x250-0.50_7.dat-100	pass	-	PASS	0.0e0	-	70073	70073	yes	yes	-70073	-70073	-70073	0.000e0	0.000e+00	kp	0.00	-
 or	OR30x250-0.50_7.dat-50	pass	-	PASS	0.0e0	-	67987	67987	yes	yes	-67987	-67987	-67987	0.000e0	0.000e+00	mkp-milp	0.07	-
 or	OR30x250-0.50_8.dat-0	pass	-	PASS	0.0e0	-	55431	55431	yes	yes	-55431	-55431	-55431	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR30x250-0.50_8.dat-100	pass	-	PASS	0.0e0	-	68983	68983	yes	yes	-68983	-68983	-68983	0.000e0	0.000e+00	kp	0.00	-
-or	OR30x250-0.50_8.dat-50	pass	-	PASS	0.0e0	-	67765	67765	yes	yes	-67765	-67765	-67765	0.000e0	0.000e+00	mkp-milp	0.05	-
+or	OR30x250-0.50_8.dat-50	pass	-	PASS	0.0e0	-	67765	67765	yes	yes	-67765	-67765	-67765	0.000e0	0.000e+00	mkp-milp	0.08	-
 or	OR30x250-0.50_9.dat-0	pass	-	PASS	0.0e0	-	54788	54788	yes	yes	-54788	-54788	-54788	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR30x250-0.50_9.dat-100	pass	-	PASS	0.0e0	-	70341	70341	yes	yes	-70341	-70341	-70341	0.000e0	0.000e+00	kp	0.00	-
-or	OR30x250-0.50_9.dat-50	pass	-	PASS	0.0e0	-	69846	69846	yes	yes	-69846	-69846	-69846	0.000e0	0.000e+00	mkp-milp	0.10	-
+or	OR30x250-0.50_9.dat-50	pass	-	PASS	0.0e0	-	69846	69846	yes	yes	-69846	-69846	-69846	0.000e0	0.000e+00	mkp-milp	0.09	-
 or	OR30x250-0.75_1.dat-0	pass	-	PASS	0.0e0	-	20531	20531	yes	yes	-20531	-20531	-20531	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR30x250-0.75_1.dat-100	pass	-	PASS	0.0e0	-	36237	36237	yes	yes	-36237	-36237	-36237	0.000e0	0.000e+00	kp	0.00	-
 or	OR30x250-0.75_1.dat-50	pass	-	PASS	0.0e0	-	34678	34678	yes	yes	-34678	-34678	-34678	0.000e0	0.000e+00	mkp-milp	0.00	-
@@ -977,25 +977,25 @@ or	OR30x500-0.25_8.dat-100	pass	-	PASS	0.0e0	-	114185	114185	yes	yes	-114185	-11
 or	OR30x500-0.25_9.dat-100	pass	-	PASS	0.0e0	-	115608	115608	yes	yes	-115608	-115608	-115608	0.000e0	0.000e+00	kp	0.00	-
 or	OR30x500-0.50_1.dat-0	pass	-	PASS	0.0e0	-	108021	108021	yes	yes	-108021	-108021	-108021	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR30x500-0.50_1.dat-100	pass	-	PASS	0.0e0	-	140962	140962	yes	yes	-140962	-140962	-140962	0.000e0	0.000e+00	kp	0.00	-
-or	OR30x500-0.50_1.dat-50	pass	-	PASS	0.0e0	-	142560	142560	yes	yes	-142560	-142560	-142560	0.000e0	0.000e+00	mkp-milp	0.09	-
+or	OR30x500-0.50_1.dat-50	pass	-	PASS	0.0e0	-	142560	142560	yes	yes	-142560	-142560	-142560	0.000e0	0.000e+00	mkp-milp	0.07	-
 or	OR30x500-0.50_10.dat-0	pass	-	PASS	0.0e0	-	109755	109755	yes	yes	-109755	-109755	-109755	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR30x500-0.50_10.dat-100	pass	-	PASS	0.0e0	-	137127	137127	yes	yes	-137127	-137127	-137127	0.000e0	0.000e+00	kp	0.00	-
-or	OR30x500-0.50_10.dat-50	pass	-	PASS	0.0e0	-	138253	138253	yes	yes	-138253	-138253	-138253	0.000e0	0.000e+00	mkp-milp	0.10	-
+or	OR30x500-0.50_10.dat-50	pass	-	PASS	0.0e0	-	138253	138253	yes	yes	-138253	-138253	-138253	0.000e0	0.000e+00	mkp-milp	0.09	-
 or	OR30x500-0.50_2.dat-0	pass	-	PASS	0.0e0	-	107585	107585	yes	yes	-107585	-107585	-107585	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR30x500-0.50_2.dat-100	pass	-	PASS	0.0e0	-	138905	138905	yes	yes	-138905	-138905	-138905	0.000e0	0.000e+00	kp	0.00	-
-or	OR30x500-0.50_2.dat-50	pass	-	PASS	0.0e0	-	140696	140696	yes	yes	-140696	-140696	-140696	0.000e0	0.000e+00	mkp-milp	0.07	-
+or	OR30x500-0.50_2.dat-50	pass	-	PASS	0.0e0	-	140696	140696	yes	yes	-140696	-140696	-140696	0.000e0	0.000e+00	mkp-milp	0.09	-
 or	OR30x500-0.50_3.dat-0	pass	-	PASS	0.0e0	-	103067	103067	yes	yes	-103067	-103067	-103067	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR30x500-0.50_3.dat-100	pass	-	PASS	0.0e0	-	139553	139553	yes	yes	-139553	-139553	-139553	0.000e0	0.000e+00	kp	0.00	-
-or	OR30x500-0.50_3.dat-50	pass	-	PASS	0.0e0	-	140130	140130	yes	yes	-140130	-140130	-140130	0.000e0	0.000e+00	mkp-milp	0.08	-
+or	OR30x500-0.50_3.dat-50	pass	-	PASS	0.0e0	-	140130	140130	yes	yes	-140130	-140130	-140130	0.000e0	0.000e+00	mkp-milp	0.07	-
 or	OR30x500-0.50_4.dat-0	pass	-	PASS	0.0e0	-	108935	108935	yes	yes	-108935	-108935	-108935	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR30x500-0.50_4.dat-100	pass	-	PASS	0.0e0	-	141383	141383	yes	yes	-141383	-141383	-141383	0.000e0	0.000e+00	kp	0.00	-
 or	OR30x500-0.50_4.dat-50	pass	-	PASS	0.0e0	-	140690	140690	yes	yes	-140690	-140690	-140690	0.000e0	0.000e+00	mkp-milp	0.03	-
-or	OR30x500-0.50_5.dat-0	pass	-	PASS	0.0e0	-	108370	108370	yes	yes	-108370	-108370	-108370	0.000e0	0.000e+00	mkp-milp	0.00	-
+or	OR30x500-0.50_5.dat-0	pass	-	PASS	0.0e0	-	108370	108370	yes	yes	-108370	-108370	-108370	0.000e0	0.000e+00	mkp-milp	0.01	-
 or	OR30x500-0.50_5.dat-100	pass	-	PASS	0.0e0	-	138983	138983	yes	yes	-138983	-138983	-138983	0.000e0	0.000e+00	kp	0.00	-
-or	OR30x500-0.50_5.dat-50	pass	-	PASS	0.0e0	-	139185	139185	yes	yes	-139185	-139185	-139185	0.000e0	0.000e+00	mkp-milp	0.16	-
+or	OR30x500-0.50_5.dat-50	pass	-	PASS	0.0e0	-	139185	139185	yes	yes	-139185	-139185	-139185	0.000e0	0.000e+00	mkp-milp	0.13	-
 or	OR30x500-0.50_6.dat-0	pass	-	PASS	0.0e0	-	109852	109852	yes	yes	-109852	-109852	-109852	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR30x500-0.50_6.dat-100	pass	-	PASS	0.0e0	-	142158	142158	yes	yes	-142158	-142158	-142158	0.000e0	0.000e+00	kp	0.00	-
-or	OR30x500-0.50_6.dat-50	pass	-	PASS	0.0e0	-	140397	140397	yes	yes	-140397	-140397	-140397	0.000e0	0.000e+00	mkp-milp	0.36	-
+or	OR30x500-0.50_6.dat-50	pass	-	PASS	0.0e0	-	140397	140397	yes	yes	-140397	-140397	-140397	0.000e0	0.000e+00	mkp-milp	0.44	-
 or	OR30x500-0.50_7.dat-0	pass	-	PASS	0.0e0	-	101196	101196	yes	yes	-101196	-101196	-101196	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR30x500-0.50_7.dat-100	pass	-	PASS	0.0e0	-	140414	140414	yes	yes	-140414	-140414	-140414	0.000e0	0.000e+00	kp	0.00	-
 or	OR30x500-0.50_7.dat-50	pass	-	PASS	0.0e0	-	137570	137570	yes	yes	-137570	-137570	-137570	0.000e0	0.000e+00	mkp-milp	0.16	-
@@ -1004,7 +1004,7 @@ or	OR30x500-0.50_8.dat-100	pass	-	PASS	0.0e0	-	137682	137682	yes	yes	-137682	-13
 or	OR30x500-0.50_8.dat-50	pass	-	PASS	0.0e0	-	138542	138542	yes	yes	-138542	-138542	-138542	0.000e0	0.000e+00	mkp-milp	0.04	-
 or	OR30x500-0.50_9.dat-0	pass	-	PASS	0.0e0	-	109002	109002	yes	yes	-109002	-109002	-109002	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR30x500-0.50_9.dat-100	pass	-	PASS	0.0e0	-	139773	139773	yes	yes	-139773	-139773	-139773	0.000e0	0.000e+00	kp	0.00	-
-or	OR30x500-0.50_9.dat-50	pass	-	PASS	0.0e0	-	143174	143174	yes	yes	-143174	-143174	-143174	0.000e0	0.000e+00	mkp-milp	0.23	-
+or	OR30x500-0.50_9.dat-50	pass	-	PASS	0.0e0	-	143174	143174	yes	yes	-143174	-143174	-143174	0.000e0	0.000e+00	mkp-milp	0.22	-
 or	OR30x500-0.75_1.dat-0	pass	-	PASS	0.0e0	-	43478	43478	yes	yes	-43478	-43478	-43478	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR30x500-0.75_1.dat-100	pass	-	PASS	0.0e0	-	71091	71091	yes	yes	-71091	-71091	-71091	0.000e0	0.000e+00	kp	0.00	-
 or	OR30x500-0.75_1.dat-50	pass	-	PASS	0.0e0	-	68720	68720	yes	yes	-68720	-68720	-68720	0.000e0	0.000e+00	mkp-milp	0.00	-
@@ -1035,36 +1035,36 @@ or	OR30x500-0.75_8.dat-50	pass	-	PASS	0.0e0	-	69553	69553	yes	yes	-69553	-69553	
 or	OR30x500-0.75_9.dat-0	pass	-	PASS	0.0e0	-	43827	43827	yes	yes	-43827	-43827	-43827	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR30x500-0.75_9.dat-100	pass	-	PASS	0.0e0	-	72384	72384	yes	yes	-72384	-72384	-72384	0.000e0	0.000e+00	kp	0.00	-
 or	OR30x500-0.75_9.dat-50	pass	-	PASS	0.0e0	-	69181	69181	yes	yes	-69181	-69181	-69181	0.000e0	0.000e+00	mkp-milp	0.00	-
-or	OR5x100-0.25_1.dat-0	pass	-	PASS	0.0e0	-	19956	19956	yes	yes	-19956	-19956	-19956	0.000e0	0.000e+00	mkp-milp	0.73	-
+or	OR5x100-0.25_1.dat-0	pass	-	PASS	0.0e0	-	19956	19956	yes	yes	-19956	-19956	-19956	0.000e0	0.000e+00	mkp-milp	0.82	-
 or	OR5x100-0.25_1.dat-100	pass	-	PASS	0.0e0	-	23482	23482	yes	yes	-23482	-23482	-23482	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x100-0.25_1.dat-50	pass	-	PASS	0.0e0	-	21569	21569	yes	yes	-21569	-21569	-21569	0.000e0	0.000e+00	mkp-milp	0.27	-
-or	OR5x100-0.25_10.dat-0	pass	-	PASS	0.0e0	-	20967	20967	yes	yes	-20967	-20967	-20967	0.000e0	0.000e+00	mkp-milp	2.26	-
+or	OR5x100-0.25_1.dat-50	pass	-	PASS	0.0e0	-	21569	21569	yes	yes	-21569	-21569	-21569	0.000e0	0.000e+00	mkp-milp	0.38	-
+or	OR5x100-0.25_10.dat-0	pass	-	PASS	0.0e0	-	20967	20967	yes	yes	-20967	-20967	-20967	0.000e0	0.000e+00	mkp-milp	2.30	-
 or	OR5x100-0.25_10.dat-100	pass	-	PASS	0.0e0	-	23242	23242	yes	yes	-23242	-23242	-23242	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x100-0.25_10.dat-50	pass	-	PASS	0.0e0	-	22543	22543	yes	yes	-22543	-22543	-22543	0.000e0	0.000e+00	mkp-milp	0.06	-
-or	OR5x100-0.25_2.dat-0	pass	-	PASS	0.0e0	-	19943	19943	yes	yes	-19943	-19943	-19943	0.000e0	0.000e+00	mkp-milp	1.06	-
+or	OR5x100-0.25_10.dat-50	pass	-	PASS	0.0e0	-	22543	22543	yes	yes	-22543	-22543	-22543	0.000e0	0.000e+00	mkp-milp	0.07	-
+or	OR5x100-0.25_2.dat-0	pass	-	PASS	0.0e0	-	19943	19943	yes	yes	-19943	-19943	-19943	0.000e0	0.000e+00	mkp-milp	1.07	-
 or	OR5x100-0.25_2.dat-100	pass	-	PASS	0.0e0	-	21750	21750	yes	yes	-21750	-21750	-21750	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x100-0.25_2.dat-50	pass	-	PASS	0.0e0	-	21219	21219	yes	yes	-21219	-21219	-21219	0.000e0	0.000e+00	mkp-milp	0.17	-
-or	OR5x100-0.25_3.dat-0	pass	-	PASS	0.0e0	-	19312	19312	yes	yes	-19312	-19312	-19312	0.000e0	0.000e+00	mkp-milp	1.50	-
+or	OR5x100-0.25_2.dat-50	pass	-	PASS	0.0e0	-	21219	21219	yes	yes	-21219	-21219	-21219	0.000e0	0.000e+00	mkp-milp	0.21	-
+or	OR5x100-0.25_3.dat-0	pass	-	PASS	0.0e0	-	19312	19312	yes	yes	-19312	-19312	-19312	0.000e0	0.000e+00	mkp-milp	1.64	-
 or	OR5x100-0.25_3.dat-100	pass	-	PASS	0.0e0	-	22110	22110	yes	yes	-22110	-22110	-22110	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x100-0.25_3.dat-50	pass	-	PASS	0.0e0	-	20930	20930	yes	yes	-20930	-20930	-20930	0.000e0	0.000e+00	mkp-milp	0.31	-
-or	OR5x100-0.25_4.dat-0	pass	-	PASS	0.0e0	-	20353	20353	yes	yes	-20353	-20353	-20353	0.000e0	0.000e+00	mkp-milp	1.59	-
+or	OR5x100-0.25_3.dat-50	pass	-	PASS	0.0e0	-	20930	20930	yes	yes	-20930	-20930	-20930	0.000e0	0.000e+00	mkp-milp	0.26	-
+or	OR5x100-0.25_4.dat-0	pass	-	PASS	0.0e0	-	20353	20353	yes	yes	-20353	-20353	-20353	0.000e0	0.000e+00	mkp-milp	1.35	-
 or	OR5x100-0.25_4.dat-100	pass	-	PASS	0.0e0	-	24260	24260	yes	yes	-24260	-24260	-24260	0.000e0	0.000e+00	kp	0.00	-
 or	OR5x100-0.25_4.dat-50	pass	-	PASS	0.0e0	-	21439	21439	yes	yes	-21439	-21439	-21439	0.000e0	0.000e+00	mkp-milp	0.19	-
-or	OR5x100-0.25_5.dat-0	pass	-	PASS	0.0e0	-	19957	19957	yes	yes	-19957	-19957	-19957	0.000e0	0.000e+00	mkp-milp	4.20	-
+or	OR5x100-0.25_5.dat-0	pass	-	PASS	0.0e0	-	19957	19957	yes	yes	-19957	-19957	-19957	0.000e0	0.000e+00	mkp-milp	4.39	-
 or	OR5x100-0.25_5.dat-100	pass	-	PASS	0.0e0	-	23026	23026	yes	yes	-23026	-23026	-23026	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x100-0.25_5.dat-50	pass	-	PASS	0.0e0	-	20621	20621	yes	yes	-20621	-20621	-20621	0.000e0	0.000e+00	mkp-milp	0.64	-
-or	OR5x100-0.25_6.dat-0	pass	-	PASS	0.0e0	-	20235	20235	yes	yes	-20235	-20235	-20235	0.000e0	0.000e+00	mkp-milp	1.28	-
+or	OR5x100-0.25_5.dat-50	pass	-	PASS	0.0e0	-	20621	20621	yes	yes	-20621	-20621	-20621	0.000e0	0.000e+00	mkp-milp	0.60	-
+or	OR5x100-0.25_6.dat-0	pass	-	PASS	0.0e0	-	20235	20235	yes	yes	-20235	-20235	-20235	0.000e0	0.000e+00	mkp-milp	1.40	-
 or	OR5x100-0.25_6.dat-100	pass	-	PASS	0.0e0	-	23431	23431	yes	yes	-23431	-23431	-23431	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x100-0.25_6.dat-50	pass	-	PASS	0.0e0	-	22527	22527	yes	yes	-22527	-22527	-22527	0.000e0	0.000e+00	mkp-milp	0.24	-
-or	OR5x100-0.25_7.dat-0	pass	-	PASS	0.0e0	-	20484	20484	yes	yes	-20484	-20484	-20484	0.000e0	0.000e+00	mkp-milp	5.03	-
+or	OR5x100-0.25_6.dat-50	pass	-	PASS	0.0e0	-	22527	22527	yes	yes	-22527	-22527	-22527	0.000e0	0.000e+00	mkp-milp	0.38	-
+or	OR5x100-0.25_7.dat-0	pass	-	PASS	0.0e0	-	20484	20484	yes	yes	-20484	-20484	-20484	0.000e0	0.000e+00	mkp-milp	4.86	-
 or	OR5x100-0.25_7.dat-100	pass	-	PASS	0.0e0	-	24958	24958	yes	yes	-24958	-24958	-24958	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x100-0.25_7.dat-50	pass	-	PASS	0.0e0	-	22125	22125	yes	yes	-22125	-22125	-22125	0.000e0	0.000e+00	mkp-milp	0.40	-
-or	OR5x100-0.25_8.dat-0	pass	-	PASS	0.0e0	-	19849	19849	yes	yes	-19849	-19849	-19849	0.000e0	0.000e+00	mkp-milp	0.87	-
+or	OR5x100-0.25_7.dat-50	pass	-	PASS	0.0e0	-	22125	22125	yes	yes	-22125	-22125	-22125	0.000e0	0.000e+00	mkp-milp	0.37	-
+or	OR5x100-0.25_8.dat-0	pass	-	PASS	0.0e0	-	19849	19849	yes	yes	-19849	-19849	-19849	0.000e0	0.000e+00	mkp-milp	0.72	-
 or	OR5x100-0.25_8.dat-100	pass	-	PASS	0.0e0	-	23514	23514	yes	yes	-23514	-23514	-23514	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x100-0.25_8.dat-50	pass	-	PASS	0.0e0	-	21330	21330	yes	yes	-21330	-21330	-21330	0.000e0	0.000e+00	mkp-milp	0.53	-
-or	OR5x100-0.25_9.dat-0	pass	-	PASS	0.0e0	-	20382	20382	yes	yes	-20382	-20382	-20382	0.000e0	0.000e+00	mkp-milp	1.15	-
+or	OR5x100-0.25_8.dat-50	pass	-	PASS	0.0e0	-	21330	21330	yes	yes	-21330	-21330	-21330	0.000e0	0.000e+00	mkp-milp	0.47	-
+or	OR5x100-0.25_9.dat-0	pass	-	PASS	0.0e0	-	20382	20382	yes	yes	-20382	-20382	-20382	0.000e0	0.000e+00	mkp-milp	0.98	-
 or	OR5x100-0.25_9.dat-100	pass	-	PASS	0.0e0	-	24184	24184	yes	yes	-24184	-24184	-24184	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x100-0.25_9.dat-50	pass	-	PASS	0.0e0	-	20882	20882	yes	yes	-20882	-20882	-20882	0.000e0	0.000e+00	mkp-milp	0.12	-
+or	OR5x100-0.25_9.dat-50	pass	-	PASS	0.0e0	-	20882	20882	yes	yes	-20882	-20882	-20882	0.000e0	0.000e+00	mkp-milp	0.13	-
 or	OR5x100-0.50_1.dat-0	pass	-	PASS	0.0e0	-	19785	19785	yes	yes	-19785	-19785	-19785	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR5x100-0.50_1.dat-100	pass	-	PASS	0.0e0	-	29437	29437	yes	yes	-29437	-29437	-29437	0.000e0	0.000e+00	kp	0.00	-
 or	OR5x100-0.50_1.dat-50	pass	-	PASS	0.0e0	-	29651	29651	yes	yes	-29651	-29651	-29651	0.000e0	0.000e+00	mkp-milp	0.02	-
@@ -1073,7 +1073,7 @@ or	OR5x100-0.50_10.dat-100	pass	-	PASS	0.0e0	-	29232	29232	yes	yes	-29232	-29232
 or	OR5x100-0.50_10.dat-50	pass	-	PASS	0.0e0	-	29152	29152	yes	yes	-29152	-29152	-29152	0.000e0	0.000e+00	mkp-milp	0.03	-
 or	OR5x100-0.50_2.dat-0	pass	-	PASS	0.0e0	-	21265	21265	yes	yes	-21265	-21265	-21265	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR5x100-0.50_2.dat-100	pass	-	PASS	0.0e0	-	28530	28530	yes	yes	-28530	-28530	-28530	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x100-0.50_2.dat-50	pass	-	PASS	0.0e0	-	28254	28254	yes	yes	-28254	-28254	-28254	0.000e0	0.000e+00	mkp-milp	0.04	-
+or	OR5x100-0.50_2.dat-50	pass	-	PASS	0.0e0	-	28254	28254	yes	yes	-28254	-28254	-28254	0.000e0	0.000e+00	mkp-milp	0.03	-
 or	OR5x100-0.50_3.dat-0	pass	-	PASS	0.0e0	-	21226	21226	yes	yes	-21226	-21226	-21226	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR5x100-0.50_3.dat-100	pass	-	PASS	0.0e0	-	28767	28767	yes	yes	-28767	-28767	-28767	0.000e0	0.000e+00	kp	0.00	-
 or	OR5x100-0.50_3.dat-50	pass	-	PASS	0.0e0	-	28000	28000	yes	yes	-28000	-28000	-28000	0.000e0	0.000e+00	mkp-milp	0.00	-
@@ -1094,7 +1094,7 @@ or	OR5x100-0.50_8.dat-100	pass	-	PASS	0.0e0	-	30424	30424	yes	yes	-30424	-30424	
 or	OR5x100-0.50_8.dat-50	pass	-	PASS	0.0e0	-	29952	29952	yes	yes	-29952	-29952	-29952	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR5x100-0.50_9.dat-0	pass	-	PASS	0.0e0	-	23465	23465	yes	yes	-23465	-23465	-23465	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR5x100-0.50_9.dat-100	pass	-	PASS	0.0e0	-	29163	29163	yes	yes	-29163	-29163	-29163	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x100-0.50_9.dat-50	pass	-	PASS	0.0e0	-	29032	29032	yes	yes	-29032	-29032	-29032	0.000e0	0.000e+00	mkp-milp	0.04	-
+or	OR5x100-0.50_9.dat-50	pass	-	PASS	0.0e0	-	29032	29032	yes	yes	-29032	-29032	-29032	0.000e0	0.000e+00	mkp-milp	0.03	-
 or	OR5x100-0.75_1.dat-0	pass	-	PASS	0.0e0	-	8855	8855	yes	yes	-8855	-8855	-8855	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR5x100-0.75_1.dat-100	pass	-	PASS	0.0e0	-	13104	13104	yes	yes	-13104	-13104	-13104	0.000e0	0.000e+00	kp	0.00	-
 or	OR5x100-0.75_1.dat-50	pass	-	PASS	0.0e0	-	12477	12477	yes	yes	-12477	-12477	-12477	0.000e0	0.000e+00	mkp-milp	0.00	-
@@ -1125,59 +1125,59 @@ or	OR5x100-0.75_8.dat-50	pass	-	PASS	0.0e0	-	13364	13364	yes	yes	-13364	-13364	-
 or	OR5x100-0.75_9.dat-0	pass	-	PASS	0.0e0	-	9212	9212	yes	yes	-9212	-9212	-9212	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR5x100-0.75_9.dat-100	pass	-	PASS	0.0e0	-	12783	12783	yes	yes	-12783	-12783	-12783	0.000e0	0.000e+00	kp	0.00	-
 or	OR5x100-0.75_9.dat-50	pass	-	PASS	0.0e0	-	12077	12077	yes	yes	-12077	-12077	-12077	0.000e0	0.000e+00	mkp-milp	0.00	-
-or	OR5x250-0.25_1.dat-0	pass	-	PASS	0.0e0	-	50291	50291	yes	yes	-50291	-50291	-50291	0.000e0	0.000e+00	mkp-milp	22.37	-
+or	OR5x250-0.25_1.dat-0	pass	-	PASS	0.0e0	-	50291	50291	yes	yes	-50291	-50291	-50291	0.000e0	0.000e+00	mkp-milp	24.25	-
 or	OR5x250-0.25_1.dat-100	pass	-	PASS	0.0e0	-	58410	58410	yes	yes	-58410	-58410	-58410	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x250-0.25_1.dat-50	pass	-	PASS	0.0e0	-	52384	52384	yes	yes	-52384	-52384	-52384	0.000e0	0.000e+00	mkp-milp	1.94	-
+or	OR5x250-0.25_1.dat-50	pass	-	PASS	0.0e0	-	52384	52384	yes	yes	-52384	-52384	-52384	0.000e0	0.000e+00	mkp-milp	2.09	-
 or	OR5x250-0.25_10.dat-100	pass	-	PASS	0.0e0	-	59133	59133	yes	yes	-59133	-59133	-59133	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x250-0.25_10.dat-50	pass	-	PASS	0.0e0	-	52645	52645	yes	yes	-52645	-52645	-52645	0.000e0	0.000e+00	mkp-milp	1.55	-
+or	OR5x250-0.25_10.dat-50	pass	-	PASS	0.0e0	-	52645	52645	yes	yes	-52645	-52645	-52645	0.000e0	0.000e+00	mkp-milp	1.47	-
 or	OR5x250-0.25_2.dat-100	pass	-	PASS	0.0e0	-	57402	57402	yes	yes	-57402	-57402	-57402	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x250-0.25_2.dat-50	pass	-	PASS	0.0e0	-	54668	54668	yes	yes	-54668	-54668	-54668	0.000e0	0.000e+00	mkp-milp	1.12	-
+or	OR5x250-0.25_2.dat-50	pass	-	PASS	0.0e0	-	54668	54668	yes	yes	-54668	-54668	-54668	0.000e0	0.000e+00	mkp-milp	0.92	-
 or	OR5x250-0.25_3.dat-100	pass	-	PASS	0.0e0	-	56343	56343	yes	yes	-56343	-56343	-56343	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x250-0.25_3.dat-50	pass	-	PASS	0.0e0	-	53485	53485	yes	yes	-53485	-53485	-53485	0.000e0	0.000e+00	mkp-milp	1.53	-
+or	OR5x250-0.25_3.dat-50	pass	-	PASS	0.0e0	-	53485	53485	yes	yes	-53485	-53485	-53485	0.000e0	0.000e+00	mkp-milp	1.65	-
 or	OR5x250-0.25_4.dat-100	pass	-	PASS	0.0e0	-	56933	56933	yes	yes	-56933	-56933	-56933	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x250-0.25_4.dat-50	pass	-	PASS	0.0e0	-	54753	54753	yes	yes	-54753	-54753	-54753	0.000e0	0.000e+00	mkp-milp	0.69	-
+or	OR5x250-0.25_4.dat-50	pass	-	PASS	0.0e0	-	54753	54753	yes	yes	-54753	-54753	-54753	0.000e0	0.000e+00	mkp-milp	0.72	-
 or	OR5x250-0.25_5.dat-100	pass	-	PASS	0.0e0	-	56943	56943	yes	yes	-56943	-56943	-56943	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x250-0.25_5.dat-50	pass	-	PASS	0.0e0	-	53890	53890	yes	yes	-53890	-53890	-53890	0.000e0	0.000e+00	mkp-milp	1.87	-
+or	OR5x250-0.25_5.dat-50	pass	-	PASS	0.0e0	-	53890	53890	yes	yes	-53890	-53890	-53890	0.000e0	0.000e+00	mkp-milp	2.14	-
 or	OR5x250-0.25_6.dat-100	pass	-	PASS	0.0e0	-	59284	59284	yes	yes	-59284	-59284	-59284	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x250-0.25_6.dat-50	pass	-	PASS	0.0e0	-	54875	54875	yes	yes	-54875	-54875	-54875	0.000e0	0.000e+00	mkp-milp	1.52	-
-or	OR5x250-0.25_7.dat-0	pass	-	PASS	0.0e0	-	52020	52020	yes	yes	-52020	-52020	-52020	0.000e0	0.000e+00	mkp-milp	16.64	-
+or	OR5x250-0.25_6.dat-50	pass	-	PASS	0.0e0	-	54875	54875	yes	yes	-54875	-54875	-54875	0.000e0	0.000e+00	mkp-milp	1.75	-
+or	OR5x250-0.25_7.dat-0	pass	-	PASS	0.0e0	-	52020	52020	yes	yes	-52020	-52020	-52020	0.000e0	0.000e+00	mkp-milp	16.38	-
 or	OR5x250-0.25_7.dat-100	pass	-	PASS	0.0e0	-	61611	61611	yes	yes	-61611	-61611	-61611	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x250-0.25_7.dat-50	pass	-	PASS	0.0e0	-	56511	56511	yes	yes	-56511	-56511	-56511	0.000e0	0.000e+00	mkp-milp	0.28	-
-or	OR5x250-0.25_8.dat-0	pass	-	PASS	0.0e0	-	53918	53918	yes	yes	-53918	-53918	-53918	0.000e0	0.000e+00	mkp-milp	19.85	-
+or	OR5x250-0.25_7.dat-50	pass	-	PASS	0.0e0	-	56511	56511	yes	yes	-56511	-56511	-56511	0.000e0	0.000e+00	mkp-milp	0.31	-
+or	OR5x250-0.25_8.dat-0	pass	-	PASS	0.0e0	-	53918	53918	yes	yes	-53918	-53918	-53918	0.000e0	0.000e+00	mkp-milp	19.61	-
 or	OR5x250-0.25_8.dat-100	pass	-	PASS	0.0e0	-	58769	58769	yes	yes	-58769	-58769	-58769	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x250-0.25_8.dat-50	pass	-	PASS	0.0e0	-	57002	57002	yes	yes	-57002	-57002	-57002	0.000e0	0.000e+00	mkp-milp	0.97	-
+or	OR5x250-0.25_8.dat-50	pass	-	PASS	0.0e0	-	57002	57002	yes	yes	-57002	-57002	-57002	0.000e0	0.000e+00	mkp-milp	0.91	-
 or	OR5x250-0.25_9.dat-100	pass	-	PASS	0.0e0	-	58528	58528	yes	yes	-58528	-58528	-58528	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x250-0.25_9.dat-50	pass	-	PASS	0.0e0	-	55402	55402	yes	yes	-55402	-55402	-55402	0.000e0	0.000e+00	mkp-milp	0.37	-
+or	OR5x250-0.25_9.dat-50	pass	-	PASS	0.0e0	-	55402	55402	yes	yes	-55402	-55402	-55402	0.000e0	0.000e+00	mkp-milp	0.34	-
 or	OR5x250-0.50_1.dat-0	pass	-	PASS	0.0e0	-	57509	57509	yes	yes	-57509	-57509	-57509	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR5x250-0.50_1.dat-100	pass	-	PASS	0.0e0	-	73838	73838	yes	yes	-73838	-73838	-73838	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x250-0.50_1.dat-50	pass	-	PASS	0.0e0	-	73732	73732	yes	yes	-73732	-73732	-73732	0.000e0	0.000e+00	mkp-milp	0.18	-
+or	OR5x250-0.50_1.dat-50	pass	-	PASS	0.0e0	-	73732	73732	yes	yes	-73732	-73732	-73732	0.000e0	0.000e+00	mkp-milp	0.15	-
 or	OR5x250-0.50_10.dat-0	pass	-	PASS	0.0e0	-	54001	54001	yes	yes	-54001	-54001	-54001	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR5x250-0.50_10.dat-100	pass	-	PASS	0.0e0	-	72064	72064	yes	yes	-72064	-72064	-72064	0.000e0	0.000e+00	kp	0.00	-
 or	OR5x250-0.50_10.dat-50	pass	-	PASS	0.0e0	-	71580	71580	yes	yes	-71580	-71580	-71580	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR5x250-0.50_2.dat-0	pass	-	PASS	0.0e0	-	54525	54525	yes	yes	-54525	-54525	-54525	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR5x250-0.50_2.dat-100	pass	-	PASS	0.0e0	-	70903	70903	yes	yes	-70903	-70903	-70903	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x250-0.50_2.dat-50	pass	-	PASS	0.0e0	-	70644	70644	yes	yes	-70644	-70644	-70644	0.000e0	0.000e+00	mkp-milp	0.09	-
+or	OR5x250-0.50_2.dat-50	pass	-	PASS	0.0e0	-	70644	70644	yes	yes	-70644	-70644	-70644	0.000e0	0.000e+00	mkp-milp	0.10	-
 or	OR5x250-0.50_3.dat-0	pass	-	PASS	0.0e0	-	52500	52500	yes	yes	-52500	-52500	-52500	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR5x250-0.50_3.dat-100	pass	-	PASS	0.0e0	-	73113	73113	yes	yes	-73113	-73113	-73113	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x250-0.50_3.dat-50	pass	-	PASS	0.0e0	-	72948	72948	yes	yes	-72948	-72948	-72948	0.000e0	0.000e+00	mkp-milp	0.15	-
+or	OR5x250-0.50_3.dat-50	pass	-	PASS	0.0e0	-	72948	72948	yes	yes	-72948	-72948	-72948	0.000e0	0.000e+00	mkp-milp	0.21	-
 or	OR5x250-0.50_4.dat-0	pass	-	PASS	0.0e0	-	59307	59307	yes	yes	-59307	-59307	-59307	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR5x250-0.50_4.dat-100	pass	-	PASS	0.0e0	-	73498	73498	yes	yes	-73498	-73498	-73498	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x250-0.50_4.dat-50	pass	-	PASS	0.0e0	-	72591	72591	yes	yes	-72591	-72591	-72591	0.000e0	0.000e+00	mkp-milp	0.16	-
+or	OR5x250-0.50_4.dat-50	pass	-	PASS	0.0e0	-	72591	72591	yes	yes	-72591	-72591	-72591	0.000e0	0.000e+00	mkp-milp	0.18	-
 or	OR5x250-0.50_5.dat-0	pass	-	PASS	0.0e0	-	58188	58188	yes	yes	-58188	-58188	-58188	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR5x250-0.50_5.dat-100	pass	-	PASS	0.0e0	-	75888	75888	yes	yes	-75888	-75888	-75888	0.000e0	0.000e+00	kp	0.00	-
 or	OR5x250-0.50_5.dat-50	pass	-	PASS	0.0e0	-	75882	75882	yes	yes	-75882	-75882	-75882	0.000e0	0.000e+00	mkp-milp	0.03	-
 or	OR5x250-0.50_6.dat-0	pass	-	PASS	0.0e0	-	55904	55904	yes	yes	-55904	-55904	-55904	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR5x250-0.50_6.dat-100	pass	-	PASS	0.0e0	-	75355	75355	yes	yes	-75355	-75355	-75355	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x250-0.50_6.dat-50	pass	-	PASS	0.0e0	-	74496	74496	yes	yes	-74496	-74496	-74496	0.000e0	0.000e+00	mkp-milp	0.04	-
+or	OR5x250-0.50_6.dat-50	pass	-	PASS	0.0e0	-	74496	74496	yes	yes	-74496	-74496	-74496	0.000e0	0.000e+00	mkp-milp	0.03	-
 or	OR5x250-0.50_7.dat-0	pass	-	PASS	0.0e0	-	55731	55731	yes	yes	-55731	-55731	-55731	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR5x250-0.50_7.dat-100	pass	-	PASS	0.0e0	-	72397	72397	yes	yes	-72397	-72397	-72397	0.000e0	0.000e+00	kp	0.00	-
 or	OR5x250-0.50_7.dat-50	pass	-	PASS	0.0e0	-	71471	71471	yes	yes	-71471	-71471	-71471	0.000e0	0.000e+00	mkp-milp	0.03	-
 or	OR5x250-0.50_8.dat-0	pass	-	PASS	0.0e0	-	56029	56029	yes	yes	-56029	-56029	-56029	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR5x250-0.50_8.dat-100	pass	-	PASS	0.0e0	-	73554	73554	yes	yes	-73554	-73554	-73554	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x250-0.50_8.dat-50	pass	-	PASS	0.0e0	-	73949	73949	yes	yes	-73949	-73949	-73949	0.000e0	0.000e+00	mkp-milp	0.41	-
+or	OR5x250-0.50_8.dat-50	pass	-	PASS	0.0e0	-	73949	73949	yes	yes	-73949	-73949	-73949	0.000e0	0.000e+00	mkp-milp	0.37	-
 or	OR5x250-0.50_9.dat-0	pass	-	PASS	0.0e0	-	56625	56625	yes	yes	-56625	-56625	-56625	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR5x250-0.50_9.dat-100	pass	-	PASS	0.0e0	-	74135	74135	yes	yes	-74135	-74135	-74135	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x250-0.50_9.dat-50	pass	-	PASS	0.0e0	-	74801	74801	yes	yes	-74801	-74801	-74801	0.000e0	0.000e+00	mkp-milp	0.09	-
+or	OR5x250-0.50_9.dat-50	pass	-	PASS	0.0e0	-	74801	74801	yes	yes	-74801	-74801	-74801	0.000e0	0.000e+00	mkp-milp	0.08	-
 or	OR5x250-0.75_1.dat-0	pass	-	PASS	0.0e0	-	24032	24032	yes	yes	-24032	-24032	-24032	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR5x250-0.75_1.dat-100	pass	-	PASS	0.0e0	-	33358	33358	yes	yes	-33358	-33358	-33358	0.000e0	0.000e+00	kp	0.00	-
 or	OR5x250-0.75_1.dat-50	pass	-	PASS	0.0e0	-	31006	31006	yes	yes	-31006	-31006	-31006	0.000e0	0.000e+00	mkp-milp	0.00	-
@@ -1209,31 +1209,31 @@ or	OR5x250-0.75_9.dat-0	pass	-	PASS	0.0e0	-	25048	25048	yes	yes	-25048	-25048	-2
 or	OR5x250-0.75_9.dat-100	pass	-	PASS	0.0e0	-	34607	34607	yes	yes	-34607	-34607	-34607	0.000e0	0.000e+00	kp	0.00	-
 or	OR5x250-0.75_9.dat-50	pass	-	PASS	0.0e0	-	32198	32198	yes	yes	-32198	-32198	-32198	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR5x500-0.25_1.dat-100	pass	-	PASS	0.0e0	-	117212	117212	yes	yes	-117212	-117212	-117212	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x500-0.25_1.dat-50	pass	-	PASS	0.0e0	-	111010	111010	yes	yes	-111010	-111010	-111010	0.000e0	0.000e+00	mkp-milp	2.14	-
+or	OR5x500-0.25_1.dat-50	pass	-	PASS	0.0e0	-	111010	111010	yes	yes	-111010	-111010	-111010	0.000e0	0.000e+00	mkp-milp	2.02	-
 or	OR5x500-0.25_10.dat-100	pass	-	PASS	0.0e0	-	115683	115683	yes	yes	-115683	-115683	-115683	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x500-0.25_10.dat-50	pass	-	PASS	0.0e0	-	109429	109429	yes	yes	-109429	-109429	-109429	0.000e0	0.000e+00	mkp-milp	2.28	-
+or	OR5x500-0.25_10.dat-50	pass	-	PASS	0.0e0	-	109429	109429	yes	yes	-109429	-109429	-109429	0.000e0	0.000e+00	mkp-milp	1.96	-
 or	OR5x500-0.25_2.dat-100	pass	-	PASS	0.0e0	-	115579	115579	yes	yes	-115579	-115579	-115579	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x500-0.25_2.dat-50	pass	-	PASS	0.0e0	-	112174	112174	yes	yes	-112174	-112174	-112174	0.000e0	0.000e+00	mkp-milp	1.79	-
+or	OR5x500-0.25_2.dat-50	pass	-	PASS	0.0e0	-	112174	112174	yes	yes	-112174	-112174	-112174	0.000e0	0.000e+00	mkp-milp	1.91	-
 or	OR5x500-0.25_3.dat-100	pass	-	PASS	0.0e0	-	116685	116685	yes	yes	-116685	-116685	-116685	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x500-0.25_3.dat-50	pass	-	PASS	0.0e0	-	114278	114278	yes	yes	-114278	-114278	-114278	0.000e0	0.000e+00	mkp-milp	1.94	-
+or	OR5x500-0.25_3.dat-50	pass	-	PASS	0.0e0	-	114278	114278	yes	yes	-114278	-114278	-114278	0.000e0	0.000e+00	mkp-milp	1.79	-
 or	OR5x500-0.25_4.dat-100	pass	-	PASS	0.0e0	-	119915	119915	yes	yes	-119915	-119915	-119915	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x500-0.25_4.dat-50	pass	-	PASS	0.0e0	-	111381	111381	yes	yes	-111381	-111381	-111381	0.000e0	0.000e+00	mkp-milp	0.82	-
+or	OR5x500-0.25_4.dat-50	pass	-	PASS	0.0e0	-	111381	111381	yes	yes	-111381	-111381	-111381	0.000e0	0.000e+00	mkp-milp	0.72	-
 or	OR5x500-0.25_5.dat-100	pass	-	PASS	0.0e0	-	115732	115732	yes	yes	-115732	-115732	-115732	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x500-0.25_5.dat-50	pass	-	PASS	0.0e0	-	110268	110268	yes	yes	-110268	-110268	-110268	0.000e0	0.000e+00	mkp-milp	4.71	-
+or	OR5x500-0.25_5.dat-50	pass	-	PASS	0.0e0	-	110268	110268	yes	yes	-110268	-110268	-110268	0.000e0	0.000e+00	mkp-milp	4.39	-
 or	OR5x500-0.25_6.dat-100	pass	-	PASS	0.0e0	-	113962	113962	yes	yes	-113962	-113962	-113962	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x500-0.25_6.dat-50	pass	-	PASS	0.0e0	-	111698	111698	yes	yes	-111698	-111698	-111698	0.000e0	0.000e+00	mkp-milp	1.06	-
+or	OR5x500-0.25_6.dat-50	pass	-	PASS	0.0e0	-	111698	111698	yes	yes	-111698	-111698	-111698	0.000e0	0.000e+00	mkp-milp	0.85	-
 or	OR5x500-0.25_7.dat-100	pass	-	PASS	0.0e0	-	114264	114264	yes	yes	-114264	-114264	-114264	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x500-0.25_7.dat-50	pass	-	PASS	0.0e0	-	109462	109462	yes	yes	-109462	-109462	-109462	0.000e0	0.000e+00	mkp-milp	1.51	-
+or	OR5x500-0.25_7.dat-50	pass	-	PASS	0.0e0	-	109462	109462	yes	yes	-109462	-109462	-109462	0.000e0	0.000e+00	mkp-milp	1.57	-
 or	OR5x500-0.25_8.dat-100	pass	-	PASS	0.0e0	-	112554	112554	yes	yes	-112554	-112554	-112554	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x500-0.25_8.dat-50	pass	-	PASS	0.0e0	-	111252	111252	yes	yes	-111252	-111252	-111252	0.000e0	0.000e+00	mkp-milp	2.27	-
+or	OR5x500-0.25_8.dat-50	pass	-	PASS	0.0e0	-	111252	111252	yes	yes	-111252	-111252	-111252	0.000e0	0.000e+00	mkp-milp	2.53	-
 or	OR5x500-0.25_9.dat-100	pass	-	PASS	0.0e0	-	118639	118639	yes	yes	-118639	-118639	-118639	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x500-0.25_9.dat-50	pass	-	PASS	0.0e0	-	113693	113693	yes	yes	-113693	-113693	-113693	0.000e0	0.000e+00	mkp-milp	2.90	-
+or	OR5x500-0.25_9.dat-50	pass	-	PASS	0.0e0	-	113693	113693	yes	yes	-113693	-113693	-113693	0.000e0	0.000e+00	mkp-milp	2.76	-
 or	OR5x500-0.50_1.dat-0	pass	-	PASS	0.0e0	-	108216	108216	yes	yes	-108216	-108216	-108216	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR5x500-0.50_1.dat-100	pass	-	PASS	0.0e0	-	143472	143472	yes	yes	-143472	-143472	-143472	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x500-0.50_1.dat-50	pass	-	PASS	0.0e0	-	144300	144300	yes	yes	-144300	-144300	-144300	0.000e0	0.000e+00	mkp-milp	0.12	-
+or	OR5x500-0.50_1.dat-50	pass	-	PASS	0.0e0	-	144300	144300	yes	yes	-144300	-144300	-144300	0.000e0	0.000e+00	mkp-milp	0.11	-
 or	OR5x500-0.50_10.dat-0	pass	-	PASS	0.0e0	-	115998	115998	yes	yes	-115998	-115998	-115998	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR5x500-0.50_10.dat-100	pass	-	PASS	0.0e0	-	147142	147142	yes	yes	-147142	-147142	-147142	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x500-0.50_10.dat-50	pass	-	PASS	0.0e0	-	147553	147553	yes	yes	-147553	-147553	-147553	0.000e0	0.000e+00	mkp-milp	0.13	-
+or	OR5x500-0.50_10.dat-50	pass	-	PASS	0.0e0	-	147553	147553	yes	yes	-147553	-147553	-147553	0.000e0	0.000e+00	mkp-milp	0.10	-
 or	OR5x500-0.50_2.dat-0	pass	-	PASS	0.0e0	-	109574	109574	yes	yes	-109574	-109574	-109574	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR5x500-0.50_2.dat-100	pass	-	PASS	0.0e0	-	145663	145663	yes	yes	-145663	-145663	-145663	0.000e0	0.000e+00	kp	0.00	-
 or	OR5x500-0.50_2.dat-50	pass	-	PASS	0.0e0	-	147077	147077	yes	yes	-147077	-147077	-147077	0.000e0	0.000e+00	mkp-milp	0.05	-
@@ -1242,22 +1242,22 @@ or	OR5x500-0.50_3.dat-100	pass	-	PASS	0.0e0	-	142500	142500	yes	yes	-142500	-142
 or	OR5x500-0.50_3.dat-50	pass	-	PASS	0.0e0	-	144492	144492	yes	yes	-144492	-144492	-144492	0.000e0	0.000e+00	mkp-milp	0.50	-
 or	OR5x500-0.50_4.dat-0	pass	-	PASS	0.0e0	-	113945	113945	yes	yes	-113945	-113945	-113945	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR5x500-0.50_4.dat-100	pass	-	PASS	0.0e0	-	148736	148736	yes	yes	-148736	-148736	-148736	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x500-0.50_4.dat-50	pass	-	PASS	0.0e0	-	150448	150448	yes	yes	-150448	-150448	-150448	0.000e0	0.000e+00	mkp-milp	0.13	-
+or	OR5x500-0.50_4.dat-50	pass	-	PASS	0.0e0	-	150448	150448	yes	yes	-150448	-150448	-150448	0.000e0	0.000e+00	mkp-milp	0.11	-
 or	OR5x500-0.50_5.dat-0	pass	-	PASS	0.0e0	-	110730	110730	yes	yes	-110730	-110730	-110730	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR5x500-0.50_5.dat-100	pass	-	PASS	0.0e0	-	146297	146297	yes	yes	-146297	-146297	-146297	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x500-0.50_5.dat-50	pass	-	PASS	0.0e0	-	144796	144796	yes	yes	-144796	-144796	-144796	0.000e0	0.000e+00	mkp-milp	0.27	-
+or	OR5x500-0.50_5.dat-50	pass	-	PASS	0.0e0	-	144796	144796	yes	yes	-144796	-144796	-144796	0.000e0	0.000e+00	mkp-milp	0.30	-
 or	OR5x500-0.50_6.dat-0	pass	-	PASS	0.0e0	-	111703	111703	yes	yes	-111703	-111703	-111703	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR5x500-0.50_6.dat-100	pass	-	PASS	0.0e0	-	146071	146071	yes	yes	-146071	-146071	-146071	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x500-0.50_6.dat-50	pass	-	PASS	0.0e0	-	147365	147365	yes	yes	-147365	-147365	-147365	0.000e0	0.000e+00	mkp-milp	0.17	-
+or	OR5x500-0.50_6.dat-50	pass	-	PASS	0.0e0	-	147365	147365	yes	yes	-147365	-147365	-147365	0.000e0	0.000e+00	mkp-milp	0.27	-
 or	OR5x500-0.50_7.dat-0	pass	-	PASS	0.0e0	-	110612	110612	yes	yes	-110612	-110612	-110612	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR5x500-0.50_7.dat-100	pass	-	PASS	0.0e0	-	145735	145735	yes	yes	-145735	-145735	-145735	0.000e0	0.000e+00	kp	0.00	-
 or	OR5x500-0.50_7.dat-50	pass	-	PASS	0.0e0	-	145558	145558	yes	yes	-145558	-145558	-145558	0.000e0	0.000e+00	mkp-milp	0.07	-
 or	OR5x500-0.50_8.dat-0	pass	-	PASS	0.0e0	-	111627	111627	yes	yes	-111627	-111627	-111627	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR5x500-0.50_8.dat-100	pass	-	PASS	0.0e0	-	144375	144375	yes	yes	-144375	-144375	-144375	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x500-0.50_8.dat-50	pass	-	PASS	0.0e0	-	146795	146795	yes	yes	-146795	-146795	-146795	0.000e0	0.000e+00	mkp-milp	0.26	-
+or	OR5x500-0.50_8.dat-50	pass	-	PASS	0.0e0	-	146795	146795	yes	yes	-146795	-146795	-146795	0.000e0	0.000e+00	mkp-milp	0.23	-
 or	OR5x500-0.50_9.dat-0	pass	-	PASS	0.0e0	-	106432	106432	yes	yes	-106432	-106432	-106432	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR5x500-0.50_9.dat-100	pass	-	PASS	0.0e0	-	144891	144891	yes	yes	-144891	-144891	-144891	0.000e0	0.000e+00	kp	0.00	-
-or	OR5x500-0.50_9.dat-50	pass	-	PASS	0.0e0	-	144903	144903	yes	yes	-144903	-144903	-144903	0.000e0	0.000e+00	mkp-milp	0.24	-
+or	OR5x500-0.50_9.dat-50	pass	-	PASS	0.0e0	-	144903	144903	yes	yes	-144903	-144903	-144903	0.000e0	0.000e+00	mkp-milp	0.21	-
 or	OR5x500-0.75_1.dat-0	pass	-	PASS	0.0e0	-	42843	42843	yes	yes	-42843	-42843	-42843	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR5x500-0.75_1.dat-100	pass	-	PASS	0.0e0	-	64837	64837	yes	yes	-64837	-64837	-64837	0.000e0	0.000e+00	kp	0.00	-
 or	OR5x500-0.75_1.dat-50	pass	-	PASS	0.0e0	-	61697	61697	yes	yes	-61697	-61697	-61697	0.000e0	0.000e+00	mkp-milp	0.00	-
@@ -1288,34 +1288,34 @@ or	OR5x500-0.75_8.dat-50	pass	-	PASS	0.0e0	-	63248	63248	yes	yes	-63248	-63248	-
 or	OR5x500-0.75_9.dat-0	pass	-	PASS	0.0e0	-	46817	46817	yes	yes	-46817	-46817	-46817	0.000e0	0.000e+00	mkp-milp	0.00	-
 or	OR5x500-0.75_9.dat-100	pass	-	PASS	0.0e0	-	66541	66541	yes	yes	-66541	-66541	-66541	0.000e0	0.000e+00	kp	0.00	-
 or	OR5x500-0.75_9.dat-50	pass	-	PASS	0.0e0	-	62717	62717	yes	yes	-62717	-62717	-62717	0.000e0	0.000e+00	mkp-milp	0.00	-
-clique	normalClique40-70-1	pass	-	PASS	0.0e0	-	3	3	yes	yes	-3	-3	-3	0.000e0	0.000e+00	milp	0.01	-
-clique	normalClique40-70-10	pass	-	PASS	0.0e0	-	3	3	yes	yes	-3	-3	-3	0.000e0	0.000e+00	milp	0.01	-
+clique	normalClique40-70-1	pass	-	PASS	0.0e0	-	3	3	yes	yes	-3	-3	-3	0.000e0	0.000e+00	milp	0.02	-
+clique	normalClique40-70-10	pass	-	PASS	0.0e0	-	3	3	yes	yes	-3	-3	-3	0.000e0	0.000e+00	milp	0.02	-
 clique	normalClique40-70-2	pass	-	PASS	0.0e0	-	3	3	yes	yes	-3	-3	-3	0.000e0	0.000e+00	milp	0.01	-
 clique	normalClique40-70-3	pass	-	PASS	0.0e0	-	3	3	yes	yes	-3	-3	-3	0.000e0	0.000e+00	milp	0.01	-
-clique	normalClique40-70-4	pass	-	PASS	0.0e0	-	3	3	yes	yes	-3	-3	-3	0.000e0	0.000e+00	milp	0.02	-
+clique	normalClique40-70-4	pass	-	PASS	0.0e0	-	3	3	yes	yes	-3	-3	-3	0.000e0	0.000e+00	milp	0.01	-
 clique	normalClique40-70-5	pass	-	PASS	0.0e0	-	3	3	yes	yes	-3	-3	-3	0.000e0	0.000e+00	milp	0.01	-
 clique	normalClique40-70-6	pass	-	PASS	0.0e0	-	3	3	yes	yes	-3	-3	-3	0.000e0	0.000e+00	milp	0.01	-
 clique	normalClique40-70-7	pass	-	PASS	0.0e0	-	3	3	yes	yes	-3	-3	-3	0.000e0	0.000e+00	milp	0.01	-
-clique	normalClique40-70-8	pass	-	PASS	0.0e0	-	3	3	yes	yes	-3	-3	-3	0.000e0	0.000e+00	milp	0.02	-
-clique	normalClique40-70-9	pass	-	PASS	0.0e0	-	3	3	yes	yes	-3	-3	-3	0.000e0	0.000e+00	milp	0.02	-
+clique	normalClique40-70-8	pass	-	PASS	0.0e0	-	3	3	yes	yes	-3	-3	-3	0.000e0	0.000e+00	milp	0.01	-
+clique	normalClique40-70-9	pass	-	PASS	0.0e0	-	3	3	yes	yes	-3	-3	-3	0.000e0	0.000e+00	milp	0.01	-
 clique	normalClique40-90-1	pass	-	PASS	0.0e0	-	4	4	yes	yes	-4	-4	-4	0.000e0	0.000e+00	milp	0.01	-
 clique	normalClique40-90-10	pass	-	PASS	0.0e0	-	4	4	yes	yes	-4	-4	-4	0.000e0	0.000e+00	milp	0.00	-
-clique	normalClique40-90-2	pass	-	PASS	0.0e0	-	4	4	yes	yes	-4	-4	-4	0.000e0	0.000e+00	milp	0.00	-
+clique	normalClique40-90-2	pass	-	PASS	0.0e0	-	4	4	yes	yes	-4	-4	-4	0.000e0	0.000e+00	milp	0.01	-
 clique	normalClique40-90-3	pass	-	PASS	0.0e0	-	4	4	yes	yes	-4	-4	-4	0.000e0	0.000e+00	milp	0.00	-
 clique	normalClique40-90-4	pass	-	PASS	0.0e0	-	4	4	yes	yes	-4	-4	-4	0.000e0	0.000e+00	milp	0.01	-
-clique	normalClique40-90-5	pass	-	PASS	0.0e0	-	4	4	yes	yes	-4	-4	-4	0.000e0	0.000e+00	milp	0.01	-
-clique	normalClique40-90-6	pass	-	PASS	0.0e0	-	4	4	yes	yes	-4	-4	-4	0.000e0	0.000e+00	milp	0.01	-
+clique	normalClique40-90-5	pass	-	PASS	0.0e0	-	4	4	yes	yes	-4	-4	-4	0.000e0	0.000e+00	milp	0.00	-
+clique	normalClique40-90-6	pass	-	PASS	0.0e0	-	4	4	yes	yes	-4	-4	-4	0.000e0	0.000e+00	milp	0.00	-
 clique	normalClique40-90-7	pass	-	PASS	0.0e0	-	4	4	yes	yes	-4	-4	-4	0.000e0	0.000e+00	milp	0.00	-
 clique	normalClique40-90-8	pass	-	PASS	0.0e0	-	4	4	yes	yes	-4	-4	-4	0.000e0	0.000e+00	milp	0.00	-
-clique	normalClique40-90-9	pass	-	PASS	0.0e0	-	4	4	yes	yes	-4	-4	-4	0.000e0	0.000e+00	milp	0.00	-
+clique	normalClique40-90-9	pass	-	PASS	0.0e0	-	4	4	yes	yes	-4	-4	-4	0.000e0	0.000e+00	milp	0.01	-
 clique	normalClique50-70-1	pass	-	PASS	0.0e0	-	3	3	yes	yes	-3	-3	-3	0.000e0	0.000e+00	milp	0.01	-
 clique	normalClique50-70-10	pass	-	PASS	0.0e0	-	3	3	yes	yes	-3	-3	-3	0.000e0	0.000e+00	milp	0.01	-
 clique	normalClique50-70-2	pass	-	PASS	0.0e0	-	3	3	yes	yes	-3	-3	-3	0.000e0	0.000e+00	milp	0.02	-
-clique	normalClique50-70-3	pass	-	PASS	0.0e0	-	3	3	yes	yes	-3	-3	-3	0.000e0	0.000e+00	milp	0.02	-
-clique	normalClique50-70-4	pass	-	PASS	0.0e0	-	3	3	yes	yes	-3	-3	-3	0.000e0	0.000e+00	milp	0.01	-
-clique	normalClique50-70-5	pass	-	PASS	0.0e0	-	3	3	yes	yes	-3	-3	-3	0.000e0	0.000e+00	milp	0.02	-
-clique	normalClique50-70-6	pass	-	PASS	0.0e0	-	3	3	yes	yes	-3	-3	-3	0.000e0	0.000e+00	milp	0.02	-
-clique	normalClique50-70-7	pass	-	PASS	0.0e0	-	3	3	yes	yes	-3	-3	-3	0.000e0	0.000e+00	milp	0.02	-
+clique	normalClique50-70-3	pass	-	PASS	0.0e0	-	3	3	yes	yes	-3	-3	-3	0.000e0	0.000e+00	milp	0.03	-
+clique	normalClique50-70-4	pass	-	PASS	0.0e0	-	3	3	yes	yes	-3	-3	-3	0.000e0	0.000e+00	milp	0.02	-
+clique	normalClique50-70-5	pass	-	PASS	0.0e0	-	3	3	yes	yes	-3	-3	-3	0.000e0	0.000e+00	milp	0.01	-
+clique	normalClique50-70-6	pass	-	PASS	0.0e0	-	3	3	yes	yes	-3	-3	-3	0.000e0	0.000e+00	milp	0.01	-
+clique	normalClique50-70-7	pass	-	PASS	0.0e0	-	3	3	yes	yes	-3	-3	-3	0.000e0	0.000e+00	milp	0.01	-
 clique	normalClique50-70-8	pass	-	PASS	0.0e0	-	3	3	yes	yes	-3	-3	-3	0.000e0	0.000e+00	milp	0.01	-
 clique	normalClique50-70-9	pass	-	PASS	0.0e0	-	3	3	yes	yes	-3	-3	-3	0.000e0	0.000e+00	milp	0.01	-
 clique	normalClique50-90-1	pass	-	PASS	0.0e0	-	4	4	yes	yes	-4	-4	-4	0.000e0	0.000e+00	milp	0.03	-
@@ -1344,14 +1344,14 @@ clique	normalClique60-90-2	pass	-	PASS	0.0e0	-	4	4	yes	yes	-4	-4	-4	0.000e0	0.00
 clique	normalClique60-90-3	pass	-	PASS	0.0e0	-	4	4	yes	yes	-4	-4	-4	0.000e0	0.000e+00	milp	0.02	-
 clique	normalClique60-90-4	pass	-	PASS	0.0e0	-	4	4	yes	yes	-4	-4	-4	0.000e0	0.000e+00	milp	0.02	-
 clique	normalClique60-90-5	pass	-	PASS	0.0e0	-	4	4	yes	yes	-4	-4	-4	0.000e0	0.000e+00	milp	0.01	-
-clique	normalClique60-90-6	pass	-	PASS	0.0e0	-	4	4	yes	yes	-4	-4	-4	0.000e0	0.000e+00	milp	0.01	-
+clique	normalClique60-90-6	pass	-	PASS	0.0e0	-	4	4	yes	yes	-4	-4	-4	0.000e0	0.000e+00	milp	0.02	-
 clique	normalClique60-90-7	pass	-	PASS	0.0e0	-	4	4	yes	yes	-4	-4	-4	0.000e0	0.000e+00	milp	0.01	-
-clique	normalClique60-90-8	pass	-	PASS	0.0e0	-	4	4	yes	yes	-4	-4	-4	0.000e0	0.000e+00	milp	0.01	-
-clique	normalClique60-90-9	pass	-	PASS	0.0e0	-	4	4	yes	yes	-4	-4	-4	0.000e0	0.000e+00	milp	0.02	-
+clique	normalClique60-90-8	pass	-	PASS	0.0e0	-	4	4	yes	yes	-4	-4	-4	0.000e0	0.000e+00	milp	0.02	-
+clique	normalClique60-90-9	pass	-	PASS	0.0e0	-	4	4	yes	yes	-4	-4	-4	0.000e0	0.000e+00	milp	0.03	-
 network	tree-25_1-3-3_001	pass	-	PASS	0.0e0	-	13	13	yes	yes	-13	-13	-13	0.000e0	0.000e+00	milp	0.01	-
 network	tree-25_1-3-3_006	pass	-	PASS	0.0e0	-	13	13	yes	yes	-13	-13	-13	0.000e0	0.000e+00	milp	0.01	-
 network	tree-25_1-3-3_014	pass	-	PASS	0.0e0	-	13	13	yes	yes	-13	-13	-13	0.000e0	0.000e+00	milp	0.01	-
-network	tree-25_1-3-3_015	pass	-	PASS	0.0e0	-	12	12	yes	yes	-12	-12	-12	0.000e0	0.000e+00	milp	0.00	-
+network	tree-25_1-3-3_015	pass	-	PASS	0.0e0	-	12	12	yes	yes	-12	-12	-12	0.000e0	0.000e+00	milp	0.01	-
 network	tree-25_2-2-2_002	pass	-	PASS	0.0e0	-	17	17	yes	yes	-17	-17	-17	0.000e0	0.000e+00	milp	0.01	-
 network	tree-25_2-2-2_004	pass	-	PASS	0.0e0	-	17	17	yes	yes	-17	-17	-17	0.000e0	0.000e+00	milp	0.01	-
 network	tree-25_2-2-2_005	pass	-	PASS	0.0e0	-	18	18	yes	yes	-18	-18	-18	0.000e0	0.000e+00	milp	0.01	-
@@ -1364,7 +1364,7 @@ network	tree-50_1-3-3_004	pass	-	PASS	0.0e0	-	28	28	yes	yes	-28	-28	-28	0.000e0	
 network	tree-50_1-3-3_007	pass	-	PASS	0.0e0	-	32	32	yes	yes	-32	-32	-32	0.000e0	0.000e+00	milp	0.01	-
 network	tree-50_1-3-3_012	pass	-	PASS	0.0e0	-	30	30	yes	yes	-30	-30	-30	0.000e0	0.000e+00	milp	0.01	-
 network	tree-50_1-3-3_014	pass	-	PASS	0.0e0	-	28	28	yes	yes	-28	-28	-28	0.000e0	0.000e+00	milp	0.00	-
-network	tree-50_1-5-5_005	pass	-	PASS	0.0e0	-	25	25	yes	yes	-25	-25	-25	0.000e0	0.000e+00	milp	0.00	-
+network	tree-50_1-5-5_005	pass	-	PASS	0.0e0	-	25	25	yes	yes	-25	-25	-25	0.000e0	0.000e+00	milp	0.01	-
 network	tree-50_1-5-5_006	pass	-	PASS	0.0e0	-	26	26	yes	yes	-26	-26	-26	0.000e0	0.000e+00	milp	0.01	-
 network	tree-50_1-5-5_007	pass	-	PASS	0.0e0	-	24	24	yes	yes	-24	-24	-24	0.000e0	0.000e+00	milp	0.01	-
 network	tree-50_1-5-5_010	pass	-	PASS	0.0e0	-	26	26	yes	yes	-26	-26	-26	0.000e0	0.000e+00	milp	0.01	-
@@ -1376,95 +1376,95 @@ network	tree-80_2-2-2_001	pass	-	PASS	0.0e0	-	56	56	yes	yes	-56	-56	-56	0.000e0	
 network	tree-80_2-2-2_002	pass	-	PASS	0.0e0	-	63	63	yes	yes	-63	-63	-63	0.000e0	0.000e+00	milp	0.01	-
 network	tree-80_2-2-2_007	pass	-	PASS	0.0e0	-	61	61	yes	yes	-61	-61	-61	0.000e0	0.000e+00	milp	0.01	-
 network	tree-80_2-2-2_012	pass	-	PASS	0.0e0	-	57	57	yes	yes	-57	-57	-57	0.000e0	0.000e+00	milp	0.01	-
-network	tree-80_3-3-1_002	pass	-	PASS	0.0e0	-	45	45	yes	yes	-45	-45	-45	0.000e0	0.000e+00	milp	0.01	-
+network	tree-80_3-3-1_002	pass	-	PASS	0.0e0	-	45	45	yes	yes	-45	-45	-45	0.000e0	0.000e+00	milp	0.02	-
 network	tree-80_3-3-1_004	pass	-	PASS	0.0e0	-	48	48	yes	yes	-48	-48	-48	0.000e0	0.000e+00	milp	0.01	-
-network	tree-80_3-3-1_005	pass	-	PASS	0.0e0	-	48	48	yes	yes	-48	-48	-48	0.000e0	0.000e+00	milp	0.01	-
-network	tree-80_3-3-1_015	pass	-	PASS	0.0e0	-	45	45	yes	yes	-45	-45	-45	0.000e0	0.000e+00	milp	0.01	-
+network	tree-80_3-3-1_005	pass	-	PASS	0.0e0	-	48	48	yes	yes	-48	-48	-48	0.000e0	0.000e+00	milp	0.02	-
+network	tree-80_3-3-1_015	pass	-	PASS	0.0e0	-	45	45	yes	yes	-45	-45	-45	0.000e0	0.000e+00	milp	0.02	-
 network	tree-80_3-3-3_004	pass	-	PASS	0.0e0	-	55	55	yes	yes	-55	-55	-55	0.000e0	0.000e+00	milp	0.01	-
 network	tree-80_3-3-3_007	pass	-	PASS	0.0e0	-	56	56	yes	yes	-56	-56	-56	0.000e0	0.000e+00	milp	0.01	-
 network	tree-80_3-3-3_009	pass	-	PASS	0.0e0	-	56	56	yes	yes	-56	-56	-56	0.000e0	0.000e+00	milp	0.01	-
 network	tree-80_3-3-3_010	pass	-	PASS	0.0e0	-	58	58	yes	yes	-58	-58	-58	0.000e0	0.000e+00	milp	0.01	-
-general	air05-0.900000	pass	-	PASS	0.0e0	-	64955	64955	yes	yes	-63283	-63283.000000000044	-63283	0.000e0	0.000e+00	milp	11.53	-
+general	air05-0.900000	pass	-	PASS	0.0e0	-	64955	64955	yes	yes	-63283	-63283.000000000044	-63283	0.000e0	0.000e+00	milp	12.36	-
 general	beasleyC3_0_100	pass	-	PASS	4.1e-12	lower bound of x...0463	6844	6844	yes	yes	-6844	-6844	-6844	0.000e0	0.000e+00	milp	0.00	-
-general	binkar10_1_0_100	benchmark-accepted	follower slack 5.001e-1 above the proven optimum	FAIL	5.0e-7	row R0608 (<=)	5006810.579954565	5006810.579954565	no	yes	-5000741.319927564	-5000741.820000168	-5000741.820000159	5.001e-1	1.000e-07	milp	0.00	-
+general	binkar10_1_0_100	pass	-	PASS	2.9e-13	row R0280 (>=)	5006811.08002764	5006811.08002764	yes	yes	-5000741.820000644	-5000741.820000168	-5000741.820000159	-4.852e-7	-9.703e-14	milp	0.00	-
 general	cap6000-0.500000	pass	-	PASS	0.0e0	-	-1169217	-1169217	yes	yes	0	0	0	0.000e0	0.000e+00	milp	0.01	-
 general	cap6000-0.900000	pass	-	PASS	0.0e0	-	-100780	-100780	yes	yes	45829	45829	45829	0.000e0	0.000e+00	milp	0.03	-
-general	cmflsp50-24-8-8_0_100	benchmark-accepted	follower slack 1.253e0 above the proven optimum	FAIL	4.5e-13	row Capacidad_2 (<=)	59480213.40059848	59480213.40059848	no	yes	-12534896.784427606	-12534898.037917506	-12534898.037917506	1.253e0	9.996e-08	milp	0.10	-
-general	core2536-691_0_100	benchmark-accepted	follower slack 1.000e3 above the proven optimum	FAIL	0.0e0	-	9999999000.000046	9999999000.000046	no	yes	-9999998544.000046	-9999999544	-9999999544	1.000e3	1.000e-07	milp	5.10	-
-general	cost266-UUE_0_100	benchmark-accepted	follower slack 1.043e0 above the proven optimum	FAIL	6.4e-12	row CAP(NOS__L19__U__4) (<=)	35801080.95689771	35801080.95689771	no	yes	-10431020.976897696	-10431022.019999998	-10431022.019999998	1.043e0	9.999e-08	milp	0.02	-
-general	ex10_0_100	pass	-	PASS	0.0e0	-	100	100	yes	yes	-51	-51	-51	0.000e0	0.000e+00	milp	0.77	-
-general	exp-1-500-5-5_0_100	benchmark-accepted	follower slack 8.794e-2 above the proven optimum	FAIL	5.8e-12	upper bound of x547	912510.9120646999	912510.9120647	no	yes	-879351.9120646999	-879351.9999999999	-879352.0000000001	8.794e-2	1.000e-07	milp	0.29	-
+general	cmflsp50-24-8-8_0_100	pass	-	PASS	4.2e-11	row Capacidad_10 (<=)	59480214.65420022	59480214.65420022	yes	yes	-12534898.03791768	-12534898.037917508	-12534898.037917508	-1.714e-7	-1.367e-14	milp	0.10	-
+general	core2536-691_0_100	pass	-	PASS	0.0e0	-	10000000000	10000000000	yes	yes	-9999999544	-9999999544	-9999999544	0.000e0	0.000e+00	milp	5.11	-
+general	cost266-UUE_0_100	pass	-	PASS	3.4e-10	row CAP(NOS__L53__U__4) (<=)	35801082	35801082	yes	yes	-10431022.020000009	-10431022.019999998	-10431022.019999998	-1.118e-8	-1.072e-15	milp	0.03	-
+general	ex10_0_100	pass	-	PASS	0.0e0	-	100	100	yes	yes	-51	-51	-51	0.000e0	0.000e+00	milp	0.64	-
+general	exp-1-500-5-5_0_100	pass	-	PASS	5.8e-12	row c202 (>=)	912510.9999999988	912510.9999999988	yes	yes	-879351.9999999988	-879351.9999999999	-879352.0000000001	1.281e-9	1.457e-15	milp	0.28	-
 general	h80x6320d_0_100	pass	-	PASS	3.7e-12	lower bound of x...0031	12461.704159000003	12461.704159000004	yes	yes	-10960.071399999997	-10960.071399999993	-10960.071399999999	1.819e-12	1.660e-16	milp	0.03	-
-general	ic97_potential_0_100	benchmark-accepted	follower slack 3.540e-5 above the proven optimum	FAIL	2.6e-11	row c759 (>=)	4002.9999645999847	4002.9999645999847	no	yes	-352.99996459998323	-352.99999999998323	-352.9999999999832	3.540e-5	1.003e-07	milp	0.01	-
+general	ic97_potential_0_100	pass	-	PASS	2.6e-11	row c759 (>=)	4002.9999999990096	4002.9999999990096	yes	yes	-352.9999999989831	-352.99999999998323	-352.9999999999832	1.000e-9	2.833e-12	milp	0.01	-
 general	lotsize_0_100	pass	-	PASS	1.4e-11	lower bound of C1355	3691725.0000000005	3691725.000000001	yes	yes	-3059545.0000000005	-3059545.0000000005	-3059545.0000000005	0.000e0	0.000e+00	milp	0.00	-
 general	mc11_0_100	pass	-	PASS	7.6e-12	lower bound of x...0152	128960	128960	yes	yes	-128960	-128960	-128960	0.000e0	0.000e+00	milp	0.00	-
 general	mik-250-1-100-1_0_100	pass	-	PASS	0.0e0	-	890671	890671	yes	yes	-1000000	-1000000	-1000000	0.000e0	0.000e+00	milp	0.00	-
-general	mik-250-20-75-4_0_100	pass	-	PASS	0.0e0	-	663799	663799	yes	yes	-750000	-750000	-750000	0.000e0	0.000e+00	milp	0.01	-
-general	mitre-0.500000	pass	-	PASS	0.0e0	-	147075	147075	yes	yes	-96600	-96600	-96600	0.000e0	0.000e+00	milp	0.20	-
-general	mitre-0.900000	pass	-	PASS	0.0e0	-	169500	169500	yes	yes	-169500	-169500	-169500	0.000e0	0.000e+00	milp	0.62	-
-general	mushroom-best_0_100	pass	-	PASS	1.8e-13	row L1_norm_neg_23 (>=)	4230.055333761233	4230.055333761233	yes	yes	-4230	-4230	-4230	0.000e0	0.000e+00	milp	0.33	-
-general	n4-3_0_100	benchmark-accepted	follower slack 3.480e0 above the proven optimum	FAIL	4.0e-12	row R1142 (<=)	34802892.5198973	34802892.5198973	no	yes	-34801022.5198973	-34801026	-34801026	3.480e0	1.000e-07	milp	0.01	-
-general	n5-3_0_100	benchmark-accepted	follower slack 3.000e0 above the proven optimum	FAIL	1.7e-11	row R1047 (<=)	30001631.9999334	30001631.9999334	no	yes	-30000661.9999334	-30000665	-30000665	3.000e0	1.000e-07	milp	0.00	-
-general	n9-3_0_100	benchmark-accepted	follower slack 5.040e0 above the proven optimum	FAIL	8.2e-13	row R2236 (<=)	50404627.959837	50404627.959837	no	yes	-50401623.959837	-50401629	-50401629	5.040e0	1.000e-07	milp	0.01	-
-general	neos-1122047_0_100	pass	-	PASS	7.7e-12	row R0408 (>=)	472	472	yes	yes	-472	-472	-472	0.000e0	0.000e+00	milp	1.30	-
+general	mik-250-20-75-4_0_100	pass	-	PASS	0.0e0	-	663799	663799	yes	yes	-750000	-750000	-750000	0.000e0	0.000e+00	milp	0.00	-
+general	mitre-0.500000	pass	-	PASS	0.0e0	-	147075	147075	yes	yes	-96600	-96600	-96600	0.000e0	0.000e+00	milp	0.22	-
+general	mitre-0.900000	pass	-	PASS	0.0e0	-	169500	169500	yes	yes	-169500	-169500	-169500	0.000e0	0.000e+00	milp	0.70	-
+general	mushroom-best_0_100	pass	-	PASS	1.8e-13	row L1_norm_neg_23 (>=)	4230.055333761233	4230.055333761233	yes	yes	-4230	-4230	-4230	0.000e0	0.000e+00	milp	0.35	-
+general	n4-3_0_100	pass	-	PASS	5.5e-12	row R1233 (<=)	34802896	34802896	yes	yes	-34801026	-34801026	-34801026	0.000e0	0.000e+00	milp	0.01	-
+general	n5-3_0_100	pass	-	PASS	8.8e-12	row R0522 (>=)	30001635	30001635	yes	yes	-30000665	-30000665	-30000665	0.000e0	0.000e+00	milp	0.00	-
+general	n9-3_0_100	pass	-	PASS	2.5e-12	row R2236 (>=)	50404633	50404633	yes	yes	-50401629	-50401629	-50401629	0.000e0	0.000e+00	milp	0.01	-
+general	neos-1122047_0_100	pass	-	PASS	7.7e-12	row R0408 (>=)	472	472	yes	yes	-472	-472	-472	0.000e0	0.000e+00	milp	1.70	-
 general	neos-1445765_0_100	pass	-	PASS	3.3e-12	row R1136 (>=)	-17783	-17783	yes	yes	17783	17783	17783	0.000e0	0.000e+00	milp	0.02	-
 general	neos-1456979_0_100	pass	-	PASS	1.8e-12	row R5857 (<=)	250	250	yes	yes	-157	-157	-157	0.000e0	0.000e+00	milp	0.02	-
-general	neos-2978193-inde_0_100	benchmark-accepted	follower slack 6.333e-6 above the proven optimum	FAIL	9.9e-7	lower bound of C11612	61.453994731082496	61.453994731082496	no	yes	-62.32916866708249	-62.329175000000006	-62.329175	6.333e-6	1.016e-07	milp	0.08	-
-general	neos-3216931-puriri_0_100	pass	-	PASS	0.0e0	-	81430	81430	yes	yes	900	900	900	0.000e0	0.000e+00	milp	0.05	-
+general	neos-2978193-inde_0_100	pass	-	PASS	7.6e-10	row R0005 (<=)	61.45400106332479	61.45400106332479	yes	yes	-62.3291749993248	-62.329175000000006	-62.329175000000006	6.752e-10	1.083e-11	milp	0.08	-
+general	neos-3216931-puriri_0_100	pass	-	PASS	0.0e0	-	81430	81430	yes	yes	900	900	900	0.000e0	0.000e+00	milp	0.03	-
 general	neos-3627168-kasai_0_100	pass	-	PASS	3.4e-7	row R1655 (<=)	1591085.619998998	1591085.619998998	yes	yes	-1591085.619998998	-1591085.619998998	-1591085.619998998	0.000e0	0.000e+00	milp	0.00	-
 general	neos-3754480-nidda_0_100	pass	-	PASS	1.5e-10	row R0081 (>=)	13973.290531791738	13973.290531790952	yes	yes	-2052644.3590619278	-2052644.3590619278	-2052644.359061928	2.328e-10	1.134e-16	milp	0.00	-
-general	neos-4300652-rahue_0_100	pass	-	PASS	1.8e-15	row R1591 (<=)	6.407499999999989	6.407499999999989	yes	yes	-2.3315999999999986	-2.3315999999999986	-2.331600000000003	4.441e-15	1.905e-15	milp	0.12	-
+general	neos-4300652-rahue_0_100	pass	-	PASS	1.8e-15	row R1591 (<=)	6.407499999999989	6.407499999999989	yes	yes	-2.3315999999999986	-2.3315999999999986	-2.331600000000003	4.441e-15	1.905e-15	milp	0.11	-
 general	neos-4954672-berkel_0_100	pass	-	PASS	2.3e-11	row R0912 (<=)	8891491	8891491	yes	yes	-7334836	-7334836	-7334836	0.000e0	0.000e+00	milp	0.00	-
-general	neos-5188808-nattai_0_100	pass	-	PASS	2.5e-16	row R1742 (<=)	6.1216116038387876	6.1216116038387876	yes	yes	-6.1216116038387876	-6.121612316000006	-6.121612316	7.122e-7	1.163e-07	milp	0.17	-
-general	neos-827175_0_100	pass	-	PASS	0.0e0	-	122.00152	122.00152	yes	yes	-122	-122	-122	0.000e0	0.000e+00	milp	0.92	-
-general	neos-860300_0_100	pass	-	PASS	2.2e-14	row R0340 (>=)	5919.999999999998	5919.999999999998	yes	yes	-3702	-3702	-3702	0.000e0	0.000e+00	milp	0.14	-
+general	neos-5188808-nattai_0_100	pass	-	PASS	2.5e-16	row R1742 (<=)	6.1216116038387876	6.1216116038387876	yes	yes	-6.1216116038387876	-6.121612316000006	-6.121612316	7.122e-7	1.163e-07	milp	0.15	-
+general	neos-827175_0_100	pass	-	PASS	0.0e0	-	122.00152	122.00152	yes	yes	-122	-122	-122	0.000e0	0.000e+00	milp	0.81	-
+general	neos-860300_0_100	pass	-	PASS	2.2e-14	row R0340 (>=)	5919.999999999998	5919.999999999998	yes	yes	-3702	-3702	-3702	0.000e0	0.000e+00	milp	0.12	-
 general	neos-916792_0_100	pass	-	PASS	4.3e-14	row R0077 (>=)	32.69508719490166	32.69508719490166	yes	yes	-5.665551682184728	-5.665551682184728	-5.665551682184728	0.000e0	0.000e+00	milp	0.00	-
-general	neos-933966_0_100	pass	-	PASS	0.0e0	-	326	326	yes	yes	-189	-189	-189	0.000e0	0.000e+00	milp	0.16	-
-general	neos-934278_0_100	pass	-	PASS	0.0e0	-	6339	6339	yes	yes	-267	-267	-267	0.000e0	0.000e+00	milp	0.26	-
+general	neos-933966_0_100	pass	-	PASS	0.0e0	-	326	326	yes	yes	-189	-189	-189	0.000e0	0.000e+00	milp	0.19	-
+general	neos-934278_0_100	pass	-	PASS	0.0e0	-	6339	6339	yes	yes	-267	-267	-267	0.000e0	0.000e+00	milp	0.35	-
 general	neos17_0_100	pass	-	PASS	4.4e-16	row EQCONST (<=)	0.6871998436039986	0.6871998436039986	yes	yes	-0.5639598436040021	-0.5639600000000007	-0.5639600000000005	1.564e-7	2.773e-07	milp	0.00	-
-general	ns1830653_0_100	pass	-	PASS	0.0e0	-	23622	23622	yes	yes	-1910	-1910	-1910	0.000e0	0.000e+00	milp	0.03	-
-general	opm2-z10-s4_0_100	pass	-	PASS	0.0e0	-	-11630	-11630	yes	yes	4812	4812	4812	0.000e0	0.000e+00	milp	1.20	-
-general	p0548-0.500000	pass	-	PASS	0.0e0	-	22197	22197	yes	yes	-17695	-17695.000000000007	-17695	0.000e0	0.000e+00	milp	2.82	-
+general	ns1830653_0_100	pass	-	PASS	0.0e0	-	23622	23622	yes	yes	-1910	-1910	-1910	0.000e0	0.000e+00	milp	0.05	-
+general	opm2-z10-s4_0_100	pass	-	PASS	0.0e0	-	-11630	-11630	yes	yes	4812	4812	4812	0.000e0	0.000e+00	milp	1.43	-
+general	p0548-0.500000	pass	-	PASS	0.0e0	-	22197	22197	yes	yes	-17695	-17695.000000000007	-17695	0.000e0	0.000e+00	milp	3.52	-
 general	p200x1188c_0_100	pass	-	PASS	2.1e-14	lower bound of x...0003	3584430	3584430	yes	yes	-3584430	-3584430	-3584430	0.000e0	0.000e+00	milp	0.00	-
-general	pg5_34_0_100	benchmark-accepted	follower slack 1.825e-4 above the proven optimum	FAIL	2.0e-11	row c38 (>=)	-11516.287042032105	-11516.287042032103	no	yes	1824.4401360734178	1824.4399535294222	1824.4399535294222	1.825e-4	1.000e-07	milp	0.01	-
-general	pg_0_100	benchmark-accepted	follower slack 2.019e-4 above the proven optimum	FAIL	1.6e-11	row c19 (<=)	-5364.2594068134995	-5364.2594068134995	no	yes	2018.3422083883559	2018.3420064541558	2018.3420064541558	2.019e-4	1.000e-07	milp	0.01	-
+general	pg5_34_0_100	pass	-	PASS	2.0e-11	row c38 (>=)	-11516.28685948911	-11516.28685948911	yes	yes	1824.4399535304224	1824.4399535294222	1824.4399535294222	1.000e-9	5.481e-13	milp	0.01	-
+general	pg_0_100	pass	-	PASS	1.4e-11	row c19 (<=)	-5364.259204880297	-5364.259204880297	yes	yes	2018.3420064551551	2018.3420064541556	2018.3420064541556	9.995e-10	4.952e-13	milp	0.01	-
 general	pigeon-10_0_100	pass	-	PASS	5.7e-14	row c25_1_5_1b (<=)	-9000	-9000	yes	yes	9000	9000	9000	0.000e0	0.000e+00	milp	0.00	-
 general	ran16x16_0_100	pass	-	PASS	6.0e-14	row G155 (<=)	43000	43000	yes	yes	-42126	-42126	-42126	0.000e0	0.000e+00	milp	0.00	-
-general	rmine6_0_100	pass	-	PASS	0.0e0	-	-440.65034000000054	-440.65034000000054	yes	yes	201.39953899999983	201.39953899999983	201.399539	-1.705e-13	-8.466e-16	milp	3.08	-
+general	rmine6_0_100	pass	-	PASS	0.0e0	-	-440.65034000000054	-440.65034000000054	yes	yes	201.39953899999983	201.39953899999983	201.399539	-1.705e-13	-8.466e-16	milp	3.48	-
 general	satellites1-25_0_100	pass	-	PASS	5.8e-11	row R4826 (>=)	32	32	yes	yes	-32	-32	-32	0.000e0	0.000e+00	milp	0.05	-
-general	satellites2-40_0_100	pass	-	PASS	1.6e-11	row R18078 (>=)	0	0	yes	yes	0	0	0	0.000e0	0.000e+00	milp	0.28	-
-general	seymour1_0_100	benchmark-accepted	follower slack 6.870e-5 above the proven optimum	FAIL	3.8e-15	row c3968 (>=)	959.5359764576142	959.5359764576142	no	yes	-685.9999313	-686	-686	6.870e-5	1.001e-07	milp	0.01	-
-general	sing326_0_100	pass	-	PASS	2.3e-13	row R50662 (<=)	20652331.06893904	20652331.06893904	yes	yes	-181252.322	-181252.322	-181252.32200000001	2.910e-11	1.605e-16	milp	0.21	-
+general	satellites2-40_0_100	pass	-	PASS	1.6e-11	row R18078 (>=)	0	0	yes	yes	0	0	0	0.000e0	0.000e+00	milp	0.27	-
+general	seymour1_0_100	pass	-	PASS	3.8e-15	row c3968 (>=)	959.5360451566141	959.536045156614	yes	yes	-685.999999999	-686	-686	1.000e-9	1.458e-12	milp	0.01	-
+general	sing326_0_100	pass	-	PASS	2.3e-13	row R50662 (<=)	20652331.06893904	20652331.06893904	yes	yes	-181252.322	-181252.322	-181252.32200000001	2.910e-11	1.605e-16	milp	0.29	-
 general	sp150x300d_0_100	pass	-	PASS	1.4e-14	lower bound of x....283	300	300	yes	yes	-300	-300	-300	0.000e0	0.000e+00	milp	0.00	-
 general	timtab1_0_100	pass	-	PASS	8.0e-13	row c36 (>=)	764771.99999978	764771.99999978	yes	yes	-18653.995999999992	-18653.995999999992	-18653.995999999985	-7.276e-12	-3.901e-16	milp	0.00	-
-general	tr12-30_0_100	benchmark-accepted	follower slack 9.264e-3 above the proven optimum	FAIL	4.5e-13	row FL..1103 (>=)	201018.9907358	201018.9907358	no	yes	-92640.9907358	-92641	-92641	9.264e-3	1.000e-07	milp	0.00	-
-general	uct-subprob_0_100	benchmark-accepted	follower slack 6.830e-5 above the proven optimum	FAIL	0.0e0	-	827.9999317	827.9999317	no	yes	-681.9999317	-682	-682	6.830e-5	1.001e-07	milp	0.00	-
-general/large_points.tar.gz	neos-4722843-widden_0_100	pass	-	PASS	7.4e-18	row R9120 (<=)	25109.663366336634	25109.663366336634	yes	yes	-7400	-7400	-7400	0.000e0	0.000e+00	milp	0.26	-
-general/large_points.tar.gz	neos-4763324-toguru_0_100	pass	-	PASS	0.0e0	-	17296.727084927334	17296.727084927334	yes	yes	-13725.617029999998	-13725.617029999998	-13725.61703	1.819e-12	1.325e-16	milp	0.71	-
-general/large_points.tar.gz	neos-631710_0_100	pass	-	PASS	0.0e0	-	556	556	yes	yes	-556	-556	-556	0.000e0	0.000e+00	milp	10.38	-
-general/large_points.tar.gz	neos-873061_0_100	benchmark-accepted	follower slack 2.586e-2 above the proven optimum	FAIL	5.5e-15	row R3339 (>=)	258644.3940240261	258644.3940240261	no	yes	-258644.1674639604	-258644.19332849028	-258644.1933284905	2.586e-2	9.998e-08	milp	0.28	-
-general/large_points.tar.gz	netdiversion_0_100	benchmark-accepted	follower slack 1.000e0 above the proven optimum	FAIL	0.0e0	-	19850249	19850249	no	yes	-19850249	-19850250	-19850250	1.000e0	5.038e-08	milp	0.95	-
-general/large_points.tar.gz	s100_0_100	pass	-	PASS	0.0e0	-	-0.07582229295992991	-0.07582229295992991	yes	yes	0	0	0	0.000e0	0.000e+00	milp	13.40	-
-general/large_points.tar.gz	s250r10_0_100	pass	-	PASS	0.0e0	-	-0.06080872520517286	-0.06080872520517286	yes	yes	0.00346025	0.00346025	0.00346025	0.000e0	0.000e+00	milp	37.37	-
-general/large_points.tar.gz	sing44_0_100	pass	-	PASS	2.3e-13	row R54582 (<=)	10059257.379094748	10059257.379094748	yes	yes	-112109.37100000001	-112109.37100000001	-112109.37100000006	4.366e-11	3.894e-16	milp	0.24	-
-general/large_points.tar.gz	supportcase12_0_100	pass	-	PASS	1.1e-12	row c99797 (<=)	-1811.9515189984015	-1811.9515189984015	yes	yes	0	0	0	0.000e0	0.000e+00	milp	3.51	-
+general	tr12-30_0_100	pass	-	PASS	4.5e-13	row FL..1103 (>=)	201018.99999999898	201018.99999999895	yes	yes	-92640.999999999	-92641	-92641	1.004e-9	1.084e-14	milp	0.01	-
+general	uct-subprob_0_100	pass	-	PASS	0.0e0	-	827.999999999	827.999999999	yes	yes	-681.999999999	-682	-682	1.000e-9	1.466e-12	milp	0.00	-
+general/large_points.tar.gz	neos-4722843-widden_0_100	pass	-	PASS	7.4e-18	row R9120 (<=)	25109.663366336634	25109.663366336634	yes	yes	-7400	-7400	-7400	0.000e0	0.000e+00	milp	0.22	-
+general/large_points.tar.gz	neos-4763324-toguru_0_100	pass	-	PASS	0.0e0	-	17296.727084927334	17296.727084927334	yes	yes	-13725.617029999998	-13725.617029999998	-13725.61703	1.819e-12	1.325e-16	milp	0.70	-
+general/large_points.tar.gz	neos-631710_0_100	pass	-	PASS	0.0e0	-	556	556	yes	yes	-556	-556	-556	0.000e0	0.000e+00	milp	10.45	-
+general/large_points.tar.gz	neos-873061_0_100	pass	-	PASS	5.5e-15	row R3339 (>=)	258644.41988864457	258644.41988864457	yes	yes	-258644.19332849028	-258644.19332849028	-258644.1933284905	2.328e-10	9.001e-16	milp	0.39	-
+general/large_points.tar.gz	netdiversion_0_100	pass	-	PASS	0.0e0	-	19850250	19850250	yes	yes	-19850250	-19850250	-19850250	0.000e0	0.000e+00	milp	1.00	-
+general/large_points.tar.gz	s100_0_100	pass	-	PASS	0.0e0	-	-0.07582229295992991	-0.07582229295992991	yes	yes	0	0	0	0.000e0	0.000e+00	milp	14.28	-
+general/large_points.tar.gz	s250r10_0_100	pass	-	PASS	0.0e0	-	-0.06080872520517286	-0.06080872520517286	yes	yes	0.00346025	0.00346025	0.00346025	0.000e0	0.000e+00	milp	38.87	-
+general/large_points.tar.gz	sing44_0_100	pass	-	PASS	2.3e-13	row R54582 (<=)	10059257.379094748	10059257.379094748	yes	yes	-112109.37100000001	-112109.37100000001	-112109.37100000006	4.366e-11	3.894e-16	milp	0.31	-
+general/large_points.tar.gz	supportcase12_0_100	pass	-	PASS	1.1e-12	row c99797 (<=)	-1811.9515189984015	-1811.9515189984015	yes	yes	0	0	0	0.000e0	0.000e+00	milp	4.37	-
 general-coupled	beasleyC3_50_50	pass	-	PASS	4.1e-12	row CNS..073 (>=)	6844	6844	yes	yes	-6844	-6844	-6844	0.000e0	0.000e+00	milp	0.00	-
 general-coupled	ic97_potential_50_50	pass	-	PASS	1.1e-13	row c240 (<=)	4197	4197	yes	yes	-592	-592	-592	0.000e0	0.000e+00	milp	0.01	-
 general-coupled	mc11_50_50	pass	-	PASS	3.6e-14	row CNS..075 (>=)	128960	128960	yes	yes	-128960	-128960	-128960	0.000e0	0.000e+00	milp	0.00	-
 general-coupled	mik-250-1-100-1_50_50	pass	-	PASS	0.0e0	-	890671	890671	yes	yes	-1000000	-1000000	-1000000	0.000e0	0.000e+00	milp	0.00	-
 general-coupled	mik-250-20-75-4_50_50	pass	-	PASS	0.0e0	-	663799	663799	yes	yes	-750000	-750000	-750000	0.000e0	0.000e+00	milp	0.00	-
-general-coupled	mushroom-best_50_50	pass	-	PASS	1.8e-13	row L1_norm_neg_23 (>=)	4230.055333761233	4230.055333761233	yes	yes	-4230	-4230	-4230	0.000e0	0.000e+00	milp	0.41	-
+general-coupled	mushroom-best_50_50	pass	-	PASS	1.8e-13	row L1_norm_neg_23 (>=)	4230.055333761233	4230.055333761233	yes	yes	-4230	-4230	-4230	0.000e0	0.000e+00	milp	0.32	-
 general-coupled	n4-3_50_50	pass	-	PASS	0.0e0	-	50621410	50621410	yes	yes	-42710515	-42710515	-42710515	0.000e0	0.000e+00	milp	0.01	-
 general-coupled	n5-3_50_50	pass	-	PASS	2.3e-11	row R0956 (<=)	30001775	30001775	yes	yes	-30000805	-30000805	-30000805	0.000e0	0.000e+00	milp	0.01	-
 general-coupled	n9-3_50_50	pass	-	PASS	0.0e0	-	74423855	74423855	yes	yes	-62411805	-62411805	-62411805	0.000e0	0.000e+00	milp	0.03	-
-general-coupled	neos-1337307_50_50	pass	-	PASS	0.0e0	-	-201272	-201272	yes	yes	27257	27257	27257	0.000e0	0.000e+00	milp	0.03	-
+general-coupled	neos-1337307_50_50	pass	-	PASS	0.0e0	-	-201272	-201272	yes	yes	27257	27257	27257	0.000e0	0.000e+00	milp	0.04	-
 general-coupled	neos-1445765_50_50	pass	-	PASS	0.0e0	-	0	0	yes	yes	0	0	0	0.000e0	0.000e+00	milp	0.03	-
 general-coupled	neos-2978193-inde_50_50	pass	-	PASS	1.4e-13	row R0241 (<=)	69.2750832560278	69.2750832560278	yes	yes	-69.58625999900003	-69.58626000000002	-69.58626	1.000e-9	1.437e-11	milp	0.02	-
 general-coupled	neos-4954672-berkel_50_50	pass	-	PASS	5.7e-10	row R0627 (<=)	8861093.99999999	8861093.99999999	yes	yes	-7334836	-7334836	-7334836	0.000e0	0.000e+00	milp	0.00	-
-general-coupled	neos-5188808-nattai_50_50	pass	-	PASS	4.4e-16	row R2941 (<=)	8.155601769999999	8.155601769999999	yes	yes	-8.155601769999999	-8.155601769999999	-8.15560177	1.776e-15	2.178e-16	milp	0.12	-
-general-coupled	neos-827175_50_50	pass	-	PASS	0.0e0	-	122.00152	122.00152	yes	yes	-122	-122	-122	0.000e0	0.000e+00	milp	0.18	-
-general-coupled	neos-933966_50_50	pass	-	PASS	0.0e0	-	47506	47506	yes	yes	-224	-224	-224	0.000e0	0.000e+00	milp	0.43	-
-general-coupled	neos-934278_50_50	pass	-	PASS	0.0e0	-	32490	32490	yes	yes	-299	-299	-299	0.000e0	0.000e+00	milp	0.31	-
+general-coupled	neos-5188808-nattai_50_50	pass	-	PASS	4.4e-16	row R2941 (<=)	8.155601769999999	8.155601769999999	yes	yes	-8.155601769999999	-8.155601769999999	-8.15560177	1.776e-15	2.178e-16	milp	0.08	-
+general-coupled	neos-827175_50_50	pass	-	PASS	0.0e0	-	122.00152	122.00152	yes	yes	-122	-122	-122	0.000e0	0.000e+00	milp	0.22	-
+general-coupled	neos-933966_50_50	pass	-	PASS	0.0e0	-	47506	47506	yes	yes	-224	-224	-224	0.000e0	0.000e+00	milp	0.23	-
+general-coupled	neos-934278_50_50	pass	-	PASS	0.0e0	-	32490	32490	yes	yes	-299	-299	-299	0.000e0	0.000e+00	milp	0.26	-
 general-coupled	neos-950242_50_50	pass	-	PASS	0.0e0	-	24	24	yes	yes	-24	-24	-24	0.000e0	0.000e+00	milp	0.02	-
 general-coupled	neos17_50_50	pass	-	PASS	4.4e-16	row EQCONST (<=)	0.6871999989999984	0.6871999989999984	yes	yes	-0.5639599990000019	-0.5639600000000007	-0.5639600000000005	1.000e-9	1.773e-09	milp	0.00	-
 general-coupled	p200x1188c_50_50	pass	-	PASS	2.1e-14	row CNS..003 (<=)	3584430	3584430	yes	yes	-3584430	-3584430	-3584430	0.000e0	0.000e+00	milp	0.00	-
@@ -1472,17 +1472,34 @@ general-coupled	pg5_34_50_50	pass	-	PASS	2.1e-14	row c68 (>=)	-11591.16992166342
 general-coupled	pg_50_50	pass	-	PASS	4.5e-13	row c84 (>=)	-6061.068071000856	-6061.068071000856	yes	yes	575.8460935743695	575.8460935733697	575.8460935733697	9.999e-10	1.736e-12	milp	0.00	-
 general-coupled	pigeon-10_50_50	pass	-	PASS	5.7e-14	row c25_1_5_1b (<=)	-9000	-9000	yes	yes	9000	9000	9000	0.000e0	0.000e+00	milp	0.00	-
 general-coupled	ran16x16_50_50	pass	-	PASS	3.6e-14	row B14 (<=)	43000	43000	yes	yes	-42126	-42126	-42126	0.000e0	0.000e+00	milp	0.00	-
-general-coupled	rmine6_50_50	pass	-	PASS	0.0e0	-	-153.74980199999982	-153.74980199999982	yes	yes	119.89695400000004	119.89695400000004	119.896954	4.263e-14	3.556e-16	milp	0.04	-
+general-coupled	rmine6_50_50	pass	-	PASS	0.0e0	-	-153.74980199999982	-153.74980199999982	yes	yes	119.89695400000004	119.89695400000004	119.896954	4.263e-14	3.556e-16	milp	0.03	-
 general-coupled	seymour1_50_50	pass	-	PASS	2.7e-14	row c767 (>=)	960.6331704801696	960.6331704801696	yes	yes	-685.999999999	-686	-686	1.000e-9	1.458e-12	milp	0.01	-
 general-coupled	sp150x300d_50_50	pass	-	PASS	0.0e0	-	300	300	yes	yes	-300	-300	-300	0.000e0	0.000e+00	milp	0.00	-
 general-coupled	timtab1_50_50	pass	-	PASS	2.1e-10	row c157 (>=)	764773.9999997794	764773.9999997794	yes	yes	-20655.995999803035	-20655.99599980302	-20655.99599980301	-2.547e-11	-1.233e-15	milp	0.00	-
 general-coupled	uct-subprob_50_50	pass	-	PASS	0.0e0	-	847.999999999	847.999999999	yes	yes	-681.999999999	-682	-682	1.000e-9	1.466e-12	milp	0.00	-
 general-coupled/tolerance	ic97_potential_50_50	benchmark-accepted	follower slack 5.930e-5 above the proven optimum	FAIL	1.1e-13	row c240 (<=)	4196.9999407	4196.9999407	no	yes	-591.9999407	-592	-592	5.930e-5	1.002e-07	milp	0.01	-
-general-coupled/tolerance	n4-3_50_50	benchmark-accepted	follower slack 4.271e0 above the proven optimum	FAIL	0.0e0	-	50621405.7289484	50621405.7289484	no	yes	-42710510.7289484	-42710515	-42710515	4.271e0	1.000e-07	milp	0.02	-
+general-coupled/tolerance	n4-3_50_50	benchmark-accepted	follower slack 4.271e0 above the proven optimum	FAIL	0.0e0	-	50621405.7289484	50621405.7289484	no	yes	-42710510.7289484	-42710515	-42710515	4.271e0	1.000e-07	milp	0.01	-
 general-coupled/tolerance	n5-3_50_50	benchmark-accepted	follower slack 3.000e0 above the proven optimum	FAIL	2.3e-11	row R0956 (<=)	30001771.9999194	30001771.9999194	no	yes	-30000801.9999194	-30000805	-30000805	3.000e0	1.000e-07	milp	0.01	-
-general-coupled/tolerance	n9-3_50_50	benchmark-accepted	follower slack 6.241e0 above the proven optimum	FAIL	0.0e0	-	74423848.7588194	74423848.7588194	no	yes	-62411798.7588194	-62411805	-62411805	6.241e0	1.000e-07	milp	0.02	-
-general-coupled/tolerance	neos-2978193-inde_50_50	benchmark-accepted	follower slack 7.059e-6 above the proven optimum	FAIL	1.2e-15	row R0229 (>=)	69.2749846518981	69.2749846518981	no	yes	-69.58625294137397	-69.58626000000002	-69.58626	7.059e-6	1.014e-07	milp	0.02	-
+general-coupled/tolerance	n9-3_50_50	benchmark-accepted	follower slack 6.241e0 above the proven optimum	FAIL	0.0e0	-	74423848.7588194	74423848.7588194	no	yes	-62411798.7588194	-62411805	-62411805	6.241e0	1.000e-07	milp	0.04	-
+general-coupled/tolerance	neos-2978193-inde_50_50	benchmark-accepted	follower slack 7.059e-6 above the proven optimum	FAIL	1.2e-15	row R0229 (>=)	69.2749846518981	69.2749846518981	no	yes	-69.58625294137397	-69.58626000000002	-69.58626	7.059e-6	1.014e-07	milp	0.03	-
 general-coupled/tolerance	neos17_50_50	pass	-	PASS	4.4e-16	row EQCONST (<=)	0.6871998436039986	0.6871998436039986	yes	yes	-0.5639598436040021	-0.5639600000000007	-0.5639600000000005	1.564e-7	2.773e-07	milp	0.00	-
 general-coupled/tolerance	pg_50_50	benchmark-accepted	follower slack 5.768e-5 above the proven optimum	FAIL	4.5e-13	row c84 (>=)	-6061.072076176566	-6061.072076176566	no	yes	575.8461512579789	575.8460935733697	575.8460935733697	5.768e-5	1.002e-07	milp	0.00	-
 general-coupled/tolerance	seymour1_50_50	benchmark-accepted	follower slack 6.870e-5 above the proven optimum	FAIL	2.7e-14	row c767 (>=)	960.6331017811696	960.6331017811696	no	yes	-685.9999313	-686	-686	6.870e-5	1.001e-07	milp	0.01	-
 general-coupled/tolerance	uct-subprob_50_50	benchmark-accepted	follower slack 6.830e-5 above the proven optimum	FAIL	0.0e0	-	847.9999317	847.9999317	no	yes	-681.9999317	-682	-682	6.830e-5	1.001e-07	milp	0.00	-
+general/tolerance	binkar10_1_0_100	benchmark-accepted	follower slack 5.001e-1 above the proven optimum	FAIL	5.0e-7	row R0608 (<=)	5006810.579954565	5006810.579954565	no	yes	-5000741.319927564	-5000741.820000168	-5000741.820000159	5.001e-1	1.000e-07	milp	0.00	-
+general/tolerance	cmflsp50-24-8-8_0_100	benchmark-accepted	follower slack 1.253e0 above the proven optimum	FAIL	4.5e-13	row Capacidad_2 (<=)	59480213.40059848	59480213.40059848	no	yes	-12534896.784427606	-12534898.037917506	-12534898.037917506	1.253e0	9.996e-08	milp	0.11	-
+general/tolerance	core2536-691_0_100	benchmark-accepted	follower slack 1.000e3 above the proven optimum	FAIL	0.0e0	-	9999999000.000046	9999999000.000046	no	yes	-9999998544.000046	-9999999544	-9999999544	1.000e3	1.000e-07	milp	5.02	-
+general/tolerance	cost266-UUE_0_100	benchmark-accepted	follower slack 1.043e0 above the proven optimum	FAIL	6.4e-12	row CAP(NOS__L19__U__4) (<=)	35801080.95689771	35801080.95689771	no	yes	-10431020.976897696	-10431022.019999998	-10431022.019999998	1.043e0	9.999e-08	milp	0.02	-
+general/tolerance	exp-1-500-5-5_0_100	benchmark-accepted	follower slack 8.794e-2 above the proven optimum	FAIL	5.8e-12	upper bound of x547	912510.9120646999	912510.9120647	no	yes	-879351.9120646999	-879351.9999999999	-879352.0000000001	8.794e-2	1.000e-07	milp	0.28	-
+general/tolerance	ic97_potential_0_100	benchmark-accepted	follower slack 3.540e-5 above the proven optimum	FAIL	2.6e-11	row c759 (>=)	4002.9999645999847	4002.9999645999847	no	yes	-352.99996459998323	-352.99999999998323	-352.9999999999832	3.540e-5	1.003e-07	milp	0.01	-
+general/tolerance	n4-3_0_100	benchmark-accepted	follower slack 3.480e0 above the proven optimum	FAIL	4.0e-12	row R1142 (<=)	34802892.5198973	34802892.5198973	no	yes	-34801022.5198973	-34801026	-34801026	3.480e0	1.000e-07	milp	0.01	-
+general/tolerance	n5-3_0_100	benchmark-accepted	follower slack 3.000e0 above the proven optimum	FAIL	1.7e-11	row R1047 (<=)	30001631.9999334	30001631.9999334	no	yes	-30000661.9999334	-30000665	-30000665	3.000e0	1.000e-07	milp	0.00	-
+general/tolerance	n9-3_0_100	benchmark-accepted	follower slack 5.040e0 above the proven optimum	FAIL	8.2e-13	row R2236 (<=)	50404627.959837	50404627.959837	no	yes	-50401623.959837	-50401629	-50401629	5.040e0	1.000e-07	milp	0.02	-
+general/tolerance	neos-2978193-inde_0_100	benchmark-accepted	follower slack 6.333e-6 above the proven optimum	FAIL	9.9e-7	lower bound of C11612	61.453994731082496	61.453994731082496	no	yes	-62.32916866708249	-62.329175000000006	-62.329175	6.333e-6	1.016e-07	milp	0.09	-
+general/tolerance	neos-873061_0_100	benchmark-accepted	follower slack 2.586e-2 above the proven optimum	FAIL	5.5e-15	row R3339 (>=)	258644.3940240261	258644.3940240261	no	yes	-258644.1674639604	-258644.19332849028	-258644.1933284905	2.586e-2	9.998e-08	milp	0.36	-
+general/tolerance	netdiversion_0_100	benchmark-accepted	follower slack 1.000e0 above the proven optimum	FAIL	0.0e0	-	19850249	19850249	no	yes	-19850249	-19850250	-19850250	1.000e0	5.038e-08	milp	0.90	-
+general/tolerance	pg5_34_0_100	benchmark-accepted	follower slack 1.825e-4 above the proven optimum	FAIL	2.0e-11	row c38 (>=)	-11516.287042032105	-11516.287042032103	no	yes	1824.4401360734178	1824.4399535294222	1824.4399535294222	1.825e-4	1.000e-07	milp	0.01	-
+general/tolerance	pg_0_100	benchmark-accepted	follower slack 2.019e-4 above the proven optimum	FAIL	1.6e-11	row c19 (<=)	-5364.2594068134995	-5364.2594068134995	no	yes	2018.3422083883559	2018.3420064541558	2018.3420064541558	2.019e-4	1.000e-07	milp	0.01	-
+general/tolerance	seymour1_0_100	benchmark-accepted	follower slack 6.870e-5 above the proven optimum	FAIL	3.8e-15	row c3968 (>=)	959.5359764576142	959.5359764576142	no	yes	-685.9999313	-686	-686	6.870e-5	1.001e-07	milp	0.01	-
+general/tolerance	tr12-30_0_100	benchmark-accepted	follower slack 9.264e-3 above the proven optimum	FAIL	4.5e-13	row FL..1103 (>=)	201018.9907358	201018.9907358	no	yes	-92640.9907358	-92641	-92641	9.264e-3	1.000e-07	milp	0.00	-
+general/tolerance	uct-subprob_0_100	benchmark-accepted	follower slack 6.830e-5 above the proven optimum	FAIL	0.0e0	-	827.9999317	827.9999317	no	yes	-681.9999317	-682	-682	6.830e-5	1.001e-07	milp	0.00	-

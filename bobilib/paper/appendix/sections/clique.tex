@@ -206,15 +206,16 @@ itself, re-derives the graph, $n$, $m$ and $k$ from the rows, checks the
 hypothesis $m-k\ge t_3(n)-\lfloor n/3\rfloor+2$, enumerates the size vectors
 with $b(s)\ge 0$, and verifies at every leaf of each tree a lower bound on
 $\mathrm{cut}_{\overline G}$ above $b(s)$, using only Python's integers and
-no project code. With Theorem~\ref{thm:clique-lb4} and
+no project code (\CliqueCheckerLines{} lines of code). It passes on all
+\CliqueCertCases{} cases of the \CliqueCertInstances{} instances
+(\texttt{check.log}): the trees have \CliqueCertNodes{} nodes and
+\CliqueCertLeaves{} leaves in all, the largest \CliqueCertMaxNodes{} nodes, and
+the check takes about \CliqueCertSeconds{}~s. With Theorem~\ref{thm:clique-lb4} and
 Proposition~\ref{prop:clique-partition} (4-partitions with at most $k$ inside
 edges), all 30 density-0.9 instances have value exactly~$4$: an exact
 certificate (class~(i)) resting on Brouwer's published theorem, which is
 neither formalised nor reproved here. The case computations are not
 formalised proofs.
-% ROUND2: update when scripts/check_clique_certificates.py has checked the
-% certificates of all 170 cases (results/clique/certificates/check.log): until
-% then the density-0.9 lower bounds are class (ii) and this paragraph must say so.
 
 \subsection{The three open instances}
 

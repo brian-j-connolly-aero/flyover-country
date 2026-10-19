@@ -14,7 +14,7 @@
 # An instance can have both a =best= and a =bestdual= line. Values are printed with full precision
 # (integers without a decimal point, other values as the shortest decimal that round-trips a double).
 #
-# Counts: =opt= 608 (528 published, 80 this work), =inf= 40, =best= 695, =bestdual= 194.
+# Counts: =opt= 610 (528 published, 82 this work), =inf= 40, =best= 693, =bestdual= 194.
 # Sources of the published optima (instances.csv, column 'source'; full references in README.md):
 #   WeningerFukasawa2025: 376
 #   LozanoBergmanCire2026: 97
@@ -24,15 +24,15 @@
 #   VasquezLozanoVanHoeve2025: 1
 #   this work: every other line; the certificate of each is named in instances.csv (column 'certificate').
 #
-# Of the =inf= lines, 38 rest on recession directions checked in exact rational arithmetic; supportcase42_0_100, supportcase42_50_50
-# rest on directions checked in floating point only (residuals of about 1e-12 relative remain).
+# Every =inf= line (40) rests on a recession direction checked in exact rational arithmetic.
+# instances.csv, column 'certificate_class', gives the certificate class of every =opt= and =inf= line.
 #
 =opt=      air03-0.100000  376936
 =best=     air05-0.900000  64955
 =best=     beasleyC3_0_100  6844
 =best=     beasleyC3_50_50  6844
 =inf=      biella1_50_50
-=best=     binkar10_1_0_100  5006810.579954565
+=best=     binkar10_1_0_100  5006811.08002764
 =inf=      binkar10_1_50_50
 =inf=      brazil3_0_100
 =inf=      brazil3_50_50
@@ -40,13 +40,13 @@
 =inf=      buildingenergy_50_50
 =best=     cap6000-0.500000  -1169217
 =best=     cap6000-0.900000  -100780
-=best=     cmflsp50-24-8-8_0_100  59480213.40059848
-=best=     core2536-691_0_100  9999999000.000046
+=best=     cmflsp50-24-8-8_0_100  59480214.65420022
+=best=     core2536-691_0_100  10000000000
 =inf=      core2536-691_50_50
-=best=     cost266-UUE_0_100  35801080.95689771
+=best=     cost266-UUE_0_100  35801082
 =inf=      cost266-UUE_50_50
-=best=     ex10_0_100  100
-=best=     exp-1-500-5-5_0_100  912510.9120646999
+=opt=      ex10_0_100  100
+=best=     exp-1-500-5-5_0_100  912510.9999999988
 =inf=      gen-ip054_0_100
 =inf=      gen-ip054_50_50
 =opt=      general30-30-10-20-20-8  299577
@@ -55,8 +55,8 @@
 =opt=      general30-30-30-20-20-10  199431
 =best=     h80x6320d_0_100  12461.704159000003
 =inf=      highschool1-aigio_0_100
-=best=     ic97_potential_0_100  4002.9999645999847
-=best=     ic97_potential_50_50  4196.9999407
+=best=     ic97_potential_0_100  4002.9999999990096
+=best=     ic97_potential_50_50  4197
 =opt=      interdiction40-5  461
 =opt=      interdiction40-6  399
 =opt=      interdiction45-4  611
@@ -466,21 +466,21 @@
 =best=     mitre-0.900000  169500
 =best=     mushroom-best_0_100  4230.055333761233
 =best=     mushroom-best_50_50  4230.055333761233
-=best=     n4-3_0_100  34802892.5198973
-=best=     n4-3_50_50  50621405.7289484
-=best=     n5-3_0_100  30001631.9999334
-=best=     n5-3_50_50  30001771.9999194
-=best=     n9-3_0_100  50404627.959837
-=best=     n9-3_50_50  74423848.7588194
+=best=     n4-3_0_100  34802896
+=best=     n4-3_50_50  50621410
+=best=     n5-3_0_100  30001635
+=best=     n5-3_50_50  30001775
+=best=     n9-3_0_100  50404633
+=best=     n9-3_50_50  74423855
 =best=     neos17_0_100  0.6871998436039986
-=best=     neos17_50_50  0.6871998436039986
+=best=     neos17_50_50  0.6871999989999984
 =inf=      neos-476283_0_100
 =inf=      neos-476283_50_50
 =best=     neos-631710_0_100  556
 =best=     neos-827175_0_100  122.00152
 =best=     neos-827175_50_50  122.00152
 =best=     neos-860300_0_100  5919.999999999998
-=best=     neos-873061_0_100  258644.3940240261
+=best=     neos-873061_0_100  258644.41988864457
 =best=     neos-916792_0_100  32.69508719490166
 =best=     neos-933966_0_100  326
 =best=     neos-933966_50_50  47506
@@ -492,11 +492,11 @@
 =best=     neos-1337307_50_50  -201272
 =inf=      neos-1396125_0_100
 =inf=      neos-1396125_50_50
-=best=     neos-1445765_0_100  -17783
+=opt=      neos-1445765_0_100  -17783
 =best=     neos-1445765_50_50  0
 =best=     neos-1456979_0_100  250
-=best=     neos-2978193-inde_0_100  61.453994731082496
-=best=     neos-2978193-inde_50_50  69.2749846518981
+=best=     neos-2978193-inde_0_100  61.45400106332479
+=best=     neos-2978193-inde_50_50  69.2750832560278
 =best=     neos-3216931-puriri_0_100  81430
 =best=     neos-3627168-kasai_0_100  1591085.619998998
 =inf=      neos-3627168-kasai_50_50
@@ -510,7 +510,7 @@
 =inf=      neos-5093327-huahum_50_50
 =best=     neos-5188808-nattai_0_100  6.1216116038387876
 =best=     neos-5188808-nattai_50_50  8.155601769999999
-=best=     netdiversion_0_100  19850249
+=best=     netdiversion_0_100  19850250
 =opt=      normalClique40-70-1  3
 =opt=      normalClique40-70-2  3
 =opt=      normalClique40-70-3  3
@@ -865,26 +865,26 @@
 =best=     OR5x500-0.75_1.dat-0  42843
 =best=     OR5x500-0.75_1.dat-50  61697
 =best=     OR5x500-0.75_1.dat-100  64837
-=bestdual= OR5x500-0.75_1.dat-100  63493
+=bestdual= OR5x500-0.75_1.dat-100  63500
 =best=     OR5x500-0.75_2.dat-0  48617
 =best=     OR5x500-0.75_2.dat-50  62391
 =best=     OR5x500-0.75_2.dat-100  68329
-=bestdual= OR5x500-0.75_2.dat-100  66939
+=bestdual= OR5x500-0.75_2.dat-100  66954
 =best=     OR5x500-0.75_3.dat-0  47256
 =best=     OR5x500-0.75_3.dat-50  61034
 =best=     OR5x500-0.75_3.dat-100  65432
-=bestdual= OR5x500-0.75_3.dat-100  64125
+=bestdual= OR5x500-0.75_3.dat-100  64135
 =best=     OR5x500-0.75_4.dat-0  48597
 =best=     OR5x500-0.75_4.dat-50  63550
 =best=     OR5x500-0.75_4.dat-100  68060
 =best=     OR5x500-0.75_5.dat-0  48644
 =best=     OR5x500-0.75_5.dat-50  62048
 =best=     OR5x500-0.75_5.dat-100  65544
-=bestdual= OR5x500-0.75_5.dat-100  64190
+=bestdual= OR5x500-0.75_5.dat-100  64199
 =best=     OR5x500-0.75_6.dat-0  46868
 =best=     OR5x500-0.75_6.dat-50  63437
 =best=     OR5x500-0.75_6.dat-100  66459
-=bestdual= OR5x500-0.75_6.dat-100  65119
+=bestdual= OR5x500-0.75_6.dat-100  65136
 =best=     OR5x500-0.75_7.dat-0  45668
 =best=     OR5x500-0.75_7.dat-50  61693
 =best=     OR5x500-0.75_7.dat-100  65065
@@ -894,11 +894,11 @@
 =best=     OR5x500-0.75_9.dat-0  46817
 =best=     OR5x500-0.75_9.dat-50  62717
 =best=     OR5x500-0.75_9.dat-100  66541
-=bestdual= OR5x500-0.75_9.dat-100  65278
+=bestdual= OR5x500-0.75_9.dat-100  65292
 =best=     OR5x500-0.75_10.dat-0  45921
 =best=     OR5x500-0.75_10.dat-50  60990
 =best=     OR5x500-0.75_10.dat-100  66070
-=bestdual= OR5x500-0.75_10.dat-100  64709
+=bestdual= OR5x500-0.75_10.dat-100  64720
 =best=     OR10x100-0.25_1.dat-0  18761
 =best=     OR10x100-0.25_1.dat-50  20673
 =best=     OR10x100-0.25_1.dat-100  24994
@@ -1018,7 +1018,7 @@
 =best=     OR10x250-0.25_6.dat-100  58847
 =bestdual= OR10x250-0.25_6.dat-100  56557
 =best=     OR10x250-0.25_7.dat-100  58419
-=bestdual= OR10x250-0.25_7.dat-100  56755
+=bestdual= OR10x250-0.25_7.dat-100  57270
 =best=     OR10x250-0.25_8.dat-100  57691
 =bestdual= OR10x250-0.25_8.dat-100  56036
 =best=     OR10x250-0.25_9.dat-100  59446
@@ -1164,7 +1164,7 @@
 =best=     OR10x500-0.75_3.dat-0  46872
 =best=     OR10x500-0.75_3.dat-50  65792
 =best=     OR10x500-0.75_3.dat-100  70802
-=bestdual= OR10x500-0.75_3.dat-100  69492
+=bestdual= OR10x500-0.75_3.dat-100  69499
 =best=     OR10x500-0.75_4.dat-0  43498
 =best=     OR10x500-0.75_4.dat-50  63697
 =best=     OR10x500-0.75_4.dat-100  68881
@@ -1200,7 +1200,7 @@
 =bestdual= OR30x100-0.25_6.dat-100  23099
 =best=     OR30x100-0.25_7.dat-50  19443
 =best=     OR30x100-0.25_7.dat-100  26993
-=bestdual= OR30x100-0.25_7.dat-100  25726
+=bestdual= OR30x100-0.25_7.dat-100  25916
 =best=     OR30x100-0.25_8.dat-100  23319
 =bestdual= OR30x100-0.25_8.dat-100  22336
 =best=     OR30x100-0.25_9.dat-100  26760
@@ -1274,15 +1274,15 @@
 =best=     OR30x100-0.75_9.dat-0  9733
 =best=     OR30x100-0.75_9.dat-50  14668
 =best=     OR30x100-0.75_9.dat-100  15588
-=bestdual= OR30x100-0.75_9.dat-100  14059
+=bestdual= OR30x100-0.75_9.dat-100  14162
 =best=     OR30x100-0.75_10.dat-0  8688
 =best=     OR30x100-0.75_10.dat-50  15050
 =best=     OR30x100-0.75_10.dat-100  16383
-=bestdual= OR30x100-0.75_10.dat-100  14845
+=bestdual= OR30x100-0.75_10.dat-100  14963
 =best=     OR30x250-0.25_1.dat-100  59568
-=bestdual= OR30x250-0.25_1.dat-100  57151
+=bestdual= OR30x250-0.25_1.dat-100  58091
 =best=     OR30x250-0.25_2.dat-100  60467
-=bestdual= OR30x250-0.25_2.dat-100  57589
+=bestdual= OR30x250-0.25_2.dat-100  58939
 =best=     OR30x250-0.25_3.dat-100  58423
 =bestdual= OR30x250-0.25_3.dat-100  55280
 =best=     OR30x250-0.25_4.dat-100  57031
@@ -1378,13 +1378,13 @@
 =best=     OR30x500-0.25_4.dat-100  117614
 =bestdual= OR30x500-0.25_4.dat-100  110414
 =best=     OR30x500-0.25_5.dat-100  116721
-=bestdual= OR30x500-0.25_5.dat-100  110217
+=bestdual= OR30x500-0.25_5.dat-100  111642
 =best=     OR30x500-0.25_6.dat-100  120018
 =bestdual= OR30x500-0.25_6.dat-100  112511
 =best=     OR30x500-0.25_7.dat-100  113072
 =bestdual= OR30x500-0.25_7.dat-100  106181
 =best=     OR30x500-0.25_8.dat-100  114185
-=bestdual= OR30x500-0.25_8.dat-100  107987
+=bestdual= OR30x500-0.25_8.dat-100  109231
 =best=     OR30x500-0.25_9.dat-100  115608
 =bestdual= OR30x500-0.25_9.dat-100  108776
 =best=     OR30x500-0.25_10.dat-100  119793
@@ -1435,7 +1435,7 @@
 =best=     OR30x500-0.75_2.dat-0  44990
 =best=     OR30x500-0.75_2.dat-50  69640
 =best=     OR30x500-0.75_2.dat-100  72265
-=bestdual= OR30x500-0.75_2.dat-100  70617
+=bestdual= OR30x500-0.75_2.dat-100  70624
 =best=     OR30x500-0.75_3.dat-0  42837
 =best=     OR30x500-0.75_3.dat-50  67961
 =best=     OR30x500-0.75_3.dat-100  70777
@@ -1471,10 +1471,10 @@
 =opt=      pet7.dat-0  5459
 =opt=      pet7.dat-50  5723
 =opt=      pet7.dat-100  5723
-=best=     pg5_34_0_100  -11516.287042032105
+=best=     pg5_34_0_100  -11516.28685948911
 =best=     pg5_34_50_50  -11591.169921663422
-=best=     pg_0_100  -5364.2594068134995
-=best=     pg_50_50  -6061.072076176566
+=best=     pg_0_100  -5364.259204880297
+=best=     pg_50_50  -6061.068071000856
 =opt=      pigeon-10_0_100  -9000
 =opt=      pigeon-10_50_50  -9000
 =inf=      rail507_0_100
@@ -1495,8 +1495,8 @@
 =best=     satellites2-40_0_100  0
 =opt=      sento2.dat-50  503
 =opt=      sento2.dat-100  738
-=best=     seymour1_0_100  959.5359764576142
-=best=     seymour1_50_50  960.6331017811696
+=best=     seymour1_0_100  959.5360451566141
+=best=     seymour1_50_50  960.6331704801696
 =best=     sing44_0_100  10059257.379094748
 =best=     sing326_0_100  20652331.06893904
 =inf=      snp-02-004-104_0_100
@@ -1510,13 +1510,13 @@
 =inf=      supportcase42_50_50
 =opt=      timtab1_0_100  764771.99999978
 =best=     timtab1_50_50  764773.9999997794
-=best=     tr12-30_0_100  201018.9907358
+=best=     tr12-30_0_100  201018.99999999898
 =inf=      tr12-30_50_50
 =opt=      tree-50_1-5-5_006  26
 =opt=      tree-50_1-5-5_010  26
 =inf=      trento1_50_50
-=best=     uct-subprob_0_100  827.9999317
-=best=     uct-subprob_50_50  847.9999317
+=best=     uct-subprob_0_100  827.999999999
+=best=     uct-subprob_50_50  847.999999999
 =opt=      weish14.dat-0  1020
 =opt=      weish14.dat-50  1020
 =opt=      weish14.dat-100  2625

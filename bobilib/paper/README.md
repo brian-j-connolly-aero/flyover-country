@@ -1,7 +1,7 @@
 # The BOBILib paper
 
-Sources of the paper "Settling 648 unsolved BOBILib instances: published optima, new
-optimality proofs and infeasibility certificates"
+Sources of the paper "Settling 650 unsolved BOBILib instances: 528 published optima, 82 new
+optimality proofs and 40 infeasibility certificates"
 (Brian J. Connolly), its supplementary document, its figures, and the scripts that
 build the data package in `../results/`.
 
@@ -9,11 +9,11 @@ build the data package in `../results/`.
 
 | Path | Contents |
 | --- | --- |
-| `main.tex`, `main.pdf` | the paper, in the format of SPIE proceedings (`spie.cls`) |
+| `main.tex`, `main.pdf` | the paper, in the format of SPIE proceedings (`spie.cls`); its Section 2, "The Problems", is `sections/problems.tex` |
 | `refs.bib`, `refs_notes.md` | the bibliography, and one line per key saying what it supports and how it was checked |
-| `spiebib-doi.bst` | a copy of SPIE's `spiebib.bst` (v2.7) that ends every reference with `https://doi.org/<doi>` (or the url when there is no DOI), writes names as "Last, F.", puts the year in parentheses and ends every title with a comma; the changes are marked `bobi` in the file. `main.tex` prints the labels as "[1]", as in the author's earlier SPIE paper |
-| `generated/facts.tex` | one `\newcommand` for every number the paper quotes, written by `scripts/gen_facts.py` from `../results/` (never edit by hand) |
-| `figures/*.pdf` | the 15 figures, one file each; `figures/MANIFEST.md` lists them with their captions and data sources. The paper uses 13 of them: `fig_family_outcomes` (it repeats Table 1) and `fig_hpr_bound` were dropped in the review round but are still built |
+| `spiebib-doi.bst` | a copy of SPIE's `spiebib.bst` (v2.7) that ends every reference with `https://doi.org/<doi>` (or the url when there is no DOI), writes names as "Last, F.", puts the year in parentheses and ends every title with a comma; the changes are marked `bobi` in the file. DOIs are printed through `\doiurl`, defined in `main.tex`, so that the prefix `https://doi.org/` never breaks across lines. `main.tex` prints the labels as "[1]", as in the author's earlier SPIE paper |
+| `generated/facts.tex` | one `\newcommand` for every number the paper quotes, written by `scripts/gen_facts.py` from `../results/` (never edit by hand); the paper also reads `appendix/generated/supp_facts.tex` |
+| `figures/*.pdf` | the 20 figures, one file each; `figures/MANIFEST.md` lists them with their captions and data sources. The paper uses 18 of them: `fig_family_outcomes` (it repeats a table) and `fig_hpr_bound` were dropped in the review round but are still built |
 | `figures/src/` | the figure sources: matplotlib scripts (`fig_*.py`, `make_all.sh`, `style.py`) that read only `../results/`, and standalone TikZ files (`fig_*.tex`); see `figures/src/README.md` |
 | `appendix/appendix.tex`, `appendix/appendix.pdf` | the supplementary document (proofs, verification protocol, Lean map, data package, per-instance tables), cited by the paper as "Supplementary Section A, B, ..."; `appendix/sections/` holds its sections |
 | `appendix/generated/*.tex` | its per-instance tables, written by `scripts/gen_appendix_tables.py` (never edit by hand) |
@@ -42,6 +42,12 @@ from bobilib.org; without it the BOBILib columns are read back from
 `LBC_OPTIMAL=`. Without them the build reproduces the committed data package
 unchanged. The scripts stop with an error if a count differs from the one the
 paper quotes.
+
+Two inputs of `make data` are produced outside it, from BOBILib's instance files
+and metadata, and kept in the package: `../results/summary.json` (per-instance
+outcomes, `../scripts/summarize.py`) and `../results/notes/instance_structure.csv`
+(the structural counts of the problem descriptions, `../scripts/instance_structure.py`);
+`../results/README.md`, section Replicating, gives both command lines.
 
 The paper takes every number from `generated/facts.tex`, so run `make data` before
 `make paper` after any change under `../results/`. The figures are deterministic:

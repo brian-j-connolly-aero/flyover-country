@@ -26,7 +26,7 @@ after `make data`.
 | `fig_mkip.tex` | toy multidimensional knapsack interdiction: 6 items with weight and volume, limits 8 and 10, the leader blocks 2, value 15 (23 with no blocking) | 6.5 x 1.9 |
 | `fig_generalized.tex` | generalized interdiction: leader x, follower y, interdiction links x_j = 1 forces y_j = 0, leader rows over x and y (coupling), follower rows over y | 3.15 x 1.75 |
 | `fig_assignment.tex` | toy assignment interdiction: 4 x 4 costs, the leader bans 2 pairs, the follower's cheapest assignment costs 21 (8 with no ban) | 3.15 x 1.75 |
-| `fig_miplib_split.tex` | how a MILP becomes a bilevel instance: `_0_100`, `_50_50` (coupling rows) and MIPLIB 3 `-k` splits of variables and rows, and the two objectives | 6.5 x 2.0 |
+| `fig_miplib_split.tex` | how a MILP becomes a bilevel instance: `_0_100`, `_50_50` (coupling rows) and MIPLIB 3 `-k` splits of variables and rows (the objectives are in the caption) | 6.5 x 1.7 |
 
 Build (pdflatex with TikZ; run from this folder):
 

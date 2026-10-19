@@ -25,7 +25,7 @@ rows = S.read_csv("or/compare.csv")
 S.check(len(rows), 810, "OR instances")
 
 conflict = {r["name"] for r in rows if r["lit_lb"] and r["lit_ub"] and float(r["lit_lb"]) > float(r["lit_ub"])}
-S.check(len(conflict), 4, "OR instances with a published lower bound above the published point")
+S.check(len(conflict), 1, "OR instances with a published lower bound above the published point")
 pairs = collections.defaultdict(list)       # (follower type, budget) -> [(lit, now)]
 by_variant = collections.defaultdict(list)  # (variant, budget) -> [(lit, now)]
 for r in rows:
@@ -36,9 +36,9 @@ for r in rows:
         by_variant[(r["variant"], r["alpha"])].append((lit, now))
 
 # Paired medians quoted in the paper (upper median, as scripts/compare_or.py), in %.
-quoted = {("100", "0.25"): (24.0, 4.1), ("100", "0.50"): (34.0, 7.1), ("100", "0.75"): (0.14, 0.14),
-          ("0", "0.25"): (33.3, 31.8), ("0", "0.50"): (36.6, 29.1), ("0", "0.75"): (5.3, 0.05),
-          ("50", "0.25"): (30.6, 28.3), ("50", "0.50"): (41.3, 34.8), ("50", "0.75"): (11.8, 1.4)}
+quoted = {("100", "0.25"): (24.0, 4.0), ("100", "0.50"): (34.0, 7.2), ("100", "0.75"): (0.14, 0.14),
+          ("0", "0.25"): (33.3, 31.4), ("0", "0.50"): (36.6, 29.1), ("0", "0.75"): (5.3, 0.05),
+          ("50", "0.25"): (30.6, 28.3), ("50", "0.50"): (41.3, 35.0), ("50", "0.75"): (11.8, 1.4)}
 for k, (ql, qn) in quoted.items():
     v = by_variant[k]
     ml = 100 * S.upper_median([a for a, _ in v])

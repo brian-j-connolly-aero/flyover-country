@@ -9,13 +9,13 @@
 \newcommand{\NumBobiOpen}{419}% BOBILib status open
 \newcommand{\NumUnsolved}{1{,}594}% feasible or open in BOBILib
 \newcommand{\NumLitOptimal}{528}% already optimal in published work
-\newcommand{\NumNewOptimal}{80}% proven optimal here
+\newcommand{\NumNewOptimal}{82}% proven optimal here
 \newcommand{\NumNoFeasible}{40}% no bilevel feasible point (here)
-\newcommand{\NumFirstPoint}{230}% verified point here where BOBILib has none (first anywhere or not)
+\newcommand{\NumFirstPoint}{228}% verified point here where BOBILib has none (first anywhere or not)
 \newcommand{\NumUnchanged}{716}% status unchanged
-\newcommand{\NumSettled}{648}% settled = literature + new optimal + no feasible point
+\newcommand{\NumSettled}{650}% settled = literature + new optimal + no feasible point
 \newcommand{\PctSettled}{41}% settled share of the unsolved, percent
-\newcommand{\NumOptimalNow}{608}% optimal now among the unsolved
+\newcommand{\NumOptimalNow}{610}% optimal now among the unsolved
 \newcommand{\NumPacking}{1{,}254}% packing interdiction among the unsolved
 \newcommand{\PctPacking}{79}% packing share of the unsolved, percent
 \newcommand{\NumKipUnsolved}{392}% KIP not optimal in BOBILib
@@ -52,16 +52,17 @@
 \newcommand{\NumNewKip}{16}% KIP optima proven here
 \newcommand{\NumNewClique}{57}% clique optima proven here
 \newcommand{\NumNewNetwork}{2}% network optima proven here
-\newcommand{\NumNewHpr}{5}% MIPLIB-bound optima
+\newcommand{\NumNewHpr}{7}% MIPLIB-bound optima
 \newcommand{\NumNewOr}{0}% OR closure
-\newcommand{\NumRayExact}{38}% rays checked in exact arithmetic
-\newcommand{\NumRayFloat}{2}% rays checked in floating point only
+\newcommand{\NumRayExact}{40}% rays checked in exact arithmetic
+\newcommand{\NumRayFloat}{0}% rays checked in floating point only
+\newcommand{\NumRaySupportcase}{2}% supportcase42 instances, now with exact directions
 \newcommand{\NumOrFirstAnywhere}{88}% OR first points anywhere
 \newcommand{\NumOrPointNewToBobilib}{52}% OR points where the literature had one, BOBILib none
 \newcommand{\NumOrFirstPoints}{140}% OR points where BOBILib has none
-\newcommand{\NumGeneralPoints}{62}% general first points without coupling
+\newcommand{\NumGeneralPoints}{60}% general first points without coupling
 \newcommand{\NumCoupledPoints}{28}% general first points with coupling
-\newcommand{\NumGeneralFirstPoints}{90}% general first points
+\newcommand{\NumGeneralFirstPoints}{88}% general first points
 \newcommand{\NumMkipUnchanged}{582}% MKIP unchanged
 \newcommand{\NumCliqueOpen}{3}% clique still open
 \newcommand{\NumGeneralizedUnchanged}{8}% generalized unchanged
@@ -80,7 +81,7 @@
 \newcommand{\KipMostNodesName}{interKP-300-100-6-3}% instance with the most nodes
 \newcommand{\KipMostNodes}{19{,}405}% most nodes among the 16
 \newcommand{\KipTotalCpu}{32.5}% CPU seconds for all 16
-\newcommand{\NumKipEasy}{12}% the 16 other than class 6, budget index 3
+\newcommand{\NumKipEasy}{12}% the 16 other than class 6 with I = 3
 \newcommand{\KipEasyMaxCpu}{0.26}% slowest of those 12, CPU s
 \newcommand{\KipEasyMaxNodes}{651}% most nodes among those 12
 \newcommand{\KipMedianNodes}{334.5}% median nodes of the 16
@@ -89,7 +90,7 @@
 \newcommand{\KipPrevMaxSeconds}{427}% slowest proof of the previous version, s
 \newcommand{\NumOr}{810}% OR instances
 \newcommand{\NumOrPoints}{690}% verified OR points
-\newcommand{\NumOrBetter}{469}% points strictly better than every published value
+\newcommand{\NumOrBetter}{474}% points strictly better than every published value
 \newcommand{\NumOrNoPublished}{139}% OR instances without a published point
 \newcommand{\NumOrBetterLb}{191}% better lower bounds (all variant -100)
 \newcommand{\NumOrBetterLbNotOne}{0}% better lower bounds outside -100
@@ -103,17 +104,17 @@
 \newcommand{\NumOrSeveralQuarterPoints}{60}% certified at 25%
 \newcommand{\NumOrSeveralQuarterNoPoint}{120}% without a point at 25%
 \newcommand{\OrGapOneQuarterLit}{24.0}% median published gap, variant -100, budget 0.25
-\newcommand{\OrGapOneQuarterNow}{4.1}% median gap now, variant -100, budget 0.25
+\newcommand{\OrGapOneQuarterNow}{4.0}% median gap now, variant -100, budget 0.25
 \newcommand{\OrPairedOneQuarter}{90}% instances in that median
 \newcommand{\OrGapOneHalfLit}{34.0}% median published gap, variant -100, budget 0.50
-\newcommand{\OrGapOneHalfNow}{7.1}% median gap now, variant -100, budget 0.50
+\newcommand{\OrGapOneHalfNow}{7.2}% median gap now, variant -100, budget 0.50
 \newcommand{\OrPairedOneHalf}{90}% instances in that median
 \newcommand{\OrGapOneThreeQuarterLit}{0.14}% median published gap, variant -100, budget 0.75
 \newcommand{\OrGapOneThreeQuarterNow}{0.14}% median gap now, variant -100, budget 0.75
 \newcommand{\OrPairedOneThreeQuarter}{90}% instances in that median
 \newcommand{\OrGapZeroQuarterLit}{33.3}% median published gap, variant -0, budget 0.25
-\newcommand{\OrGapZeroQuarterNow}{31.8}% median gap now, variant -0, budget 0.25
-\newcommand{\OrPairedZeroQuarter}{54}% instances in that median
+\newcommand{\OrGapZeroQuarterNow}{31.4}% median gap now, variant -0, budget 0.25
+\newcommand{\OrPairedZeroQuarter}{55}% instances in that median
 \newcommand{\OrNoPointZeroQuarter}{31}% no published point, -0, 0.25
 \newcommand{\OrFirstZeroQuarter}{0}% first points among those
 \newcommand{\OrGapZeroHalfLit}{36.6}% median published gap, variant -0, budget 0.50
@@ -128,11 +129,11 @@
 \newcommand{\OrFirstZeroThreeQuarter}{27}% first points among those
 \newcommand{\OrGapFiftyQuarterLit}{30.6}% median published gap, variant -50, budget 0.25
 \newcommand{\OrGapFiftyQuarterNow}{28.3}% median gap now, variant -50, budget 0.25
-\newcommand{\OrPairedFiftyQuarter}{68}% instances in that median
+\newcommand{\OrPairedFiftyQuarter}{70}% instances in that median
 \newcommand{\OrNoPointFiftyQuarter}{20}% no published point, -50, 0.25
 \newcommand{\OrFirstFiftyQuarter}{0}% first points among those
 \newcommand{\OrGapFiftyHalfLit}{41.3}% median published gap, variant -50, budget 0.50
-\newcommand{\OrGapFiftyHalfNow}{34.8}% median gap now, variant -50, budget 0.50
+\newcommand{\OrGapFiftyHalfNow}{35.0}% median gap now, variant -50, budget 0.50
 \newcommand{\OrPairedFiftyHalf}{70}% instances in that median
 \newcommand{\OrNoPointFiftyHalf}{20}% no published point, -50, 0.50
 \newcommand{\OrFirstFiftyHalf}{20}% first points among those
@@ -144,7 +145,7 @@
 \newcommand{\OrClosureName}{OR10x100-0.75\_4.dat-0}% OR instance whose published lower bound exceeds the published point but whose published branch-and-cut bound closes it
 \newcommand{\OrClosureValue}{8{,}813}% its optimum (published point and bound)
 \newcommand{\OrClosureLitLb}{8{,}814}% published (inconsistent) lower bound
-\newcommand{\NumOrInconsistent}{4}% OR instances whose published lower bound exceeds the published point
+\newcommand{\NumOrInconsistent}{1}% OR instances whose published lower bound exceeds the published point
 \newcommand{\NumOrLitOptimalPoint}{70}% published OR optima reproduced by a file here
 \newcommand{\NumCliqueSet}{60}% instances of the clique set
 \newcommand{\NumCliqueSevenThree}{27}% density 0.7 with value 3
@@ -179,7 +180,7 @@
 \newcommand{\CliqueKSixtyNine}{398}% budget k at n=60, d=0.9
 \newcommand{\CliqueMSixtyNine}{1{,}593}% edges m at n=60, d=0.9
 \newcommand{\NumCliquePartCases}{170}% part-size cases decided by exact solvers
-\newcommand{\CliqueOpenNames}{\inst{normalClique60-70-2}, \inst{normalClique60-70-3}, \inst{normalClique60-70-5}}% the three open instances (each in \inst)
+\newcommand{\CliqueOpenNames}{\inst{normalClique60-70-2}, \inst{normalClique60-70-3} and \inst{normalClique60-70-5}}% the three open instances (each in \inst)
 \newcommand{\CliqueOpenBestThreeA}{311}% best 3-partition found (inside edges)
 \newcommand{\CliqueOpenBestThreeB}{310}% best 3-partition found (inside edges)
 \newcommand{\CliqueOpenBestThreeC}{310}% best 3-partition found (inside edges)
@@ -201,32 +202,35 @@
 \newcommand{\NetworkBobiOptimal}{70}% BOBILib optimal network instances
 \newcommand{\NumGeneralCandidates}{98}% open instances without coupling rows run through bobi general
 \newcommand{\NumGeneralFiles}{64}% verified files in results/general
-\newcommand{\NumGeneralFilesOptimal}{2}% of them optimal
-\newcommand{\NumGeneralFilesFeasible}{62}% of them feasible only
+\newcommand{\NumGeneralFilesOptimal}{4}% of them optimal
+\newcommand{\NumGeneralFilesFeasible}{60}% of them feasible only
 \newcommand{\NumCoupledCandidates}{54}% open instances with coupling rows run through bobi coupled
 \newcommand{\NumCoupledAttempted}{52}% attempted
 \newcommand{\NumCoupledFiles}{29}% verified files in results/general-coupled
 \newcommand{\NumCoupledOptimal}{1}% of them optimal
-\newcommand{\NumCoupledTolerance}{9}% coupled files whose follower value uses BOBILib's tolerance
+\newcommand{\NumCoupledTolerance}{0}% coupled files whose follower value uses BOBILib's tolerance
 \newcommand{\NumCoupledByHpr}{21}% coupled points at the HPR's leader values
 \newcommand{\NumCoupledByPenalty}{5}% coupled points from the penalised HPR
 \newcommand{\NumCoupledByFollow}{3}% coupled points from best-response dynamics
-\newcommand{\NumHprOptimal}{5}% points meeting the MIPLIB bound
-\newcommand{\NumHprOpen}{3}% of them open before
+\newcommand{\NumHprOptimal}{7}% points meeting the MIPLIB bound
+\newcommand{\NumHprOpen}{5}% of them open before
+\newcommand{\NumHprRoundTwo}{2}% MIPLIB-bound optima added in round two (ex10, neos-1445765)
 \newcommand{\PigeonOptimum}{\ensuremath{-}9{,}000}% pigeon-10 optimum
 \newcommand{\TimtabOptimum}{764{,}771.99999978}% timtab1_0_100 optimum (full precision)
 \newcommand{\TimtabOptimumRounded}{764{,}772}% timtab1_0_100 optimum rounded
 \newcommand{\NoswotOptimum}{\ensuremath{-}41}% noswot optimum
+\newcommand{\ExTenOptimum}{100}% ex10_0_100 optimum (MIPLIB bound)
+\newcommand{\NeosFourteenOptimum}{\ensuremath{-}17{,}783}% neos-1445765_0_100 optimum (MIPLIB bound)
 \newcommand{\NumRayFiles}{41}% direction files (40 open + 1 BOBILib-infeasible)
-\newcommand{\NumRayChecks}{43}% exact checks run (ray_verify.jsonl)
+\newcommand{\NumRayChecks}{45}% exact checks run (ray_verify.jsonl)
 \newcommand{\NumVerifyOrOne}{270}% bobi verify passes, OR one knapsack
 \newcommand{\NumVerifyOrSeveral}{420}% bobi verify passes, OR several
 \newcommand{\NumVerifyNetwork}{36}% bobi verify passes, network
 \newcommand{\NumVerifyClique}{60}% bobi verify passes, clique
 \newcommand{\NumVerifyNetworkBobi}{72}% BOBILib's inter-fire files passing
-\newcommand{\NumSoluOpt}{608}% .solu =opt= lines
+\newcommand{\NumSoluOpt}{610}% .solu =opt= lines
 \newcommand{\NumSoluInf}{40}% .solu =inf= lines
-\newcommand{\NumSoluBest}{695}% .solu =best= lines
+\newcommand{\NumSoluBest}{693}% .solu =best= lines
 \newcommand{\NumSoluBestDual}{194}% .solu =bestdual= lines
 \newcommand{\FamKipAll}{599}% knapsack: instances
 \newcommand{\FamKipUnsolved}{392}% knapsack: feasible or open in BOBILib
@@ -273,16 +277,16 @@
 \newcommand{\FamGenPureAll}{359}% general-pure: instances
 \newcommand{\FamGenPureUnsolved}{105}% general-pure: feasible or open in BOBILib
 \newcommand{\FamGenPureLit}{8}% general-pure: optimal in published work
-\newcommand{\FamGenPureNew}{0}% general-pure: proven optimal here
+\newcommand{\FamGenPureNew}{1}% general-pure: proven optimal here
 \newcommand{\FamGenPureNoFeas}{6}% general-pure: no bilevel feasible point
-\newcommand{\FamGenPureFirst}{15}% general-pure: verified point where BOBILib has none
+\newcommand{\FamGenPureFirst}{14}% general-pure: verified point where BOBILib has none
 \newcommand{\FamGenPureUnchanged}{76}% general-pure: unchanged
 \newcommand{\FamGenMixedAll}{336}% general-mixed: instances
 \newcommand{\FamGenMixedUnsolved}{161}% general-mixed: feasible or open in BOBILib
 \newcommand{\FamGenMixedLit}{0}% general-mixed: optimal in published work
-\newcommand{\FamGenMixedNew}{5}% general-mixed: proven optimal here
+\newcommand{\FamGenMixedNew}{6}% general-mixed: proven optimal here
 \newcommand{\FamGenMixedNoFeas}{34}% general-mixed: no bilevel feasible point
-\newcommand{\FamGenMixedFirst}{75}% general-mixed: verified point where BOBILib has none
+\newcommand{\FamGenMixedFirst}{74}% general-mixed: verified point where BOBILib has none
 \newcommand{\FamGenMixedUnchanged}{47}% general-mixed: unchanged
 \newcommand{\NumImkp}{144}% instances of the imkp set
 \newcommand{\CliqueOptSeven}{3}% optimum of the solved density-0.7 clique instances
@@ -358,19 +362,21 @@ noswot\_50\_50 & feasible & \ensuremath{-}41 & BOBILib \\
 pigeon-10\_0\_100 & open & \ensuremath{-}9{,}000 & \texttt{bobi general} \\
 timtab1\_0\_100 & open & 764{,}771.99999978 & \texttt{bobi general} \\
 pigeon-10\_50\_50 & open & \ensuremath{-}9{,}000 & \texttt{bobi coupled} \\
+ex10\_0\_100 & open & 100 & \texttt{bobi general} \\
+neos-1445765\_0\_100 & open & \ensuremath{-}17{,}783 & \texttt{bobi general} \\
 }% rows of the paper's table of the MIPLIB-bound optima
-\newcommand{\NumFirstAnywhere}{168}% verified points here that are the first point anywhere
-\newcommand{\NumPointPublishedBefore}{62}% verified points here where BOBILib has none but a point was published
-\newcommand{\NumGeneralFirstAnywhere}{80}% general first points anywhere
-\newcommand{\NumGeneralPublishedPoint}{10}% general points where a point was published
+\newcommand{\NumFirstAnywhere}{167}% verified points here that are the first point anywhere
+\newcommand{\NumPointPublishedBefore}{61}% verified points here where BOBILib has none but a point was published
+\newcommand{\NumGeneralFirstAnywhere}{79}% general first points anywhere
+\newcommand{\NumGeneralPublishedPoint}{9}% general points where a point was published
 \newcommand{\NumGeneralPublishedBetter}{6}% of them: the published point is better
-\newcommand{\NumGeneralPublishedLS}{4}% of them: published only in Lefebvre and Schmidt's run files
-\newcommand{\NumGeneralNoCplPublished}{9}% bobi general points where a point was published
+\newcommand{\NumGeneralPublishedLS}{3}% of them: published only in Lefebvre and Schmidt's run files
+\newcommand{\NumGeneralNoCplPublished}{8}% bobi general points where a point was published
 \newcommand{\NumGeneralNoCplPublishedBetter}{6}% of them: the published point is better
 \newcommand{\NumCoupledPublished}{1}% bobi coupled points where a point was published
 \newcommand{\NumOrPublishedPointFile}{52}% OR points new to BOBILib whose published point has a solution file (Lozano et al.)
-\newcommand{\NumSettledHere}{120}% settled by this work (new optima + no point)
-\newcommand{\PctSettledHere}{7.5}% settled by this work, percent of the unsolved
+\newcommand{\NumSettledHere}{122}% settled by this work (new optima + no point)
+\newcommand{\PctSettledHere}{7.7}% settled by this work, percent of the unsolved
 \newcommand{\NumLitWithFile}{446}% published optima with a verified solution file at the optimum
 \newcommand{\NumLitNoFile}{82}% published optima without a solution file here (value only)
 \newcommand{\NumLitNoFileImkp}{52}% of them imkp
@@ -378,11 +384,17 @@ pigeon-10\_50\_50 & open & \ensuremath{-}9{,}000 & \texttt{bobi coupled} \\
 \newcommand{\NumLitNoFileMiplib}{8}% of them MIPLIB-derived
 \newcommand{\NumLitNoFileGeneralized}{4}% of them generalized
 \newcommand{\NumLitKnapsackMethods}{428}% published optima from knapsack interdiction methods (Weninger-Fukasawa, Fischetti et al. 2019)
+\newcommand{\NumLitOther}{3}% published optima from other sources (air03, p0282, neos-950242)
+\newcommand{\PFiveFortyEightOptimum}{48{,}853}% p0548-0.900000: published optimum used (exact follower)
+\newcommand{\PFiveFortyEightDd}{48{,}851}% p0548-0.900000: decision-diagram value, follower optimal only within BOBILib's tolerance
 \newcommand{\NumNewValueKnown}{20}% new optima where BOBILib's value was already optimal
 \newcommand{\NumNewValueKnownGeneral}{2}% of them general (noswot)
 \newcommand{\NumOrEqualPublished}{72}% OR points equal to the best published point
-\newcommand{\NumOrWorsePublished}{61}% OR points worse than the best published point
-\newcommand{\OrConflictNames}{\inst{OR5x100-0.25\_7.dat-50}, \inst{OR5x100-0.25\_8.dat-0}, \inst{OR10x500-0.25\_5.dat-50}}% OR instances whose published point lies below the published lower bound (besides the closure; each in \inst)
+\newcommand{\NumOrWorsePublished}{56}% OR points worse than the best published point
+\newcommand{\NumOrLsTimeLimit}{47}% OR instances where a Lefebvre-Schmidt time-limit row has a lower nonzero value than every counted row (left out)
+\newcommand{\NumOrLsTimeLimitBest}{21}% of them: that value would be the best published point
+\newcommand{\NumOrLsTimeLimitBelowLb}{10}% of them: below Lozano, Bergman and Cire's published lower bound
+\newcommand{\NumLitOrClaimed}{87}% OR optima claimed by Lozano, Bergman and Cire (their optimal.csv)
 \newcommand{\NumOrQuarterNoPointNoPub}{51}% several knapsacks, budget 25%, no point here: none published either
 \newcommand{\NumOrQuarterNoPointPub}{69}% several knapsacks, budget 25%, no point here: a published (unverified) point
 \newcommand{\NetworkRndSmall}{12}% rndgraph-25 re-derived (HiGHS at every attack)
@@ -402,3 +414,65 @@ pigeon-10\_50\_50 & open & \ensuremath{-}9{,}000 & \texttt{bobi coupled} \\
 \newcommand{\NumKipValidation}{36}% class 6/7 instances with 100 or 200 items and a published optimum
 \newcommand{\KipPubLbGapMin}{2}% published lower bounds: fewest units below the optimum
 \newcommand{\KipPubLbGapMax}{8}% published lower bounds: most units below the optimum
+\newcommand{\NumClassRows}{878}% rows with a result (optimal, no feasible point, verified point)
+\newcommand{\NumClassExact}{115}% certificate class exact (i)
+\newcommand{\NumClassNumerical}{763}% certificate class numerical (ii)
+\newcommand{\NumClassBenchmark}{0}% certificate class benchmark (iii)
+\newcommand{\NumClassExactNew}{75}% new optima, class exact
+\newcommand{\NumClassNumericalNew}{7}% new optima, class numerical (the MIPLIB-bound optima)
+\newcommand{\NumClassExactSettled}{115}% settled here with an exact certificate (new optima + rays)
+\newcommand{\NumTightFiles}{1{,}478}% current solution files re-checked by bobi verify --tight
+\newcommand{\NumTightPass}{1{,}478}% of them pass
+\newcommand{\NumTightSuperseded}{26}% superseded files (tolerance/ folders) re-checked
+\newcommand{\NumTightSupersededBench}{25}% of them benchmark-accepted (fail the tight test, pass BOBILib's)
+\newcommand{\NumTightSupersededGeneral}{17}% superseded general files (re-derived under the strict tolerance)
+\newcommand{\NumTightSupersededCoupled}{9}% superseded coupled files
+\newcommand{\NumTightSupersededCoupledBench}{8}% of the superseded coupled files, benchmark-accepted
+\newcommand{\NumTightInterdiction}{1{,}385}% interdiction files among the current ones
+\newcommand{\NumTightRelAbove}{2}% current files with follower slack above 1e-8 relative (still pass)
+\newcommand{\TightMaxSlackOther}{\ensuremath{1.3\times 10^{-9}}}% largest absolute follower slack of the other general files
+\newcommand{\NumGeneralTightened}{17}% general files re-derived (bobi coupled-tighten)
+\newcommand{\TightWorseMaxAbs}{1{,}000}% largest loss of a re-derived file's leader value (units)
+\newcommand{\TightWorseMaxAbsName}{core2536-691\_0\_100}% the file with that loss
+\newcommand{\TightWorseMaxRel}{\ensuremath{1.4\times 10^{-6}}}% largest relative loss of a re-derived file's leader value
+\newcommand{\NumGeneralTightCertified}{62}% general files bobi certify --tight passes
+\newcommand{\NumGeneralTightNoBound}{2}% general files where certify --tight gets no follower bound (pass verify --tight)
+\newcommand{\NumCoupledTightened}{9}% coupled files re-derived
+\newcommand{\NumCoupledTightCertified}{29}% coupled files certify --tight passes
+\newcommand{\NumGeneralPycheckDone}{13}% re-derived general files confirmed by the highspy check (finished)
+\newcommand{\NumGeneralPycheck}{17}% re-derived general files given to the highspy check
+\newcommand{\CliqueCertInstances}{30}% density-0.9 instances whose case certificates pass
+\newcommand{\CliqueCertCases}{170}% part-size cases certified by trees
+\newcommand{\CliqueCertNodes}{134{,}368}% tree nodes over all 170 certificates
+\newcommand{\CliqueCertLeaves}{89{,}132}% tree leaves over all 170 certificates
+\newcommand{\CliqueCertMaxNodes}{9{,}888}% nodes of the largest tree
+\newcommand{\CliqueCertSeconds}{3.1}% checker time for all 30 instances, s
+\newcommand{\CliqueCheckerLines}{174}% non-blank code lines of the checker (after its docstring)
+\newcommand{\NumSetKp}{450}% instances of BOBILib's set kp
+\newcommand{\NumSetCclw}{50}% instances of BOBILib's set cclw
+\newcommand{\NumSetInterKp}{99}% instances of BOBILib's set inter-kp
+\newcommand{\NumSetDenegre}{110}% instances of BOBILib's set denegre
+\newcommand{\NumSetZhang}{30}% instances of BOBILib's set zhang
+\newcommand{\NumSetMisc}{6}% instances of BOBILib's set misc
+\newcommand{\NumSetXuwang}{100}% instances of BOBILib's set xuwang
+\newcommand{\NumSetXularge}{60}% instances of BOBILib's set xularge
+\newcommand{\NumSetInterAssig}{24}% instances of BOBILib's set inter-assig
+\newcommand{\NumSetMiplibThree}{60}% instances of BOBILib's set miplib3
+\newcommand{\NumSetDenegreTagged}{50}% denegre instances named miblp_* (tagged denegre in BOBILib's metadata)
+\newcommand{\SmallSetsFeasibleName}{milp\_10\_20\_50\_2310}% the one non-optimal instance of the small general sets
+\newcommand{\NumSmallSetsFeasible}{one}% non-optimal instances of the small general sets
+\newcommand{\NumMiplibDerived}{389}% MIPLIB-derived instances (miplib2010, miplib2017, miplib3)
+\newcommand{\NumMiplibThreeModels}{20}% MIPLIB 3 models behind the miplib3 set
+\newcommand{\NumMiplibThreePerModel}{three}% instances per MIPLIB 3 model
+\newcommand{\NumFiftyFifty}{163}% _50_50 instances (miplib2010/2017)
+\newcommand{\NumFiftyFiftyCoupled}{161}% _50_50 instances with coupling rows
+\newcommand{\NumFiftyFiftyUncoupled}{two}% _50_50 instances without coupling rows
+\newcommand{\NumZeroHundred}{166}% _0_100 instances (miplib2010/2017)
+\newcommand{\NumAuxRounded}{90}% MIPLIB-derived AUX files with follower costs rounded to 6 significant digits
+\newcommand{\NumContLinking}{137}% instances with continuous linking variables (all MIPLIB-derived)
+\newcommand{\NumAssignNegated}{19}% assignment files whose leader objective is exactly the negated follower cost
+\newcommand{\NumAssignOther}{five}% assignment files where it differs
+\newcommand{\LsOrZeroOptimal}{366}% OR instances with an Optimal/Proved value 0 in their run files (time-limit rows)
+\newcommand{\LsInfeasibleVerifiedPoint}{90}% instances reported Infeasible/Proved in their run files although a verified point exists
+\newcommand{\LsWrongOptima}{two}% reported optima worse than a verified point
+\newcommand{\LsBadPadmName}{highschool1-aigio\_0\_100}% their PADM 'feasible' point on an instance without one

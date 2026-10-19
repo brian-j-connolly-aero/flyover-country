@@ -368,7 +368,7 @@ FUNCTION {format.doi.url}
         { "\url{" url * "}" * }
       if$
     }
-    { "\url{https://doi.org/" doi * "}" * }
+    { "\doiurl{" doi * "}" * }   % bobi: \doiurl (defined in main.tex) keeps "https://doi.org/" in one piece
   if$
 }
 

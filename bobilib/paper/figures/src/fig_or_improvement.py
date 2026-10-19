@@ -41,10 +41,10 @@ for r in rows:
     imp[(ft, r["alpha"])].append(100 * (pub - p) / pub)
 
 S.check(n_points, 690, "verified OR points")
-S.check(better, 469, "points strictly better than every published value")
+S.check(better, 474, "points strictly better than every published value")
 S.check(sum(first.values()), 88, "first points anywhere")
 S.check(dict(first), {"0.50": 51, "0.75": 37}, "first points per budget (31+20, 27+10)")
-S.check(left_out, 3, "points left out: inconsistent published bounds")
+S.check(left_out, 1, "points left out: inconsistent published bounds (the closure)")
 
 XL, XR = -10.0, 40.0
 BUDGETS = ["0.25", "0.50", "0.75"]
