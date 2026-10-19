@@ -46,3 +46,15 @@ instance, including the 34 without a point and why.
 
 The nine solution files over 1 MB are in `large_points.tar.gz`
 (`tar xzf large_points.tar.gz` before verifying).
+
+**Tight tolerance.** `bobi general`'s optimistic tie-break lets the
+follower's value sit up to 1e-7 (1 + |phi|) above its optimum. Under `bobi
+verify --tight` (follower within max(1e-6, 1e-9 |phi|) of its proven
+optimum) 47 of the 64 files pass; the other 17 (15 here, neos-873061_0_100
+and netdiversion_0_100 in the archive) pass only BOBILib's relative 1e-4,
+with the follower about 1e-7 relative above its optimum, so they are
+benchmark-accepted points. None of them is an HPR-bound optimum. A dry run
+of `bobi coupled-tighten` re-derives all 17 under the strict tolerance at
+their own leader values, each worse by the follower's slack (6.3e-6 to
+1,000; about 1e-7 relative). The files here were not replaced. Details:
+`../notes/tight_verify.md`.

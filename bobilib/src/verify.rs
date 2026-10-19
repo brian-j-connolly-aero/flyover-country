@@ -675,9 +675,18 @@ mod tests {
         let t = Tight::default();
         // Absolute 1e-6 for small values, relative 1e-9 for large ones.
         assert_eq!(tight_verdict(-10.0, Some(-10.0), Some(-10.0), &t), Yes);
-        assert_eq!(tight_verdict(-10.0 + 5e-7, Some(-10.0), Some(-10.0), &t), Yes);
-        assert_eq!(tight_verdict(-10.0 + 1e-5, Some(-10.0), Some(-10.0), &t), No);
-        assert_eq!(tight_verdict(-10.0 - 1e-5, Some(-10.0), Some(-10.0), &t), No);
+        assert_eq!(
+            tight_verdict(-10.0 + 5e-7, Some(-10.0), Some(-10.0), &t),
+            Yes
+        );
+        assert_eq!(
+            tight_verdict(-10.0 + 1e-5, Some(-10.0), Some(-10.0), &t),
+            No
+        );
+        assert_eq!(
+            tight_verdict(-10.0 - 1e-5, Some(-10.0), Some(-10.0), &t),
+            No
+        );
         assert_eq!(tight_verdict(6e7 + 0.05, Some(6e7), Some(6e7), &t), Yes);
         assert_eq!(tight_verdict(6e7 + 6.0, Some(6e7), Some(6e7), &t), No);
         // An open gap: unproven unless phi_sol is within the tolerance of both ends.
@@ -695,7 +704,10 @@ mod tests {
         };
         // y = 2.9999 is within BOBILib's relative 1e-4 of 3, not within 1e-6.
         let r = verify(&m, &solution(&m, &[2.0, 2.9999]), &tight);
-        assert_eq!((r.follower, r.follower_bobilib), (Verdict::No, Verdict::Yes));
+        assert_eq!(
+            (r.follower, r.follower_bobilib),
+            (Verdict::No, Verdict::Yes)
+        );
         assert!(!r.passed() && r.benchmark_accepted());
         let r = verify(&m, &solution(&m, &[2.0, 3.0 - 1e-7]), &tight);
         assert!(r.passed(), "{r:?}");

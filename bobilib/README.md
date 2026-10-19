@@ -26,6 +26,7 @@ ln -s /path/to/bobilib-data data   # collection/ and collection-solutions/ from 
 | `bobi check MPS SOL` | Check a BOBILib solution file's constraints and objective. |
 | `bobi verify MPS SOL` | Verify a solution like BOBILib's feasibility checker: rows, bounds and integrality within 1e-6, the stated objective, and follower optimality with the leader fixed (relative gap at most 1e-4). |
 | `bobi verify --instances DIR SOL...` | The same for many solution files or directories, matching instances by name. |
+| `bobi verify --tight ...` | The same with the follower held to its optimum: its value within max(1e-6, 1e-9 \|phi\|) of every optimum the solver's proof allows (zero relative gap); two more columns give BOBILib's verdict on the same solve and the follower's slack (`--follower-abs-tol`, `--follower-rel-tol` change the tolerances). |
 | `bobi kip-import DIR --meta --wf --out` | Write verified optimal solution files for BOBILib's KIP instances from Weninger and Fukasawa's published optima (see `results/kip`). |
 | `bobi ss-solve MPS...` | Exact solver for subset-sum knapsack interdiction (profit = follower weight). |
 | `bobi lp-bound MPS...` | Bracket min over leader choices of the follower's LP value: a lower and an upper bound on the bilevel optimum. |
@@ -34,7 +35,8 @@ ln -s /path/to/bobilib-data data   # collection/ and collection-solutions/ from 
 | `bobi general MPS...` | Feasible points for general instances without coupling rows: HPR, follower, tie-break. |
 | `bobi coupled MPS...` | Verified feasible points for general instances *with* coupling rows (time-limited portfolio, see below). |
 | `bobi coupled-diag MPS...` | Why the HPR's leader choice fails: least coupling violation over the follower's optima, and the rows that stay violated. |
-| `bobi certify MPS SOL` | Re-check a solution file the way BOBILib's checker does (rows, follower optimality, optimistic tie-break) with proven dual bounds. |
+| `bobi certify MPS SOL` | Re-check a solution file the way BOBILib's checker does (rows, follower optimality, optimistic tie-break) with proven dual bounds. `--tight`: the follower's value at most 1e-6 (absolute) above the proven bound on its optimum. |
+| `bobi coupled-tighten MPS SOL... --out DIR` | Re-derive a solution file's point under the strict tolerance: the follower at the file's leader values (zero relative gap), then the optimistic tie-break with the follower's value at most 1e-9 above its optimum, every leader variable fixed or, if no such response meets the coupling rows, only the linking ones. `bobi coupled --strict` runs the whole search that way. |
 
 ## Methods
 

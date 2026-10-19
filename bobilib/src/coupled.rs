@@ -239,6 +239,19 @@ pub struct Response {
     pub secs: f64,
 }
 
+impl Response {
+    /// The follower value best responses are capped against: the response's
+    /// own value or, under the strict tolerance, the proven bound when
+    /// rounding left the value below it (the optimum is at least the bound).
+    fn reference(&self, tol: Tolerance) -> f64 {
+        if tol.strict() {
+            self.value.max(self.bound)
+        } else {
+            self.value
+        }
+    }
+}
+
 /// Solve the follower at `x`'s leader values (rows with follower variables
 /// that belong to the follower; coupling rows are ignored).
 pub fn follower_response(m: &Bilevel, x: &[f64], time: f64) -> Response {
@@ -401,14 +414,18 @@ pub fn certify_with(m: &Bilevel, val: &[f64], time: f64, tol: Tolerance) -> Cert
     } else {
         &[1e-9 * (1.0 + ll.abs())]
     };
-    sub.mp.add_row(ll_terms, f64::NEG_INFINITY, ll + caps[0]);
+    // A point whose rows are met only within the tolerance can sit below
+    // the follower's proven optimum; the region starts at the optimum then.
+    let ll_ref = if tol.strict() { ll.max(bound) } else { ll };
+    sub.mp
+        .add_row(ll_terms, f64::NEG_INFINITY, ll_ref + caps[0]);
     let mut o = SolveOpts::new(time);
     o.rel_gap = if tol.strict() { STRICT_TIE_REL } else { 1e-7 };
     o.abs_gap = 1e-9;
     if tol.strict() {
         o.feas_tol = Some(1e-9);
     }
-    let t = solve_capped(&mut sub.mp, ll, caps, &o);
+    let t = solve_capped(&mut sub.mp, ll_ref, caps, &o);
     let fixed_part: f64 = m.obj_offset
         + m.vars
             .iter()
@@ -848,7 +865,7 @@ impl<'a> Search<'a> {
             if matches!(resp.status, MilpStatus::Optimal | MilpStatus::Feasible)
                 && gap_ok(resp.value, resp.bound, self.split.ll_integral, tol)
             {
-                let b = self.best_response(&val, resp.value, false, time);
+                let b = self.best_response(&val, resp.reference(tol), false, time);
                 if matches!(b.status, MilpStatus::Optimal | MilpStatus::Feasible) {
                     let tie = clean(b.x);
                     let ok_now = m.max_violation(&val).0 <= ROW_TOL;
@@ -967,7 +984,7 @@ impl<'a> Search<'a> {
             return Eval::Unresolved(why, None);
         }
         self.seen.insert(key, Some(resp.clone()));
-        let phi = resp.value;
+        let phi = resp.reference(tol);
         // (If the master's own y is a follower optimum, the first best
         // response below has it as a feasible point.)
         let has_free = self

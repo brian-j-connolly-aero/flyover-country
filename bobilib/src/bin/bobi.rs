@@ -475,8 +475,13 @@ fn verify_file(
     // The two columns `--tight` adds after the note.
     let tail = if opts.tight.is_some() { "\t-\t-" } else { "" };
     let fallback = strip_suffixes(sol_path, &[".res.json"]);
-    let error =
-        |name: &str, why: String| (Checked::Error, None, format!("{name}\tERROR{blank}\t{why}{tail}"));
+    let error = |name: &str, why: String| {
+        (
+            Checked::Error,
+            None,
+            format!("{name}\tERROR{blank}\t{why}{tail}"),
+        )
+    };
     let sol = match SolutionFile::read(sol_path) {
         Ok(s) => s,
         Err(e) => return error(&fallback, e),
@@ -497,7 +502,10 @@ fn verify_file(
         return (
             Checked::NoSolution,
             None,
-            format!("{}\tNOSOL{blank}\tstatus {status}, no point{tail}", sol.name),
+            format!(
+                "{}\tNOSOL{blank}\tstatus {status}, no point{tail}",
+                sol.name
+            ),
         );
     }
     let m = match mps::read_instance(&mps) {
@@ -530,7 +538,9 @@ fn verify_file(
         if note.is_empty() { "-" } else { &note },
     );
     let row = if opts.tight.is_some() {
-        let slack = r.phi_bound.map_or("-".into(), |b| format!("{:.3e}", r.phi_sol - b));
+        let slack = r
+            .phi_bound
+            .map_or("-".into(), |b| format!("{:.3e}", r.phi_sol - b));
         format!("{row}\t{}\t{slack}", r.follower_bobilib.as_str())
     } else {
         row
@@ -1169,8 +1179,8 @@ fn main() {
             follower_abs_tol,
             follower_rel_tol,
         } => {
-            let tight = (tight || follower_abs_tol.is_some() || follower_rel_tol.is_some())
-                .then(|| {
+            let tight =
+                (tight || follower_abs_tol.is_some() || follower_rel_tol.is_some()).then(|| {
                     let d = verify::Tight::default();
                     verify::Tight {
                         abs: follower_abs_tol.unwrap_or(d.abs),
@@ -1665,7 +1675,10 @@ fn coupled_tighten(
     });
     let obj = line.as_object_mut().unwrap();
     let found = s.at_leader(&val);
-    obj.insert("secs".into(), json!((t.elapsed().as_secs_f64() * 10.0).round() / 10.0));
+    obj.insert(
+        "secs".into(),
+        json!((t.elapsed().as_secs_f64() * 10.0).round() / 10.0),
+    );
     match found {
         Ok(f) => {
             let c = &f.cert;

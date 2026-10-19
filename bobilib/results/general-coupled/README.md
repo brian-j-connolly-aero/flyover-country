@@ -106,8 +106,8 @@ here has 764,774, so it is not proven optimal. HiGHS reported the HPR
 the HPR need not be solved to optimality, any HPR point whose leader values
 are unblocked gives a bilevel feasible point.
 
-(s): the point was re-derived under the strict follower tolerance after the
-independent review (see "Strict tolerance" below); method and time are those
+(s): the point was re-derived under the strict follower tolerance after an
+external review (see "Strict tolerance" below); method and time are those
 of the search that found the original leader values.
 
 ## Verification
@@ -146,9 +146,12 @@ The nine files were replaced by points whose follower response is optimal
 to a tight tolerance: `bobi coupled-tighten` (`scripts/tighten_coupled.sh`,
 `Tolerance::Strict` in `src/coupled.rs`) solves the follower at the old
 file's leader values with zero relative gap (absolute gap and feasibility
-tolerance 1e-9), giving phi*; then the optimistic tie-break (all rows, the
-leader's objective minimised) with the follower's value capped at phi* +
-1e-9 (absolute), every leader variable fixed. For pg and neos-2978193-inde
+tolerance 1e-9), giving phi* (its value, or its proven bound where
+rounding the integers leaves the value below the bound); then the
+optimistic tie-break (all rows, the leader's objective minimised) with the
+follower's value capped at phi* + 1e-9 (absolute; the code retries with
+1e-7 when the solver finds no point with 1e-9, which none of the nine
+needed), every leader variable fixed. For pg and neos-2978193-inde
 no such response meets the coupling rows at the files' own leader values
 (the coupling rows force the follower 1.0e-7 relative above its optimum
 there), so only the linking variables (the leader variables in follower
@@ -182,11 +185,13 @@ whose other leader variables had to move. The old neos17 file already met
 the tight test (slack 1.6e-7 < 1e-6); it was re-derived anyway. All nine
 are still the first known points for their instances.
 
-An independent check (HiGHS 1.15 through highspy, its own AUX parser, not
-`bobi`) confirmed the nine new files: rows, bounds and integrality within
-2.3e-11; the follower re-solved with zero relative gap and feasibility
-tolerance 1e-9, slack at most 1.0e-9; and, with the follower allowed the
-whole 1e-6 above its optimum, the leader could gain at most 1.0e-6.
+An independent check (`scripts/coupled_tight_check.py`: HiGHS 1.15 through
+highspy, its own AUX parser, no `bobi` code; output
+`tolerance/pycheck_tight.tsv`) confirmed the nine new files: rows, bounds
+and integrality within 2.3e-11; the follower re-solved with zero relative
+gap and feasibility tolerance 1e-9, slack at most 1.0e-9; and, with the
+follower allowed the whole 1e-6 above its optimum, the leader could gain at
+most 1.0e-6.
 
 After the replacement all 29 files pass `bobi certify --tight` and
 `bobi verify --tight` (follower within max(1e-6, 1e-9 |phi|) of its
@@ -207,8 +212,11 @@ proven optimum; `../notes/tight_verify.md`).
 * `tolerance/<instance>.res.json.tol`: the nine superseded files that used
   the follower tolerance; `tolerance/tighten.jsonl`: the `bobi
   coupled-tighten` run that replaced them (old and new objectives, follower
-  slack, mode); `tolerance/certify_tight.tsv`: `bobi certify --tight` on the
-  29 current files and on the nine old ones.
+  slack, mode); `tolerance/certify_tight.tsv` and
+  `tolerance/certify_tight_old.tsv`: `bobi certify --tight` on the 29
+  current files (all VERIFIED) and on the nine old ones (8 REJECTED for
+  the follower's slack; neos17's old file passes); `tolerance/pycheck_tight.tsv`:
+  the independent check of the nine new files.
 
 ## Runs and reproduction
 
@@ -233,12 +241,15 @@ sh scripts/certify_dir.sh results/general-coupled 300
 # the nine re-derived files: strict tie-break at the old files' leader values
 sh scripts/tighten_coupled.sh results/general-coupled 600 results/general-coupled/tolerance/*.res.json.tol \
     > results/general-coupled/tolerance/tighten.jsonl
+# tight certificate of every file, then the summary columns from it
+for f in results/general-coupled/*.res.json; do n=$(basename $f .res.json)
+  ./target/release/bobi certify --tight $(find data/collection -name $n.mps.gz) $f --follower-time 600
+done > results/general-coupled/tolerance/certify_tight.tsv
 python3 -I scripts/coupled_tighten_summary.py results/general-coupled/summary.csv \
     results/general-coupled/tolerance/tighten.jsonl results/general-coupled/tolerance/certify_tight.tsv
-# tight certificate and tight verification
-for f in results/general-coupled/*.res.json; do n=$(basename $f .res.json)
-  ./target/release/bobi certify --tight $(find data/collection -name $n.mps.gz) $f --follower-time 600; done
+# tight verification, and the independent check of one file (HiGHS via highspy, no bobi code)
 ./target/release/bobi verify --instances data/collection --tight results/general-coupled --time-limit 1200
+python3 -I scripts/coupled_tight_check.py 600 INSTANCE.mps.gz INSTANCE.aux results/general-coupled/pg_50_50.res.json
 # a whole search under the strict tolerance
 ./target/release/bobi coupled FILE.mps.gz --strict --time 300 --follower-time 120 --out DIR
 # one instance, all methods, with a log on stderr
