@@ -68,7 +68,6 @@ rebuilding them gives byte-identical PDFs.
 
 ## Placeholders
 
-`main.tex` and `appendix/appendix.tex` define `\authoremail` as the literal text
-`EMAIL`, and `main.tex` defines `\repourl` (`REPOSITORY-URL`) and `\datadoi`
-(`DATA-DOI`) for the Data availability section. Fill them in before submission;
-`../results/README.md` has the matching placeholders for the data package.
+`main.tex` defines `\repourl`, still the literal text `REPOSITORY-URL`, for the
+Data availability section; fill it in before submission. No DOI has been
+assigned yet, so neither the paper nor `../results/README.md` cites one.

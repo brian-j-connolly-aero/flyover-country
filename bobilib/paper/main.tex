@@ -10,9 +10,8 @@
 \documentclass[]{spie}  % US letter, 10 pt, Times
 
 % Placeholders for the author to fill in.
-\newcommand{\authoremail}{EMAIL}
+\newcommand{\authoremail}{brian.connolly@beehiveind.com}
 \newcommand{\repourl}{REPOSITORY-URL}
-\newcommand{\datadoi}{DATA-DOI}
 
 \usepackage[T1]{fontenc}
 \usepackage{mathptmx}
@@ -79,7 +78,7 @@
 \title{Settling \NumSettled{} unsolved BOBILib instances: \NumLitOptimal{} published optima,
 \NumNewOptimal{} new optimality proofs and \NumNoFeasible{} infeasibility certificates}
 \author{Brian J. Connolly\textsuperscript{*}}
-\affil{Independent Researcher}
+\affil{Beehive Industries}
 \authorinfo{\textsuperscript{*}Further author information: E-mail: \authoremail}
 \pagestyle{plain}
 
@@ -1210,8 +1209,7 @@ main pruning lemmas of the new search are proved in Lean.
 % ======================================================================================
 \section*{DATA AVAILABILITY}
 
-The data package is the folder \code{results/} of the repository \repourl{} (archived with
-DOI \datadoi). It contains \code{instances.csv}, one row per BOBILib instance with BOBILib's
+The data package is the folder \code{results/} of the repository \repourl{}. It contains \code{instances.csv}, one row per BOBILib instance with BOBILib's
 status and value, the new status, the best known value (verified here, or a published optimum)
 and the best bound, the source, the method, the certificate and its class; \code{bobilib\_update.solu}, the status changes in MIPLIB's
 \code{.solu} format (\NumSoluOpt{} \code{=opt=}, \NumSoluInf{} \code{=inf=}, \NumSoluBest{}
@@ -1226,14 +1224,38 @@ project with the proofs. The supplementary document (\code{paper/appendix/} in t
 holds the proofs, the verification protocol, the certificate classes, the map of the Lean theorems
 and the per-instance tables.
 
+\section*{DISCLOSURE OF AI ASSISTANCE}
+
+This work was carried out with substantial assistance from an artificial intelligence (AI)
+coding agent, Claude Code (Anthropic), working under my direction. I posed the question, set the
+priorities, chose which directions to pursue, reviewed the results and the manuscript, and decided
+what to claim. The agent did most of the hands-on work:
+\begin{itemize}
+\item the literature search and the reconciliation of BOBILib's statuses with published
+  per-instance data;
+\item all software: the Rust solvers and the verifier (\code{bobi}), the scripts, the checkers and
+  the data package, and the computational experiments;
+\item the design of the new methods, including the per-node tables of the subset-sum search, which
+  came out of a comparison of three designs built and judged in separate agent sessions;
+\item the Lean formalisation of the pruning rules and the clique lemmas;
+\item the figures, the first drafts of this paper and of the supplementary document, and their
+  revisions.
+\end{itemize}
+The checks called separate reviews in Section~\ref{sec:lean} were fresh sessions of the same
+agent that wrote their own code and instance readers without reading the code they checked; they
+are re-implementations, not independent human reviews, and they share the risk of a common
+misreading (Section~\ref{sec:limits}). Comments from another AI system (ChatGPT, OpenAI) on an
+earlier draft led to the exact certificates for the last two recession directions, the
+re-derivation of the tolerance-dependent points, the clique case certificates and the certificate
+classes. Apart from me, no human has yet reviewed the code or the proofs. For that reason every
+claim comes with an artefact that can be checked without trusting the agent or its code: solution
+files that BOBILib's own checker can read, certificates with short standalone checkers, Lean proofs
+checked by Lean's kernel, and the per-instance records of the data package. All results reported
+here passed the verification described in Sections~\ref{sec:verify} and~\ref{sec:lean}.
+
 \section*{ACKNOWLEDGEMENTS}
 
-The software development, the computational experiments, the separate review sessions and the
-drafting of this paper were carried out with substantial assistance from an artificial
-intelligence (AI) coding agent (Claude Code, Anthropic) directed by the author. The reviews
-described in Section~\ref{sec:lean} were separate sessions of the same agent that wrote their own
-code. All results were checked by the verification described in Sections~\ref{sec:verify}
-and~\ref{sec:lean}. I thank the maintainers of BOBILib, Johannes Th\"urauf, Thomas Kleinert, Ivana
+I thank the maintainers of BOBILib, Johannes Th\"urauf, Thomas Kleinert, Ivana
 Ljubi\'c, Ted Ralphs and Martin Schmidt, for the library, its solution files and its checker, and
 the authors who published their per-instance data and code, in particular Noah Weninger and
 Ricardo Fukasawa; Matteo Fischetti, Ivana Ljubi\'c, Michele Monaci and Markus Sinnl; Leonardo
